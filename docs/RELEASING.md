@@ -94,8 +94,7 @@ Go to Settings → Rules → Rulesets → New branch ruleset, target `main`, and
 ### Host the privacy policy
 
 Both stores require a public privacy policy URL.
-1. Replace `CONTACT_EMAIL` in `docs/privacy-policy.md`.
-2. In Settings → Pages, choose Deploy from a branch → `main` / `/docs`.
-3. The policy is then live at `https://haskalach.github.io/monthly-expense-app/privacy-policy`.
+1. In Settings → Pages, choose Deploy from a branch → `main` / `/docs`.
+2. The policy is then live at `https://haskalach.github.io/monthly-expense-app/privacy-policy`. Its contact is the GitHub Issues page, so no email address is published.
 
 Every file in `docs/` gets published, which is fine because the repo is public anyway.

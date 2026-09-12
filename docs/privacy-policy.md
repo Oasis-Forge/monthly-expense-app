@@ -2,7 +2,7 @@
 title: Privacy Policy – Monthly Expenses
 ---
 
-<!-- Before publishing: replace CONTACT_EMAIL. Update this page whenever a feature changes how data is stored or shared (e.g. backup/CSV export). This draft is not legal advice. -->
+<!-- Update this page whenever a feature changes how data is stored or shared (e.g. backup/CSV export). This draft is not legal advice. -->
 
 # Privacy Policy
 
@@ -43,4 +43,4 @@ Any changes will be posted on this page with a new "Last updated" date.
 
 ## Contact
 
-Questions about this policy: CONTACT_EMAIL
+For questions about this policy, [open an issue on GitHub](https://github.com/haskalach/monthly-expense-app/issues). Issues are public, so please don't include personal or financial details.

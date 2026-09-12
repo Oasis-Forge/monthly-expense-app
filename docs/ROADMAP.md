@@ -5,8 +5,11 @@ Goal: ship Monthly Expenses to Google Play and the App Store. One PR per item or
 ## Phase 0 — Tooling
 - [x] `CLAUDE.md`, `.claude/` settings, format hook, `/verify` and `/release` skills, `build-doctor` agent
 - [x] Dependabot, release-signing scaffolding (`android/key.properties`, `ios/ExportOptions.plist`)
-- [ ] CI (checks + Android and iOS builds), release, and Claude workflows running green on GitHub
-- [ ] Make the repo public, then add the `main` ruleset and GitHub Pages (`docs/RELEASING.md` → Public repository)
+- [x] CI (checks + Android and iOS builds) green on GitHub
+- [x] Repo public, with a `main` ruleset (PR + 3 required checks, no force pushes or deletion)
+- [ ] `release-android.yml` manual run without secrets (debug artifacts, nothing published)
+- [ ] GitHub Pages serving `docs/privacy-policy.md`
+- [ ] `release-ios.yml` and `claude.yml` exercised once their secrets exist
 
 ## Phase 1 — Correctness, testability, tests
 - [ ] `ExpenseTransaction.copyWith` can't clear `note` (`note ?? this.note`): editing a note to empty keeps the old text. Add a `clearNote` flag or sentinel. (`lib/models/transaction.dart`)
