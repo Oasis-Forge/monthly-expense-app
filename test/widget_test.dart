@@ -12,7 +12,9 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  testWidgets('App starts and shows the home screen', (WidgetTester tester) async {
+  testWidgets('App starts and shows the home screen', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(const MonthlyExpenseApp());
     await tester.pump();
 

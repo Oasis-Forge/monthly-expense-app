@@ -105,7 +105,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     final isEditing = widget.editing != null;
 
     return Scaffold(
-      appBar: AppBar(title: Text(isEditing ? 'Edit Transaction' : 'Add Transaction')),
+      appBar: AppBar(
+        title: Text(isEditing ? 'Edit Transaction' : 'Add Transaction'),
+      ),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -141,8 +143,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 labelText: 'Title',
                 border: OutlineInputBorder(),
               ),
-              validator: (value) =>
-                  (value == null || value.trim().isEmpty) ? 'Enter a title' : null,
+              validator: (value) => (value == null || value.trim().isEmpty)
+                  ? 'Enter a title'
+                  : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -152,11 +155,17 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 border: OutlineInputBorder(),
                 prefixText: '\$ ',
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Enter an amount';
+                if (value == null || value.trim().isEmpty) {
+                  return 'Enter an amount';
+                }
                 final parsed = double.tryParse(value.trim());
-                if (parsed == null || parsed <= 0) return 'Enter a valid amount';
+                if (parsed == null || parsed <= 0) {
+                  return 'Enter a valid amount';
+                }
                 return null;
               },
             ),
@@ -168,10 +177,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 border: OutlineInputBorder(),
               ),
               items: _categoryOptions
-                  .map((c) => DropdownMenuItem(
-                        value: c,
-                        child: Text('${Categories.icons[c] ?? ''} $c'),
-                      ))
+                  .map(
+                    (c) => DropdownMenuItem(
+                      value: c,
+                      child: Text('${Categories.icons[c] ?? ''} $c'),
+                    ),
+                  )
                   .toList(),
               onChanged: (value) {
                 if (value != null) setState(() => _category = value);
@@ -182,7 +193,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               contentPadding: EdgeInsets.zero,
               title: const Text('Date'),
               subtitle: Text(
-                  '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}'),
+                '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}',
+              ),
               trailing: const Icon(Icons.calendar_today),
               onTap: _pickDate,
             ),

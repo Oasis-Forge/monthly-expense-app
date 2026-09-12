@@ -23,9 +23,8 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.pie_chart_outline),
             tooltip: 'Stats',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const StatsScreen()),
-            ),
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const StatsScreen())),
           ),
         ],
       ),
@@ -57,9 +56,9 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AddTransactionScreen()),
-        ),
+        onPressed: () => Navigator.of(
+          context,
+        ).push(MaterialPageRoute(builder: (_) => const AddTransactionScreen())),
         icon: const Icon(Icons.add),
         label: const Text('Add'),
       ),
@@ -119,16 +118,13 @@ class _SummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text(
-              'Balance',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Text('Balance', style: Theme.of(context).textTheme.bodyMedium),
             Text(
               currency.format(balance),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: balance >= 0 ? Colors.green : Colors.red,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: balance >= 0 ? Colors.green : Colors.red,
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -188,9 +184,7 @@ class _AmountTile extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           currency.format(amount),
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
+          style: Theme.of(context).textTheme.titleMedium
               ?.copyWith(color: color, fontWeight: FontWeight.w600),
         ),
       ],
@@ -218,9 +212,7 @@ class _DaySection extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Text(
             DateFormat.yMMMd().format(day),
-            style: Theme.of(context)
-                .textTheme
-                .labelLarge
+            style: Theme.of(context).textTheme.labelLarge
                 ?.copyWith(color: Colors.grey.shade600),
           ),
         ),

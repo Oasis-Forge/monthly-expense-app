@@ -33,7 +33,11 @@ class StatsScreen extends StatelessWidget {
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
-      appBar: AppBar(title: Text('Stats — ${DateFormat.yMMMM().format(provider.selectedMonth)}')),
+      appBar: AppBar(
+        title: Text(
+          'Stats — ${DateFormat.yMMMM().format(provider.selectedMonth)}',
+        ),
+      ),
       body: entries.isEmpty
           ? const Center(child: Text('No expenses this month yet.'))
           : ListView(
@@ -64,8 +68,10 @@ class StatsScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 24),
-                Text('Total spent: ${currency.format(total)}',
-                    style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  'Total spent: ${currency.format(total)}',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 12),
                 for (var i = 0; i < entries.length; i++)
                   ListTile(

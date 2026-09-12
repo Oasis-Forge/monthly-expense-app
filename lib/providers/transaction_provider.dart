@@ -57,9 +57,11 @@ class TransactionProvider extends ChangeNotifier {
 
   List<ExpenseTransaction> get transactionsForSelectedMonth {
     return _transactions
-        .where((t) =>
-            t.date.year == _selectedMonth.year &&
-            t.date.month == _selectedMonth.month)
+        .where(
+          (t) =>
+              t.date.year == _selectedMonth.year &&
+              t.date.month == _selectedMonth.month,
+        )
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
   }
