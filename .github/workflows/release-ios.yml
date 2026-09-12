@@ -1,0 +1,112 @@
+name: Release iOS
+
+# Tag push (vX.Y.Z matching pubspec.yaml) builds a signed IPA and uploads it to TestFlight.
+# Tag runs are skipped until the APPLE_TEAM_ID repository variable exists (saves macOS minutes).
+# Manual runs with upload=false do an unsigned compile check only.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      upload:
+        description: Sign and upload to TestFlight (needs Apple secrets)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-ios-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: 3.47.4
+  BUNDLE_ID: com.markkalash.monthlyExpenseApp
+
+jobs:
+  build:
+    name: Build and upload
+    if: github.event_name == 'workflow_dispatch' || vars.APPLE_TEAM_ID != ''
+    runs-on: macos-latest
+    timeout-minutes: 45
+    env:
+      UPLOAD: ${{ github.event_name == 'push' || inputs.upload }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check tag matches pubspec version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          pubspec_version=$(grep -E '^version:' pubspec.yaml | sed -E 's/^version: *([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          if [ "v$pubspec_version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match pubspec.yaml version $pubspec_version"
+            exit 1
+          fi
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Unsigned compile check
+        if: env.UPLOAD != 'true'
+        run: flutter build ios --release --no-codesign
+
+      - name: Import distribution certificate
+        if: env.UPLOAD == 'true'
+        uses: apple-actions/import-codesign-certs@v7
+        with:
+          p12-file-base64: ${{ secrets.IOS_DIST_CERT_P12_BASE64 }}
+          p12-password: ${{ secrets.IOS_DIST_CERT_PASSWORD }}
+
+      - name: Download App Store provisioning profile
+        if: env.UPLOAD == 'true'
+        uses: apple-actions/download-provisioning-profiles@v6
+        with:
+          bundle-id: ${{ env.BUNDLE_ID }}
+          profile-type: IOS_APP_STORE
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
+
+      - name: Configure manual signing
+        if: env.UPLOAD == 'true'
+        env:
+          TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          PROFILE_NAME: ${{ vars.IOS_PROFILE_NAME || 'Monthly Expenses App Store' }}
+        run: |
+          if [ -z "$TEAM_ID" ]; then
+            echo "::error::Set the APPLE_TEAM_ID repository variable"
+            exit 1
+          fi
+          # CI-only signing overrides for the Runner target; never committed.
+          {
+            echo "CODE_SIGN_STYLE=Manual"
+            echo "DEVELOPMENT_TEAM=$TEAM_ID"
+            echo "CODE_SIGN_IDENTITY=Apple Distribution"
+            echo "CODE_SIGN_IDENTITY[sdk=iphoneos*]=Apple Distribution"
+            echo "PROVISIONING_PROFILE_SPECIFIER=$PROFILE_NAME"
+          } >> ios/Flutter/Release.xcconfig
+          /usr/libexec/PlistBuddy -c "Set :teamID $TEAM_ID" ios/ExportOptions.plist
+          /usr/libexec/PlistBuddy -c "Set :provisioningProfiles:$BUNDLE_ID $PROFILE_NAME" ios/ExportOptions.plist
+
+      - name: Build IPA
+        if: env.UPLOAD == 'true'
+        run: |
+          flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+          echo "IPA_PATH=$(ls build/ios/ipa/*.ipa | head -n 1)" >> "$GITHUB_ENV"
+
+      - name: Upload to TestFlight
+        if: env.UPLOAD == 'true'
+        uses: apple-actions/upload-testflight-build@v5
+        with:
+          app-path: ${{ env.IPA_PATH }}
+          issuer-id: ${{ secrets.APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ secrets.APPSTORE_KEY_ID }}
+          api-private-key: ${{ secrets.APPSTORE_PRIVATE_KEY }}
