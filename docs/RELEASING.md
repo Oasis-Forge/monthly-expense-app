@@ -1,12 +1,13 @@
 # Releasing
 
-Releases are tag-driven. The `version: x.y.z+N` line in `pubspec.yaml` is the source of truth: `x.y.z` is the store version name, and `N` is the build number, which must increase with every store upload. Use `/release` in Claude Code, or bump the version manually, commit, and push a `vX.Y.Z` tag.
+Every PR merged to `main` is a release. The `version: x.y.z+N` line in `pubspec.yaml` is the source of truth: `x.y.z` is the version name, following [Semantic Versioning](https://semver.org) (major for breaking changes, minor for new features, patch for fixes and everything else), and `N` is the build number, which grows by one with every release because the stores require it to increase.
 
-Pushing a tag runs:
-- **`release-android.yml`:** builds a signed AAB and APK, attaches the APK to a GitHub Release, and uploads the AAB to Play **internal testing** as a draft. Without signing secrets it builds with debug keys, uploads the files as workflow artifacts, and publishes nothing.
-- **`release-ios.yml`:** builds a signed IPA and uploads it to TestFlight. Tag runs are skipped until the `APPLE_TEAM_ID` variable exists. For an unsigned compile check, run it manually with `upload: false`.
+1. **Before merging**, bump the version on the branch with `/release [major|minor|patch]` in Claude Code, or by hand: edit `pubspec.yaml` and add a `## [x.y.z] - YYYY-MM-DD` entry to `CHANGELOG.md`. CI's `Format, analyze, test` check fails if the version isn't above the latest `vX.Y.Z` tag or has no changelog entry. Dependabot PRs are exempt and ship with the next release.
+2. **On merge**, `release-android.yml` builds the release APK and AAB, tags the merge commit `vX.Y.Z`, and attaches `monthly-expenses-X.Y.Z.apk` to a draft GitHub Release with the changelog entry as notes. With the signing and Play secrets, it also uploads the AAB to Play **internal testing** as a draft. A merge whose version is already tagged releases nothing.
 
-Both workflows fail if the tag doesn't match `pubspec.yaml`. Each also has a **Run workflow** button in the Actions tab.
+Without the Android signing secrets, each APK is signed with a throwaway debug key and can't update an installed copy: back up in the app, uninstall, install the new APK, and restore. Add the secrets below to get APKs that update in place.
+
+Tags pushed by CI don't start other workflows, so iOS and desktop builds are manual. In the Actions tab, run **`release-ios.yml`** (signed IPA to TestFlight; for an unsigned compile check, set `upload: false`) or **`release-desktop.yml`** with the release tag as the ref, or run `gh workflow run release-desktop.yml --ref vX.Y.Z`. Both check that the tag matches `pubspec.yaml`.
 
 ## GitHub secrets and variables
 
@@ -92,7 +93,7 @@ Go to Settings → Rules → Rulesets → New branch ruleset, target `main`, and
 - Require a pull request before merging.
 - Require status checks to pass: `Format, analyze, test`, `Android build (debug)`, `iOS build (unsigned)`. Run CI on one PR first so the check names show up in the picker.
 - Block force pushes.
-- Bypass list: Repository admin, so `/release` can push its version-bump commit to `main`.
+- Bypass list: Repository admin.
 
 ### Host the privacy policy
 
@@ -119,7 +120,7 @@ dart run flutter_native_splash:create
 
 1. In Partner Center, reserve the name "Monthly Expenses".
 2. Under Product identity, copy Package/Identity/Name, Package/Identity/Publisher, and Package/Properties/PublisherDisplayName into the `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER`, and `MSIX_PUBLISHER_DISPLAY_NAME` variables.
-3. Push a tag, download the MSIX from the `release-desktop.yml` run, and upload it in a Partner Center submission. The Store signs it.
+3. Run `release-desktop.yml` on the release tag, download the MSIX from the run, and upload it in a Partner Center submission. The Store signs it.
 4. For a local test install, `dart run msix:create` builds a test-signed package in `build/windows/x64/runner/Release/`.
 
 The package declares no capabilities, so it requests no internet access.
@@ -131,7 +132,7 @@ Flathub checks that the publisher controls the app ID's domain. `io.github.month
 1. Create the GitHub organization `monthly-expenses`. If the name is taken, pick another and change the ID in `linux/CMakeLists.txt`, `linux/flatpak/`, and `release-desktop.yml` before the first submission.
 2. Flathub needs permission to redistribute the app. With no `LICENSE` file the code is all rights reserved, so add a license (or terms that allow redistribution) and update `project_license` in the metainfo file.
 3. Add screenshots and a `<release>` entry to `linux/flatpak/io.github.monthly_expenses.MonthlyExpenses.metainfo.xml`.
-4. Push a tag and publish the draft GitHub Release. Copy the archive's sha256 from the `release-desktop.yml` run summary into the manifest's `sha256`, and the tag into its `url`.
+4. Run `release-desktop.yml` on the release tag and publish the draft GitHub Release. Copy the archive's sha256 from the `release-desktop.yml` run summary into the manifest's `sha256`, and the tag into its `url`.
 5. Submit the manifest by following Flathub's submission guide (a pull request to `flathub/flathub`). Once it's accepted, verify the app through the organization in Flathub's developer portal.
 6. For each later release, update `url` and `sha256` in the app's Flathub repository.
 

@@ -54,6 +54,31 @@ jobs:
           path: coverage/lcov.info
           retention-days: 7
 
+      # Every merged PR is a release (release-android.yml), so the version in
+      # pubspec.yaml must be above the latest vX.Y.Z tag and have a CHANGELOG.md
+      # entry. Dependabot PRs ship with the next release instead.
+      - name: Check version bump
+        if: ${{ !cancelled() && github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]' }}
+        run: |
+          fail() { echo "::error::$1"; exit 1; }
+          parse() { sed -nE 's/^version: *([0-9]+\.[0-9]+\.[0-9]+)\+([0-9]+)[[:space:]]*$/\1 \2/p'; }
+          read -r name build < <(parse < pubspec.yaml) || true
+          [ -n "${name:-}" ] || fail "pubspec.yaml version must look like x.y.z+N"
+          tags=$(git ls-remote --tags --refs origin 'v*')
+          last_tag=$(printf '%s\n' "$tags" | sed -n 's|.*refs/tags/||p' | sort -V | tail -n 1)
+          if [ -n "$last_tag" ]; then
+            git fetch --quiet --depth=1 origin "+refs/tags/$last_tag:refs/tags/$last_tag"
+            read -r last_name last_build < <(git show "$last_tag:pubspec.yaml" | parse) || true
+            highest=$(printf '%s\n%s\n' "$last_name" "$name" | sort -V | tail -n 1)
+            if [ "$name" = "$last_name" ] || [ "$highest" != "$name" ]; then
+              fail "$last_tag is released: raise the version above $last_name (major, minor, or patch)"
+            fi
+            [ "$build" -gt "$last_build" ] || fail "$last_tag is released: raise the build number above $last_build"
+          fi
+          awk -v heading="## [$name] - " 'index($0, heading) == 1 { found = 1 } END { exit !found }' CHANGELOG.md \
+            || fail "CHANGELOG.md needs a '## [$name] - YYYY-MM-DD' entry"
+          echo "Merging releases $name+$build (previous release: ${last_tag:-none})."
+
   android:
     name: Android build (debug)
     runs-on: ubuntu-latest

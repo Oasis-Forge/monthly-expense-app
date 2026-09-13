@@ -1,12 +1,15 @@
 name: Release Android
 
-# Tag push (vX.Y.Z matching pubspec.yaml) builds a signed AAB + APK, attaches the APK
-# to a GitHub Release, and uploads the AAB to Play internal testing as a draft.
-# Manual runs, or runs without signing secrets, only build and upload artifacts.
+# Every merge to main whose pubspec.yaml version (x.y.z+N) has no vX.Y.Z tag yet
+# builds the APK and AAB, tags the merge commit, and attaches the APK to a draft
+# GitHub Release with the CHANGELOG.md entry as notes. With signing and Play
+# secrets, the AAB also goes to Play internal testing as a draft. CI makes every
+# PR bump the version, so every merged PR gets its own APK. Manual runs outside
+# main only build artifacts.
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,23 +24,49 @@ env:
   PACKAGE_NAME: com.monthlyexpenses.app
 
 jobs:
-  build:
-    name: Build and publish
+  version:
+    name: Read version
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    env:
-      HAS_PLAY_CREDENTIALS: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+    timeout-minutes: 5
+    outputs:
+      name: ${{ steps.read.outputs.name }}
+      tag: ${{ steps.read.outputs.tag }}
+      release: ${{ steps.read.outputs.release }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: Check tag matches pubspec version
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Read the pubspec.yaml version
+        id: read
         run: |
-          pubspec_version=$(grep -E '^version:' pubspec.yaml | sed -E 's/^version: *([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-          if [ "v$pubspec_version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match pubspec.yaml version $pubspec_version"
+          name=$(sed -nE 's/^version: *([0-9]+\.[0-9]+\.[0-9]+)\+[0-9]+[[:space:]]*$/\1/p' pubspec.yaml)
+          if [ -z "$name" ]; then
+            echo "::error::pubspec.yaml version must look like x.y.z+N"
             exit 1
           fi
+          tag="v$name"
+          release=false
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "Not on main: building $tag without releasing it." >> "$GITHUB_STEP_SUMMARY"
+          elif git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
+            echo "$tag is already released: nothing to release." >> "$GITHUB_STEP_SUMMARY"
+          else
+            release=true
+          fi
+          { echo "name=$name"; echo "tag=$tag"; echo "release=$release"; } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: Build and publish
+    needs: version
+    if: needs.version.outputs.release == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NAME: ${{ needs.version.outputs.name }}
+      TAG: ${{ needs.version.outputs.tag }}
+      RELEASE: ${{ needs.version.outputs.release }}
+      HAS_PLAY_CREDENTIALS: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
+    steps:
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-java@v6
         with:
@@ -59,7 +88,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::warning::ANDROID_KEYSTORE_BASE64 is not set: building with debug keys and skipping publishing."
+            echo "::warning::ANDROID_KEYSTORE_BASE64 is not set: signing with a throwaway debug key and skipping Play."
             echo "signed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -91,30 +120,60 @@ jobs:
             exit 1
           fi
 
+      - name: Name the files after the version
+        run: |
+          mkdir -p dist
+          cp build/app/outputs/flutter-apk/app-release.apk "dist/monthly-expenses-$NAME.apk"
+          cp build/app/outputs/bundle/release/app-release.aab "dist/monthly-expenses-$NAME.aab"
+
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: android-${{ github.ref_name }}
-          path: |
-            build/app/outputs/bundle/release/app-release.aab
-            build/app/outputs/flutter-apk/app-release.apk
+          name: android-${{ env.TAG }}
+          path: dist/
           retention-days: 14
+
+      - name: Write release notes
+        if: env.RELEASE == 'true'
+        env:
+          SIGNED: ${{ steps.signing.outputs.signed }}
+        run: |
+          awk -v heading="## [$NAME] - " '
+            index($0, heading) == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ "$SIGNED" != true ]; then
+            printf '\n> This APK is signed with a throwaway debug key, so it cannot update an installed copy. Back up in the app, uninstall, install this APK, then restore.\n' >> release-notes.md
+          fi
+
+      # The tag records the release; CI's version check compares PRs against it.
+      # A draft release doesn't create its tag, so push it first.
+      - name: Tag the release
+        if: env.RELEASE == 'true'
+        run: |
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+            git tag "$TAG" "$GITHUB_SHA"
+            git push origin "refs/tags/$TAG"
+          fi
 
       # Draft: on a public repo the APK stays private until you publish the release.
       - name: Attach APK to a draft GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v') && steps.signing.outputs.signed == 'true'
+        if: env.RELEASE == 'true'
         uses: softprops/action-gh-release@v3
         with:
-          files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true
+          tag_name: ${{ env.TAG }}
+          name: Monthly Expenses ${{ env.NAME }}
+          body_path: release-notes.md
+          files: dist/monthly-expenses-${{ env.NAME }}.apk
           draft: true
 
       - name: Upload to Play internal testing
-        if: startsWith(github.ref, 'refs/tags/v') && steps.signing.outputs.signed == 'true' && env.HAS_PLAY_CREDENTIALS == 'true'
+        if: env.RELEASE == 'true' && steps.signing.outputs.signed == 'true' && env.HAS_PLAY_CREDENTIALS == 'true'
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          releaseFiles: dist/monthly-expenses-${{ env.NAME }}.aab
           track: internal
           status: draft
