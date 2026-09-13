@@ -112,6 +112,12 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTooltip;
 
+  /// No description provided for @transferTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transferTooltip;
+
   /// No description provided for @addButton.
   ///
   /// In en, this message translates to:
@@ -130,6 +136,18 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balanceLabel;
 
+  /// No description provided for @periodNetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'This period'**
+  String get periodNetLabel;
+
+  /// No description provided for @carriedForwardLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Carried forward {amount}'**
+  String carriedForwardLine(String amount);
+
   /// No description provided for @incomeLabel.
   ///
   /// In en, this message translates to:
@@ -142,7 +160,7 @@ abstract class AppLocalizations {
   /// **'Expense'**
   String get expenseLabel;
 
-  /// Subtitle of a future-dated transaction row.
+  /// Subtitle of a future-dated row.
   ///
   /// In en, this message translates to:
   /// **'{category} · Upcoming'**
@@ -160,11 +178,23 @@ abstract class AppLocalizations {
   /// **'Transaction deleted'**
   String get transactionDeleted;
 
+  /// No description provided for @transferDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer deleted'**
+  String get transferDeleted;
+
   /// No description provided for @undoButton.
   ///
   /// In en, this message translates to:
   /// **'Undo'**
   String get undoButton;
+
+  /// No description provided for @undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t undo. Try again.'**
+  String get undoFailed;
 
   /// No description provided for @restoreFailed.
   ///
@@ -190,6 +220,12 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get deleteTooltip;
 
+  /// No description provided for @duplicateTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate'**
+  String get duplicateTooltip;
+
   /// No description provided for @titleOptionalLabel.
   ///
   /// In en, this message translates to:
@@ -214,6 +250,24 @@ abstract class AppLocalizations {
   /// **'Enter a valid amount'**
   String get amountInvalid;
 
+  /// Live result of an amount like 12.5+3.
+  ///
+  /// In en, this message translates to:
+  /// **'= {amount}'**
+  String amountResult(String amount);
+
+  /// No description provided for @backspaceTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Backspace'**
+  String get backspaceTooltip;
+
+  /// No description provided for @hideKeypadTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide keypad'**
+  String get hideKeypadTooltip;
+
   /// No description provided for @categoryLabel.
   ///
   /// In en, this message translates to:
@@ -226,11 +280,35 @@ abstract class AppLocalizations {
   /// **'Choose a category'**
   String get categoryRequired;
 
+  /// No description provided for @accountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountLabel;
+
+  /// No description provided for @accountRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an account'**
+  String get accountRequired;
+
   /// No description provided for @dateLabel.
   ///
   /// In en, this message translates to:
   /// **'Date'**
   String get dateLabel;
+
+  /// No description provided for @previousDayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous day'**
+  String get previousDayTooltip;
+
+  /// No description provided for @nextDayTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next day'**
+  String get nextDayTooltip;
 
   /// No description provided for @noteOptionalLabel.
   ///
@@ -249,6 +327,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Transaction'**
   String get addTransactionButton;
+
+  /// No description provided for @saveAndAddAnotherButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save & add another'**
+  String get saveAndAddAnotherButton;
+
+  /// No description provided for @transactionAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction added'**
+  String get transactionAdded;
 
   /// No description provided for @saveFailed.
   ///
@@ -364,6 +454,18 @@ abstract class AppLocalizations {
   /// **'Last day'**
   String get monthStartLastDay;
 
+  /// No description provided for @showCarriedForwardLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Carry balance forward'**
+  String get showCarriedForwardLabel;
+
+  /// No description provided for @showCarriedForwardSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Each period starts from the previous balance'**
+  String get showCarriedForwardSubtitle;
+
   /// No description provided for @trashTitle.
   ///
   /// In en, this message translates to:
@@ -459,6 +561,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save the category. Try again.'**
   String get categorySaveFailed;
+
+  /// No description provided for @accountsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get accountsTitle;
+
+  /// No description provided for @accountCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get accountCash;
+
+  /// No description provided for @accountTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get accountTypeLabel;
+
+  /// No description provided for @accountTypeCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash'**
+  String get accountTypeCash;
+
+  /// No description provided for @accountTypeBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get accountTypeBank;
+
+  /// No description provided for @accountTypeCard.
+  ///
+  /// In en, this message translates to:
+  /// **'Card'**
+  String get accountTypeCard;
+
+  /// No description provided for @accountTypeOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get accountTypeOther;
+
+  /// No description provided for @addAccountTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get addAccountTooltip;
+
+  /// No description provided for @addAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add account'**
+  String get addAccountTitle;
+
+  /// No description provided for @editAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit account'**
+  String get editAccountTitle;
+
+  /// No description provided for @openingBalanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get openingBalanceLabel;
+
+  /// No description provided for @openingDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening date'**
+  String get openingDateLabel;
+
+  /// No description provided for @accountSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the account. Try again.'**
+  String get accountSaveFailed;
+
+  /// No description provided for @transferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transferTitle;
+
+  /// No description provided for @editTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit transfer'**
+  String get editTransferTitle;
+
+  /// No description provided for @transferLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer'**
+  String get transferLabel;
+
+  /// No description provided for @transferRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} → {to}'**
+  String transferRoute(String from, String to);
+
+  /// No description provided for @fromAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get fromAccountLabel;
+
+  /// No description provided for @toAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get toAccountLabel;
+
+  /// No description provided for @sameAccountError.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose two different accounts'**
+  String get sameAccountError;
+
+  /// No description provided for @needTwoAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a second account to move money between accounts.'**
+  String get needTwoAccounts;
+
+  /// No description provided for @addTransferButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Transfer'**
+  String get addTransferButton;
+
+  /// No description provided for @transferSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the transfer. Try again.'**
+  String get transferSaveFailed;
 
   /// No description provided for @categoryFood.
   ///

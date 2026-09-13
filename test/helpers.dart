@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,10 +9,13 @@ import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 
 final _created = DateTime.utc(2026);
+
+Money _money(num amount) => Money((amount * 1000).round());
 
 /// A transaction with test defaults. [amount] is in whole currency units.
 ExpenseTransaction testTx(
@@ -26,7 +30,7 @@ ExpenseTransaction testTx(
   return ExpenseTransaction(
     id: id,
     title: title ?? id,
-    amount: Money((amount * 1000).round()),
+    amount: _money(amount),
     categoryId:
         categoryId ??
         (type == TransactionType.income ? 'cat-salary' : 'cat-food'),
@@ -39,14 +43,33 @@ ExpenseTransaction testTx(
   );
 }
 
-/// An account whose opening balance ([opening], in whole units) counts from
-/// [on].
+/// A transfer of [amount] whole units from one account to another.
+Transfer testTransfer(
+  String id,
+  String from,
+  String to,
+  num amount,
+  DateTime date,
+) {
+  return Transfer(
+    id: id,
+    fromAccountId: from,
+    toAccountId: to,
+    amount: _money(amount),
+    date: date,
+    createdAt: _created,
+    updatedAt: _created,
+  );
+}
+
+/// An account named [id] whose opening balance ([opening], in whole units)
+/// counts from [on].
 Account testAccount(String id, {num opening = 0, DateTime? on}) {
   return Account(
     id: id,
     type: id == Account.cashId ? AccountType.cash : AccountType.bank,
     name: id,
-    openingBalance: Money((opening * 1000).round()),
+    openingBalance: _money(opening),
     openingDate: on ?? DateTime(2026),
     sortOrder: 0,
     createdAt: _created,
@@ -82,17 +105,24 @@ List<Category> testCategories() {
 class FakeDB extends DBHelper {
   FakeDB({
     List<ExpenseTransaction> transactions = const [],
+    List<Transfer> transfers = const [],
     List<Category>? categories,
     List<Account>? accounts,
   }) : rows = [...transactions],
+       transfers = [...transfers],
        categories = categories ?? testCategories(),
        accounts = accounts ?? [testAccount(Account.cashId)];
 
   /// Every stored transaction, soft-deleted ones included.
   final List<ExpenseTransaction> rows;
 
+  /// Every stored transfer, soft-deleted ones included.
+  final List<Transfer> transfers;
+
   /// Every stored category, soft-deleted ones included.
   final List<Category> categories;
+
+  /// Every stored account, soft-deleted ones included.
   final List<Account> accounts;
   bool failWrites = false;
 
@@ -113,8 +143,10 @@ class FakeDB extends DBHelper {
   ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
   @override
-  Future<void> purgeDeletedBefore(DateTime cutoff) async =>
-      rows.removeWhere((row) => row.deletedAt?.isBefore(cutoff) ?? false);
+  Future<void> purgeDeletedBefore(DateTime cutoff) async {
+    rows.removeWhere((row) => row.deletedAt?.isBefore(cutoff) ?? false);
+    transfers.removeWhere((t) => t.deletedAt?.isBefore(cutoff) ?? false);
+  }
 
   @override
   Future<void> insertTransaction(ExpenseTransaction tx) async {
@@ -149,7 +181,42 @@ class FakeDB extends DBHelper {
   }
 
   @override
-  Future<List<Account>> fetchAccounts() async => [...accounts];
+  Future<List<Account>> fetchAccounts() async => [
+    for (final account in accounts)
+      if (account.deletedAt == null) account,
+  ];
+
+  @override
+  Future<void> insertAccount(Account account) async {
+    _checkWrite();
+    accounts.add(account);
+  }
+
+  @override
+  Future<void> updateAccounts(List<Account> changed) async {
+    _checkWrite();
+    for (final account in changed) {
+      accounts[accounts.indexWhere((a) => a.id == account.id)] = account;
+    }
+  }
+
+  @override
+  Future<List<Transfer>> fetchTransfers() async => [
+    for (final transfer in transfers)
+      if (transfer.deletedAt == null) transfer,
+  ];
+
+  @override
+  Future<void> insertTransfer(Transfer transfer) async {
+    _checkWrite();
+    transfers.add(transfer);
+  }
+
+  @override
+  Future<void> updateTransfer(Transfer transfer) async {
+    _checkWrite();
+    transfers[transfers.indexWhere((t) => t.id == transfer.id)] = transfer;
+  }
 }
 
 /// Settings over in-memory shared_preferences [values], for a US English
@@ -181,4 +248,24 @@ Widget testApp(
       home: home,
     ),
   );
+}
+
+/// Sizes the test screen like a phone (360×800), where forms with the keypad
+/// are laid out as users see them. Resets after the test.
+void usePhoneScreen(WidgetTester tester) {
+  tester.view.physicalSize = const Size(1080, 2400);
+  tester.view.devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+}
+
+/// Scrolls the open form from the top until [finder] is built and visible.
+/// Forms are lazy lists, so fields off screen may not exist yet.
+Future<void> revealInForm(WidgetTester tester, Finder finder) async {
+  final scrollable = find
+      .descendant(of: find.byType(Form), matching: find.byType(Scrollable))
+      .first;
+  tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+  await tester.pump();
+  await tester.scrollUntilVisible(finder, 100, scrollable: scrollable);
+  await tester.pumpAndSettle();
 }

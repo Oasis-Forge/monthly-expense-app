@@ -1,34 +1,37 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/account.dart';
-import '../models/money.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'delete_snack_bar.dart';
+import 'form_fields.dart';
 
 class AddTransactionScreen extends StatefulWidget {
-  final ExpenseTransaction? editing;
+  /// Edits [editing] when set. Otherwise adds a new transaction, prefilled
+  /// from [template] when duplicating one (ADD-7).
+  const AddTransactionScreen({super.key, this.editing, this.template});
 
-  const AddTransactionScreen({super.key, this.editing});
+  final ExpenseTransaction? editing;
+  final ExpenseTransaction? template;
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
 }
 
-class _AddTransactionScreenState extends State<AddTransactionScreen> {
+class _AddTransactionScreenState extends State<AddTransactionScreen>
+    with AmountEntry {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
-  final _amountController = TextEditingController();
   final _noteController = TextEditingController();
 
   TransactionType _type = TransactionType.expense;
   String? _categoryId;
+  String? _accountId;
   late DateTime _date;
 
   /// True while a save is in progress, so repeated taps don't save twice.
@@ -37,57 +40,51 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   @override
   void initState() {
     super.initState();
-    final editing = widget.editing;
-    if (editing != null) {
-      _titleController.text = editing.title ?? '';
-      _amountController.text = editing.amount.toInputString();
-      _noteController.text = editing.note ?? '';
-      _type = editing.type;
-      _categoryId = editing.categoryId;
-      _date = editing.date;
+    final provider = context.read<TransactionProvider>();
+    final source = widget.editing ?? widget.template;
+    if (source != null) {
+      _titleController.text = source.title ?? '';
+      amountController.text = source.amount.toInputString();
+      _noteController.text = source.note ?? '';
+      _type = source.type;
+      _categoryId = source.categoryId;
+      _accountId = source.accountId;
     } else {
-      final options = context.read<TransactionProvider>().categoriesFor(_type);
-      _categoryId = options.isEmpty ? null : options.first.id;
-      _date = DateTime.now();
+      // ADD-3: the last category and account used.
+      _categoryId = provider.defaultCategoryId(_type);
+      _accountId = provider.defaultAccountId();
     }
+    // A new transaction or a duplicate is dated now (ADD-3, ADD-7).
+    _date = widget.editing?.date ?? DateTime.now();
   }
 
   @override
   void dispose() {
     _titleController.dispose();
-    _amountController.dispose();
     _noteController.dispose();
     super.dispose();
   }
 
   void _selectType(TransactionType type) {
-    final options = context.read<TransactionProvider>().categoriesFor(type);
+    final provider = context.read<TransactionProvider>();
     setState(() {
       _type = type;
-      if (!options.any((c) => c.id == _categoryId)) {
-        _categoryId = options.isEmpty ? null : options.first.id;
+      if (!provider.categoriesFor(type).any((c) => c.id == _categoryId)) {
+        _categoryId = provider.defaultCategoryId(type);
       }
     });
   }
 
-  Future<void> _pickDate() async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2015),
-      lastDate: DateTime(2100),
-    );
-    if (picked != null) {
-      setState(() => _date = picked);
-    }
-  }
-
-  Future<void> _submit() async {
+  Future<void> _submit({bool addAnother = false}) async {
     if (_saving || !_formKey.currentState!.validate()) return;
 
-    final provider = context.read<TransactionProvider>();
     final l10n = AppLocalizations.of(context);
-    final amount = Money.tryParse(_amountController.text)!;
+    final provider = context.read<TransactionProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final currency = context.read<SettingsProvider>().currencyFormat(
+      l10n.localeName,
+    );
+    final amount = parsedAmount(currency)!;
     final title = _titleController.text.trim();
     final note = _noteController.text.trim();
 
@@ -100,6 +97,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             title: title.isEmpty ? null : title,
             amount: amount,
             categoryId: _categoryId,
+            accountId: _accountId,
             type: _type,
             date: _date,
             note: note.isEmpty ? null : note,
@@ -112,7 +110,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             title: title.isEmpty ? null : title,
             amount: amount,
             categoryId: _categoryId!,
-            accountId: Account.cashId,
+            accountId: _accountId ?? Account.cashId,
             type: _type,
             date: _date,
             note: note.isEmpty ? null : note,
@@ -121,13 +119,22 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       }
     } catch (_) {
       _saving = false;
-      if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
+      messenger.showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
       return;
     }
+    _saving = false;
+    if (!mounted) return;
 
-    if (mounted) Navigator.of(context).pop();
+    if (addAnother) {
+      // ADD-4: keep the type, category, account, and date.
+      amountController.clear();
+      _titleController.clear();
+      _noteController.clear();
+      amountFocus.requestFocus();
+      messenger.showSnackBar(SnackBar(content: Text(l10n.transactionAdded)));
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
   /// Moves the edited transaction to the trash, with Undo on the next screen.
@@ -147,6 +154,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  /// Opens a new, unsaved copy of the edited transaction (ADD-7).
+  void _duplicate() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => AddTransactionScreen(template: widget.editing),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -155,17 +171,28 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       l10n.localeName,
     );
     final isEditing = widget.editing != null;
-    final editedCategory = isEditing
-        ? provider.categoryById(widget.editing!.categoryId)
-        : null;
+    final source = widget.editing ?? widget.template;
+
+    // Archived choices stay selectable for a transaction that uses them.
+    final sourceCategory = source == null
+        ? null
+        : provider.categoryById(source.categoryId);
     final categories = [
       ...provider.categoriesFor(_type),
-      // An archived category stays selectable for transactions that use it.
-      if (editedCategory != null &&
-          editedCategory.archivedAt != null &&
-          editedCategory.type == _type)
-        editedCategory,
+      if (sourceCategory != null &&
+          sourceCategory.archivedAt != null &&
+          sourceCategory.type == _type)
+        sourceCategory,
     ];
+    final sourceAccount = source == null
+        ? null
+        : provider.accountById(source.accountId);
+    final accounts = [
+      ...provider.activeAccounts,
+      if (sourceAccount != null && sourceAccount.archivedAt != null)
+        sourceAccount,
+    ];
+    final recent = provider.recentCategories(_type);
 
     return Scaffold(
       appBar: AppBar(
@@ -173,14 +200,21 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           isEditing ? l10n.editTransactionTitle : l10n.addTransactionTitle,
         ),
         actions: [
-          if (isEditing)
+          if (isEditing) ...[
+            IconButton(
+              icon: const Icon(Icons.copy_outlined),
+              tooltip: l10n.duplicateTooltip,
+              onPressed: _duplicate,
+            ),
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.deleteTooltip,
               onPressed: _delete,
             ),
+          ],
         ],
       ),
+      bottomNavigationBar: amountKeypad(),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -203,6 +237,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               onSelectionChanged: (selection) => _selectType(selection.first),
             ),
             const SizedBox(height: 20),
+            amountField(currency, l10n, autofocus: !isEditing),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _titleController,
               decoration: InputDecoration(
@@ -211,34 +247,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
-              controller: _amountController,
-              decoration: InputDecoration(
-                labelText: l10n.amountLabel,
-                border: const OutlineInputBorder(),
-                prefixText: '${currency.currencySymbol} ',
+            if (recent.isNotEmpty) ...[
+              // ADD-5: recently used categories, one tap away.
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (final category in recent)
+                    ChoiceChip(
+                      label: Text('${category.icon} ${category.label(l10n)}'),
+                      selected: category.id == _categoryId,
+                      onSelected: (_) =>
+                          setState(() => _categoryId = category.id),
+                    ),
+                ],
               ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return l10n.amountRequired;
-                }
-                final amount = Money.tryParse(
-                  value,
-                  maxDecimals: currency.maximumFractionDigits,
-                );
-                if (amount == null || !amount.isPositive) {
-                  return l10n.amountInvalid;
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 12),
+            ],
             DropdownButtonFormField<String>(
-              // A new key per type resets the field when the type changes.
-              key: ValueKey(_type),
+              // A new key resets the field when the type or a chip changes it.
+              key: ValueKey((_type, _categoryId)),
               initialValue: categories.any((c) => c.id == _categoryId)
                   ? _categoryId
                   : null,
@@ -257,13 +285,32 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   value == null ? l10n.categoryRequired : null,
               onChanged: (value) => setState(() => _categoryId = value),
             ),
+            if (accounts.length > 1) ...[
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                initialValue: accounts.any((a) => a.id == _accountId)
+                    ? _accountId
+                    : null,
+                decoration: InputDecoration(
+                  labelText: l10n.accountLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                items: [
+                  for (final account in accounts)
+                    DropdownMenuItem(
+                      value: account.id,
+                      child: Text(account.label(l10n)),
+                    ),
+                ],
+                validator: (value) =>
+                    value == null ? l10n.accountRequired : null,
+                onChanged: (value) => setState(() => _accountId = value),
+              ),
+            ],
             const SizedBox(height: 16),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.dateLabel),
-              subtitle: Text(DateFormat.yMMMd(l10n.localeName).format(_date)),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: _pickDate,
+            DateField(
+              date: _date,
+              onChanged: (date) => setState(() => _date = date),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -282,6 +329,16 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 isEditing ? l10n.saveChangesButton : l10n.addTransactionButton,
               ),
             ),
+            if (!isEditing) ...[
+              const SizedBox(height: 8),
+              OutlinedButton(
+                onPressed: () => _submit(addAnother: true),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Text(l10n.saveAndAddAnotherButton),
+              ),
+            ],
           ],
         ),
       ),

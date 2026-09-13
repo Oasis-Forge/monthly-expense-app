@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/period.dart';
 
 /// App settings kept in shared_preferences: currency (CUR-1–CUR-3), theme
-/// mode, and the first day of the month (PER-2).
+/// mode, the first day of the month (PER-2), and whether Home carries the
+/// balance forward (BAL-3).
 class SettingsProvider extends ChangeNotifier {
   /// Reads saved settings from [_prefs]. Without a saved currency, the
   /// currency of [deviceLocale] (such as `en_GB`) is preselected.
@@ -13,22 +14,29 @@ class SettingsProvider extends ChangeNotifier {
     : _currencyCode =
           _prefs.getString(_currencyKey) ?? defaultCurrencyFor(deviceLocale),
       _themeMode = _themeModeNamed(_prefs.getString(_themeKey)),
-      _startDay = _validStartDay(_prefs.getInt(_startDayKey));
+      _startDay = _validStartDay(_prefs.getInt(_startDayKey)),
+      _showCarriedForward = _prefs.getBool(_carriedForwardKey) ?? true;
 
   static const _currencyKey = 'currency_code';
   static const _themeKey = 'theme_mode';
   static const _startDayKey = 'month_start_day';
+  static const _carriedForwardKey = 'show_carried_forward';
 
   final SharedPreferences _prefs;
   String _currencyCode;
   ThemeMode _themeMode;
   int _startDay;
+  bool _showCarriedForward;
 
   String get currencyCode => _currencyCode;
   ThemeMode get themeMode => _themeMode;
 
   /// 1–28, or [Period.lastDayOfMonth].
   int get startDay => _startDay;
+
+  /// Whether Home shows the closing balance, carried forward from earlier
+  /// periods, instead of only this period's net. On by default.
+  bool get showCarriedForward => _showCarriedForward;
 
   /// The currency [locale] uses, or USD when intl doesn't know the locale.
   static String defaultCurrencyFor(String? locale) {
@@ -64,6 +72,13 @@ class SettingsProvider extends ChangeNotifier {
     if (day == _startDay) return;
     await _prefs.setInt(_startDayKey, day);
     _startDay = day;
+    notifyListeners();
+  }
+
+  Future<void> setShowCarriedForward(bool show) async {
+    if (show == _showCarriedForward) return;
+    await _prefs.setBool(_carriedForwardKey, show);
+    _showCarriedForward = show;
     notifyListeners();
   }
 

@@ -7,6 +7,7 @@ import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/form_fields.dart';
 
 import 'helpers.dart';
 
@@ -15,6 +16,8 @@ void main() {
   late TransactionProvider provider;
   late SettingsProvider settings;
 
+  final amountField = find.widgetWithText(TextFormField, 'Amount');
+
   setUp(() async {
     fake = FakeDB();
     provider = TransactionProvider(db: fake);
@@ -22,8 +25,9 @@ void main() {
     settings = await testSettings();
   });
 
-  /// Opens the add/edit screen from a placeholder page.
+  /// Opens the add/edit screen from a placeholder page on a phone screen.
   Future<void> open(WidgetTester tester, {ExpenseTransaction? editing}) async {
+    usePhoneScreen(tester);
     await tester.pumpWidget(
       testApp(
         provider,
@@ -46,14 +50,24 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> enterAmount(WidgetTester tester, String amount) =>
-      tester.enterText(find.widgetWithText(TextFormField, 'Amount'), amount);
+  Future<void> enterAmount(WidgetTester tester, String amount) async {
+    await revealInForm(tester, amountField);
+    await tester.enterText(amountField, amount);
+  }
 
-  Future<void> tapButton(WidgetTester tester, String label) async {
-    final button = find.widgetWithText(FilledButton, label);
-    await tester.ensureVisible(button);
-    await tester.tap(button);
+  Future<void> tapInForm(WidgetTester tester, Finder finder) async {
+    await revealInForm(tester, finder);
+    await tester.tap(finder);
     await tester.pumpAndSettle();
+  }
+
+  Future<void> tapButton(WidgetTester tester, String label) =>
+      tapInForm(tester, find.widgetWithText(FilledButton, label));
+
+  /// Expects exactly one [text] somewhere in the form.
+  Future<void> expectInForm(WidgetTester tester, String text) async {
+    await revealInForm(tester, find.text(text));
+    expect(find.text(text), findsOneWidget);
   }
 
   /// Stores a lunch expense in [fake] and reloads [provider].
@@ -70,6 +84,9 @@ void main() {
     return lunch;
   }
 
+  DateTime dayOf(DateTime moment) =>
+      DateTime(moment.year, moment.month, moment.day);
+
   testWidgets('saving without a title adds the transaction and closes', (
     tester,
   ) async {
@@ -85,11 +102,40 @@ void main() {
     expect(find.byType(AddTransactionScreen), findsNothing);
   });
 
+  testWidgets('the keypad adds up amounts and saves the result (ADD-2)', (
+    tester,
+  ) async {
+    await open(tester);
+    expect(find.byType(AmountKeypad), findsOneWidget);
+
+    for (final key in ['1', '2', '.', '5', '+', '3']) {
+      await tester.tap(find.widgetWithText(TextButton, key));
+    }
+    await tester.tap(find.byTooltip('Backspace'));
+    await tester.tap(find.widgetWithText(TextButton, '4'));
+    await tester.pump();
+    expect(find.text('= \$16.50'), findsOneWidget);
+
+    await tapButton(tester, 'Add Transaction');
+
+    expect(provider.transactions.single.amount, const Money(16500));
+  });
+
+  testWidgets('hiding the keypad keeps the amount', (tester) async {
+    await open(tester);
+    await tester.tap(find.widgetWithText(TextButton, '8'));
+    await tester.tap(find.byTooltip('Hide keypad'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AmountKeypad), findsNothing);
+    expect(tester.widget<TextFormField>(amountField).controller!.text, '8');
+  });
+
   testWidgets('switching to income picks an income category', (tester) async {
     await open(tester);
     await tester.tap(find.text('Income'));
     await tester.pumpAndSettle();
-    expect(find.text('💼 Salary'), findsOneWidget);
+    await expectInForm(tester, '💼 Salary');
 
     await enterAmount(tester, '1000');
     await tapButton(tester, 'Add Transaction');
@@ -99,10 +145,94 @@ void main() {
     expect(saved.categoryId, 'cat-salary');
   });
 
+  testWidgets('save & add another keeps the choices and clears the amount', (
+    tester,
+  ) async {
+    await open(tester);
+    await tester.tap(find.text('Income'));
+    await tester.pumpAndSettle();
+    await enterAmount(tester, '100');
+
+    await tapInForm(
+      tester,
+      find.widgetWithText(OutlinedButton, 'Save & add another'),
+    );
+
+    expect(find.byType(AddTransactionScreen), findsOneWidget);
+    expect(find.text('Transaction added'), findsOneWidget);
+    await revealInForm(tester, amountField);
+    expect(tester.widget<TextFormField>(amountField).controller!.text, isEmpty);
+
+    await enterAmount(tester, '50');
+    await tapButton(tester, 'Add Transaction');
+
+    expect(provider.transactions, hasLength(2));
+    expect(
+      {for (final t in provider.transactions) (t.type, t.categoryId)},
+      {(TransactionType.income, 'cat-salary')},
+    );
+  });
+
+  testWidgets('recent categories are one tap away (ADD-5)', (tester) async {
+    fake.rows.addAll([
+      testTx(
+        'r',
+        TransactionType.expense,
+        900,
+        DateTime(2026, 9, 1),
+        categoryId: 'cat-rent',
+      ).copyWith(createdAt: DateTime.utc(2026, 9, 1)),
+      testTx(
+        'o',
+        TransactionType.expense,
+        3,
+        DateTime(2026, 9, 2),
+        categoryId: 'cat-other',
+      ).copyWith(createdAt: DateTime.utc(2026, 9, 2)),
+    ]);
+    await provider.load();
+
+    await open(tester);
+    final rentChip = find.widgetWithText(ChoiceChip, '🏠 Rent');
+    await revealInForm(tester, rentChip);
+    expect(find.widgetWithText(ChoiceChip, '📦 Other'), findsOneWidget);
+    await tester.tap(rentChip);
+    await tester.pumpAndSettle();
+    await enterAmount(tester, '900');
+    await tapButton(tester, 'Add Transaction');
+
+    final added = provider.transactions.firstWhere(
+      (t) => t.id != 'r' && t.id != 'o',
+    );
+    expect(added.categoryId, 'cat-rent');
+  });
+
+  testWidgets('the date arrows move a day either way (ADD-6)', (tester) async {
+    await open(tester);
+    final previous = find.byTooltip('Previous day');
+    await tapInForm(tester, previous);
+    await tapInForm(tester, previous);
+    await tapInForm(tester, find.byTooltip('Next day'));
+
+    await enterAmount(tester, '5');
+    await tapButton(tester, 'Add Transaction');
+
+    final now = DateTime.now();
+    expect(
+      dayOf(provider.transactions.single.date),
+      DateTime(now.year, now.month, now.day - 1),
+    );
+  });
+
   testWidgets('the date picker sets the date', (tester) async {
     await open(tester);
-    await tester.tap(find.text('Date'));
-    await tester.pumpAndSettle();
+    await tapInForm(
+      tester,
+      find.descendant(
+        of: find.byType(DateField),
+        matching: find.byType(TextButton),
+      ),
+    );
     await tester.tap(find.text('10'));
     await tester.tap(find.text('OK'));
     await tester.pumpAndSettle();
@@ -113,11 +243,39 @@ void main() {
     expect(provider.transactions.single.date.day, 10);
   });
 
+  testWidgets('with two accounts the last used one is preselected (ADD-3)', (
+    tester,
+  ) async {
+    fake = FakeDB(
+      accounts: [testAccount(Account.cashId), testAccount('bank')],
+      transactions: [
+        testTx(
+          'b',
+          TransactionType.expense,
+          3,
+          DateTime(2026, 9, 1),
+        ).copyWith(accountId: 'bank'),
+      ],
+    );
+    provider = TransactionProvider(db: fake);
+    await provider.load();
+
+    await open(tester);
+    await expectInForm(tester, 'bank');
+    await enterAmount(tester, '7');
+    await tapButton(tester, 'Add Transaction');
+
+    expect(
+      provider.transactions.firstWhere((t) => t.id != 'b').accountId,
+      'bank',
+    );
+  });
+
   testWidgets('an empty amount asks for one', (tester) async {
     await open(tester);
     await tapButton(tester, 'Add Transaction');
 
-    expect(find.text('Enter an amount'), findsOneWidget);
+    await expectInForm(tester, 'Enter an amount');
     expect(provider.transactions, isEmpty);
   });
 
@@ -128,7 +286,16 @@ void main() {
     await enterAmount(tester, '12.345');
     await tapButton(tester, 'Add Transaction');
 
-    expect(find.text('Enter a valid amount'), findsOneWidget);
+    await expectInForm(tester, 'Enter a valid amount');
+    expect(provider.transactions, isEmpty);
+  });
+
+  testWidgets('a result of zero is rejected (MONEY-2)', (tester) async {
+    await open(tester);
+    await enterAmount(tester, '5-5');
+    await tapButton(tester, 'Add Transaction');
+
+    await expectInForm(tester, 'Enter a valid amount');
     expect(provider.transactions, isEmpty);
   });
 
@@ -140,7 +307,7 @@ void main() {
     await enterAmount(tester, '12.5');
     await tapButton(tester, 'Add Transaction');
 
-    expect(find.text('Enter a valid amount'), findsOneWidget);
+    await expectInForm(tester, 'Enter a valid amount');
   });
 
   testWidgets('a failed save keeps the screen open and shows an error', (
@@ -164,16 +331,36 @@ void main() {
     final lunch = await addLunch();
 
     await open(tester, editing: lunch);
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Note (optional)'),
-      '',
-    );
+    expect(find.byType(AmountKeypad), findsNothing);
+    final note = find.widgetWithText(TextFormField, 'Note (optional)');
+    await revealInForm(tester, note);
+    await tester.enterText(note, '');
     await tapButton(tester, 'Save Changes');
 
     final saved = provider.transactions.single;
     expect(saved.note, isNull);
     expect(saved.amount, const Money(12500));
     expect(find.byType(AddTransactionScreen), findsNothing);
+  });
+
+  testWidgets('duplicate opens an unsaved copy dated today (ADD-7)', (
+    tester,
+  ) async {
+    final lunch = await addLunch();
+
+    await open(tester, editing: lunch);
+    await tester.tap(find.byTooltip('Duplicate'));
+    await tester.pumpAndSettle();
+    expect(provider.transactions, hasLength(1));
+
+    await tapButton(tester, 'Add Transaction');
+
+    final copy = provider.transactions.firstWhere((t) => t.id != 'a');
+    expect(
+      (copy.amount, copy.note, copy.categoryId),
+      (lunch.amount, lunch.note, lunch.categoryId),
+    );
+    expect(dayOf(copy.date), dayOf(DateTime.now()));
   });
 
   testWidgets('a transaction in an archived category keeps that category', (
@@ -186,7 +373,7 @@ void main() {
     final lunch = await addLunch();
 
     await open(tester, editing: lunch);
-    expect(find.text('🍔 Food'), findsOneWidget);
+    await expectInForm(tester, '🍔 Food');
     await enterAmount(tester, '20');
     await tapButton(tester, 'Save Changes');
 

@@ -7,6 +7,7 @@ import 'package:sqflite/sqflite.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/transaction.dart';
+import '../models/transfer.dart';
 import 'migrations.dart';
 
 /// One schema step. It runs inside the transaction that opens the database.
@@ -28,6 +29,7 @@ class DBHelper {
     migrateToVersion2,
     migrateToVersion3,
     migrateToVersion4,
+    migrateToVersion5,
   ];
 
   static const _fileName = 'monthly_expense_app.db';
@@ -142,14 +144,17 @@ class DBHelper {
     return [for (final map in maps) ExpenseTransaction.fromMap(map)];
   }
 
-  /// Permanently removes transactions deleted before [cutoff] (DEL-3).
+  /// Permanently removes transactions and transfers deleted before [cutoff]
+  /// (DEL-3).
   Future<void> purgeDeletedBefore(DateTime cutoff) async {
     final db = await database;
-    await db.delete(
-      'transactions',
-      where: 'deleted_at IS NOT NULL AND deleted_at < ?',
-      whereArgs: [cutoff.toUtc().toIso8601String()],
-    );
+    for (final table in ['transactions', 'transfers']) {
+      await db.delete(
+        table,
+        where: 'deleted_at IS NOT NULL AND deleted_at < ?',
+        whereArgs: [cutoff.toUtc().toIso8601String()],
+      );
+    }
   }
 
   Future<List<Category>> fetchCategories() async {
@@ -190,5 +195,52 @@ class DBHelper {
       orderBy: 'sort_order',
     );
     return [for (final map in maps) Account.fromMap(map)];
+  }
+
+  Future<void> insertAccount(Account account) async {
+    final db = await database;
+    await db.insert('accounts', account.toMap());
+  }
+
+  /// Saves every field of [accounts] in one database transaction.
+  Future<void> updateAccounts(List<Account> accounts) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final account in accounts) {
+        await txn.update(
+          'accounts',
+          account.toMap(),
+          where: 'id = ?',
+          whereArgs: [account.id],
+        );
+      }
+    });
+  }
+
+  /// Transfers that aren't deleted, newest first.
+  Future<List<Transfer>> fetchTransfers() async {
+    final db = await database;
+    final maps = await db.query(
+      'transfers',
+      where: 'deleted_at IS NULL',
+      orderBy: 'date DESC',
+    );
+    return [for (final map in maps) Transfer.fromMap(map)];
+  }
+
+  Future<void> insertTransfer(Transfer transfer) async {
+    final db = await database;
+    await db.insert('transfers', transfer.toMap());
+  }
+
+  /// Saves every field of [transfer], including `deleted_at`.
+  Future<void> updateTransfer(Transfer transfer) async {
+    final db = await database;
+    await db.update(
+      'transfers',
+      transfer.toMap(),
+      where: 'id = ?',
+      whereArgs: [transfer.id],
+    );
   }
 }

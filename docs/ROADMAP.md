@@ -31,8 +31,8 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [x] **Settings:** `SettingsProvider` on `shared_preferences` for currency (CUR-1–CUR-3), theme mode, and first day of month (PER-2, PER-3). Replaces the hard-coded `$` in `home_screen.dart`, `stats_screen.dart`, and `add_transaction_screen.dart`. First day of week (PER-4) moves to Insights, where the calendar uses it.
 - [x] **Delete, undo, trash:** swipe delete with an Undo snackbar, a trash screen with restore, and a 30-day purge (DEL-2–DEL-4).
 - [x] **Categories:** a screen to add, rename, reorder, change the icon of, and archive categories (CAT-3–CAT-5).
-- [ ] **Accounts and transfers:** accounts screen, account picker, transfers (schema step), account balances, and the carried-forward balance on Home (ACC-1–ACC-5, BAL-2, BAL-3).
-- [ ] **Faster entry:** keypad with `+` and `−`, smart defaults, "Save & add another", recent categories, date arrows both ways, duplicate, and the upcoming marker (ADD-2–ADD-8).
+- [x] **Accounts and transfers:** accounts screen, account picker, transfers (schema step), account balances, and the carried-forward balance on Home (ACC-1–ACC-5, BAL-2, BAL-3).
+- [x] **Faster entry:** keypad with `+` and `−`, smart defaults, "Save & add another", recent categories, date arrows both ways, duplicate, and the upcoming marker (ADD-2–ADD-8).
 - [ ] **Search and filters** (SRCH-1–SRCH-3).
 - [ ] **Budgets** (schema step): per-category and overall monthly budgets with per-day allowance and warnings; progress on Stats, over-budget marker on Home (BUD-1–BUD-6).
 - [ ] **Recurring** (schema step): rules, an Upcoming list that waits for a tap by default, and idempotent posting on app start (RCR-1–RCR-7).

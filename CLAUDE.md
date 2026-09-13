@@ -12,9 +12,10 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 
 ## Architecture
 - `lib/main.dart`: `MaterialApp` + `ChangeNotifierProvider<TransactionProvider>`
-- `lib/models/`: `ExpenseTransaction` (toMap/fromMap, `copyWith` with a sentinel for clearing), `Category`, `Account`, `Money` (integer thousandths), `Period` (month start day)
-- `lib/db/db_helper.dart`: `DBHelper.instance` sqflite wrapper; tables `transactions`, `categories`, `accounts`; schema steps in `lib/db/migrations.dart`
-- `lib/providers/transaction_provider.dart`: loaded data, selected `Period`, cached totals and balances, write-first mutations with soft delete
+- `lib/models/`: `ExpenseTransaction` (toMap/fromMap, `copyWith` with a sentinel for clearing), `Transfer`, `Category`, `Account`, `Money` (integer thousandths), `evaluateAmount` (`12.5+3`), `Period` (month start day)
+- `lib/db/db_helper.dart`: `DBHelper.instance` sqflite wrapper; tables `transactions`, `transfers`, `categories`, `accounts`; schema steps in `lib/db/migrations.dart`
+- `lib/providers/transaction_provider.dart`: loaded data, selected `Period`, cached totals and balances, account balances, form defaults, write-first mutations with soft delete; `settings_provider.dart`: currency, theme, month start, carry-forward
+- `lib/screens/form_fields.dart`: `AmountEntry` mixin + keypad and `DateField`, shared by the transaction and transfer forms
 - `lib/l10n/`: `app_en.arb` → generated `AppLocalizations` (`flutter gen-l10n`, committed); `labels.dart` for category and period labels
 - `lib/screens/`: `home_screen` (period selector, summary, day list, swipe delete), `add_transaction_screen` (add + edit), `stats_screen` (pie chart)
 - Flow: screen → `context.read/watch<TransactionProvider>()` → `DBHelper`
