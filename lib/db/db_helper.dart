@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/account.dart';
+import '../models/backup.dart';
 import '../models/budget.dart';
 import '../models/category.dart';
 import '../models/recurring_rule.dart';
@@ -328,5 +329,76 @@ class DBHelper {
       );
       await txn.insert('transactions', tx.toMap());
     });
+  }
+
+  /// Every row of every table, deleted rows included, for a backup (BAK-1).
+  Future<BackupTables> exportTables() async => _readTables(await database);
+
+  /// Replaces all data with [tables] in one database transaction, so a
+  /// failed restore changes nothing (BAK-2).
+  Future<void> replaceAllData(BackupTables tables) async {
+    final db = await database;
+    await db.transaction((txn) => _replaceTables(txn, tables));
+  }
+
+  /// Applies a merge in one database transaction (BAK-3).
+  Future<void> applyMerge(MergePlan plan) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (final MapEntry(key: table, value: rows) in plan.inserts.entries) {
+        for (final row in rows) {
+          batch.insert(table, row);
+        }
+      }
+      for (final MapEntry(key: table, value: rows) in plan.updates.entries) {
+        for (final row in rows) {
+          batch.update(table, row, where: 'id = ?', whereArgs: [row['id']]);
+        }
+      }
+      await batch.commit(noResult: true);
+    });
+  }
+
+  /// Migrates the tables of a backup made at schema [fromVersion] with the
+  /// same steps as the app database (BAK-4). Throws a [BackupException] when
+  /// the rows don't fit that version.
+  Future<BackupTables> upgradeBackupTables(
+    BackupTables tables,
+    int fromVersion,
+  ) async {
+    final db = await openDatabase(inMemoryDatabasePath, singleInstance: false);
+    try {
+      await db.transaction((txn) async {
+        await _createVersion1(txn);
+        await _migrate(txn, from: 1, to: fromVersion);
+        await _replaceTables(txn, tables);
+        await _migrate(txn, from: fromVersion, to: version);
+      });
+      return await _readTables(db);
+    } on DatabaseException {
+      throw const BackupException(BackupProblem.invalid);
+    } finally {
+      await db.close();
+    }
+  }
+
+  static Future<BackupTables> _readTables(DatabaseExecutor db) async => {
+    for (final table in backupTableNames) table: await db.query(table),
+  };
+
+  /// Empties the tables in [tables], then inserts their rows.
+  static Future<void> _replaceTables(
+    DatabaseExecutor db,
+    BackupTables tables,
+  ) async {
+    final batch = db.batch();
+    for (final MapEntry(key: table, value: rows) in tables.entries) {
+      batch.delete(table);
+      for (final row in rows) {
+        batch.insert(table, row);
+      }
+    }
+    await batch.commit(noResult: true);
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/backup.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
@@ -14,6 +17,9 @@ import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/services/authenticator.dart';
+import 'package:monthly_expense_app/services/backup_files.dart';
+import 'package:monthly_expense_app/services/backup_service.dart';
 
 final _created = DateTime.utc(2026);
 
@@ -320,30 +326,193 @@ class FakeDB extends DBHelper {
     occurrences.add(occurrence);
     rows.add(tx);
   }
+
+  @override
+  Future<BackupTables> exportTables() async => {
+    'categories': [for (final category in categories) category.toMap()],
+    'accounts': [for (final account in accounts) account.toMap()],
+    'transactions': [for (final tx in rows) tx.toMap()],
+    'transfers': [for (final transfer in transfers) transfer.toMap()],
+    'budgets': [for (final budget in budgets) budget.toMap()],
+    'recurring_rules': [for (final rule in rules) rule.toMap()],
+    'recurring_occurrences': [
+      for (final occurrence in occurrences) occurrence.toMap(),
+    ],
+  };
+
+  @override
+  Future<void> replaceAllData(BackupTables tables) async {
+    _checkWrite();
+    List<T> read<T>(String table, T Function(Map<String, Object?>) fromMap) => [
+      for (final row in tables[table] ?? const []) fromMap(row),
+    ];
+    categories
+      ..clear()
+      ..addAll(read('categories', Category.fromMap));
+    accounts
+      ..clear()
+      ..addAll(read('accounts', Account.fromMap));
+    rows
+      ..clear()
+      ..addAll(read('transactions', ExpenseTransaction.fromMap));
+    transfers
+      ..clear()
+      ..addAll(read('transfers', Transfer.fromMap));
+    budgets
+      ..clear()
+      ..addAll(read('budgets', Budget.fromMap));
+    rules
+      ..clear()
+      ..addAll(read('recurring_rules', RecurringRule.fromMap));
+    occurrences
+      ..clear()
+      ..addAll(read('recurring_occurrences', RecurringOccurrence.fromMap));
+  }
+
+  @override
+  Future<void> applyMerge(MergePlan plan) async {
+    _checkWrite();
+    final tables = await exportTables();
+    for (final MapEntry(key: table, value: added) in plan.inserts.entries) {
+      tables[table]!.addAll(added);
+    }
+    for (final MapEntry(key: table, value: updated) in plan.updates.entries) {
+      final existing = tables[table]!;
+      for (final row in updated) {
+        existing[existing.indexWhere((r) => r['id'] == row['id'])] = row;
+      }
+    }
+    await replaceAllData(tables);
+  }
+
+  @override
+  Future<BackupTables> upgradeBackupTables(
+    BackupTables tables,
+    int fromVersion,
+  ) async => tables;
+}
+
+/// In-memory [BackupFiles]: records saved files and serves [toOpen] to the
+/// open dialog.
+class FakeBackupFiles implements BackupFiles {
+  /// Files the user saved, by name.
+  final Map<String, Uint8List> saved = {};
+
+  /// Automatic backups kept on the "device", by name.
+  final Map<String, String> kept = {};
+
+  /// What the open dialog returns; null means the user cancels.
+  Uint8List? toOpen;
+
+  /// Makes the save dialog act as if the user cancelled.
+  bool cancelSave = false;
+
+  /// Makes saving and opening throw.
+  bool fail = false;
+
+  @override
+  Future<bool> save(
+    String fileName,
+    Uint8List bytes, {
+    required String mimeType,
+  }) async {
+    if (fail) throw StateError('save failed');
+    if (cancelSave) return false;
+    saved[fileName] = bytes;
+    return true;
+  }
+
+  @override
+  Future<Uint8List?> open() async {
+    if (fail) throw StateError('open failed');
+    return toOpen;
+  }
+
+  @override
+  Future<List<String>> listKept() async => kept.keys.toList();
+
+  @override
+  Future<String> readKept(String name) async => kept[name]!;
+
+  @override
+  Future<void> writeKept(String name, String contents) async {
+    if (fail) throw StateError('write failed');
+    kept[name] = contents;
+  }
+
+  @override
+  Future<void> deleteKept(String name) async {
+    kept.remove(name);
+  }
+}
+
+/// An [Authenticator] that answers with [result] when [available].
+class FakeAuthenticator implements Authenticator {
+  FakeAuthenticator({this.available = true, this.result = AuthResult.success});
+
+  bool available;
+  AuthResult result;
+
+  /// How many times the user was asked to authenticate.
+  int requests = 0;
+
+  @override
+  Future<bool> isAvailable() async => available;
+
+  @override
+  Future<AuthResult> authenticate(String reason) async {
+    requests++;
+    return available ? result : AuthResult.unavailable;
+  }
+}
+
+/// A [BackupService] over [db] with fake files and a fixed app version.
+BackupService testBackupService(
+  DBHelper db, {
+  BackupFiles? files,
+  DateTime Function()? clock,
+}) {
+  return BackupService(
+    db: db,
+    files: files ?? FakeBackupFiles(),
+    clock: clock,
+    appVersion: () async => '1.0.0+1',
+  );
 }
 
 /// Settings over in-memory shared_preferences [values], for a US English
-/// device.
+/// device, with [clock] as "now".
 Future<SettingsProvider> testSettings([
   Map<String, Object> values = const {},
+  DateTime Function()? clock,
 ]) async {
   SharedPreferences.setMockInitialValues(values);
   return SettingsProvider(
     await SharedPreferences.getInstance(),
     deviceLocale: 'en_US',
+    clock: clock,
   );
 }
 
-/// [home] inside a localized [MaterialApp] with both providers above it.
+/// [home] inside a localized [MaterialApp] with the app's providers above
+/// it. [backup] and [authenticator] default to fakes.
 Widget testApp(
   TransactionProvider provider,
   SettingsProvider settings,
-  Widget home,
-) {
+  Widget home, {
+  BackupService? backup,
+  Authenticator? authenticator,
+}) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: settings),
       ChangeNotifierProvider.value(value: provider),
+      Provider<BackupService>.value(
+        value: backup ?? testBackupService(FakeDB()),
+      ),
+      Provider<Authenticator>.value(
+        value: authenticator ?? FakeAuthenticator(),
+      ),
     ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,

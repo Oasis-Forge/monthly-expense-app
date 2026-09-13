@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -6,17 +7,25 @@ import '../models/currencies.dart';
 import '../models/period.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../services/authenticator.dart';
 import 'accounts_screen.dart';
+import 'backup_screen.dart';
 import 'categories_screen.dart';
 import 'trash_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
+  static void _open(BuildContext context, Widget screen) =>
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final settings = context.watch<SettingsProvider>();
+    // 1 January 2023 was a Sunday, so day 0 of the week is its date.
+    String weekday(int day) =>
+        DateFormat.EEEE(l10n.localeName).format(DateTime(2023, 1, 1 + day));
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -70,6 +79,27 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+          ListTile(
+            leading: const Icon(Icons.view_week_outlined),
+            title: Text(l10n.weekStartLabel),
+            trailing: DropdownButton<int?>(
+              value: settings.weekStartDay,
+              onChanged: settings.setWeekStartDay,
+              items: [
+                DropdownMenuItem(
+                  child: Text(
+                    l10n.weekStartDefault(
+                      weekday(
+                        MaterialLocalizations.of(context).firstDayOfWeekIndex,
+                      ),
+                    ),
+                  ),
+                ),
+                for (var day = 0; day < 7; day++)
+                  DropdownMenuItem(value: day, child: Text(weekday(day))),
+              ],
+            ),
+          ),
           SwitchListTile(
             secondary: const Icon(Icons.redo),
             title: Text(l10n.showCarriedForwardLabel),
@@ -77,29 +107,31 @@ class SettingsScreen extends StatelessWidget {
             value: settings.showCarriedForward,
             onChanged: settings.setShowCarriedForward,
           ),
+          const _AppLockTile(),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.account_balance_wallet_outlined),
             title: Text(l10n.accountsTitle),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const AccountsScreen())),
+            onTap: () => _open(context, const AccountsScreen()),
           ),
           ListTile(
             leading: const Icon(Icons.category_outlined),
             title: Text(l10n.categoriesTitle),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const CategoriesScreen())),
+            onTap: () => _open(context, const CategoriesScreen()),
+          ),
+          ListTile(
+            leading: const Icon(Icons.backup_outlined),
+            title: Text(l10n.backupTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _open(context, const BackupScreen()),
           ),
           ListTile(
             leading: const Icon(Icons.delete_outline),
             title: Text(l10n.trashTitle),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const TrashScreen())),
+            onTap: () => _open(context, const TrashScreen()),
           ),
         ],
       ),
@@ -151,6 +183,62 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
     if (confirmed ?? false) await settings.setCurrencyCode(code);
+  }
+}
+
+/// Turns app lock on or off after the device owner authenticates (LOCK-1,
+/// LOCK-3). Disabled when the device has no biometrics or screen lock.
+class _AppLockTile extends StatefulWidget {
+  const _AppLockTile();
+
+  @override
+  State<_AppLockTile> createState() => _AppLockTileState();
+}
+
+class _AppLockTileState extends State<_AppLockTile> {
+  late final Future<bool> _available = context
+      .read<Authenticator>()
+      .isAvailable();
+  bool _busy = false;
+
+  Future<void> _toggle(bool on) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final settings = context.read<SettingsProvider>();
+    final authenticator = context.read<Authenticator>();
+    setState(() => _busy = true);
+    final result = await authenticator.authenticate(l10n.appLockReason);
+    // Turning the lock off never needs a check the device can't perform.
+    if (result == AuthResult.success ||
+        (!on && result == AuthResult.unavailable)) {
+      await settings.setAppLock(on);
+    } else {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.appLockFailed)));
+    }
+    if (mounted) setState(() => _busy = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final settings = context.watch<SettingsProvider>();
+    return FutureBuilder<bool>(
+      future: _available,
+      builder: (context, snapshot) {
+        final available = snapshot.data ?? false;
+        return SwitchListTile(
+          secondary: const Icon(Icons.lock_outline),
+          title: Text(l10n.appLockLabel),
+          subtitle: Text(
+            available || settings.appLock
+                ? l10n.appLockSubtitle
+                : l10n.appLockUnavailable,
+          ),
+          value: settings.appLock,
+          onChanged: (available || settings.appLock) && !_busy ? _toggle : null,
+        );
+      },
+    );
   }
 }
 

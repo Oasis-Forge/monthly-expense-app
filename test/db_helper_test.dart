@@ -289,5 +289,24 @@ void main() {
       );
       expect([for (final t in await helper.fetchTransfers()) t.id], ['u']);
     });
+
+    test('recurring rules are updated and skipped once deleted', () async {
+      final helper = helperAt('app.db');
+      final rule = testRule('rent', 900, DateTime(2026, 9));
+      await helper.insertRecurringRule(rule);
+
+      await helper.updateRecurringRule(
+        rule.copyWith(pausedAt: DateTime.utc(2026, 9, 5)),
+      );
+      expect(
+        (await helper.fetchRecurringRules()).single.pausedAt,
+        DateTime.utc(2026, 9, 5),
+      );
+
+      await helper.updateRecurringRule(
+        rule.copyWith(deletedAt: DateTime.utc(2026, 9, 6)),
+      );
+      expect(await helper.fetchRecurringRules(), isEmpty);
+    });
   });
 }

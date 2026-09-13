@@ -1,0 +1,339 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/budget.dart';
+import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/models/transfer.dart';
+import 'package:monthly_expense_app/providers/settings_provider.dart';
+import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/budgets_screen.dart';
+import 'package:monthly_expense_app/screens/insights_screen.dart';
+
+import 'helpers.dart';
+
+void main() {
+  const expense = TransactionType.expense;
+  const income = TransactionType.income;
+  final today = DateTime(2026, 9, 15);
+  late SettingsProvider settings;
+
+  Future<void> showInsights(
+    WidgetTester tester,
+    List<ExpenseTransaction> transactions, {
+    List<Budget> budgets = const [],
+    List<Transfer> transfers = const [],
+    Map<String, Object> settingsValues = const {},
+  }) async {
+    usePhoneScreen(tester);
+    final provider = TransactionProvider(
+      db: FakeDB(
+        transactions: transactions,
+        budgets: budgets,
+        transfers: transfers,
+        accounts: [testAccount(Account.cashId), testAccount('bank')],
+      ),
+      clock: () => today,
+    );
+    await provider.load();
+    settings = await testSettings(settingsValues);
+    await tester.pumpWidget(
+      testApp(provider, settings, const InsightsScreen()),
+    );
+    await tester.pump();
+  }
+
+  Future<void> openTab(WidgetTester tester, String tab) async {
+    await tester.tap(find.text(tab));
+    await tester.pumpAndSettle();
+  }
+
+  Budget budget(String? categoryId, int limit) {
+    return Budget(
+      id: categoryId ?? 'overall',
+      categoryId: categoryId,
+      limit: Money(limit * 1000),
+      effectiveFrom: DateTime(2026, 9),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+  }
+
+  final spending = [
+    testTx('f', expense, 30, DateTime(2026, 9, 5)),
+    testTx('r', expense, 10, DateTime(2026, 9, 6), categoryId: 'cat-rent'),
+  ];
+
+  group('categories (INS-3)', () {
+    testWidgets('shows the empty state when the period has no expenses', (
+      tester,
+    ) async {
+      await showInsights(tester, [
+        testTx('s', income, 100, DateTime(2026, 9, 5)),
+      ]);
+
+      expect(find.text('Insights'), findsOneWidget);
+      expect(find.text('September 2026'), findsOneWidget);
+      expect(find.text('No expenses in this period yet.'), findsOneWidget);
+      expect(find.text('Budgets'), findsNothing);
+    });
+
+    testWidgets('lists spending by category with the total', (tester) async {
+      await showInsights(tester, spending);
+
+      expect(
+        find.text('Total spent: \$40.00', skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Food', skipOffstage: false), findsOneWidget);
+      expect(find.text('Rent', skipOffstage: false), findsOneWidget);
+    });
+
+    testWidgets('income has its own chart', (tester) async {
+      await showInsights(tester, [
+        ...spending,
+        testTx('s', income, 100, DateTime(2026, 9, 5)),
+      ]);
+
+      await tester.tap(find.text('Income'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Total income: \$100.00', skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('Salary', skipOffstage: false), findsOneWidget);
+      expect(find.text('Food', skipOffstage: false), findsNothing);
+    });
+
+    testWidgets('the arrows show another period', (tester) async {
+      await showInsights(tester, spending);
+
+      await tester.tap(find.byTooltip('Previous period'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('August 2026'), findsOneWidget);
+      expect(find.text('No expenses in this period yet.'), findsOneWidget);
+    });
+
+    testWidgets('budget bars show what is left per day or how much is over', (
+      tester,
+    ) async {
+      await showInsights(
+        tester,
+        spending,
+        budgets: [
+          budget(null, 1000),
+          budget('cat-food', 46),
+          budget('cat-rent', 5),
+        ],
+      );
+
+      expect(find.text('Budgets'), findsOneWidget);
+      // September 15–30 is 16 days, today included.
+      expect(find.text('\$960.00 left · \$60.00 a day'), findsOneWidget);
+      expect(find.text('\$30.00 of \$46.00'), findsOneWidget);
+      expect(find.text('\$16.00 left · \$1.00 a day'), findsOneWidget);
+      expect(find.text('Over by \$5.00'), findsOneWidget);
+    });
+
+    testWidgets('the budgets button opens the budgets screen', (tester) async {
+      await showInsights(tester, spending);
+
+      await tester.tap(find.byTooltip('Budgets'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetsScreen), findsOneWidget);
+    });
+  });
+
+  group('calendar (INS-1)', () {
+    final month = [
+      testTx('groceries', expense, 30, DateTime(2026, 9, 5)),
+      testTx(
+        'flat',
+        expense,
+        10,
+        DateTime(2026, 9, 6),
+        title: 'Flat',
+        categoryId: 'cat-rent',
+      ),
+      testTx('pay', income, 100, DateTime(2026, 9, 15), title: 'Paycheck'),
+      testTx('concert', expense, 40, DateTime(2026, 9, 20)),
+    ];
+
+    testWidgets('days show their totals and today is listed first', (
+      tester,
+    ) async {
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+      final compact = settings.compactCurrencyFormat('en');
+
+      expect(find.text('Sep 1'), findsOneWidget);
+      expect(find.text(compact.format(30)), findsOneWidget);
+      expect(find.text(compact.format(100)), findsOneWidget);
+      // Upcoming days show their amounts too, faintly.
+      expect(find.text(compact.format(40)), findsOneWidget);
+      expect(find.text('Tuesday, September 15, 2026'), findsOneWidget);
+      expect(find.text('Paycheck'), findsOneWidget);
+    });
+
+    testWidgets('tapping a day lists its entries, which open for editing', (
+      tester,
+    ) async {
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+
+      await tester.tap(find.text('6'));
+      await tester.pumpAndSettle();
+      expect(find.text('Sunday, September 6, 2026'), findsOneWidget);
+
+      await tester.tap(find.text('Flat'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit Transaction'), findsOneWidget);
+    });
+
+    testWidgets('empty days say so; transfers are listed', (tester) async {
+      await showInsights(
+        tester,
+        month,
+        transfers: [
+          testTransfer('t', Account.cashId, 'bank', 50, DateTime(2026, 9, 3)),
+        ],
+      );
+      await openTab(tester, 'Calendar');
+
+      await tester.tap(find.text('2'));
+      await tester.pumpAndSettle();
+      expect(find.text('Nothing on this day.'), findsOneWidget);
+
+      await tester.tap(find.text('3'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('acc-cash → bank'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit transfer'), findsOneWidget);
+    });
+
+    testWidgets('weeks start on the locale day until one is chosen (PER-4)', (
+      tester,
+    ) async {
+      double x(String text) => tester.getCenter(find.text(text)).dx;
+
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+      expect(x('Sun'), lessThan(x('Mon')));
+
+      await showInsights(tester, month, settingsValues: {'week_start_day': 1});
+      await openTab(tester, 'Calendar');
+      expect(x('Mon'), lessThan(x('Sun')));
+    });
+
+    testWidgets('outside today\'s period, a hint replaces the day list', (
+      tester,
+    ) async {
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+
+      await tester.tap(find.byTooltip('Previous period'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Tap a day to see its transactions.'), findsOneWidget);
+    });
+  });
+
+  group('trend (INS-2)', () {
+    final history = [
+      testTx('july', income, 200, DateTime(2026, 7)),
+      testTx('august', expense, 60, DateTime(2026, 8, 10)),
+      testTx('september', expense, 30, DateTime(2026, 9, 5)),
+      testTx('pay', income, 100, DateTime(2026, 9, 15)),
+    ];
+
+    testWidgets('lists recent periods and their averages', (tester) async {
+      await showInsights(tester, history);
+      await openTab(tester, 'Trend');
+
+      expect(
+        find.text('Average per period · Income \$50.00 · Expense \$15.00'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Income \$100.00 · Expense \$30.00', skipOffstage: false),
+        findsOneWidget,
+      );
+      expect(find.text('\$70.00', skipOffstage: false), findsOneWidget);
+      expect(find.text('-\$60.00', skipOffstage: false), findsOneWidget);
+
+      await tester.tap(find.text('12 months'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Average per period · Income \$25.00 · Expense \$7.50'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('periods that have not started stay out of the averages', (
+      tester,
+    ) async {
+      await showInsights(tester, history);
+      await openTab(tester, 'Trend');
+
+      // November: June to November, of which October and November are
+      // still to come, so the averages cover four periods.
+      await tester.tap(find.byTooltip('Next period'));
+      await tester.tap(find.byTooltip('Next period'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Average per period · Income \$75.00 · Expense \$22.50'),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('other periods', () {
+    testWidgets('past budgets show what was left; future ones only the limit '
+        '(BUD-6)', (tester) async {
+      await showInsights(
+        tester,
+        [testTx('aug', expense, 20, DateTime(2026, 8, 5)), ...spending],
+        budgets: [
+          Budget(
+            id: 'food',
+            categoryId: 'cat-food',
+            limit: const Money(50000),
+            effectiveFrom: DateTime(2026, 8),
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+          budget('cat-rent', 10),
+        ],
+      );
+      expect(find.text('Limit reached'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Previous period'));
+      await tester.pumpAndSettle();
+      expect(find.text('\$30.00 left'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Next period'));
+      await tester.tap(find.byTooltip('Next period'));
+      await tester.pumpAndSettle();
+      expect(find.text('Limit \$50.00'), findsOneWidget);
+      expect(find.text('Limit \$10.00'), findsOneWidget);
+    });
+
+    testWidgets('upcoming entries in the day list are marked (BAL-4)', (
+      tester,
+    ) async {
+      await showInsights(tester, [
+        testTx('concert', expense, 40, DateTime(2026, 9, 20)),
+      ]);
+      await openTab(tester, 'Calendar');
+
+      await tester.tap(find.text('20'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Food · Upcoming'), findsOneWidget);
+    });
+  });
+}

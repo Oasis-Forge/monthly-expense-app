@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/csv_export.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import 'csv_export_action.dart';
 
 /// Searches every transaction as you type, with filters for type, category,
 /// account, and dates (SRCH-1–SRCH-3).
@@ -72,6 +74,20 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           onChanged: (value) => setState(() => _query = value),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.file_download_outlined),
+            tooltip: l10n.exportCsvTooltip,
+            // BAK-5: exports exactly the matches listed below.
+            onPressed: result.transactions.isEmpty
+                ? null
+                : () => exportCsv(
+                    context,
+                    name: 'search-${isoDate(provider.today)}',
+                    transactions: result.transactions,
+                  ),
+          ),
+        ],
       ),
       body: Column(
         children: [

@@ -135,12 +135,12 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 **Learn:** a raw database file breaks across schema versions. Defaults that send data off the device conflict with our principles.
 
 - **BAK-1** Backup is a JSON file recording the app version and schema version, saved or shared only when the user chooses to.
-- **BAK-2** Restore offers Replace (the backup replaces all current data) or Merge (BAK-3). Before either, the app saves an automatic backup of the current data.
-- **BAK-3** Merge matches every record by ID (REC-2). Records only in the backup are added. When both sides have a record, the one with the later `updated_at` wins, including deletions (DEL-1). Transactions, categories, accounts, budgets, and recurring rules all merge this way. The app then shows how many records were added, updated, and unchanged.
-- **BAK-4** A backup from a newer schema is refused with a message to update the app. Older backups are migrated before Replace or Merge.
-- **BAK-5** CSV export covers the current view (period and filters), with ISO dates and plain decimal amounts.
+- **BAK-2** Restore offers Replace (the backup replaces all current data and settings) or Merge (BAK-3). Before either, the app saves an automatic backup of the current data. The device keeps the five most recent automatic backups, and any of them can be restored.
+- **BAK-3** Merge matches every record by ID (REC-2). Records only in the backup are added. When both sides have a record, the one with the later `updated_at` wins, including deletions (DEL-1). Transactions, categories, accounts, budgets, and recurring rules all merge this way. Records that differ only in their timestamps count as unchanged. An occurrence handled on both sides keeps this device's record, and the backup's transaction for it is left out, so a recurring transaction never posts twice (RCR-4). Budget versions from the same period start go by the one saved last. Merge keeps this device's settings. The app then shows how many records were added, updated, and unchanged.
+- **BAK-4** A backup from a newer schema is refused with a message to update the app. Older backups are migrated with the app's own schema steps before Replace or Merge.
+- **BAK-5** CSV export covers the current view (period and filters), with ISO dates and plain decimal amounts. Text that a spreadsheet would run as a formula (starting with `=`, `+`, `-`, or `@`) gets a leading apostrophe.
 - **BAK-6** Nothing leaves the device without an explicit user action. No cloud sync, no scheduled email.
-- **BAK-7** A backup reminder appears only after 20 transactions, then at most every 30 days since the last backup, and can be turned off. Never on first launch.
+- **BAK-7** A backup reminder appears only after 20 transactions, then at most every 30 days since the last backup, and can be turned off. Dismissing it also waits 30 days. Never within a day of first opening the app.
 
 ## 12. Currency and formatting
 
@@ -156,6 +156,26 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - **RUN-1** The first launch opens Home with one clear "Add your first transaction" action. The currency is preselected and changeable in Settings. No prompts before first use.
 - **RUN-2** The Android release build declares no `INTERNET` permission while the app has no feature that needs it, so the store listing can truthfully say "no data collected".
+
+## 14. Insights
+
+**They do:** a calendar view and charts. How periods and future-dated entries affect them: not verified.
+
+**Learn:** a calendar and a trend only help if they use the same periods and counting rules as Home.
+
+- **INS-1** The calendar shows the selected period as a month grid with each day's expense and income. Weeks start on the first day of the week (PER-4). Upcoming days show their amounts faintly, because they don't count yet (BAL-4). Tapping a day lists its transactions and transfers.
+- **INS-2** The trend shows income and expense for the last 6 or 12 periods, ending with the selected one. Only entries that count are included (BAL-4), and the averages leave out periods that haven't started.
+- **INS-3** The category chart works for any period and shows expense or income, with budget progress for expense (BUD-2).
+
+## 15. App lock
+
+**They do:** not verified.
+
+**Learn:** an expense app holds private data, but a forgotten app PIN would lock people out of their own records.
+
+- **LOCK-1** App lock is off by default. It uses the device's own biometrics or screen lock (fingerprint, face, PIN, pattern, or password), so the app never stores a PIN. Turning it on or off asks for authentication first.
+- **LOCK-2** With app lock on, the app asks at launch and again after at least a minute in the background, and hides its content until unlocked.
+- **LOCK-3** If the device no longer has biometrics or a screen lock, app lock turns itself off instead of locking the data away.
 
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).

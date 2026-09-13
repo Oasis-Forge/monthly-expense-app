@@ -5,6 +5,7 @@ import '../db/db_helper.dart';
 import '../models/account.dart';
 import '../models/budget.dart';
 import '../models/category.dart';
+import '../models/insights.dart';
 import '../models/money.dart';
 import '../models/period.dart';
 import '../models/recurring_rule.dart';
@@ -56,6 +57,10 @@ class TransactionProvider extends ChangeNotifier {
   int _startDay;
   Period _period;
   _PeriodSummary? _summary;
+  bool _loaded = false;
+
+  /// Whether [load] has finished at least once.
+  bool get isLoaded => _loaded;
 
   /// Transactions that aren't deleted, newest first.
   List<ExpenseTransaction> get transactions => List.unmodifiable(_transactions);
@@ -231,6 +236,7 @@ class TransactionProvider extends ChangeNotifier {
       ..sort(_newestTransferFirst);
     _deletedTransfers.clear();
     await _postAutomaticOccurrences();
+    _loaded = true;
     _changed();
   }
 
@@ -875,6 +881,45 @@ class TransactionProvider extends ChangeNotifier {
   /// Expense per category ID in the period.
   Map<String, Money> get expenseByCategory => _current.expenseByCategory;
 
+  /// Income per category ID in the period (INS-3).
+  Map<String, Money> get incomeByCategory => _current.incomeByCategory;
+
+  /// Income and expense per day in the period, upcoming days included
+  /// (INS-1).
+  Map<DateTime, DayTotals> get dailyTotals => _current.dailyTotals;
+
+  /// Today's date, from the provider's clock.
+  DateTime get today => _today;
+
+  /// Counted income and expense of the [count] periods that end with the
+  /// selected one, oldest first (INS-2, BAL-4).
+  List<PeriodTotals> trend(int count) {
+    assert(count > 0, 'A trend needs at least one period');
+    final periods = [_period];
+    while (periods.length < count) {
+      periods.insert(0, periods.first.previous);
+    }
+    final income = List.filled(count, Money.zero);
+    final expense = List.filled(count, Money.zero);
+    for (final tx in _transactions) {
+      if (isUpcoming(tx) ||
+          tx.date.isBefore(periods.first.start) ||
+          !tx.date.isBefore(_period.end)) {
+        continue;
+      }
+      final index = periods.indexWhere((period) => period.contains(tx.date));
+      if (tx.type == TransactionType.income) {
+        income[index] += tx.amount;
+      } else {
+        expense[index] += tx.amount;
+      }
+    }
+    return [
+      for (var i = 0; i < count; i++)
+        PeriodTotals(periods[i], income: income[i], expense: expense[i]),
+    ];
+  }
+
   void _changed() {
     _summary = null;
     notifyListeners();
@@ -928,19 +973,27 @@ class _PeriodSummary {
     var netBefore = Money.zero;
     for (final tx in newestFirst) {
       final counts = !_dayOf(tx.date).isAfter(today);
+      final isIncome = tx.type == TransactionType.income;
       if (period.contains(tx.date)) {
+        final day = _dayOf(tx.date);
         transactions.add(tx);
-        byDay.putIfAbsent(_dayOf(tx.date), () => []).add(tx);
+        byDay.putIfAbsent(day, () => []).add(tx);
+        final totals = dailyTotals[day] ?? const DayTotals();
+        dailyTotals[day] = DayTotals(
+          income: isIncome ? totals.income + tx.amount : totals.income,
+          expense: isIncome ? totals.expense : totals.expense + tx.amount,
+        );
         if (!counts) continue;
-        if (tx.type == TransactionType.income) {
+        final byCategory = isIncome ? incomeByCategory : expenseByCategory;
+        byCategory[tx.categoryId] =
+            (byCategory[tx.categoryId] ?? Money.zero) + tx.amount;
+        if (isIncome) {
           income += tx.amount;
         } else {
           expense += tx.amount;
-          expenseByCategory[tx.categoryId] =
-              (expenseByCategory[tx.categoryId] ?? Money.zero) + tx.amount;
         }
       } else if (counts && tx.date.isBefore(period.start)) {
-        netBefore += tx.type == TransactionType.income ? tx.amount : -tx.amount;
+        netBefore += isIncome ? tx.amount : -tx.amount;
       }
     }
 
@@ -960,9 +1013,11 @@ class _PeriodSummary {
   final DateTime today;
   final List<ExpenseTransaction> transactions = [];
   final Map<DateTime, List<ExpenseTransaction>> byDay = {};
+  final Map<DateTime, DayTotals> dailyTotals = {};
   final List<Transfer> transfers = [];
   final Map<DateTime, List<Transfer>> transfersByDay = {};
   final Map<String, Money> expenseByCategory = {};
+  final Map<String, Money> incomeByCategory = {};
   Money income = Money.zero;
   Money expense = Money.zero;
   late final Money carriedForward;

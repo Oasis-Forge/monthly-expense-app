@@ -78,7 +78,9 @@ class Budget {
 
 /// The limit in force for [categoryId] (null for the overall budget) during
 /// [period]: the newest version that took effect before the period ended
-/// (BUD-5). Null when there is none, or it was removed.
+/// (BUD-5). Versions from the same period start, such as ones merged from
+/// another device's backup, go by the one saved last. Null when there is
+/// none, or it was removed.
 Money? limitFor(Iterable<Budget> budgets, String? categoryId, Period period) {
   Budget? newest;
   for (final budget in budgets) {
@@ -87,7 +89,10 @@ Money? limitFor(Iterable<Budget> budgets, String? categoryId, Period period) {
         !budget.effectiveFrom.isBefore(period.end)) {
       continue;
     }
-    if (newest == null || budget.effectiveFrom.isAfter(newest.effectiveFrom)) {
+    if (newest == null ||
+        budget.effectiveFrom.isAfter(newest.effectiveFrom) ||
+        (budget.effectiveFrom == newest.effectiveFrom &&
+            budget.updatedAt.isAfter(newest.updatedAt))) {
       newest = budget;
     }
   }

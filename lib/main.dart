@@ -8,7 +8,10 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'l10n/app_localizations.dart';
 import 'providers/settings_provider.dart';
 import 'providers/transaction_provider.dart';
+import 'screens/app_lock.dart';
 import 'screens/home_screen.dart';
+import 'services/authenticator.dart';
+import 'services/backup_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,9 +30,18 @@ Future<void> main() async {
 }
 
 class MonthlyExpenseApp extends StatelessWidget {
-  const MonthlyExpenseApp({super.key, required this.settings});
+  /// [backup] and [authenticator] default to the device implementations;
+  /// tests pass their own.
+  const MonthlyExpenseApp({
+    super.key,
+    required this.settings,
+    this.backup,
+    this.authenticator,
+  });
 
   final SettingsProvider settings;
+  final BackupService? backup;
+  final Authenticator? authenticator;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +51,10 @@ class MonthlyExpenseApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) =>
               TransactionProvider(startDay: settings.startDay)..load(),
+        ),
+        Provider<BackupService>(create: (_) => backup ?? BackupService()),
+        Provider<Authenticator>(
+          create: (_) => authenticator ?? DeviceAuthenticator(),
         ),
       ],
       child: Consumer<SettingsProvider>(
@@ -61,6 +77,7 @@ class MonthlyExpenseApp extends StatelessWidget {
             ),
             useMaterial3: true,
           ),
+          builder: (context, child) => AppLock(child: child!),
           home: const HomeScreen(),
         ),
       ),

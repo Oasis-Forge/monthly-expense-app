@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,13 +10,15 @@ import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
+import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
-import 'package:monthly_expense_app/screens/stats_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
+import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
 
@@ -48,9 +52,18 @@ void main() {
     settings = await testSettings();
   });
 
-  Future<void> showHome(WidgetTester tester) async {
-    await tester.pumpWidget(testApp(provider, settings, const HomeScreen()));
+  Future<void> showHome(WidgetTester tester, {BackupService? backup}) async {
+    await tester.pumpWidget(
+      testApp(provider, settings, const HomeScreen(), backup: backup),
+    );
     await tester.pump();
+  }
+
+  Future<void> openMenu(WidgetTester tester, String item) async {
+    await tester.tap(find.byTooltip('Show menu'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(item));
+    await tester.pumpAndSettle();
   }
 
   Future<void> swipe(WidgetTester tester, String text) async {
@@ -65,6 +78,20 @@ void main() {
       testTransfer('t', Account.cashId, 'bank', 50, DateTime(2026, 9, 16)),
     );
     await provider.load();
+  }
+
+  /// Brings the stored transactions to the reminder's 20 (BAK-7), with
+  /// settings first opened in August.
+  Future<void> reachReminder([Map<String, Object> values = const {}]) async {
+    fake.rows.addAll([
+      for (var i = 0; i < 18; i++)
+        testTx('old$i', TransactionType.expense, 1, DateTime(2026, 8)),
+    ]);
+    await provider.load();
+    settings = await testSettings({
+      'first_opened_at': '2026-08-01T00:00:00.000Z',
+      ...values,
+    }, () => today);
   }
 
   testWidgets('future-dated rows are marked upcoming and not counted', (
@@ -115,12 +142,12 @@ void main() {
   testWidgets('the arrows move between periods', (tester) async {
     await showHome(tester);
 
-    await tester.tap(find.byIcon(Icons.chevron_left));
+    await tester.tap(find.byTooltip('Previous period'));
     await tester.pumpAndSettle();
     expect(find.text('August 2026'), findsOneWidget);
     expect(find.text('Lunch'), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.chevron_right));
+    await tester.tap(find.byTooltip('Next period'));
     await tester.pumpAndSettle();
     expect(find.text('September 2026'), findsOneWidget);
     expect(find.text('Lunch'), findsOneWidget);
@@ -157,23 +184,84 @@ void main() {
       () => tester.tap(find.byTooltip('Search')),
       SearchScreen,
     );
-    await openAndReturn(() => tester.tap(find.byTooltip('Stats')), StatsScreen);
+    await openAndReturn(
+      () => tester.tap(find.byTooltip('Insights')),
+      InsightsScreen,
+    );
     for (final (label, screen) in [
       ('Transfer', TransferScreen),
       ('Recurring', RecurringScreen),
       ('Budgets', BudgetsScreen),
+      ('Backup & restore', BackupScreen),
       ('Settings', SettingsScreen),
     ]) {
-      await openAndReturn(() async {
-        await tester.tap(find.byTooltip('Show menu'));
-        await tester.pumpAndSettle();
-        await tester.tap(find.text(label));
-      }, screen);
+      await openAndReturn(() => openMenu(tester, label), screen);
     }
 
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
     expect(find.byType(AddTransactionScreen), findsOneWidget);
+  });
+
+  testWidgets('the first launch offers one action: add a transaction (RUN-1)', (
+    tester,
+  ) async {
+    provider = TransactionProvider(db: FakeDB(), clock: () => today);
+    await provider.load();
+
+    await showHome(tester);
+
+    expect(find.text('Welcome to Monthly Expenses'), findsOneWidget);
+    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.text('No transactions in this period yet.'), findsNothing);
+
+    await tester.tap(find.text('Add your first transaction'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AddTransactionScreen), findsOneWidget);
+  });
+
+  testWidgets('Export CSV saves the selected period (BAK-5)', (tester) async {
+    final files = FakeBackupFiles();
+    await showHome(tester, backup: testBackupService(fake, files: files));
+
+    await openMenu(tester, 'Export CSV');
+
+    final csv = utf8.decode(
+      files.saved['monthly-expenses-2026-09-01_2026-09-30.csv']!,
+    );
+    expect(csv, contains(',Lunch,'));
+    expect(csv, contains(',Concert,'));
+    expect(find.text('CSV saved'), findsOneWidget);
+  });
+
+  testWidgets('a failed export shows an error', (tester) async {
+    final files = FakeBackupFiles()..fail = true;
+    await showHome(tester, backup: testBackupService(fake, files: files));
+
+    await openMenu(tester, 'Export CSV');
+
+    expect(find.text("Couldn't export the CSV. Try again."), findsOneWidget);
+  });
+
+  testWidgets('the backup reminder can wait for later (BAK-7)', (tester) async {
+    await reachReminder();
+    await showHome(tester);
+    expect(find.text('Back up your data to keep it safe'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Not now'));
+    await tester.pump();
+
+    expect(find.text('Back up your data to keep it safe'), findsNothing);
+  });
+
+  testWidgets('the backup reminder opens Backup & restore', (tester) async {
+    await reachReminder({'last_backup_at': '2026-08-01T12:00:00.000Z'});
+    await showHome(tester);
+
+    await tester.tap(find.text('Last backup Aug 1, 2026. Time for a new one?'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(BackupScreen), findsOneWidget);
   });
 
   testWidgets('due recurring transactions show a notice (RCR-2)', (
@@ -206,7 +294,7 @@ void main() {
     await tester.tap(find.text('1 budget is over its limit'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(StatsScreen), findsOneWidget);
+    expect(find.byType(InsightsScreen), findsOneWidget);
   });
 
   testWidgets('tapping a row opens it for editing', (tester) async {
@@ -295,5 +383,18 @@ void main() {
 
     expect(provider.transfers, hasLength(1));
     expect(find.text('acc-cash → bank'), findsOneWidget);
+  });
+
+  testWidgets('a failed transfer delete keeps the row and shows an error', (
+    tester,
+  ) async {
+    await addTransfer();
+    fake.failWrites = true;
+    await showHome(tester);
+
+    await swipe(tester, 'acc-cash → bank');
+
+    expect(find.text('acc-cash → bank'), findsOneWidget);
+    expect(find.text("Couldn't save the transfer. Try again."), findsOneWidget);
   });
 }
