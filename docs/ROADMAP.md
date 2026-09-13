@@ -54,7 +54,8 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [ ] Finish the one-time setup in `docs/RELEASING.md`.
 - [ ] Exercise `release-ios.yml` and `claude.yml` once their secrets exist.
 - [ ] Google Play: new personal developer accounts must run a closed test (at least 12 testers for 14 days) before production access. Confirm the current rule in Play Console and plan for the wait.
-- [ ] `/release minor` → tag `v1.0.0` → Play internal testing + TestFlight.
+- [x] Every merged PR is a release: CI requires a SemVer bump and changelog entry, and `release-android.yml` tags the merge and attaches the APK to a draft GitHub Release. `v1.0.0` is the first.
+- [ ] Play internal testing + TestFlight from a release, once the signing secrets exist.
 - [ ] Store listings (screenshots, description, privacy policy URL, Play data safety form, App Store privacy labels), then promote to production.
 - [ ] Desktop releases: Mac App Store, Microsoft Store, and Snap Store or Flathub.
 
