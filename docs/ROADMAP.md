@@ -13,9 +13,9 @@ Goal: build the full v1 feature set first, then prepare and ship Monthly Expense
 
 ## Phase 1 — Foundations
 Groundwork every feature builds on. After this phase, only budgets, recurring rules, and transfers add tables.
-- [ ] Lints in `analysis_options.yaml`: `unawaited_futures`, `prefer_single_quotes`, `prefer_const_constructors`, `always_declare_return_types`.
-- [ ] Inject `DBHelper` into `TransactionProvider` (default `DBHelper.instance`) so tests use an in-memory FFI database.
-- [ ] Migration scaffold in `DBHelper`: an ordered list of version steps run by `onUpgrade`, with a test that upgrades a v1 database.
+- [x] Lints in `analysis_options.yaml`: `unawaited_futures`, `prefer_single_quotes`, `prefer_const_constructors`, `always_declare_return_types`.
+- [x] Inject `DBHelper` into `TransactionProvider` (default `DBHelper.instance`) so tests use an in-memory FFI database.
+- [x] Migration scaffold in `DBHelper`: an ordered list of version steps run by `onUpgrade`, with a test that upgrades a v1 database.
 - [ ] Reliable writes: `_submit` awaits the provider (`lib/screens/add_transaction_screen.dart`); the provider writes before changing state, rolls back on failure, and the screen shows a SnackBar (`lib/providers/transaction_provider.dart`).
 - [ ] `copyWith` can clear nullable fields (`note`, and `title` once optional); use a sentinel. (`lib/models/transaction.dart`)
 - [ ] Localization scaffolding: `flutter gen-l10n` with an English ARB file; move today's UI strings. Every later feature adds its strings there.
