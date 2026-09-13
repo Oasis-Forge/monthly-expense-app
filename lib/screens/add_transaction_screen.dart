@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 
+import '../l10n/app_localizations.dart';
+import '../l10n/labels.dart';
+import '../models/account.dart';
+import '../models/money.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 
@@ -21,22 +26,26 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   final _noteController = TextEditingController();
 
   TransactionType _type = TransactionType.expense;
-  late String _category;
+  String? _categoryId;
   late DateTime _date;
+
+  /// True while a save is in progress, so repeated taps don't save twice.
+  bool _saving = false;
 
   @override
   void initState() {
     super.initState();
     final editing = widget.editing;
     if (editing != null) {
-      _titleController.text = editing.title;
-      _amountController.text = editing.amount.toString();
+      _titleController.text = editing.title ?? '';
+      _amountController.text = editing.amount.toInputString();
       _noteController.text = editing.note ?? '';
       _type = editing.type;
-      _category = editing.category;
+      _categoryId = editing.categoryId;
       _date = editing.date;
     } else {
-      _category = Categories.expense.first;
+      final options = context.read<TransactionProvider>().categoriesFor(_type);
+      _categoryId = options.isEmpty ? null : options.first.id;
       _date = DateTime.now();
     }
   }
@@ -49,8 +58,15 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     super.dispose();
   }
 
-  List<String> get _categoryOptions =>
-      _type == TransactionType.expense ? Categories.expense : Categories.income;
+  void _selectType(TransactionType type) {
+    final options = context.read<TransactionProvider>().categoriesFor(type);
+    setState(() {
+      _type = type;
+      if (!options.any((c) => c.id == _categoryId)) {
+        _categoryId = options.isEmpty ? null : options.first.id;
+      }
+    });
+  }
 
   Future<void> _pickDate() async {
     final picked = await showDatePicker(
@@ -64,51 +80,48 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
   }
 
-  /// True while a save is in progress, so repeated taps don't save twice.
-  bool _saving = false;
-
   Future<void> _submit() async {
     if (_saving || !_formKey.currentState!.validate()) return;
 
     final provider = context.read<TransactionProvider>();
-    final amount = double.parse(_amountController.text.trim());
+    final l10n = AppLocalizations.of(context);
+    final amount = Money.tryParse(_amountController.text)!;
+    final title = _titleController.text.trim();
+    final note = _noteController.text.trim();
 
     _saving = true;
     try {
-      if (widget.editing != null) {
-        final updated = widget.editing!.copyWith(
-          title: _titleController.text.trim(),
-          amount: amount,
-          category: _category,
-          type: _type,
-          date: _date,
-          note: _noteController.text.trim().isEmpty
-              ? null
-              : _noteController.text.trim(),
+      final editing = widget.editing;
+      if (editing != null) {
+        await provider.updateTransaction(
+          editing.copyWith(
+            title: title.isEmpty ? null : title,
+            amount: amount,
+            categoryId: _categoryId,
+            type: _type,
+            date: _date,
+            note: note.isEmpty ? null : note,
+          ),
         );
-        await provider.updateTransaction(updated);
       } else {
-        final tx = ExpenseTransaction(
-          id: const Uuid().v4(),
-          title: _titleController.text.trim(),
-          amount: amount,
-          category: _category,
-          type: _type,
-          date: _date,
-          note: _noteController.text.trim().isEmpty
-              ? null
-              : _noteController.text.trim(),
+        await provider.addTransaction(
+          ExpenseTransaction(
+            id: const Uuid().v4(),
+            title: title.isEmpty ? null : title,
+            amount: amount,
+            categoryId: _categoryId!,
+            accountId: Account.cashId,
+            type: _type,
+            date: _date,
+            note: note.isEmpty ? null : note,
+          ),
         );
-        await provider.addTransaction(tx);
       }
     } catch (_) {
       _saving = false;
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Couldn't save the transaction. Try again."),
-        ),
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.saveFailed)));
       return;
     }
 
@@ -117,11 +130,17 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final categories = context.watch<TransactionProvider>().categoriesFor(
+      _type,
+    );
     final isEditing = widget.editing != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEditing ? 'Edit Transaction' : 'Add Transaction'),
+        title: Text(
+          isEditing ? l10n.editTransactionTitle : l10n.addTransactionTitle,
+        ),
       ),
       body: Form(
         key: _formKey,
@@ -129,45 +148,35 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           padding: const EdgeInsets.all(16),
           children: [
             SegmentedButton<TransactionType>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: TransactionType.expense,
-                  label: Text('Expense'),
-                  icon: Icon(Icons.arrow_upward),
+                  label: Text(l10n.expenseLabel),
+                  icon: const Icon(Icons.arrow_upward),
                 ),
                 ButtonSegment(
                   value: TransactionType.income,
-                  label: Text('Income'),
-                  icon: Icon(Icons.arrow_downward),
+                  label: Text(l10n.incomeLabel),
+                  icon: const Icon(Icons.arrow_downward),
                 ),
               ],
               selected: {_type},
-              onSelectionChanged: (selection) {
-                setState(() {
-                  _type = selection.first;
-                  if (!_categoryOptions.contains(_category)) {
-                    _category = _categoryOptions.first;
-                  }
-                });
-              },
+              onSelectionChanged: (selection) => _selectType(selection.first),
             ),
             const SizedBox(height: 20),
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.titleOptionalLabel,
+                border: const OutlineInputBorder(),
               ),
-              validator: (value) => (value == null || value.trim().isEmpty)
-                  ? 'Enter a title'
-                  : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _amountController,
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.amountLabel,
+                border: const OutlineInputBorder(),
                 prefixText: '\$ ',
               ),
               keyboardType: const TextInputType.numberWithOptions(
@@ -175,50 +184,51 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
-                  return 'Enter an amount';
+                  return l10n.amountRequired;
                 }
-                final parsed = double.tryParse(value.trim());
-                if (parsed == null || parsed <= 0) {
-                  return 'Enter a valid amount';
+                final amount = Money.tryParse(value);
+                if (amount == null || !amount.isPositive) {
+                  return l10n.amountInvalid;
                 }
                 return null;
               },
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              initialValue: _category,
-              decoration: const InputDecoration(
-                labelText: 'Category',
-                border: OutlineInputBorder(),
+              // A new key per type resets the field when the type changes.
+              key: ValueKey(_type),
+              initialValue: categories.any((c) => c.id == _categoryId)
+                  ? _categoryId
+                  : null,
+              decoration: InputDecoration(
+                labelText: l10n.categoryLabel,
+                border: const OutlineInputBorder(),
               ),
-              items: _categoryOptions
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c,
-                      child: Text('${Categories.icons[c] ?? ''} $c'),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                if (value != null) setState(() => _category = value);
-              },
+              items: [
+                for (final category in categories)
+                  DropdownMenuItem(
+                    value: category.id,
+                    child: Text('${category.icon} ${category.label(l10n)}'),
+                  ),
+              ],
+              validator: (value) =>
+                  value == null ? l10n.categoryRequired : null,
+              onChanged: (value) => setState(() => _categoryId = value),
             ),
             const SizedBox(height: 16),
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: const Text('Date'),
-              subtitle: Text(
-                '${_date.year}-${_date.month.toString().padLeft(2, '0')}-${_date.day.toString().padLeft(2, '0')}',
-              ),
+              title: Text(l10n.dateLabel),
+              subtitle: Text(DateFormat.yMMMd(l10n.localeName).format(_date)),
               trailing: const Icon(Icons.calendar_today),
               onTap: _pickDate,
             ),
             const SizedBox(height: 16),
             TextFormField(
               controller: _noteController,
-              decoration: const InputDecoration(
-                labelText: 'Note (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.noteOptionalLabel,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -226,7 +236,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             FilledButton(
               onPressed: _submit,
               style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-              child: Text(isEditing ? 'Save Changes' : 'Add Transaction'),
+              child: Text(
+                isEditing ? l10n.saveChangesButton : l10n.addTransactionButton,
+              ),
             ),
           ],
         ),

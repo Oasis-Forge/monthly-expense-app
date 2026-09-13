@@ -17,13 +17,13 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [x] Inject `DBHelper` into `TransactionProvider` (default `DBHelper.instance`) so tests use an in-memory FFI database.
 - [x] Migration scaffold in `DBHelper`: an ordered list of version steps run by `onUpgrade`, with a test that upgrades a v1 database.
 - [x] Reliable writes: `_submit` awaits the provider (`lib/screens/add_transaction_screen.dart`); the provider writes before changing state, rolls back on failure, and the screen shows a SnackBar (`lib/providers/transaction_provider.dart`).
-- [ ] `copyWith` can clear nullable fields (`note`, and `title` once optional); use a sentinel. (`lib/models/transaction.dart`)
-- [ ] Localization scaffolding: `flutter gen-l10n` with an English ARB file; move today's UI strings. Every later feature adds its strings there.
-- [ ] Schema step — records: integer amounts (MONEY-1, MONEY-2), optional title (ADD-1), `created_at` and `updated_at` (REC-1), soft delete with `deleted_at` (DEL-1). Existing rows migrate.
-- [ ] Schema step — categories table with ~15 curated defaults; transactions reference a category ID, and old names map to the new defaults (CAT-1, CAT-2).
-- [ ] Schema step — accounts table with a default "Cash" account; every transaction gets an account (ACC-1, ACC-2).
-- [ ] Period and balance engine: one period function (PER-1); period totals, carried-forward and closing balances, future-dated and deleted exclusions (BAL-1–BAL-5). Cache per period and invalidate on mutation or period change, replacing today's repeated `transactionsForSelectedMonth` work.
-- [ ] Tests: model round-trip, each migration step, period and balance rules, and widget tests for add, edit, and the stats empty state.
+- [x] `copyWith` can clear nullable fields (`note`, and `title` once optional); use a sentinel. (`lib/models/transaction.dart`)
+- [x] Localization scaffolding: `flutter gen-l10n` with an English ARB file; move today's UI strings. Every later feature adds its strings there.
+- [x] Schema step — records: integer amounts (MONEY-1, MONEY-2), optional title (ADD-1), `created_at` and `updated_at` (REC-1), soft delete with `deleted_at` (DEL-1). Existing rows migrate.
+- [x] Schema step — categories table with ~15 curated defaults; transactions reference a category ID, and old names map to the new defaults (CAT-1, CAT-2).
+- [x] Schema step — accounts table with a default "Cash" account; every transaction gets an account (ACC-1, ACC-2).
+- [x] Period and balance engine: one period function (PER-1); period totals, carried-forward and closing balances, future-dated and deleted exclusions (BAL-1–BAL-5). Cache per period and invalidate on mutation or period change, replacing today's repeated `transactionsForSelectedMonth` work.
+- [x] Tests: model round-trip, each migration step, period and balance rules, and widget tests for add, edit, and the stats empty state.
 - [ ] Optional: remove `web/ windows/ linux/ macos/` (not targets; `flutter pub get` keeps rewriting their generated plugin files).
 
 ## Phase 2 — Features (in dependency order)

@@ -12,17 +12,18 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 
 ## Architecture
 - `lib/main.dart`: `MaterialApp` + `ChangeNotifierProvider<TransactionProvider>`
-- `lib/models/transaction.dart`: `ExpenseTransaction` (toMap/fromMap/copyWith), `TransactionType`, `Categories` (lists + emoji icons)
-- `lib/db/db_helper.dart`: `DBHelper.instance` sqflite singleton, table `transactions`, schema v1
-- `lib/providers/transaction_provider.dart`: in-memory list, selected month, derived totals / by-category / grouped-by-day
-- `lib/screens/`: `home_screen` (month selector, summary, day list, swipe delete), `add_transaction_screen` (add + edit), `stats_screen` (pie chart)
+- `lib/models/`: `ExpenseTransaction` (toMap/fromMap, `copyWith` with a sentinel for clearing), `Category`, `Account`, `Money` (integer thousandths), `Period` (month start day)
+- `lib/db/db_helper.dart`: `DBHelper.instance` sqflite wrapper; tables `transactions`, `categories`, `accounts`; schema steps in `lib/db/migrations.dart`
+- `lib/providers/transaction_provider.dart`: loaded data, selected `Period`, cached totals and balances, write-first mutations with soft delete
+- `lib/l10n/`: `app_en.arb` → generated `AppLocalizations` (`flutter gen-l10n`, committed); `labels.dart` for category and period labels
+- `lib/screens/`: `home_screen` (period selector, summary, day list, swipe delete), `add_transaction_screen` (add + edit), `stats_screen` (pie chart)
 - Flow: screen → `context.read/watch<TransactionProvider>()` → `DBHelper`
 
 ## Conventions
 - Product principles: no ads, no analytics/tracking SDKs or advertising ID, no account required; data leaves the device only through user-initiated export/backup.
 - State lives in providers; screens stay presentational. Don't add another state library.
 - Schema change = append a step to `DBHelper.schemaMigrations` (the version follows) and test it in `test/db_helper_test.dart`; never edit a merged step or `_createVersion1`.
-- Every model/provider change gets a test. DB tests use `sqflite_common_ffi` (copy the setup in `test/widget_test.dart`); widget and write-failure tests use `FakeDB` from `test/fake_db.dart`.
+- Every model/provider change gets a test. DB tests use `sqflite_common_ffi` (copy the setup in `test/widget_test.dart`); widget and write-failure tests use `FakeDB`, `testApp`, and `testTx` from `test/helpers.dart`.
 - Feature order: model → migration → provider → screen → test → analyze.
 - One branch per feature, PR to `main`; CI (`.github/workflows/ci.yml`) must pass.
 
@@ -42,4 +43,5 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - The project path contains spaces: quote it in shell commands.
 - sqflite has no web implementation; web and desktop aren't targets.
 - Release signing reads `android/key.properties` (gitignored); without it, release builds are debug-signed.
-- The currency symbol is hard-coded `$` until settings land (ROADMAP Phase 3).
+- The currency symbol is hard-coded `$` until settings land (ROADMAP Phase 2).
+- Generated `lib/l10n/app_localizations*.dart` are committed; after editing `app_en.arb`, run `flutter gen-l10n` and commit the output.

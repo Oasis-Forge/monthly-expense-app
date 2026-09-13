@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
-import '../models/transaction.dart';
+import '../l10n/app_localizations.dart';
+import '../l10n/labels.dart';
+import '../models/money.dart';
 import '../providers/transaction_provider.dart';
 
 const List<Color> _chartColors = [
@@ -24,22 +26,21 @@ class StatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
     final byCategory = provider.expenseByCategory;
     final currency = NumberFormat.currency(symbol: '\$');
-    final total = byCategory.values.fold(0.0, (a, b) => a + b);
+    final total = byCategory.values.fold(Money.zero, (a, b) => a + b);
 
     final entries = byCategory.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
+      ..sort((a, b) => b.value.thousandths.compareTo(a.value.thousandths));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Stats — ${DateFormat.yMMMM().format(provider.selectedMonth)}',
-        ),
+        title: Text(l10n.statsTitle(periodLabel(provider.period, l10n))),
       ),
       body: entries.isEmpty
-          ? const Center(child: Text('No expenses this month yet.'))
+          ? Center(child: Text(l10n.noExpensesInPeriod))
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -52,10 +53,10 @@ class StatsScreen extends StatelessWidget {
                       sections: [
                         for (var i = 0; i < entries.length; i++)
                           PieChartSectionData(
-                            value: entries[i].value,
+                            value: entries[i].value.toDouble(),
                             color: _chartColors[i % _chartColors.length],
                             title:
-                                '${(entries[i].value / total * 100).toStringAsFixed(0)}%',
+                                '${(entries[i].value.thousandths / total.thousandths * 100).toStringAsFixed(0)}%',
                             radius: 70,
                             titleStyle: const TextStyle(
                               fontSize: 12,
@@ -69,7 +70,7 @@ class StatsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Total spent: ${currency.format(total)}',
+                  l10n.totalSpent(currency.format(total.toDouble())),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 12),
@@ -78,12 +79,16 @@ class StatsScreen extends StatelessWidget {
                     leading: CircleAvatar(
                       backgroundColor: _chartColors[i % _chartColors.length],
                       child: Text(
-                        Categories.icons[entries[i].key] ?? '📦',
+                        provider.categoryById(entries[i].key)?.icon ?? '📦',
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
-                    title: Text(entries[i].key),
-                    trailing: Text(currency.format(entries[i].value)),
+                    title: Text(
+                      provider.categoryById(entries[i].key)?.label(l10n) ?? '',
+                    ),
+                    trailing: Text(
+                      currency.format(entries[i].value.toDouble()),
+                    ),
                   ),
               ],
             ),

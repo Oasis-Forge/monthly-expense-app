@@ -20,7 +20,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **DATE-1** A transaction has a local calendar date and an optional time. It belongs to the period of the date the user picked, whatever time zone the phone is in later.
 - **DEL-1** Deleting sets `deleted_at`; it doesn't remove the row. Undo, trash, and backup merge build on this.
 - **REC-1** Every record has `created_at` and `updated_at`.
-- **REC-2** Every record ID is a UUID v4, so records from a backup never collide with records on the device.
+- **REC-2** Every record ID is a UUID v4, so records from a backup never collide with records on the device. Built-in defaults (the default categories and the Cash account) use fixed IDs instead, so the same default matches across devices when backups merge.
 
 ## 2. Periods
 
