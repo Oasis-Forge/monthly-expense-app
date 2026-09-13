@@ -38,26 +38,33 @@ class TransactionProvider extends ChangeNotifier {
     setSelectedMonth(DateTime(_selectedMonth.year, _selectedMonth.month - 1));
   }
 
+  /// Saves [tx], then adds it to the list. If saving fails, the list is
+  /// unchanged and the error is rethrown.
   Future<void> addTransaction(ExpenseTransaction tx) async {
-    _transactions.insert(0, tx);
-    _transactions.sort((a, b) => b.date.compareTo(a.date));
-    notifyListeners();
     await _db.insertTransaction(tx);
+    _transactions
+      ..insert(0, tx)
+      ..sort((a, b) => b.date.compareTo(a.date));
+    notifyListeners();
   }
 
+  /// Saves [tx], then replaces the old version in the list. If saving fails,
+  /// the list is unchanged and the error is rethrown.
   Future<void> updateTransaction(ExpenseTransaction tx) async {
+    await _db.updateTransaction(tx);
     final index = _transactions.indexWhere((t) => t.id == tx.id);
     if (index != -1) {
       _transactions[index] = tx;
       notifyListeners();
     }
-    await _db.updateTransaction(tx);
   }
 
+  /// Deletes the transaction from the database, then removes it from the
+  /// list. If deleting fails, the list is unchanged and the error is rethrown.
   Future<void> deleteTransaction(String id) async {
+    await _db.deleteTransaction(id);
     _transactions.removeWhere((t) => t.id == id);
     notifyListeners();
-    await _db.deleteTransaction(id);
   }
 
   List<ExpenseTransaction> get transactionsForSelectedMonth {

@@ -5,6 +5,8 @@ import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 
+import 'fake_db.dart';
+
 void main() {
   late DBHelper db;
   late TransactionProvider provider;
@@ -99,5 +101,53 @@ void main() {
     provider.nextMonth();
     provider.nextMonth();
     expect(provider.transactionsForSelectedMonth, isEmpty);
+  });
+
+  group('when a database write fails', () {
+    late FakeDB fake;
+    late TransactionProvider failing;
+    late int notifications;
+
+    setUp(() async {
+      fake = FakeDB([
+        tx('keep', TransactionType.expense, 5, DateTime(2026, 9, 2)),
+        tx('x', TransactionType.expense, 10, DateTime(2026, 9, 1)),
+      ]);
+      failing = TransactionProvider(db: fake);
+      await failing.load();
+      fake.failWrites = true;
+      notifications = 0;
+      failing.addListener(() => notifications++);
+    });
+
+    List<String> ids() => [for (final t in failing.transactions) t.id];
+
+    test('add rethrows and leaves the list unchanged', () async {
+      await expectLater(
+        failing.addTransaction(
+          tx('new', TransactionType.income, 1, DateTime(2026, 9, 3)),
+        ),
+        throwsStateError,
+      );
+      expect(ids(), ['keep', 'x']);
+      expect(notifications, 0);
+    });
+
+    test('update rethrows and keeps the old values', () async {
+      await expectLater(
+        failing.updateTransaction(
+          tx('x', TransactionType.expense, 99, DateTime(2026, 9, 1)),
+        ),
+        throwsStateError,
+      );
+      expect(failing.transactions.last.amount, 10);
+      expect(notifications, 0);
+    });
+
+    test('delete rethrows and leaves the list unchanged', () async {
+      await expectLater(failing.deleteTransaction('keep'), throwsStateError);
+      expect(ids(), ['keep', 'x']);
+      expect(notifications, 0);
+    });
   });
 }

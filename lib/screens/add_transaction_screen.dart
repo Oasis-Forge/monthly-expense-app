@@ -64,40 +64,55 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     }
   }
 
-  void _submit() {
-    if (!_formKey.currentState!.validate()) return;
+  /// True while a save is in progress, so repeated taps don't save twice.
+  bool _saving = false;
+
+  Future<void> _submit() async {
+    if (_saving || !_formKey.currentState!.validate()) return;
 
     final provider = context.read<TransactionProvider>();
     final amount = double.parse(_amountController.text.trim());
 
-    if (widget.editing != null) {
-      final updated = widget.editing!.copyWith(
-        title: _titleController.text.trim(),
-        amount: amount,
-        category: _category,
-        type: _type,
-        date: _date,
-        note: _noteController.text.trim().isEmpty
-            ? null
-            : _noteController.text.trim(),
+    _saving = true;
+    try {
+      if (widget.editing != null) {
+        final updated = widget.editing!.copyWith(
+          title: _titleController.text.trim(),
+          amount: amount,
+          category: _category,
+          type: _type,
+          date: _date,
+          note: _noteController.text.trim().isEmpty
+              ? null
+              : _noteController.text.trim(),
+        );
+        await provider.updateTransaction(updated);
+      } else {
+        final tx = ExpenseTransaction(
+          id: const Uuid().v4(),
+          title: _titleController.text.trim(),
+          amount: amount,
+          category: _category,
+          type: _type,
+          date: _date,
+          note: _noteController.text.trim().isEmpty
+              ? null
+              : _noteController.text.trim(),
+        );
+        await provider.addTransaction(tx);
+      }
+    } catch (_) {
+      _saving = false;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Couldn't save the transaction. Try again."),
+        ),
       );
-      provider.updateTransaction(updated);
-    } else {
-      final tx = ExpenseTransaction(
-        id: const Uuid().v4(),
-        title: _titleController.text.trim(),
-        amount: amount,
-        category: _category,
-        type: _type,
-        date: _date,
-        note: _noteController.text.trim().isEmpty
-            ? null
-            : _noteController.text.trim(),
-      );
-      provider.addTransaction(tx);
+      return;
     }
 
-    Navigator.of(context).pop();
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override

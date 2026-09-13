@@ -244,8 +244,21 @@ class _TransactionTile extends StatelessWidget {
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      onDismissed: (_) {
-        context.read<TransactionProvider>().deleteTransaction(transaction.id);
+      // Delete before the row animates away; if that fails, it slides back.
+      confirmDismiss: (_) async {
+        final provider = context.read<TransactionProvider>();
+        final messenger = ScaffoldMessenger.of(context);
+        try {
+          await provider.deleteTransaction(transaction.id);
+          return true;
+        } catch (_) {
+          messenger.showSnackBar(
+            const SnackBar(
+              content: Text("Couldn't delete the transaction. Try again."),
+            ),
+          );
+          return false;
+        }
       },
       child: ListTile(
         leading: CircleAvatar(
