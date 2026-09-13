@@ -1,0 +1,224 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+
+import '../l10n/app_localizations.dart';
+import '../models/amount_expression.dart';
+import '../models/money.dart';
+
+/// Amount entry shared by the transaction and transfer forms (ADD-2): the
+/// field accepts `+` and `−`, shows the result live, and on phones uses
+/// [AmountKeypad] instead of the system keyboard.
+mixin AmountEntry<T extends StatefulWidget> on State<T> {
+  final amountController = TextEditingController();
+  final amountFocus = FocusNode();
+
+  /// Phones get the in-app keypad; desktops type on the keyboard.
+  bool get useKeypad =>
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
+
+  @override
+  void initState() {
+    super.initState();
+    amountController.addListener(_refresh);
+    amountFocus.addListener(_refresh);
+  }
+
+  @override
+  void dispose() {
+    amountController.dispose();
+    amountFocus.dispose();
+    super.dispose();
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  /// The evaluated amount, or null when the input isn't valid for [currency].
+  Money? parsedAmount(NumberFormat currency) => evaluateAmount(
+    amountController.text,
+    maxDecimals: currency.maximumFractionDigits,
+  );
+
+  Widget amountField(
+    NumberFormat currency,
+    AppLocalizations l10n, {
+    bool autofocus = false,
+  }) {
+    final result = parsedAmount(currency);
+    return TextFormField(
+      controller: amountController,
+      focusNode: amountFocus,
+      autofocus: autofocus,
+      keyboardType: useKeypad
+          ? TextInputType.none
+          : const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,+\-−]')),
+      ],
+      decoration: InputDecoration(
+        labelText: l10n.amountLabel,
+        border: const OutlineInputBorder(),
+        prefixText: '${currency.currencySymbol} ',
+        helperText: isAmountExpression(amountController.text) && result != null
+            ? l10n.amountResult(currency.format(result.toDouble()))
+            : null,
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) return l10n.amountRequired;
+        final amount = parsedAmount(currency);
+        if (amount == null || !amount.isPositive) return l10n.amountInvalid;
+        return null;
+      },
+    );
+  }
+
+  /// The keypad to dock below the form while the amount has focus.
+  Widget? amountKeypad() => useKeypad && amountFocus.hasFocus
+      ? AmountKeypad(controller: amountController, onDone: amountFocus.unfocus)
+      : null;
+}
+
+/// Digits, `+`, `−`, backspace, and a key to hide the keypad (ADD-2).
+class AmountKeypad extends StatelessWidget {
+  const AmountKeypad({
+    super.key,
+    required this.controller,
+    required this.onDone,
+  });
+
+  final TextEditingController controller;
+  final VoidCallback onDone;
+
+  static const _keys = [
+    '7', '8', '9', 'back', //
+    '4', '5', '6', '-', //
+    '1', '2', '3', '+', //
+    '.', '0', '00', 'done',
+  ];
+
+  void _press(String key) {
+    final text = controller.text;
+    final next = key == 'back'
+        ? (text.isEmpty ? text : text.substring(0, text.length - 1))
+        : '$text$key';
+    controller.value = TextEditingValue(
+      text: next,
+      selection: TextSelection.collapsed(offset: next.length),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final keyStyle = Theme.of(context).textTheme.titleLarge;
+
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceContainerHigh,
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(4),
+          child: GridView(
+            // A fixed key height keeps the keypad compact on wide screens.
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 4,
+              mainAxisExtent: 52,
+            ),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            children: [
+              for (final key in _keys)
+                switch (key) {
+                  'back' => IconButton(
+                    tooltip: l10n.backspaceTooltip,
+                    onPressed: () => _press(key),
+                    icon: const Icon(Icons.backspace_outlined),
+                  ),
+                  'done' => IconButton(
+                    tooltip: l10n.hideKeypadTooltip,
+                    onPressed: onDone,
+                    icon: const Icon(Icons.keyboard_hide_outlined),
+                  ),
+                  _ => TextButton(
+                    onPressed: () => _press(key),
+                    child: Text(key == '-' ? '−' : key, style: keyStyle),
+                  ),
+                },
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A date with arrows for the previous and next day; tapping the date opens
+/// a picker (ADD-6). The time of day is kept.
+class DateField extends StatelessWidget {
+  const DateField({
+    super.key,
+    required this.date,
+    required this.onChanged,
+    this.label,
+  });
+
+  final DateTime date;
+  final ValueChanged<DateTime> onChanged;
+
+  /// Defaults to "Date".
+  final String? label;
+
+  DateTime _withDay(int year, int month, int day) =>
+      DateTime(year, month, day, date.hour, date.minute, date.second);
+
+  Future<void> _pick(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: date,
+      firstDate: DateTime(2015),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null) {
+      onChanged(_withDay(picked.year, picked.month, picked.day));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: label ?? l10n.dateLabel,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.all(4),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: l10n.previousDayTooltip,
+            icon: const Icon(Icons.chevron_left),
+            onPressed: () =>
+                onChanged(_withDay(date.year, date.month, date.day - 1)),
+          ),
+          Expanded(
+            child: TextButton(
+              onPressed: () => _pick(context),
+              child: Text(DateFormat.yMMMEd(l10n.localeName).format(date)),
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.nextDayTooltip,
+            icon: const Icon(Icons.chevron_right),
+            onPressed: () =>
+                onChanged(_withDay(date.year, date.month, date.day + 1)),
+          ),
+        ],
+      ),
+    );
+  }
+}

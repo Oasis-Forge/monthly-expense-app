@@ -6,12 +6,14 @@ import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/money.dart';
 import '../models/transaction.dart';
+import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
 import 'delete_snack_bar.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
+import 'transfer_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -20,10 +22,12 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
-    final currency = context.watch<SettingsProvider>().currencyFormat(
-      l10n.localeName,
-    );
-    final grouped = provider.groupedByDay;
+    final settings = context.watch<SettingsProvider>();
+    final currency = settings.currencyFormat(l10n.localeName);
+    final days = {
+      ...provider.groupedByDay.keys,
+      ...provider.transfersByDay.keys,
+    }.toList()..sort((a, b) => b.compareTo(a));
 
     return Scaffold(
       appBar: AppBar(
@@ -34,6 +38,13 @@ class HomeScreen extends StatelessWidget {
             tooltip: l10n.statsTooltip,
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const StatsScreen())),
+          ),
+          IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            tooltip: l10n.transferTooltip,
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const TransferScreen())),
           ),
           IconButton(
             icon: const Icon(Icons.settings_outlined),
@@ -50,20 +61,27 @@ class HomeScreen extends StatelessWidget {
           _SummaryCard(
             income: provider.periodIncome,
             expense: provider.periodExpense,
-            balance: provider.periodNet,
+            // BAL-3: the closing balance, unless carrying forward is off.
+            balance: settings.showCarriedForward
+                ? provider.closingBalance
+                : provider.periodNet,
+            carriedForward: settings.showCarriedForward
+                ? provider.carriedForward
+                : null,
             currency: currency,
           ),
           const Divider(height: 1),
           Expanded(
-            child: grouped.isEmpty
+            child: days.isEmpty
                 ? Center(child: Text(l10n.emptyPeriod))
                 : ListView(
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
-                      for (final entry in grouped.entries)
+                      for (final day in days)
                         _DaySection(
-                          day: entry.key,
-                          transactions: entry.value,
+                          day: day,
+                          transactions: provider.groupedByDay[day] ?? const [],
+                          transfers: provider.transfersByDay[day] ?? const [],
                           currency: currency,
                         ),
                     ],
@@ -116,18 +134,23 @@ class _SummaryCard extends StatelessWidget {
   final Money income;
   final Money expense;
   final Money balance;
+
+  /// Shown under the balance when carrying forward is on (BAL-2).
+  final Money? carriedForward;
   final NumberFormat currency;
 
   const _SummaryCard({
     required this.income,
     required this.expense,
     required this.balance,
+    required this.carriedForward,
     required this.currency,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final carried = carriedForward;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       elevation: 2,
@@ -136,7 +159,7 @@ class _SummaryCard extends StatelessWidget {
         child: Column(
           children: [
             Text(
-              l10n.balanceLabel,
+              carried == null ? l10n.periodNetLabel : l10n.balanceLabel,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             Text(
@@ -146,6 +169,11 @@ class _SummaryCard extends StatelessWidget {
                 color: balance.isNegative ? Colors.red : Colors.green,
               ),
             ),
+            if (carried != null)
+              Text(
+                l10n.carriedForwardLine(currency.format(carried.toDouble())),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -215,11 +243,13 @@ class _AmountTile extends StatelessWidget {
 class _DaySection extends StatelessWidget {
   final DateTime day;
   final List<ExpenseTransaction> transactions;
+  final List<Transfer> transfers;
   final NumberFormat currency;
 
   const _DaySection({
     required this.day,
     required this.transactions,
+    required this.transfers,
     required this.currency,
   });
 
@@ -239,10 +269,20 @@ class _DaySection extends StatelessWidget {
         ),
         for (final tx in transactions)
           _TransactionTile(transaction: tx, currency: currency),
+        for (final transfer in transfers)
+          _TransferTile(transfer: transfer, currency: currency),
       ],
     );
   }
 }
+
+/// A red swipe background shared by transaction and transfer rows.
+Widget _deleteBackground() => Container(
+  color: Colors.red,
+  alignment: Alignment.centerRight,
+  padding: const EdgeInsets.only(right: 20),
+  child: const Icon(Icons.delete, color: Colors.white),
+);
 
 class _TransactionTile extends StatelessWidget {
   final ExpenseTransaction transaction;
@@ -263,12 +303,7 @@ class _TransactionTile extends StatelessWidget {
     return Dismissible(
       key: ValueKey(transaction.id),
       direction: DismissDirection.endToStart,
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
+      background: _deleteBackground(),
       // Delete before the row animates away; if that fails, it slides back.
       confirmDismiss: (_) async {
         final messenger = ScaffoldMessenger.of(context);
@@ -303,6 +338,58 @@ class _TransactionTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => AddTransactionScreen(editing: transaction),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A transfer row: never income or expense, so it has no sign (ACC-3).
+class _TransferTile extends StatelessWidget {
+  final Transfer transfer;
+  final NumberFormat currency;
+
+  const _TransferTile({required this.transfer, required this.currency});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final provider = context.watch<TransactionProvider>();
+    final from = provider.accountById(transfer.fromAccountId)?.label(l10n);
+    final to = provider.accountById(transfer.toAccountId)?.label(l10n);
+    final description = transfer.note ?? l10n.transferLabel;
+
+    return Dismissible(
+      key: ValueKey('transfer-${transfer.id}'),
+      direction: DismissDirection.endToStart,
+      background: _deleteBackground(),
+      confirmDismiss: (_) async {
+        final messenger = ScaffoldMessenger.of(context);
+        try {
+          await provider.deleteTransfer(transfer.id);
+        } catch (_) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.transferSaveFailed)),
+          );
+          return false;
+        }
+        showTransferDeletedSnackBar(messenger, provider, l10n, transfer.id);
+        return true;
+      },
+      child: ListTile(
+        leading: const CircleAvatar(child: Icon(Icons.swap_horiz)),
+        title: Text(l10n.transferRoute(from ?? '', to ?? '')),
+        subtitle: Text(
+          provider.isUpcomingDate(transfer.date)
+              ? l10n.upcomingCategory(description)
+              : description,
+        ),
+        trailing: Text(
+          currency.format(transfer.amount.toDouble()),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        onTap: () => Navigator.of(context).push(
+          MaterialPageRoute(builder: (_) => TransferScreen(editing: transfer)),
         ),
       ),
     );

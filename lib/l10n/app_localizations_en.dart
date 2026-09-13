@@ -19,6 +19,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTooltip => 'Settings';
 
   @override
+  String get transferTooltip => 'Transfer';
+
+  @override
   String get addButton => 'Add';
 
   @override
@@ -26,6 +29,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get balanceLabel => 'Balance';
+
+  @override
+  String get periodNetLabel => 'This period';
+
+  @override
+  String carriedForwardLine(String amount) {
+    return 'Carried forward $amount';
+  }
 
   @override
   String get incomeLabel => 'Income';
@@ -45,7 +56,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionDeleted => 'Transaction deleted';
 
   @override
+  String get transferDeleted => 'Transfer deleted';
+
+  @override
   String get undoButton => 'Undo';
+
+  @override
+  String get undoFailed => 'Couldn\'t undo. Try again.';
 
   @override
   String get restoreFailed => 'Couldn\'t restore the transaction. Try again.';
@@ -60,6 +77,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteTooltip => 'Delete';
 
   @override
+  String get duplicateTooltip => 'Duplicate';
+
+  @override
   String get titleOptionalLabel => 'Title (optional)';
 
   @override
@@ -72,13 +92,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get amountInvalid => 'Enter a valid amount';
 
   @override
+  String amountResult(String amount) {
+    return '= $amount';
+  }
+
+  @override
+  String get backspaceTooltip => 'Backspace';
+
+  @override
+  String get hideKeypadTooltip => 'Hide keypad';
+
+  @override
   String get categoryLabel => 'Category';
 
   @override
   String get categoryRequired => 'Choose a category';
 
   @override
+  String get accountLabel => 'Account';
+
+  @override
+  String get accountRequired => 'Choose an account';
+
+  @override
   String get dateLabel => 'Date';
+
+  @override
+  String get previousDayTooltip => 'Previous day';
+
+  @override
+  String get nextDayTooltip => 'Next day';
 
   @override
   String get noteOptionalLabel => 'Note (optional)';
@@ -88,6 +131,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTransactionButton => 'Add Transaction';
+
+  @override
+  String get saveAndAddAnotherButton => 'Save & add another';
+
+  @override
+  String get transactionAdded => 'Transaction added';
 
   @override
   String get saveFailed => 'Couldn\'t save the transaction. Try again.';
@@ -156,6 +205,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get monthStartLastDay => 'Last day';
 
   @override
+  String get showCarriedForwardLabel => 'Carry balance forward';
+
+  @override
+  String get showCarriedForwardSubtitle =>
+      'Each period starts from the previous balance';
+
+  @override
   String get trashTitle => 'Trash';
 
   @override
@@ -210,6 +266,78 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categorySaveFailed => 'Couldn\'t save the category. Try again.';
+
+  @override
+  String get accountsTitle => 'Accounts';
+
+  @override
+  String get accountCash => 'Cash';
+
+  @override
+  String get accountTypeLabel => 'Type';
+
+  @override
+  String get accountTypeCash => 'Cash';
+
+  @override
+  String get accountTypeBank => 'Bank';
+
+  @override
+  String get accountTypeCard => 'Card';
+
+  @override
+  String get accountTypeOther => 'Other';
+
+  @override
+  String get addAccountTooltip => 'Add account';
+
+  @override
+  String get addAccountTitle => 'Add account';
+
+  @override
+  String get editAccountTitle => 'Edit account';
+
+  @override
+  String get openingBalanceLabel => 'Opening balance';
+
+  @override
+  String get openingDateLabel => 'Opening date';
+
+  @override
+  String get accountSaveFailed => 'Couldn\'t save the account. Try again.';
+
+  @override
+  String get transferTitle => 'Transfer';
+
+  @override
+  String get editTransferTitle => 'Edit transfer';
+
+  @override
+  String get transferLabel => 'Transfer';
+
+  @override
+  String transferRoute(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get fromAccountLabel => 'From';
+
+  @override
+  String get toAccountLabel => 'To';
+
+  @override
+  String get sameAccountError => 'Choose two different accounts';
+
+  @override
+  String get needTwoAccounts =>
+      'Add a second account to move money between accounts.';
+
+  @override
+  String get addTransferButton => 'Add Transfer';
+
+  @override
+  String get transferSaveFailed => 'Couldn\'t save the transfer. Try again.';
 
   @override
   String get categoryFood => 'Food';

@@ -6,6 +6,7 @@ import '../models/currencies.dart';
 import '../models/period.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'accounts_screen.dart';
 import 'categories_screen.dart';
 import 'trash_screen.dart';
 
@@ -69,7 +70,22 @@ class SettingsScreen extends StatelessWidget {
               ],
             ),
           ),
+          SwitchListTile(
+            secondary: const Icon(Icons.redo),
+            title: Text(l10n.showCarriedForwardLabel),
+            subtitle: Text(l10n.showCarriedForwardSubtitle),
+            value: settings.showCarriedForward,
+            onChanged: settings.setShowCarriedForward,
+          ),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet_outlined),
+            title: Text(l10n.accountsTitle),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const AccountsScreen())),
+          ),
           ListTile(
             leading: const Icon(Icons.category_outlined),
             title: Text(l10n.categoriesTitle),

@@ -3,14 +3,24 @@
   "appTitle": "Monthly Expenses",
   "statsTooltip": "Stats",
   "settingsTooltip": "Settings",
+  "transferTooltip": "Transfer",
   "addButton": "Add",
   "emptyPeriod": "No transactions in this period yet.",
   "balanceLabel": "Balance",
+  "periodNetLabel": "This period",
+  "carriedForwardLine": "Carried forward {amount}",
+  "@carriedForwardLine": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "incomeLabel": "Income",
   "expenseLabel": "Expense",
   "upcomingCategory": "{category} · Upcoming",
   "@upcomingCategory": {
-    "description": "Subtitle of a future-dated transaction row.",
+    "description": "Subtitle of a future-dated row.",
     "placeholders": {
       "category": {
         "type": "String"
@@ -19,21 +29,41 @@
   },
   "deleteFailed": "Couldn't delete the transaction. Try again.",
   "transactionDeleted": "Transaction deleted",
+  "transferDeleted": "Transfer deleted",
   "undoButton": "Undo",
+  "undoFailed": "Couldn't undo. Try again.",
   "restoreFailed": "Couldn't restore the transaction. Try again.",
   "addTransactionTitle": "Add Transaction",
   "editTransactionTitle": "Edit Transaction",
   "deleteTooltip": "Delete",
+  "duplicateTooltip": "Duplicate",
   "titleOptionalLabel": "Title (optional)",
   "amountLabel": "Amount",
   "amountRequired": "Enter an amount",
   "amountInvalid": "Enter a valid amount",
+  "amountResult": "= {amount}",
+  "@amountResult": {
+    "description": "Live result of an amount like 12.5+3.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "backspaceTooltip": "Backspace",
+  "hideKeypadTooltip": "Hide keypad",
   "categoryLabel": "Category",
   "categoryRequired": "Choose a category",
+  "accountLabel": "Account",
+  "accountRequired": "Choose an account",
   "dateLabel": "Date",
+  "previousDayTooltip": "Previous day",
+  "nextDayTooltip": "Next day",
   "noteOptionalLabel": "Note (optional)",
   "saveChangesButton": "Save Changes",
   "addTransactionButton": "Add Transaction",
+  "saveAndAddAnotherButton": "Save & add another",
+  "transactionAdded": "Transaction added",
   "saveFailed": "Couldn't save the transaction. Try again.",
   "statsTitle": "Stats — {period}",
   "@statsTitle": {
@@ -85,6 +115,8 @@
   "themeDark": "Dark",
   "monthStartLabel": "First day of the month",
   "monthStartLastDay": "Last day",
+  "showCarriedForwardLabel": "Carry balance forward",
+  "showCarriedForwardSubtitle": "Each period starts from the previous balance",
   "trashTitle": "Trash",
   "trashEmpty": "Trash is empty.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{deleted for good in 1 day} other{deleted for good in {days} days}}",
@@ -111,6 +143,39 @@
   "deleteAction": "Delete",
   "archivedHeader": "Archived",
   "categorySaveFailed": "Couldn't save the category. Try again.",
+  "accountsTitle": "Accounts",
+  "accountCash": "Cash",
+  "accountTypeLabel": "Type",
+  "accountTypeCash": "Cash",
+  "accountTypeBank": "Bank",
+  "accountTypeCard": "Card",
+  "accountTypeOther": "Other",
+  "addAccountTooltip": "Add account",
+  "addAccountTitle": "Add account",
+  "editAccountTitle": "Edit account",
+  "openingBalanceLabel": "Opening balance",
+  "openingDateLabel": "Opening date",
+  "accountSaveFailed": "Couldn't save the account. Try again.",
+  "transferTitle": "Transfer",
+  "editTransferTitle": "Edit transfer",
+  "transferLabel": "Transfer",
+  "transferRoute": "{from} → {to}",
+  "@transferRoute": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "fromAccountLabel": "From",
+  "toAccountLabel": "To",
+  "sameAccountError": "Choose two different accounts",
+  "needTwoAccounts": "Add a second account to move money between accounts.",
+  "addTransferButton": "Add Transfer",
+  "transferSaveFailed": "Couldn't save the transfer. Try again.",
   "categoryFood": "Food",
   "categoryGroceries": "Groceries",
   "categoryTransport": "Transport",

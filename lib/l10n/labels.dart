@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart' show IconData, Icons;
 import 'package:intl/intl.dart';
 
+import '../models/account.dart';
 import '../models/category.dart';
 import '../models/period.dart';
 import '../models/transaction.dart';
@@ -26,6 +28,27 @@ extension CategoryLabel on Category {
         _ => l10n.categoryOther,
       };
 }
+
+extension AccountLabel on Account {
+  /// The user's name for the account, or the translated default (ACC-2).
+  String label(AppLocalizations l10n) =>
+      name ?? (defaultKey == 'cash' ? l10n.accountCash : '');
+}
+
+String accountTypeLabel(AccountType type, AppLocalizations l10n) =>
+    switch (type) {
+      AccountType.cash => l10n.accountTypeCash,
+      AccountType.bank => l10n.accountTypeBank,
+      AccountType.card => l10n.accountTypeCard,
+      AccountType.other => l10n.accountTypeOther,
+    };
+
+IconData accountTypeIcon(AccountType type) => switch (type) {
+  AccountType.cash => Icons.payments_outlined,
+  AccountType.bank => Icons.account_balance_outlined,
+  AccountType.card => Icons.credit_card,
+  AccountType.other => Icons.account_balance_wallet_outlined,
+};
 
 extension TransactionLabel on ExpenseTransaction {
   /// The title, else the note, else the category name (ADD-1).

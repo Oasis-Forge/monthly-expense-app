@@ -143,7 +143,13 @@ void main() {
           hasLength(5),
         );
         expect((await fresh.fetchAccounts()).single.id, Account.cashId);
-        for (final table in ['transactions', 'categories', 'accounts']) {
+        expect(await fresh.fetchTransfers(), isEmpty);
+        for (final table in [
+          'transactions',
+          'categories',
+          'accounts',
+          'transfers',
+        ]) {
           expect(await columns(fresh, table), await columns(upgraded, table));
         }
       },
@@ -188,6 +194,15 @@ void main() {
           DateTime(2026, 9, 1),
         ).copyWith(deletedAt: DateTime.utc(2026, 9, 10)),
       );
+      await helper.insertTransfer(
+        testTransfer(
+          'old-transfer',
+          Account.cashId,
+          'bank',
+          1,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime.utc(2026, 8, 1)),
+      );
 
       await helper.purgeDeletedBefore(DateTime.utc(2026, 9));
 
@@ -199,6 +214,7 @@ void main() {
         [for (final t in await helper.fetchTransactions()) t.id],
         ['active'],
       );
+      expect(await (await helper.database).query('transfers'), isEmpty);
     });
 
     test('categories can be added and updated', () async {
@@ -223,6 +239,52 @@ void main() {
       );
       expect(saved.name, 'Café');
       expect(saved.archivedAt, DateTime.utc(2026, 9));
+    });
+
+    test('accounts can be added and updated', () async {
+      final helper = helperAt('app.db');
+      final bank = testAccount('bank', opening: 250);
+
+      await helper.insertAccount(bank);
+      await helper.updateAccounts([
+        bank.copyWith(name: 'Savings', archivedAt: DateTime.utc(2026, 9)),
+      ]);
+
+      final saved = (await helper.fetchAccounts()).firstWhere(
+        (a) => a.id == 'bank',
+      );
+      expect(
+        (saved.name, saved.openingBalance, saved.archivedAt),
+        ('Savings', const Money(250000), DateTime.utc(2026, 9)),
+      );
+    });
+
+    test('transfers are saved, updated, and skipped once deleted', () async {
+      final helper = helperAt('app.db');
+      final transfer = testTransfer(
+        't',
+        Account.cashId,
+        'bank',
+        50,
+        DateTime(2026, 9, 3),
+      );
+      await helper.insertTransfer(transfer);
+      await helper.insertTransfer(
+        testTransfer('u', 'bank', Account.cashId, 5, DateTime(2026, 9, 4)),
+      );
+      await helper.updateTransfer(
+        transfer.copyWith(amount: const Money(60000)),
+      );
+
+      expect(
+        [for (final t in await helper.fetchTransfers()) (t.id, t.amount)],
+        [('u', const Money(5000)), ('t', const Money(60000))],
+      );
+
+      await helper.updateTransfer(
+        transfer.copyWith(deletedAt: DateTime.utc(2026, 9, 5)),
+      );
+      expect([for (final t in await helper.fetchTransfers()) t.id], ['u']);
     });
   });
 }

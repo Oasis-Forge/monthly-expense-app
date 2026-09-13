@@ -1,10 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/amount_expression.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/period.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/models/transfer.dart';
 
 void main() {
   group('Money (MONEY-1, MONEY-2)', () {
@@ -37,6 +39,36 @@ void main() {
       expect(const Money(12000).toInputString(), '12');
       expect(const Money(125).toInputString(), '0.125');
       expect(const Money(19990).toDouble(), 19.99);
+    });
+  });
+
+  group('evaluateAmount (ADD-2)', () {
+    test('adds and subtracts exactly', () {
+      expect(evaluateAmount('12.5+3'), const Money(15500));
+      expect(evaluateAmount('20-2.25+0.25'), const Money(18000));
+      expect(evaluateAmount('10−4'), const Money(6000));
+      expect(evaluateAmount(' 7 '), const Money(7000));
+      expect(evaluateAmount('5-8'), const Money(-3000));
+    });
+
+    test('rejects incomplete or invalid input', () {
+      for (final input in [
+        '',
+        '+',
+        '12+',
+        '-5',
+        '1..2+3',
+        '12+abc',
+        '1.234+1',
+      ]) {
+        expect(evaluateAmount(input, maxDecimals: 2), isNull, reason: input);
+      }
+    });
+
+    test('knows when there is a result worth showing', () {
+      expect(isAmountExpression('12.5'), isFalse);
+      expect(isAmountExpression('12.5+3'), isTrue);
+      expect(isAmountExpression('12−3'), isTrue);
     });
   });
 
@@ -78,6 +110,35 @@ void main() {
     });
   });
 
+  group('Transfer', () {
+    final transfer = Transfer(
+      id: 't',
+      fromAccountId: Account.cashId,
+      toAccountId: 'bank',
+      amount: const Money(50000),
+      date: DateTime(2026, 9, 3, 8),
+      note: 'savings',
+      createdAt: DateTime.utc(2026, 9, 3),
+      updatedAt: DateTime.utc(2026, 9, 4),
+      deletedAt: DateTime.utc(2026, 9, 5),
+    );
+
+    test('round-trips through maps', () {
+      expect(Transfer.fromMap(transfer.toMap()).toMap(), transfer.toMap());
+    });
+
+    test('copyWith clears note and deletedAt only when given null', () {
+      final kept = transfer.copyWith(amount: const Money(1));
+      expect((kept.note, kept.deletedAt), (transfer.note, transfer.deletedAt));
+
+      final cleared = transfer.copyWith(note: null, deletedAt: null);
+      expect(
+        (cleared.note, cleared.deletedAt, cleared.amount),
+        (null, null, transfer.amount),
+      );
+    });
+  });
+
   group('Category', () {
     final category = Category(
       id: 'c',
@@ -107,7 +168,7 @@ void main() {
     });
   });
 
-  test('Account round-trips through maps', () {
+  group('Account', () {
     final account = Account(
       id: 'b',
       type: AccountType.bank,
@@ -117,8 +178,23 @@ void main() {
       sortOrder: 1,
       createdAt: DateTime.utc(2026),
       updatedAt: DateTime.utc(2026, 2),
+      archivedAt: DateTime.utc(2026, 3),
     );
-    expect(Account.fromMap(account.toMap()).toMap(), account.toMap());
+
+    test('round-trips through maps', () {
+      expect(Account.fromMap(account.toMap()).toMap(), account.toMap());
+    });
+
+    test('copyWith clears name and archivedAt only when given null', () {
+      final kept = account.copyWith(openingBalance: const Money(-1000));
+      expect(
+        (kept.name, kept.archivedAt, kept.openingBalance),
+        ('Bank', DateTime.utc(2026, 3), const Money(-1000)),
+      );
+
+      final cleared = account.copyWith(name: null, archivedAt: null);
+      expect((cleared.name, cleared.archivedAt), (null, null));
+    });
   });
 
   group('Period (PER-1, PER-2)', () {

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/accounts_screen.dart';
 import 'package:monthly_expense_app/screens/categories_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/trash_screen.dart';
@@ -101,17 +102,32 @@ void main() {
     expect(provider.period.start, DateTime(2026, 9, 2));
   });
 
-  testWidgets('Categories and Trash open their screens', (tester) async {
+  testWidgets('carrying the balance forward can be turned off (BAL-3)', (
+    tester,
+  ) async {
     await showSettings(tester);
 
-    await tester.tap(find.text('Categories'));
-    await tester.pumpAndSettle();
-    expect(find.byType(CategoriesScreen), findsOneWidget);
-    await tester.pageBack();
+    await tester.tap(find.text('Carry balance forward'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Trash'));
-    await tester.pumpAndSettle();
-    expect(find.byType(TrashScreen), findsOneWidget);
+    expect(settings.showCarriedForward, isFalse);
+  });
+
+  testWidgets('Accounts, Categories, and Trash open their screens', (
+    tester,
+  ) async {
+    await showSettings(tester);
+
+    for (final (label, screen) in [
+      ('Accounts', AccountsScreen),
+      ('Categories', CategoriesScreen),
+      ('Trash', TrashScreen),
+    ]) {
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+      expect(find.byType(screen), findsOneWidget, reason: label);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+    }
   });
 }

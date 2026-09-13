@@ -20,6 +20,7 @@ void main() {
       expect(british.currencyCode, 'GBP');
       expect(british.themeMode, ThemeMode.system);
       expect(british.startDay, 1);
+      expect(british.showCarriedForward, isTrue);
 
       expect(
         SettingsProvider(prefs, deviceLocale: 'xx_YY').currencyCode,
@@ -33,22 +34,34 @@ void main() {
       'currency_code': 'JPY',
       'theme_mode': 'dark',
       'month_start_day': 25,
+      'show_carried_forward': false,
     });
 
     final settings = SettingsProvider(prefs, deviceLocale: 'en_US');
     expect(
-      (settings.currencyCode, settings.themeMode, settings.startDay),
-      ('JPY', ThemeMode.dark, 25),
+      (
+        settings.currencyCode,
+        settings.themeMode,
+        settings.startDay,
+        settings.showCarriedForward,
+      ),
+      ('JPY', ThemeMode.dark, 25, false),
     );
 
     await settings.setCurrencyCode('EUR');
     await settings.setThemeMode(ThemeMode.light);
     await settings.setStartDay(Period.lastDayOfMonth);
+    await settings.setShowCarriedForward(true);
 
     final reread = SettingsProvider(prefs);
     expect(
-      (reread.currencyCode, reread.themeMode, reread.startDay),
-      ('EUR', ThemeMode.light, Period.lastDayOfMonth),
+      (
+        reread.currencyCode,
+        reread.themeMode,
+        reread.startDay,
+        reread.showCarriedForward,
+      ),
+      ('EUR', ThemeMode.light, Period.lastDayOfMonth, true),
     );
   });
 

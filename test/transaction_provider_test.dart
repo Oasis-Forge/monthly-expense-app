@@ -12,6 +12,7 @@ import 'helpers.dart';
 void main() {
   const expense = TransactionType.expense;
   const income = TransactionType.income;
+  const cash = Account.cashId;
   final today = DateTime(2026, 9, 15, 10);
 
   setUpAll(() {
@@ -46,7 +47,7 @@ void main() {
       expect(provider.categoriesFor(expense), hasLength(10));
       expect(provider.categoriesFor(income), hasLength(5));
       expect(provider.categoryById('cat-food')!.icon, '🍔');
-      expect(provider.accounts.single.id, Account.cashId);
+      expect(provider.accounts.single.id, cash);
     });
 
     test('writes stamp timestamps and delete is soft (REC-1, DEL-1)', () async {
@@ -93,6 +94,24 @@ void main() {
       await reloaded.load();
       expect(reloaded.transactions.single.id, 'a');
       expect(reloaded.deletedTransactions, isEmpty);
+    });
+
+    test('accounts and transfers survive a reload', () async {
+      final bank = await provider.addAccount(
+        name: 'Bank',
+        type: AccountType.bank,
+        openingBalance: const Money(100000),
+        openingDate: DateTime(2026, 9),
+      );
+      await provider.addTransfer(
+        testTransfer('t', bank.id, cash, 40, DateTime(2026, 9, 5)),
+      );
+
+      final reloaded = reloadable();
+      await reloaded.load();
+
+      expect(reloaded.accountBalance(bank.id), const Money(60000));
+      expect(reloaded.accountBalance(cash), const Money(40000));
     });
   });
 
@@ -170,11 +189,7 @@ void main() {
         final provider = await loaded(
           FakeDB(
             accounts: [
-              testAccount(
-                Account.cashId,
-                opening: 100,
-                on: DateTime(2026, 1, 1),
-              ),
+              testAccount(cash, opening: 100, on: DateTime(2026, 1, 1)),
               testAccount('bank', opening: 40, on: DateTime(2026, 9, 10)),
             ],
             transactions: [
@@ -250,13 +265,233 @@ void main() {
           DateTime(2026, 9, 1),
         ).copyWith(deletedAt: DateTime(2026, 9, 10)),
       ],
+      transfers: [
+        testTransfer(
+          'old-transfer',
+          cash,
+          'bank',
+          1,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime(2026, 8, 1)),
+      ],
     );
 
     final provider = await loaded(fake);
 
     expect([for (final t in provider.deletedTransactions) t.id], ['recent']);
     expect([for (final t in fake.rows) t.id], ['recent']);
+    expect(fake.transfers, isEmpty);
     expect(provider.trashDaysLeft(provider.deletedTransactions.single), 25);
+  });
+
+  group('accounts (ACC-1, ACC-4, ACC-5)', () {
+    late FakeDB fake;
+    late TransactionProvider provider;
+
+    setUp(() async {
+      fake = FakeDB(
+        accounts: [testAccount(cash, opening: 100), testAccount('bank')],
+        transactions: [
+          testTx('i', income, 50, DateTime(2026, 9, 1)),
+          testTx(
+            'e',
+            expense,
+            20,
+            DateTime(2026, 9, 2),
+          ).copyWith(accountId: 'bank'),
+          testTx('later', expense, 999, DateTime(2026, 9, 20)),
+        ],
+        transfers: [
+          testTransfer('t', cash, 'bank', 30, DateTime(2026, 9, 3)),
+          testTransfer('later-t', 'bank', cash, 5, DateTime(2026, 9, 25)),
+        ],
+      );
+      provider = await loaded(fake);
+    });
+
+    test('balances add opening, transactions, and transfers up to today', () {
+      expect(provider.accountBalance(cash), const Money(120000));
+      expect(provider.accountBalance('bank'), const Money(10000));
+      // Every account together matches Home's closing balance.
+      expect(provider.closingBalance, const Money(130000));
+    });
+
+    test('transfers are listed in the period but never counted (BAL-1)', () {
+      expect(provider.periodIncome, const Money(50000));
+      expect(provider.periodExpense, const Money(20000));
+      expect(
+        [for (final t in provider.periodTransfers) t.id],
+        ['later-t', 't'],
+      );
+      expect(provider.transfersByDay.keys.toList(), [
+        DateTime(2026, 9, 25),
+        DateTime(2026, 9, 3),
+      ]);
+    });
+
+    test('a new account is saved and counts from its opening date', () async {
+      final card = await provider.addAccount(
+        name: 'Card',
+        type: AccountType.card,
+        openingBalance: const Money(-40000),
+        openingDate: DateTime(2026, 9, 10),
+      );
+
+      expect(provider.activeAccounts.last.id, card.id);
+      expect(fake.accounts.last.name, 'Card');
+      expect(provider.accountBalance(card.id), const Money(-40000));
+
+      await provider.updateAccount(card.copyWith(name: 'Visa'));
+      expect(provider.accountById(card.id)!.name, 'Visa');
+    });
+
+    test(
+      'an account with history can be archived, not deleted (ACC-5)',
+      () async {
+        await expectLater(provider.deleteAccount(cash), throwsStateError);
+
+        await provider.archiveAccount('bank');
+        expect([for (final a in provider.activeAccounts) a.id], [cash]);
+        expect(provider.archivedAccounts.single.id, 'bank');
+        // The last active account stays active.
+        await expectLater(provider.archiveAccount(cash), throwsStateError);
+
+        await provider.unarchiveAccount('bank');
+        expect(provider.activeAccounts, hasLength(2));
+      },
+    );
+
+    test('an unused account can be deleted', () async {
+      final spare = await provider.addAccount(
+        name: 'Spare',
+        type: AccountType.other,
+        openingBalance: Money.zero,
+        openingDate: DateTime(2026, 9),
+      );
+
+      await provider.deleteAccount(spare.id);
+
+      expect(provider.accountById(spare.id), isNull);
+      expect(
+        fake.accounts.firstWhere((a) => a.id == spare.id).deletedAt,
+        isNotNull,
+      );
+    });
+  });
+
+  group('transfers (ACC-3)', () {
+    late FakeDB fake;
+    late TransactionProvider provider;
+
+    setUp(() async {
+      fake = FakeDB(accounts: [testAccount(cash), testAccount('bank')]);
+      provider = await loaded(fake);
+    });
+
+    test('adding, editing, deleting, and restoring a transfer', () async {
+      await provider.addTransfer(
+        testTransfer('t', cash, 'bank', 30, DateTime(2026, 9, 3)),
+      );
+      expect(provider.accountBalance('bank'), const Money(30000));
+      expect(provider.isAccountUsed('bank'), isTrue);
+
+      await provider.updateTransfer(
+        provider.transfers.single.copyWith(amount: const Money(45000)),
+      );
+      expect(fake.transfers.single.amount, const Money(45000));
+
+      await provider.deleteTransfer('t');
+      expect(provider.transfers, isEmpty);
+      expect(provider.accountBalance('bank'), Money.zero);
+
+      await provider.restoreTransfer('t');
+      expect(provider.transfers.single.deletedAt, isNull);
+      expect(provider.accountBalance('bank'), const Money(45000));
+    });
+
+    test('a transfer needs two different accounts', () async {
+      await expectLater(
+        provider.addTransfer(
+          testTransfer('t', cash, cash, 1, DateTime(2026, 9, 3)),
+        ),
+        throwsArgumentError,
+      );
+      expect(fake.transfers, isEmpty);
+    });
+  });
+
+  group('form defaults (ADD-3, ADD-5)', () {
+    test('the last used category and account come first', () async {
+      final provider = await loaded(
+        FakeDB(
+          accounts: [testAccount(cash), testAccount('bank')],
+          transactions: [
+            testTx(
+              '1',
+              expense,
+              1,
+              DateTime(2026, 9, 1),
+              categoryId: 'cat-rent',
+            ).copyWith(createdAt: DateTime.utc(2026, 9, 1)),
+            testTx(
+              '2',
+              expense,
+              1,
+              DateTime(2026, 9, 1),
+            ).copyWith(accountId: 'bank', createdAt: DateTime.utc(2026, 9, 4)),
+            testTx(
+              '3',
+              expense,
+              1,
+              DateTime(2026, 9, 1),
+              categoryId: 'cat-rent',
+            ).copyWith(createdAt: DateTime.utc(2026, 9, 2)),
+          ],
+        ),
+      );
+
+      expect(provider.defaultCategoryId(expense), 'cat-food');
+      expect(
+        [for (final c in provider.recentCategories(expense)) c.id],
+        ['cat-food', 'cat-rent'],
+      );
+      expect(provider.defaultCategoryId(income), 'cat-salary');
+      expect(provider.defaultAccountId(), 'bank');
+    });
+
+    test(
+      'without history the first active category and account are used',
+      () async {
+        final provider = await loaded(FakeDB());
+
+        expect(provider.defaultCategoryId(expense), 'cat-food');
+        expect(provider.recentCategories(expense), isEmpty);
+        expect(provider.defaultAccountId(), cash);
+      },
+    );
+
+    test('archived choices are skipped', () async {
+      final provider = await loaded(
+        FakeDB(
+          accounts: [testAccount(cash), testAccount('bank')],
+          transactions: [
+            testTx(
+              '1',
+              expense,
+              1,
+              DateTime(2026, 9, 1),
+            ).copyWith(accountId: 'bank'),
+          ],
+        ),
+      );
+
+      await provider.archiveCategory('cat-food');
+      await provider.archiveAccount('bank');
+
+      expect(provider.recentCategories(expense), isEmpty);
+      expect(provider.defaultCategoryId(expense), 'cat-rent');
+      expect(provider.defaultAccountId(), cash);
+    });
   });
 
   group('categories (CAT-3, CAT-4)', () {
@@ -326,10 +561,12 @@ void main() {
 
     setUp(() async {
       fake = FakeDB(
+        accounts: [testAccount(cash), testAccount('bank')],
         transactions: [
           testTx('keep', expense, 5, DateTime(2026, 9, 2)),
           testTx('x', expense, 10, DateTime(2026, 9, 1)),
         ],
+        transfers: [testTransfer('t', cash, 'bank', 3, DateTime(2026, 9, 1))],
       );
       provider = await loaded(fake);
       fake.failWrites = true;
@@ -366,10 +603,30 @@ void main() {
       expect(notifications, 0);
     });
 
-    test('a failed category change leaves categories unchanged', () async {
-      await expectLater(provider.archiveCategory('cat-food'), throwsStateError);
-      expect(provider.categoriesFor(expense), hasLength(3));
-      expect(notifications, 0);
-    });
+    test(
+      'failed category, account, and transfer changes change nothing',
+      () async {
+        await expectLater(
+          provider.archiveCategory('cat-food'),
+          throwsStateError,
+        );
+        await expectLater(provider.archiveAccount('bank'), throwsStateError);
+        await expectLater(provider.deleteTransfer('t'), throwsStateError);
+        await expectLater(
+          provider.addAccount(
+            name: 'Card',
+            type: AccountType.card,
+            openingBalance: Money.zero,
+            openingDate: DateTime(2026, 9),
+          ),
+          throwsStateError,
+        );
+
+        expect(provider.categoriesFor(expense), hasLength(3));
+        expect(provider.activeAccounts, hasLength(2));
+        expect(provider.transfers, hasLength(1));
+        expect(notifications, 0);
+      },
+    );
   });
 }

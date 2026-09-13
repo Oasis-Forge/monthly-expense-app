@@ -12,6 +12,8 @@ class Account {
   final AccountType type;
   final String? defaultKey;
   final String? name;
+
+  /// May be negative, such as a card that starts with debt.
   final Money openingBalance;
 
   /// The opening balance counts from this local date.
@@ -65,6 +67,39 @@ class Account {
       updatedAt: DateTime.parse(map['updated_at']! as String),
       archivedAt: _optionalDate(map['archived_at']),
       deletedAt: _optionalDate(map['deleted_at']),
+    );
+  }
+
+  static const Object _unset = Object();
+
+  /// Pass `null` for [name], [archivedAt], or [deletedAt] to clear it; leave
+  /// it out to keep the current value.
+  Account copyWith({
+    Object? name = _unset,
+    AccountType? type,
+    Money? openingBalance,
+    DateTime? openingDate,
+    int? sortOrder,
+    DateTime? updatedAt,
+    Object? archivedAt = _unset,
+    Object? deletedAt = _unset,
+  }) {
+    return Account(
+      id: id,
+      type: type ?? this.type,
+      defaultKey: defaultKey,
+      name: identical(name, _unset) ? this.name : name as String?,
+      openingBalance: openingBalance ?? this.openingBalance,
+      openingDate: openingDate ?? this.openingDate,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      archivedAt: identical(archivedAt, _unset)
+          ? this.archivedAt
+          : archivedAt as DateTime?,
+      deletedAt: identical(deletedAt, _unset)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
     );
   }
 }

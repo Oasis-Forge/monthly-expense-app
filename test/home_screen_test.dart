@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
@@ -8,6 +9,7 @@ import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/stats_screen.dart';
+import 'package:monthly_expense_app/screens/transfer_screen.dart';
 
 import 'helpers.dart';
 
@@ -46,9 +48,18 @@ void main() {
     await tester.pump();
   }
 
-  Future<void> swipeLunch(WidgetTester tester) async {
-    await tester.drag(find.text('Lunch'), const Offset(-600, 0));
+  Future<void> swipe(WidgetTester tester, String text) async {
+    await tester.drag(find.text(text), const Offset(-600, 0));
     await tester.pumpAndSettle();
+  }
+
+  /// Adds a bank account and a transfer to it on Sep 16.
+  Future<void> addTransfer() async {
+    fake.accounts.add(testAccount('bank'));
+    fake.transfers.add(
+      testTransfer('t', Account.cashId, 'bank', 50, DateTime(2026, 9, 16)),
+    );
+    await provider.load();
   }
 
   testWidgets('future-dated rows are marked upcoming and not counted', (
@@ -60,6 +71,32 @@ void main() {
     expect(find.text('Food · Upcoming'), findsOneWidget);
     // The expense total is only lunch; the concert hasn't happened yet.
     expect(find.text('\$12.50'), findsOneWidget);
+  });
+
+  testWidgets('the balance carries forward from earlier periods (BAL-2)', (
+    tester,
+  ) async {
+    fake.rows.add(
+      testTx('pay', TransactionType.income, 100, DateTime(2026, 8, 20)),
+    );
+    await provider.load();
+
+    await showHome(tester);
+
+    expect(find.text('Balance'), findsOneWidget);
+    expect(find.text('Carried forward \$100.00'), findsOneWidget);
+    expect(find.text('\$87.50'), findsOneWidget);
+  });
+
+  testWidgets('with carrying forward off, the card shows this period (BAL-3)', (
+    tester,
+  ) async {
+    settings = await testSettings({'show_carried_forward': false});
+
+    await showHome(tester);
+
+    expect(find.text('This period'), findsOneWidget);
+    expect(find.textContaining('Carried forward'), findsNothing);
   });
 
   testWidgets('amounts use the chosen currency (CUR-2)', (tester) async {
@@ -104,6 +141,12 @@ void main() {
     await tester.pageBack();
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byTooltip('Transfer'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TransferScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
     expect(find.byType(SettingsScreen), findsOneWidget);
@@ -128,7 +171,7 @@ void main() {
     tester,
   ) async {
     await showHome(tester);
-    await swipeLunch(tester);
+    await swipe(tester, 'Lunch');
 
     expect(find.text('Lunch'), findsNothing);
     expect(provider.deletedTransactions.single.id, 'a');
@@ -143,7 +186,7 @@ void main() {
 
   testWidgets('a failed undo shows an error', (tester) async {
     await showHome(tester);
-    await swipeLunch(tester);
+    await swipe(tester, 'Lunch');
     fake.failWrites = true;
 
     await tester.tap(find.text('Undo'));
@@ -162,7 +205,7 @@ void main() {
     fake.failWrites = true;
 
     await showHome(tester);
-    await swipeLunch(tester);
+    await swipe(tester, 'Lunch');
 
     expect(find.text('Lunch'), findsOneWidget);
     expect(provider.transactions, hasLength(2));
@@ -170,5 +213,36 @@ void main() {
       find.text("Couldn't delete the transaction. Try again."),
       findsOneWidget,
     );
+  });
+
+  testWidgets('transfers are listed, not counted, and open for editing', (
+    tester,
+  ) async {
+    await addTransfer();
+    await showHome(tester);
+
+    expect(find.text('acc-cash → bank'), findsOneWidget);
+    expect(find.text('\$50.00'), findsOneWidget);
+    expect(find.text('\$12.50'), findsOneWidget);
+
+    await tester.tap(find.text('acc-cash → bank'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Edit transfer'), findsOneWidget);
+  });
+
+  testWidgets('swiping a transfer deletes it with Undo', (tester) async {
+    await addTransfer();
+    await showHome(tester);
+
+    await swipe(tester, 'acc-cash → bank');
+    expect(provider.transfers, isEmpty);
+    expect(find.text('Transfer deleted'), findsOneWidget);
+
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+
+    expect(provider.transfers, hasLength(1));
+    expect(find.text('acc-cash → bank'), findsOneWidget);
   });
 }

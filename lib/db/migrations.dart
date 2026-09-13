@@ -171,3 +171,20 @@ Future<void> migrateToVersion4(DatabaseExecutor db) async {
     "ALTER TABLE transactions ADD COLUMN account_id TEXT NOT NULL DEFAULT 'acc-cash'",
   );
 }
+
+/// Version 5: transfers between accounts (ACC-3).
+Future<void> migrateToVersion5(DatabaseExecutor db) async {
+  await db.execute('''
+    CREATE TABLE transfers (
+      id TEXT PRIMARY KEY,
+      from_account_id TEXT NOT NULL,
+      to_account_id TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      note TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT
+    )
+  ''');
+}

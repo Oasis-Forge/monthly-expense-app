@@ -80,7 +80,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ACC-1** One concept: an account has a name, a type (cash, bank, card, other), an opening balance, and an opening date. Every transaction belongs to exactly one account.
 - **ACC-2** The default account is "Cash" and can be renamed.
 - **ACC-3** A transfer is one record with from and to accounts. It changes both account balances and is never income or expense.
-- **ACC-4** Account balance = opening balance + income − expense − transfers out + transfers in, counting from the opening date.
+- **ACC-4** Account balance = opening balance (from its opening date) + income − expense − transfers out + transfers in, up to today (BAL-4). Transactions dated before the opening date still count, so the opening balance should be the balance on that date before them.
 - **ACC-5** An account with history can be archived, not deleted.
 
 ## 7. Budgets
