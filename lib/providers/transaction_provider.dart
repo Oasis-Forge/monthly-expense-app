@@ -3,15 +3,19 @@ import 'package:uuid/uuid.dart';
 
 import '../db/db_helper.dart';
 import '../models/account.dart';
+import '../models/budget.dart';
 import '../models/category.dart';
 import '../models/money.dart';
 import '../models/period.dart';
+import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
+import '../models/transaction_filter.dart';
 import '../models/transfer.dart';
 
-/// Holds transactions, transfers, categories, and accounts in memory, persists
-/// changes through [DBHelper], and computes the selected period's totals and
-/// balances (PER-1, BAL-1–BAL-5).
+/// Holds the app's data in memory, persists changes through [DBHelper], and
+/// computes the selected period's totals, balances, and budgets (PER-1,
+/// BAL-1–BAL-5, BUD-1–BUD-6). It also posts recurring transactions
+/// (RCR-1–RCR-7) and answers searches (SRCH-1–SRCH-3).
 class TransactionProvider extends ChangeNotifier {
   /// Stores data in [db], or the app database when null. [clock] supplies
   /// "now"; tests pass a fixed time. [startDay] is the first day of each
@@ -31,6 +35,9 @@ class TransactionProvider extends ChangeNotifier {
   /// How long deleted transactions stay in the trash (DEL-3).
   static const trashRetention = Duration(days: 30);
 
+  /// How far ahead the upcoming list looks (RCR-7).
+  static const upcomingDays = 30;
+
   final DBHelper _db;
   final DateTime Function() _clock;
   final List<ExpenseTransaction> _transactions = [];
@@ -41,6 +48,11 @@ class TransactionProvider extends ChangeNotifier {
   final List<Transfer> _deletedTransfers = [];
   List<Category> _categories = const [];
   List<Account> _accounts = const [];
+  List<Budget> _budgets = const [];
+  List<RecurringRule> _rules = const [];
+
+  /// Handled occurrences by [RecurringOccurrence.key].
+  final Map<String, RecurringOccurrence> _occurrences = {};
   int _startDay;
   Period _period;
   _PeriodSummary? _summary;
@@ -59,7 +71,15 @@ class TransactionProvider extends ChangeNotifier {
 
   /// Every account that isn't deleted, archived ones included.
   List<Account> get accounts => List.unmodifiable(_accounts);
+
+  /// Recurring rules that aren't deleted, oldest first.
+  List<RecurringRule> get recurringRules => List.unmodifiable(_rules);
+
+  /// The period shown on Home and Stats.
   Period get period => _period;
+
+  /// The period that contains today; budget changes apply from it (BUD-5).
+  Period get currentPeriod => Period.containing(_clock(), startDay: _startDay);
   int get startDay => _startDay;
 
   /// Categories of [type] that aren't archived, in display order.
@@ -94,6 +114,13 @@ class TransactionProvider extends ChangeNotifier {
   Account? accountById(String id) {
     for (final account in _accounts) {
       if (account.id == id) return account;
+    }
+    return null;
+  }
+
+  RecurringRule? recurringRuleById(String id) {
+    for (final rule in _rules) {
+      if (rule.id == id) return rule;
     }
     return null;
   }
@@ -176,14 +203,21 @@ class TransactionProvider extends ChangeNotifier {
 
   DateTime get _today => _dayOf(_clock());
 
-  /// Purges old trash (DEL-3), then loads everything.
+  /// Purges old trash (DEL-3), loads everything, and posts due occurrences of
+  /// automatic recurring rules (RCR-4).
   Future<void> load() async {
     await _db.purgeDeletedBefore(_clock().subtract(trashRetention));
     _categories = await _db.fetchCategories();
     _accounts = await _db.fetchAccounts();
+    _budgets = await _db.fetchBudgets();
+    _rules = await _db.fetchRecurringRules();
+    final occurrences = await _db.fetchOccurrences();
     final loaded = await _db.fetchTransactions();
     final deleted = await _db.fetchDeletedTransactions();
     final transfers = await _db.fetchTransfers();
+    _occurrences
+      ..clear()
+      ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
     _transactions
       ..clear()
       ..addAll(loaded)
@@ -196,6 +230,7 @@ class TransactionProvider extends ChangeNotifier {
       ..addAll(transfers)
       ..sort(_newestTransferFirst);
     _deletedTransfers.clear();
+    await _postAutomaticOccurrences();
     _changed();
   }
 
@@ -506,6 +541,310 @@ class TransactionProvider extends ChangeNotifier {
     ]..sort(_byTypeAndOrder);
     _changed();
   }
+
+  // Search (SRCH-1–SRCH-3).
+
+  /// Transactions matching [filter], newest first. Text matches the title,
+  /// note, [categoryName], [accountName], or an equal amount, ignoring case
+  /// and accents.
+  SearchResult search(
+    TransactionFilter filter, {
+    required String Function(Category category) categoryName,
+    required String Function(Account account) accountName,
+  }) {
+    final query = foldForSearch(filter.query.trim());
+    final queryAmount = Money.tryParse(filter.query);
+    final from = filter.from == null ? null : _dayOf(filter.from!);
+    final to = filter.to == null ? null : _dayOf(filter.to!);
+
+    bool matchesText(ExpenseTransaction tx) {
+      if (query.isEmpty || tx.amount == queryAmount) return true;
+      final category = categoryById(tx.categoryId);
+      final account = accountById(tx.accountId);
+      return [
+        tx.title,
+        tx.note,
+        if (category != null) categoryName(category),
+        if (account != null) accountName(account),
+      ].any((text) => text != null && foldForSearch(text).contains(query));
+    }
+
+    final matches = <ExpenseTransaction>[];
+    var income = Money.zero;
+    var expense = Money.zero;
+    for (final tx in _transactions) {
+      final day = _dayOf(tx.date);
+      if ((filter.type != null && tx.type != filter.type) ||
+          (filter.categoryId != null && tx.categoryId != filter.categoryId) ||
+          (filter.accountId != null && tx.accountId != filter.accountId) ||
+          (from != null && day.isBefore(from)) ||
+          (to != null && day.isAfter(to)) ||
+          !matchesText(tx)) {
+        continue;
+      }
+      matches.add(tx);
+      if (isUpcoming(tx)) continue;
+      if (tx.type == TransactionType.income) {
+        income += tx.amount;
+      } else {
+        expense += tx.amount;
+      }
+    }
+    return SearchResult(matches, income, expense);
+  }
+
+  // Budgets (BUD-1–BUD-6).
+
+  /// The limit for [categoryId] (null for the overall budget) during
+  /// [period], or the selected period (BUD-5).
+  Money? budgetLimit(String? categoryId, [Period? period]) =>
+      limitFor(_budgets, categoryId, period ?? _period);
+
+  /// Sets a budget, or removes it with a null [limit], from the current
+  /// period onward; earlier periods keep their limits (BUD-5).
+  Future<void> setBudget(String? categoryId, Money? limit) async {
+    final from = currentPeriod.start;
+    final now = _clock().toUtc();
+    Budget? existing;
+    for (final budget in _budgets) {
+      if (budget.categoryId == categoryId && budget.effectiveFrom == from) {
+        existing = budget;
+      }
+    }
+
+    if (existing != null) {
+      final updated = existing.copyWith(limit: limit, updatedAt: now);
+      await _db.updateBudget(updated);
+      _budgets = [
+        for (final budget in _budgets)
+          budget.id == updated.id ? updated : budget,
+      ];
+    } else {
+      if (limit == null && budgetLimit(categoryId, currentPeriod) == null) {
+        return;
+      }
+      final budget = Budget(
+        id: const Uuid().v4(),
+        categoryId: categoryId,
+        limit: limit,
+        effectiveFrom: from,
+        createdAt: now,
+        updatedAt: now,
+      );
+      await _db.insertBudget(budget);
+      _budgets = [..._budgets, budget];
+    }
+    _changed();
+  }
+
+  /// Progress of every budget in the selected period: the overall budget
+  /// first, then categories in display order (BUD-2–BUD-6).
+  List<BudgetStatus> get budgetStatuses {
+    final today = _today;
+    final timing = _period.timingOn(today);
+    final daysLeft = timing == PeriodTiming.current
+        ? DateTime.utc(
+            _period.end.year,
+            _period.end.month,
+            _period.end.day,
+          ).difference(DateTime.utc(today.year, today.month, today.day)).inDays
+        : 0;
+
+    BudgetStatus? statusFor(String? categoryId, Money spent) {
+      final limit = budgetLimit(categoryId);
+      if (limit == null) return null;
+      return BudgetStatus(
+        categoryId: categoryId,
+        limit: limit,
+        spent: spent,
+        timing: timing,
+        daysLeft: daysLeft,
+      );
+    }
+
+    final byCategory = expenseByCategory;
+    return [
+      ?statusFor(null, periodExpense),
+      for (final category in [
+        ...categoriesFor(TransactionType.expense),
+        ...archivedCategoriesFor(TransactionType.expense),
+      ])
+        ?statusFor(category.id, byCategory[category.id] ?? Money.zero),
+    ];
+  }
+
+  /// How many budgets are at or over their limit in the selected period.
+  int get budgetsOver =>
+      budgetStatuses.where((status) => status.level == BudgetLevel.over).length;
+
+  // Recurring transactions (RCR-1–RCR-7).
+
+  /// Occurrences of rules that wait for a tap, dated today or earlier and not
+  /// posted or skipped yet, oldest first (RCR-2).
+  List<ScheduledOccurrence> get dueOccurrences =>
+      _scheduled(to: _today, autoPost: false);
+
+  /// Occurrences in the next [upcomingDays] days, after today (RCR-7).
+  List<ScheduledOccurrence> get upcomingOccurrences {
+    final today = _today;
+    return _scheduled(
+      from: DateTime(today.year, today.month, today.day + 1),
+      to: DateTime(today.year, today.month, today.day + upcomingDays),
+    );
+  }
+
+  List<ScheduledOccurrence> _scheduled({
+    DateTime? from,
+    required DateTime to,
+    bool? autoPost,
+  }) {
+    final scheduled = <ScheduledOccurrence>[];
+    for (final rule in _rules) {
+      if (rule.isPaused || (autoPost != null && rule.autoPost != autoPost)) {
+        continue;
+      }
+      for (final date in rule.occurrencesBetween(from ?? rule.activeFrom, to)) {
+        if (!_occurrences.containsKey(occurrenceKey(rule.id, date))) {
+          scheduled.add(ScheduledOccurrence(rule, date));
+        }
+      }
+    }
+    return scheduled..sort((a, b) => a.date.compareTo(b.date));
+  }
+
+  /// Posts [occurrence] as a transaction, with an edited [amount] if given
+  /// (RCR-2). If saving fails, nothing changes and the error is rethrown.
+  Future<void> postOccurrence(
+    ScheduledOccurrence occurrence, {
+    Money? amount,
+  }) async {
+    await _post(occurrence, amount ?? occurrence.rule.amount);
+    _changed();
+  }
+
+  /// Skips [occurrence]; it won't come due again.
+  Future<void> skipOccurrence(ScheduledOccurrence occurrence) async {
+    final record = RecurringOccurrence(
+      ruleId: occurrence.rule.id,
+      date: occurrence.date,
+      status: OccurrenceStatus.skipped,
+      createdAt: _clock().toUtc(),
+    );
+    await _db.insertOccurrence(record);
+    _occurrences[record.key] = record;
+    _changed();
+  }
+
+  /// Saves a new rule; automatic rules post what's already due.
+  Future<void> addRecurringRule(RecurringRule rule) async {
+    final now = _clock().toUtc();
+    final stamped = rule.copyWith(
+      activeFrom: rule.startDate,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await _db.insertRecurringRule(stamped);
+    _rules = [..._rules, stamped];
+    await _postAutomaticOccurrences();
+    _changed();
+  }
+
+  /// Saves an edited rule. The change applies from today onward: posted
+  /// transactions stay as they are, and earlier occurrences that weren't
+  /// handled are dropped (RCR-5).
+  Future<void> updateRecurringRule(RecurringRule rule) async {
+    final today = _today;
+    await _saveRule(
+      rule.copyWith(
+        activeFrom: rule.startDate.isAfter(today) ? rule.startDate : today,
+        updatedAt: _clock().toUtc(),
+      ),
+    );
+    await _postAutomaticOccurrences();
+    _changed();
+  }
+
+  Future<void> pauseRecurringRule(String id) async {
+    final now = _clock().toUtc();
+    await _saveRule(
+      recurringRuleById(id)!.copyWith(pausedAt: now, updatedAt: now),
+    );
+    _changed();
+  }
+
+  /// Resumes a rule. Occurrences that came due while it was paused are
+  /// skipped, not caught up (RCR-6).
+  Future<void> resumeRecurringRule(String id) async {
+    final rule = recurringRuleById(id)!;
+    final today = _today;
+    await _saveRule(
+      rule.copyWith(
+        pausedAt: null,
+        activeFrom: rule.activeFrom.isAfter(today) ? rule.activeFrom : today,
+        updatedAt: _clock().toUtc(),
+      ),
+    );
+    await _postAutomaticOccurrences();
+    _changed();
+  }
+
+  /// Deletes a rule; the transactions it posted stay (RCR-5).
+  Future<void> deleteRecurringRule(String id) async {
+    final now = _clock().toUtc();
+    await _saveRule(
+      recurringRuleById(id)!.copyWith(deletedAt: now, updatedAt: now),
+    );
+    _changed();
+  }
+
+  Future<void> _saveRule(RecurringRule rule) async {
+    await _db.updateRecurringRule(rule);
+    _rules = [
+      for (final existing in _rules)
+        if (existing.id != rule.id)
+          existing
+        else if (rule.deletedAt == null)
+          rule,
+    ];
+  }
+
+  /// Posts every due occurrence of automatic rules, exactly once (RCR-4).
+  Future<void> _postAutomaticOccurrences() async {
+    for (final occurrence in _scheduled(to: _today, autoPost: true)) {
+      await _post(occurrence, occurrence.rule.amount);
+    }
+  }
+
+  Future<void> _post(ScheduledOccurrence occurrence, Money amount) async {
+    final rule = occurrence.rule;
+    final now = _clock().toUtc();
+    final tx = ExpenseTransaction(
+      id: const Uuid().v4(),
+      title: rule.title,
+      amount: amount,
+      categoryId: rule.categoryId,
+      accountId: rule.accountId,
+      type: rule.type,
+      date: occurrence.date,
+      note: rule.note,
+      createdAt: now,
+      updatedAt: now,
+    );
+    final record = RecurringOccurrence(
+      ruleId: rule.id,
+      date: occurrence.date,
+      status: OccurrenceStatus.posted,
+      transactionId: tx.id,
+      createdAt: now,
+    );
+    await _db.postOccurrence(tx, record);
+    _occurrences[record.key] = record;
+    _transactions
+      ..add(tx)
+      ..sort(_newestFirst);
+  }
+
+  // The selected period (PER-1, BAL-1–BAL-5).
 
   /// Every transaction dated in the period, upcoming ones included, newest
   /// first.

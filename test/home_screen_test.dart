@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/budget.dart';
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
+import 'package:monthly_expense_app/screens/recurring_screen.dart';
+import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/stats_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
@@ -132,30 +137,76 @@ void main() {
     expect(find.text('Aug 25 – Sep 24'), findsOneWidget);
   });
 
-  testWidgets('the app bar and add button open their screens', (tester) async {
+  testWidgets('the app bar, menu, and add button open their screens', (
+    tester,
+  ) async {
     await showHome(tester);
 
-    await tester.tap(find.byTooltip('Stats'));
-    await tester.pumpAndSettle();
-    expect(find.byType(StatsScreen), findsOneWidget);
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+    Future<void> openAndReturn(
+      Future<void> Function() open,
+      Type screen,
+    ) async {
+      await open();
+      await tester.pumpAndSettle();
+      expect(find.byType(screen), findsOneWidget);
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+    }
 
-    await tester.tap(find.byTooltip('Transfer'));
-    await tester.pumpAndSettle();
-    expect(find.byType(TransferScreen), findsOneWidget);
-    await tester.pageBack();
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.byTooltip('Settings'));
-    await tester.pumpAndSettle();
-    expect(find.byType(SettingsScreen), findsOneWidget);
-    await tester.pageBack();
-    await tester.pumpAndSettle();
+    await openAndReturn(
+      () => tester.tap(find.byTooltip('Search')),
+      SearchScreen,
+    );
+    await openAndReturn(() => tester.tap(find.byTooltip('Stats')), StatsScreen);
+    for (final (label, screen) in [
+      ('Transfer', TransferScreen),
+      ('Recurring', RecurringScreen),
+      ('Budgets', BudgetsScreen),
+      ('Settings', SettingsScreen),
+    ]) {
+      await openAndReturn(() async {
+        await tester.tap(find.byTooltip('Show menu'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(label));
+      }, screen);
+    }
 
     await tester.tap(find.text('Add'));
     await tester.pumpAndSettle();
     expect(find.byType(AddTransactionScreen), findsOneWidget);
+  });
+
+  testWidgets('due recurring transactions show a notice (RCR-2)', (
+    tester,
+  ) async {
+    fake.rules.add(testRule('Gym', 30, DateTime(2026, 9)));
+    await provider.load();
+
+    await showHome(tester);
+    await tester.tap(find.text('1 recurring transaction is due'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecurringScreen), findsOneWidget);
+  });
+
+  testWidgets('budgets over their limit show a notice (BUD-4)', (tester) async {
+    fake.budgets.add(
+      Budget(
+        id: 'food',
+        categoryId: 'cat-food',
+        limit: const Money(10000),
+        effectiveFrom: DateTime(2026, 9),
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      ),
+    );
+    await provider.load();
+
+    await showHome(tester);
+    await tester.tap(find.text('1 budget is over its limit'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(StatsScreen), findsOneWidget);
   });
 
   testWidgets('tapping a row opens it for editing', (tester) async {

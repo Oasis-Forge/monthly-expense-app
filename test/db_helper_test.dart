@@ -149,6 +149,9 @@ void main() {
           'categories',
           'accounts',
           'transfers',
+          'budgets',
+          'recurring_rules',
+          'recurring_occurrences',
         ]) {
           expect(await columns(fresh, table), await columns(upgraded, table));
         }

@@ -118,6 +118,12 @@ abstract class AppLocalizations {
   /// **'Transfer'**
   String get transferTooltip;
 
+  /// No description provided for @searchTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get searchTooltip;
+
   /// No description provided for @addButton.
   ///
   /// In en, this message translates to:
@@ -165,6 +171,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{category} · Upcoming'**
   String upcomingCategory(String category);
+
+  /// No description provided for @recurringDueNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 recurring transaction is due} other{{count} recurring transactions are due}}'**
+  String recurringDueNotice(int count);
+
+  /// No description provided for @budgetsOverNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 budget is over its limit} other{{count} budgets are over their limit}}'**
+  String budgetsOverNotice(int count);
 
   /// No description provided for @deleteFailed.
   ///
@@ -370,6 +388,12 @@ abstract class AppLocalizations {
   /// **'{start} – {end}'**
   String periodRange(String start, String end);
 
+  /// No description provided for @categoryAndDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{category} · {date}'**
+  String categoryAndDate(String category, String date);
+
   /// No description provided for @settingsTitle.
   ///
   /// In en, this message translates to:
@@ -417,6 +441,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save'**
   String get saveButton;
+
+  /// No description provided for @removeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get removeButton;
 
   /// No description provided for @themeLabel.
   ///
@@ -699,6 +729,348 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save the transfer. Try again.'**
   String get transferSaveFailed;
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search transactions'**
+  String get searchHint;
+
+  /// No description provided for @allTypesFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get allTypesFilter;
+
+  /// No description provided for @allCategoriesFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'All categories'**
+  String get allCategoriesFilter;
+
+  /// No description provided for @allAccountsFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'All accounts'**
+  String get allAccountsFilter;
+
+  /// No description provided for @allTimeFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'All time'**
+  String get allTimeFilter;
+
+  /// No description provided for @clearDatesTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear dates'**
+  String get clearDatesTooltip;
+
+  /// No description provided for @searchSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 result} other{{count} results}} · Income {income} · Expense {expense}'**
+  String searchSummary(int count, String income, String expense);
+
+  /// No description provided for @noSearchResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching transactions.'**
+  String get noSearchResults;
+
+  /// No description provided for @budgetsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get budgetsTitle;
+
+  /// No description provided for @budgetsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets'**
+  String get budgetsTooltip;
+
+  /// No description provided for @overallBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'Overall'**
+  String get overallBudget;
+
+  /// No description provided for @noBudget.
+  ///
+  /// In en, this message translates to:
+  /// **'No budget'**
+  String get noBudget;
+
+  /// No description provided for @budgetsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Limits apply from {period} on; earlier periods keep theirs.'**
+  String budgetsHint(String period);
+
+  /// No description provided for @budgetLimitLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit per period'**
+  String get budgetLimitLabel;
+
+  /// No description provided for @budgetSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the budget. Try again.'**
+  String get budgetSaveFailed;
+
+  /// No description provided for @budgetSpentOfLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{spent} of {limit}'**
+  String budgetSpentOfLimit(String spent, String limit);
+
+  /// No description provided for @budgetLeftPerDay.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} left · {perDay} a day'**
+  String budgetLeftPerDay(String remaining, String perDay);
+
+  /// No description provided for @budgetLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} left'**
+  String budgetLeft(String remaining);
+
+  /// No description provided for @budgetOverBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Over by {amount}'**
+  String budgetOverBy(String amount);
+
+  /// No description provided for @budgetLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit reached'**
+  String get budgetLimitReached;
+
+  /// No description provided for @budgetLimitOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Limit {limit}'**
+  String budgetLimitOnly(String limit);
+
+  /// No description provided for @recurringTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring'**
+  String get recurringTitle;
+
+  /// No description provided for @addRecurringTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add recurring'**
+  String get addRecurringTooltip;
+
+  /// No description provided for @addRecurringTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add recurring'**
+  String get addRecurringTitle;
+
+  /// No description provided for @editRecurringTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit recurring'**
+  String get editRecurringTitle;
+
+  /// No description provided for @dueHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get dueHeader;
+
+  /// No description provided for @upcomingHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Next 30 days'**
+  String get upcomingHeader;
+
+  /// No description provided for @rulesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get rulesHeader;
+
+  /// No description provided for @nothingUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing in the next 30 days.'**
+  String get nothingUpcoming;
+
+  /// No description provided for @noRules.
+  ///
+  /// In en, this message translates to:
+  /// **'No recurring transactions yet.'**
+  String get noRules;
+
+  /// No description provided for @postButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Post'**
+  String get postButton;
+
+  /// No description provided for @skipButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skipButton;
+
+  /// No description provided for @postFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t post the transaction. Try again.'**
+  String get postFailed;
+
+  /// No description provided for @recurringSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the recurring transaction. Try again.'**
+  String get recurringSaveFailed;
+
+  /// No description provided for @everyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Every'**
+  String get everyLabel;
+
+  /// No description provided for @frequencyDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Days'**
+  String get frequencyDays;
+
+  /// No description provided for @frequencyWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'Weeks'**
+  String get frequencyWeeks;
+
+  /// No description provided for @frequencyMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'Months'**
+  String get frequencyMonths;
+
+  /// No description provided for @frequencyYears.
+  ///
+  /// In en, this message translates to:
+  /// **'Years'**
+  String get frequencyYears;
+
+  /// No description provided for @scheduleDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every day} other{Every {count} days}}'**
+  String scheduleDays(int count);
+
+  /// No description provided for @scheduleWeeks.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every week} other{Every {count} weeks}}'**
+  String scheduleWeeks(int count);
+
+  /// No description provided for @scheduleMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every month} other{Every {count} months}}'**
+  String scheduleMonths(int count);
+
+  /// No description provided for @scheduleYears.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Every year} other{Every {count} years}}'**
+  String scheduleYears(int count);
+
+  /// No description provided for @pausedSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'{schedule} · Paused'**
+  String pausedSchedule(String schedule);
+
+  /// No description provided for @startsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Starts'**
+  String get startsLabel;
+
+  /// No description provided for @endsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends'**
+  String get endsLabel;
+
+  /// No description provided for @endNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get endNever;
+
+  /// No description provided for @endAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'After'**
+  String get endAfter;
+
+  /// No description provided for @endOnDate.
+  ///
+  /// In en, this message translates to:
+  /// **'On date'**
+  String get endOnDate;
+
+  /// No description provided for @timesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Times'**
+  String get timesLabel;
+
+  /// No description provided for @endsOnLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ends on'**
+  String get endsOnLabel;
+
+  /// No description provided for @wholeNumberInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number from 1'**
+  String get wholeNumberInvalid;
+
+  /// No description provided for @endDateInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The end date must be after the start'**
+  String get endDateInvalid;
+
+  /// No description provided for @autoPostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Post automatically'**
+  String get autoPostLabel;
+
+  /// No description provided for @autoPostSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Otherwise it waits in Due for a tap'**
+  String get autoPostSubtitle;
+
+  /// No description provided for @pauseTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get pauseTooltip;
+
+  /// No description provided for @resumeTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get resumeTooltip;
 
   /// No description provided for @categoryFood.
   ///

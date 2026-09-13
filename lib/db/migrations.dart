@@ -188,3 +188,57 @@ Future<void> migrateToVersion5(DatabaseExecutor db) async {
     )
   ''');
 }
+
+/// Version 6: budgets, versioned by the period each limit takes effect from
+/// (BUD-1, BUD-5). A null amount removes the budget from that period on.
+Future<void> migrateToVersion6(DatabaseExecutor db) async {
+  await db.execute('''
+    CREATE TABLE budgets (
+      id TEXT PRIMARY KEY,
+      category_id TEXT,
+      amount INTEGER,
+      effective_from TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT
+    )
+  ''');
+}
+
+/// Version 7: recurring rules, and the occurrences already posted or
+/// skipped, stored once per rule and date (RCR-1, RCR-4).
+Future<void> migrateToVersion7(DatabaseExecutor db) async {
+  await db.execute('''
+    CREATE TABLE recurring_rules (
+      id TEXT PRIMARY KEY,
+      title TEXT,
+      amount INTEGER NOT NULL,
+      category_id TEXT NOT NULL,
+      account_id TEXT NOT NULL,
+      type TEXT NOT NULL,
+      note TEXT,
+      frequency TEXT NOT NULL,
+      interval INTEGER NOT NULL,
+      start_date TEXT NOT NULL,
+      end_type TEXT NOT NULL,
+      end_count INTEGER,
+      end_date TEXT,
+      auto_post INTEGER NOT NULL,
+      paused_at TEXT,
+      active_from TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT
+    )
+  ''');
+  await db.execute('''
+    CREATE TABLE recurring_occurrences (
+      rule_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      status TEXT NOT NULL,
+      transaction_id TEXT,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (rule_id, date)
+    )
+  ''');
+}

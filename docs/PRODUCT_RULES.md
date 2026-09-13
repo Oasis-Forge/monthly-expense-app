@@ -126,7 +126,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - **SRCH-1** Search matches the title, note, category name, account name, and amount (`12.5` finds `12.50`). It ignores case and accents and updates as the user types.
 - **SRCH-2** Filters (type, category, account, date range) combine with AND. Search covers all time unless a date range is set.
-- **SRCH-3** Results show the count and the income and expense totals of the matches.
+- **SRCH-3** Results show the count and the income and expense totals of the matches. Upcoming matches are listed but not counted in the totals (BAL-4).
 
 ## 11. Backup, restore, and export
 

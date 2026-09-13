@@ -4,6 +4,7 @@
   "statsTooltip": "Stats",
   "settingsTooltip": "Settings",
   "transferTooltip": "Transfer",
+  "searchTooltip": "Search",
   "addButton": "Add",
   "emptyPeriod": "No transactions in this period yet.",
   "balanceLabel": "Balance",
@@ -24,6 +25,22 @@
     "placeholders": {
       "category": {
         "type": "String"
+      }
+    }
+  },
+  "recurringDueNotice": "{count, plural, =1{1 recurring transaction is due} other{{count} recurring transactions are due}}",
+  "@recurringDueNotice": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetsOverNotice": "{count, plural, =1{1 budget is over its limit} other{{count} budgets are over their limit}}",
+  "@budgetsOverNotice": {
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -94,6 +111,17 @@
       }
     }
   },
+  "categoryAndDate": "{category} · {date}",
+  "@categoryAndDate": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "settingsTitle": "Settings",
   "currencyLabel": "Currency",
   "currencySearchHint": "Search currencies",
@@ -109,6 +137,7 @@
   "changeButton": "Change",
   "cancelButton": "Cancel",
   "saveButton": "Save",
+  "removeButton": "Remove",
   "themeLabel": "Theme",
   "themeSystem": "System",
   "themeLight": "Light",
@@ -176,6 +205,159 @@
   "needTwoAccounts": "Add a second account to move money between accounts.",
   "addTransferButton": "Add Transfer",
   "transferSaveFailed": "Couldn't save the transfer. Try again.",
+  "searchHint": "Search transactions",
+  "allTypesFilter": "All",
+  "allCategoriesFilter": "All categories",
+  "allAccountsFilter": "All accounts",
+  "allTimeFilter": "All time",
+  "clearDatesTooltip": "Clear dates",
+  "searchSummary": "{count, plural, =1{1 result} other{{count} results}} · Income {income} · Expense {expense}",
+  "@searchSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "income": {
+        "type": "String"
+      },
+      "expense": {
+        "type": "String"
+      }
+    }
+  },
+  "noSearchResults": "No matching transactions.",
+  "budgetsTitle": "Budgets",
+  "budgetsTooltip": "Budgets",
+  "overallBudget": "Overall",
+  "noBudget": "No budget",
+  "budgetsHint": "Limits apply from {period} on; earlier periods keep theirs.",
+  "@budgetsHint": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetLimitLabel": "Limit per period",
+  "budgetSaveFailed": "Couldn't save the budget. Try again.",
+  "budgetSpentOfLimit": "{spent} of {limit}",
+  "@budgetSpentOfLimit": {
+    "placeholders": {
+      "spent": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetLeftPerDay": "{remaining} left · {perDay} a day",
+  "@budgetLeftPerDay": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetLeft": "{remaining} left",
+  "@budgetLeft": {
+    "placeholders": {
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetOverBy": "Over by {amount}",
+  "@budgetOverBy": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "budgetLimitReached": "Limit reached",
+  "budgetLimitOnly": "Limit {limit}",
+  "@budgetLimitOnly": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "recurringTitle": "Recurring",
+  "addRecurringTooltip": "Add recurring",
+  "addRecurringTitle": "Add recurring",
+  "editRecurringTitle": "Edit recurring",
+  "dueHeader": "Due",
+  "upcomingHeader": "Next 30 days",
+  "rulesHeader": "Rules",
+  "nothingUpcoming": "Nothing in the next 30 days.",
+  "noRules": "No recurring transactions yet.",
+  "postButton": "Post",
+  "skipButton": "Skip",
+  "postFailed": "Couldn't post the transaction. Try again.",
+  "recurringSaveFailed": "Couldn't save the recurring transaction. Try again.",
+  "everyLabel": "Every",
+  "frequencyDays": "Days",
+  "frequencyWeeks": "Weeks",
+  "frequencyMonths": "Months",
+  "frequencyYears": "Years",
+  "scheduleDays": "{count, plural, =1{Every day} other{Every {count} days}}",
+  "@scheduleDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleWeeks": "{count, plural, =1{Every week} other{Every {count} weeks}}",
+  "@scheduleWeeks": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleMonths": "{count, plural, =1{Every month} other{Every {count} months}}",
+  "@scheduleMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "scheduleYears": "{count, plural, =1{Every year} other{Every {count} years}}",
+  "@scheduleYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pausedSchedule": "{schedule} · Paused",
+  "@pausedSchedule": {
+    "placeholders": {
+      "schedule": {
+        "type": "String"
+      }
+    }
+  },
+  "startsLabel": "Starts",
+  "endsLabel": "Ends",
+  "endNever": "Never",
+  "endAfter": "After",
+  "endOnDate": "On date",
+  "timesLabel": "Times",
+  "endsOnLabel": "Ends on",
+  "wholeNumberInvalid": "Enter a whole number from 1",
+  "endDateInvalid": "The end date must be after the start",
+  "autoPostLabel": "Post automatically",
+  "autoPostSubtitle": "Otherwise it waits in Due for a tap",
+  "pauseTooltip": "Pause",
+  "resumeTooltip": "Resume",
   "categoryFood": "Food",
   "categoryGroceries": "Groceries",
   "categoryTransport": "Transport",

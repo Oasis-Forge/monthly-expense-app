@@ -33,9 +33,9 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [x] **Categories:** a screen to add, rename, reorder, change the icon of, and archive categories (CAT-3–CAT-5).
 - [x] **Accounts and transfers:** accounts screen, account picker, transfers (schema step), account balances, and the carried-forward balance on Home (ACC-1–ACC-5, BAL-2, BAL-3).
 - [x] **Faster entry:** keypad with `+` and `−`, smart defaults, "Save & add another", recent categories, date arrows both ways, duplicate, and the upcoming marker (ADD-2–ADD-8).
-- [ ] **Search and filters** (SRCH-1–SRCH-3).
-- [ ] **Budgets** (schema step): per-category and overall monthly budgets with per-day allowance and warnings; progress on Stats, over-budget marker on Home (BUD-1–BUD-6).
-- [ ] **Recurring** (schema step): rules, an Upcoming list that waits for a tap by default, and idempotent posting on app start (RCR-1–RCR-7).
+- [x] **Search and filters** (SRCH-1–SRCH-3).
+- [x] **Budgets** (schema step): per-category and overall monthly budgets with per-day allowance and warnings; progress on Stats, over-budget marker on Home (BUD-1–BUD-6).
+- [x] **Recurring** (schema step): rules, an Upcoming list that waits for a tap by default, and idempotent posting on app start (RCR-1–RCR-7).
 - [ ] **Backup, restore, export:** JSON backup of every table, Replace or Merge restore with an automatic safety backup, CSV export of the current view, and the backup reminder (BAK-1–BAK-7). Comes after the last schema step so the format covers every table.
 - [ ] **Insights:** calendar month view with daily totals and the first day of week setting (PER-4), a 6–12 month income vs. expense trend, and the category chart for any period.
 - [ ] **App lock:** optional PIN or biometric unlock (`local_auth` on mobile and desktop).

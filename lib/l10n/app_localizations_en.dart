@@ -22,6 +22,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferTooltip => 'Transfer';
 
   @override
+  String get searchTooltip => 'Search';
+
+  @override
   String get addButton => 'Add';
 
   @override
@@ -47,6 +50,28 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String upcomingCategory(String category) {
     return '$category · Upcoming';
+  }
+
+  @override
+  String recurringDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count recurring transactions are due',
+      one: '1 recurring transaction is due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsOverNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count budgets are over their limit',
+      one: '1 budget is over its limit',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -160,6 +185,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String categoryAndDate(String category, String date) {
+    return '$category · $date';
+  }
+
+  @override
   String get settingsTitle => 'Settings';
 
   @override
@@ -185,6 +215,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveButton => 'Save';
+
+  @override
+  String get removeButton => 'Remove';
 
   @override
   String get themeLabel => 'Theme';
@@ -338,6 +371,232 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transferSaveFailed => 'Couldn\'t save the transfer. Try again.';
+
+  @override
+  String get searchHint => 'Search transactions';
+
+  @override
+  String get allTypesFilter => 'All';
+
+  @override
+  String get allCategoriesFilter => 'All categories';
+
+  @override
+  String get allAccountsFilter => 'All accounts';
+
+  @override
+  String get allTimeFilter => 'All time';
+
+  @override
+  String get clearDatesTooltip => 'Clear dates';
+
+  @override
+  String searchSummary(int count, String income, String expense) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count results',
+      one: '1 result',
+    );
+    return '$_temp0 · Income $income · Expense $expense';
+  }
+
+  @override
+  String get noSearchResults => 'No matching transactions.';
+
+  @override
+  String get budgetsTitle => 'Budgets';
+
+  @override
+  String get budgetsTooltip => 'Budgets';
+
+  @override
+  String get overallBudget => 'Overall';
+
+  @override
+  String get noBudget => 'No budget';
+
+  @override
+  String budgetsHint(String period) {
+    return 'Limits apply from $period on; earlier periods keep theirs.';
+  }
+
+  @override
+  String get budgetLimitLabel => 'Limit per period';
+
+  @override
+  String get budgetSaveFailed => 'Couldn\'t save the budget. Try again.';
+
+  @override
+  String budgetSpentOfLimit(String spent, String limit) {
+    return '$spent of $limit';
+  }
+
+  @override
+  String budgetLeftPerDay(String remaining, String perDay) {
+    return '$remaining left · $perDay a day';
+  }
+
+  @override
+  String budgetLeft(String remaining) {
+    return '$remaining left';
+  }
+
+  @override
+  String budgetOverBy(String amount) {
+    return 'Over by $amount';
+  }
+
+  @override
+  String get budgetLimitReached => 'Limit reached';
+
+  @override
+  String budgetLimitOnly(String limit) {
+    return 'Limit $limit';
+  }
+
+  @override
+  String get recurringTitle => 'Recurring';
+
+  @override
+  String get addRecurringTooltip => 'Add recurring';
+
+  @override
+  String get addRecurringTitle => 'Add recurring';
+
+  @override
+  String get editRecurringTitle => 'Edit recurring';
+
+  @override
+  String get dueHeader => 'Due';
+
+  @override
+  String get upcomingHeader => 'Next 30 days';
+
+  @override
+  String get rulesHeader => 'Rules';
+
+  @override
+  String get nothingUpcoming => 'Nothing in the next 30 days.';
+
+  @override
+  String get noRules => 'No recurring transactions yet.';
+
+  @override
+  String get postButton => 'Post';
+
+  @override
+  String get skipButton => 'Skip';
+
+  @override
+  String get postFailed => 'Couldn\'t post the transaction. Try again.';
+
+  @override
+  String get recurringSaveFailed =>
+      'Couldn\'t save the recurring transaction. Try again.';
+
+  @override
+  String get everyLabel => 'Every';
+
+  @override
+  String get frequencyDays => 'Days';
+
+  @override
+  String get frequencyWeeks => 'Weeks';
+
+  @override
+  String get frequencyMonths => 'Months';
+
+  @override
+  String get frequencyYears => 'Years';
+
+  @override
+  String scheduleDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count days',
+      one: 'Every day',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count weeks',
+      one: 'Every week',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count months',
+      one: 'Every month',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Every $count years',
+      one: 'Every year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pausedSchedule(String schedule) {
+    return '$schedule · Paused';
+  }
+
+  @override
+  String get startsLabel => 'Starts';
+
+  @override
+  String get endsLabel => 'Ends';
+
+  @override
+  String get endNever => 'Never';
+
+  @override
+  String get endAfter => 'After';
+
+  @override
+  String get endOnDate => 'On date';
+
+  @override
+  String get timesLabel => 'Times';
+
+  @override
+  String get endsOnLabel => 'Ends on';
+
+  @override
+  String get wholeNumberInvalid => 'Enter a whole number from 1';
+
+  @override
+  String get endDateInvalid => 'The end date must be after the start';
+
+  @override
+  String get autoPostLabel => 'Post automatically';
+
+  @override
+  String get autoPostSubtitle => 'Otherwise it waits in Due for a tap';
+
+  @override
+  String get pauseTooltip => 'Pause';
+
+  @override
+  String get resumeTooltip => 'Resume';
 
   @override
   String get categoryFood => 'Food';
