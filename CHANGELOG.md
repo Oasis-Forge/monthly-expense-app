@@ -9,7 +9,7 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 No changes to the app.
 
 ### Changed
-- Plan: notes, Turkish, Arabic, French, Spanish, and German, a home-screen widget, and a PDF report now come before the first store release.
+- Plan: notes, Turkish, Arabic, French, Spanish, and German, a home-screen widget, a PDF report, and a first-run setup page with a walkthrough now come before the first store release.
 
 ## [1.0.0] - 2026-09-13
 

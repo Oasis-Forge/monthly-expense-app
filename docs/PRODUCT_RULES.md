@@ -154,8 +154,13 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **They do:** open straight to Home with a Drive backup prompt and a banner ad; the default account uses the app's name.
 
-- **RUN-1** The first launch opens Home with one clear "Add your first transaction" action. The currency is preselected and changeable in Settings. No prompts before first use.
+**Learn:** the first launch should settle what the device can't tell us for sure, the language and the currency, on one screen, and explain the app without delaying the first entry. Asking for an account, permissions, or cloud backup up front costs trust.
+
+- **RUN-1** After setup (RUN-3) and the walkthrough (RUN-4), an empty Home shows one clear "Add your first transaction" action.
 - **RUN-2** The Android release build declares no `INTERNET` permission while the app has no feature that needs it, so the store listing can truthfully say "no data collected".
+- **RUN-3** The first launch opens one setup page with the language (LANG-1) and the currency (CUR-1), both preselected from the device locale, so most people only tap Continue. Picking a language switches the page at once. The page asks for nothing else: no account, no permissions, no cloud backup. A secondary "Restore a backup" action restores a backup file with Replace (BAK-2), which brings its settings, and skips the walkthrough.
+- **RUN-4** A walkthrough of up to four pages follows: quick entry, planning (budgets, recurring, notes), insights and reports, and privacy (data stays on the device, backups, app lock). Every page has Skip, and the last one opens Home. It runs right to left in Arabic (LANG-5), respects the device's reduce-motion setting, and can be replayed from Settings.
+- **RUN-5** Setup shows until it's finished. The walkthrough shows once, even when skipped. An app update on a device that already has data skips both and keeps the current settings.
 
 ## 14. Insights
 
@@ -183,12 +188,12 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **Learn:** a translated app only feels native when numbers, dates, plurals, search, and layout direction are right too. A cut-off label or a half-translated screen looks broken.
 
-- **LANG-1** The app is in English, Turkish, Arabic, French, Spanish, and German. It follows the device language and falls back to English. Settings offers "System default" or any of the six, each listed in its own language, and a change applies at once, without a restart.
-- **LANG-2** Every user-facing text comes from the ARB files: screens, notices, errors, default category and account names (CAT-1), the widget, and the PDF report. CI fails when a language is missing a message. Plurals and variable parts use ICU messages, never pieced-together strings.
+- **LANG-1** The app is in English, Turkish, Arabic, French, Spanish, and German. It follows the device language and falls back to English. The setup page (RUN-3) and Settings list the six languages, each in its own language, and Settings also offers "System default". A change applies at once, without a restart.
+- **LANG-2** Every user-facing text comes from the ARB files: screens, notices, errors, default category and account names (CAT-1), the widget, and the PDF report. CI fails when a language is missing a message, or when its placeholders, plurals, or selects differ from English. Plurals and variable parts use ICU messages, never pieced-together strings.
 - **LANG-3** Dates, numbers, and amounts follow the chosen language's format (CUR-2), and the first day of the week keeps following PER-4. CSV exports and backups always use ISO dates and plain decimals with a `.`, whatever the language (BAK-5), so the files read the same everywhere.
 - **LANG-4** Search ignores case and accents in every language, including the Turkish dotted and dotless i: `istanbul` finds "İstanbul" and `cafe` finds "Café" (section 10).
 - **LANG-5** In Arabic the layout runs right to left: navigation, lists, swipe actions, charts, and the date arrows (ADD-6), whose "earlier" arrow points right. Amounts and keypad expressions (ADD-2) stay left to right inside Arabic text.
-- **LANG-6** Widget tests render the main screens and the add form in all six languages, on a phone-size screen at 1.3× text size, and fail on overflow. A language ships only after a fluent speaker has used it on a device.
+- **LANG-6** Translations are machine-made: a change that adds or edits English messages adds the other five languages in the same PR, with no separate review step. Widget tests render the main screens, the add form, setup, and the walkthrough in all six languages, on a phone-size screen at 1.3× text size, and fail on overflow.
 
 ## 17. PDF report
 
@@ -239,6 +244,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 5. First day of month is in v1 (PER-2).
 6. Accounts and transfers are in v1 (section 6).
 7. Notes, five more languages (Turkish, Arabic, French, Spanish, German), a home-screen widget, and a PDF report ship in v1, before release (roadmap Phase 4).
+8. Translations are machine-made, without a fluent-speaker review; CI checks and overflow tests guard them (LANG-2, LANG-6).
+9. The first launch shows a setup page for language and currency, then a short walkthrough (RUN-3–RUN-5). This replaces "no prompts before first use".
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
