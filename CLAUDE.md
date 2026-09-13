@@ -26,6 +26,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Every model/provider change gets a test. DB tests use `sqflite_common_ffi` (copy the setup in `test/widget_test.dart`); widget and write-failure tests use `FakeDB`, `testApp`, and `testTx` from `test/helpers.dart`.
 - Feature order: model → migration → provider → screen → test → analyze.
 - One branch per feature, PR to `main`; CI (`.github/workflows/ci.yml`) must pass.
+- Before a branch is merged: check coverage of the changed files (`flutter test --coverage`) and add tests for gaps, then run the app (`flutter run`) so the user can test it by hand.
 
 ## Token rules
 - Don't open `android/ ios/ linux/ macos/ windows/ web/` unless the task is platform-specific.

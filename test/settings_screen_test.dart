@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/categories_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
+import 'package:monthly_expense_app/screens/trash_screen.dart';
 
 import 'helpers.dart';
 
@@ -61,6 +63,19 @@ void main() {
     expect(settings.currencyCode, 'USD');
   });
 
+  testWidgets('a device currency missing from the list is still offered', (
+    tester,
+  ) async {
+    settings = await testSettings({'currency_code': 'XOF'});
+    await showSettings(tester);
+    expect(find.text('XOF'), findsOneWidget);
+
+    await tester.tap(find.text('Currency'));
+    await tester.pumpAndSettle();
+
+    expect(find.widgetWithIcon(ListTile, Icons.check), findsOneWidget);
+  });
+
   testWidgets('the theme can be switched to dark', (tester) async {
     await showSettings(tester);
 
@@ -84,5 +99,19 @@ void main() {
 
     expect(settings.startDay, 2);
     expect(provider.period.start, DateTime(2026, 9, 2));
+  });
+
+  testWidgets('Categories and Trash open their screens', (tester) async {
+    await showSettings(tester);
+
+    await tester.tap(find.text('Categories'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CategoriesScreen), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Trash'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TrashScreen), findsOneWidget);
   });
 }
