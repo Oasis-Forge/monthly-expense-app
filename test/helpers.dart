@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
+import 'package:monthly_expense_app/l10n/languages.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/backup.dart';
 import 'package:monthly_expense_app/models/budget.dart';
@@ -514,10 +515,15 @@ Widget testApp(
         value: authenticator ?? FakeAuthenticator(),
       ),
     ],
-    child: MaterialApp(
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: home,
+    // Like the app, the language follows the settings (LANG-1).
+    child: Consumer<SettingsProvider>(
+      builder: (context, settings, _) => MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        locale: settings.locale,
+        localeListResolutionCallback: (locales, _) => resolveAppLocale(locales),
+        home: home,
+      ),
     ),
   );
 }

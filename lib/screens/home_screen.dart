@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -307,23 +307,28 @@ class _SummaryCard extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             const SizedBox(height: 12),
+            // Each side gets half the card, so long labels and large amounts
+            // fit at any text size and in every language (LANG-6).
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _AmountTile(
-                  label: l10n.incomeLabel,
-                  amount: income,
-                  color: Colors.green,
-                  icon: Icons.arrow_downward,
-                  currency: currency,
+                Expanded(
+                  child: _AmountTile(
+                    label: l10n.incomeLabel,
+                    amount: income,
+                    color: Colors.green,
+                    icon: Icons.arrow_downward,
+                    currency: currency,
+                  ),
                 ),
                 Container(width: 1, height: 40, color: Colors.grey.shade300),
-                _AmountTile(
-                  label: l10n.expenseLabel,
-                  amount: expense,
-                  color: Colors.red,
-                  icon: Icons.arrow_upward,
-                  currency: currency,
+                Expanded(
+                  child: _AmountTile(
+                    label: l10n.expenseLabel,
+                    amount: expense,
+                    color: Colors.red,
+                    icon: Icons.arrow_upward,
+                    currency: currency,
+                  ),
                 ),
               ],
             ),
@@ -358,14 +363,24 @@ class _AmountTile extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 18),
             const SizedBox(width: 4),
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
+            Flexible(
+              child: Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(
-          currency.format(amount.toDouble()),
-          style: Theme.of(context).textTheme.titleMedium
-              ?.copyWith(color: color, fontWeight: FontWeight.w600),
+        // A large amount shrinks to fit rather than breaking across lines.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            currency.format(amount.toDouble()),
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(color: color, fontWeight: FontWeight.w600),
+          ),
         ),
       ],
     );
@@ -411,8 +426,8 @@ class _DaySection extends StatelessWidget {
 /// A red swipe background shared by transaction and transfer rows.
 Widget _deleteBackground() => Container(
   color: Colors.red,
-  alignment: Alignment.centerRight,
-  padding: const EdgeInsets.only(right: 20),
+  alignment: AlignmentDirectional.centerEnd,
+  padding: const EdgeInsetsDirectional.only(end: 20),
   child: const Icon(Icons.delete, color: Colors.white),
 );
 
@@ -464,6 +479,8 @@ class _TransactionTile extends StatelessWidget {
         ),
         trailing: Text(
           '$sign${currency.format(transaction.amount.toDouble())}',
+          // The sign stays in front of the amount in Arabic (LANG-5).
+          textDirection: TextDirection.ltr,
           style: TextStyle(color: color, fontWeight: FontWeight.w600),
         ),
         onTap: () => Navigator.of(context).push(

@@ -1,0 +1,893 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for German (`de`).
+class AppLocalizationsDe extends AppLocalizations {
+  AppLocalizationsDe([String locale = 'de']) : super(locale);
+
+  @override
+  String get appTitle => 'Monthly Expenses';
+
+  @override
+  String get settingsTooltip => 'Einstellungen';
+
+  @override
+  String get transferTooltip => 'Umbuchung';
+
+  @override
+  String get searchTooltip => 'Suchen';
+
+  @override
+  String get addButton => 'Hinzufügen';
+
+  @override
+  String get emptyPeriod => 'Noch keine Buchungen in diesem Zeitraum.';
+
+  @override
+  String get balanceLabel => 'Saldo';
+
+  @override
+  String get periodNetLabel => 'Dieser Zeitraum';
+
+  @override
+  String carriedForwardLine(String amount) {
+    return 'Übertrag $amount';
+  }
+
+  @override
+  String get incomeLabel => 'Einnahmen';
+
+  @override
+  String get expenseLabel => 'Ausgaben';
+
+  @override
+  String upcomingCategory(String category) {
+    return '$category · Geplant';
+  }
+
+  @override
+  String recurringDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wiederkehrende Buchungen sind fällig',
+      one: '1 wiederkehrende Buchung ist fällig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsOverNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Budgets sind überschritten',
+      one: '1 Budget ist überschritten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get deleteFailed =>
+      'Die Buchung konnte nicht gelöscht werden. Versuche es erneut.';
+
+  @override
+  String get transactionDeleted => 'Buchung gelöscht';
+
+  @override
+  String get transferDeleted => 'Umbuchung gelöscht';
+
+  @override
+  String get undoButton => 'Rückgängig';
+
+  @override
+  String get undoFailed =>
+      'Rückgängig machen fehlgeschlagen. Versuche es erneut.';
+
+  @override
+  String get restoreFailed =>
+      'Die Buchung konnte nicht wiederhergestellt werden. Versuche es erneut.';
+
+  @override
+  String get addTransactionTitle => 'Buchung hinzufügen';
+
+  @override
+  String get editTransactionTitle => 'Buchung bearbeiten';
+
+  @override
+  String get deleteTooltip => 'Löschen';
+
+  @override
+  String get duplicateTooltip => 'Duplizieren';
+
+  @override
+  String get titleOptionalLabel => 'Titel (optional)';
+
+  @override
+  String get amountLabel => 'Betrag';
+
+  @override
+  String get amountRequired => 'Gib einen Betrag ein';
+
+  @override
+  String get amountInvalid => 'Gib einen gültigen Betrag ein';
+
+  @override
+  String amountResult(String amount) {
+    return '= $amount';
+  }
+
+  @override
+  String get backspaceTooltip => 'Rücktaste';
+
+  @override
+  String get hideKeypadTooltip => 'Tastenfeld ausblenden';
+
+  @override
+  String get categoryLabel => 'Kategorie';
+
+  @override
+  String get categoryRequired => 'Wähle eine Kategorie';
+
+  @override
+  String get accountLabel => 'Konto';
+
+  @override
+  String get accountRequired => 'Wähle ein Konto';
+
+  @override
+  String get dateLabel => 'Datum';
+
+  @override
+  String get previousDayTooltip => 'Vorheriger Tag';
+
+  @override
+  String get nextDayTooltip => 'Nächster Tag';
+
+  @override
+  String get noteOptionalLabel => 'Notiz (optional)';
+
+  @override
+  String get saveChangesButton => 'Änderungen speichern';
+
+  @override
+  String get addTransactionButton => 'Buchung hinzufügen';
+
+  @override
+  String get saveAndAddAnotherButton => 'Speichern & weitere';
+
+  @override
+  String get transactionAdded => 'Buchung hinzugefügt';
+
+  @override
+  String get saveFailed =>
+      'Die Buchung konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String get noExpensesInPeriod => 'Noch keine Ausgaben in diesem Zeitraum.';
+
+  @override
+  String totalSpent(String amount) {
+    return 'Ausgaben gesamt: $amount';
+  }
+
+  @override
+  String periodRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String categoryAndDate(String category, String date) {
+    return '$category · $date';
+  }
+
+  @override
+  String get settingsTitle => 'Einstellungen';
+
+  @override
+  String get currencyLabel => 'Währung';
+
+  @override
+  String get currencySearchHint => 'Währungen suchen';
+
+  @override
+  String changeCurrencyTitle(String code) {
+    return 'Währung zu $code ändern?';
+  }
+
+  @override
+  String get changeCurrencyMessage =>
+      'Die Beträge bleiben gleich; nur die Währungsangabe ändert sich.';
+
+  @override
+  String get changeButton => 'Ändern';
+
+  @override
+  String get cancelButton => 'Abbrechen';
+
+  @override
+  String get saveButton => 'Speichern';
+
+  @override
+  String get removeButton => 'Entfernen';
+
+  @override
+  String get themeLabel => 'Design';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Hell';
+
+  @override
+  String get themeDark => 'Dunkel';
+
+  @override
+  String get languageLabel => 'Sprache';
+
+  @override
+  String get languageSystem => 'Systemsprache';
+
+  @override
+  String get monthStartLabel => 'Erster Tag des Monats';
+
+  @override
+  String get monthStartLastDay => 'Letzter Tag';
+
+  @override
+  String get showCarriedForwardLabel => 'Saldo übertragen';
+
+  @override
+  String get showCarriedForwardSubtitle =>
+      'Jeder Zeitraum beginnt mit dem vorherigen Saldo';
+
+  @override
+  String get trashTitle => 'Papierkorb';
+
+  @override
+  String get trashEmpty => 'Der Papierkorb ist leer.';
+
+  @override
+  String trashItemSubtitle(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'wird in $days Tagen endgültig gelöscht',
+      one: 'wird in 1 Tag endgültig gelöscht',
+    );
+    return '$amount · $_temp0';
+  }
+
+  @override
+  String get restoreTooltip => 'Wiederherstellen';
+
+  @override
+  String get categoriesTitle => 'Kategorien';
+
+  @override
+  String get addCategoryTooltip => 'Kategorie hinzufügen';
+
+  @override
+  String get addCategoryTitle => 'Kategorie hinzufügen';
+
+  @override
+  String get editCategoryTitle => 'Kategorie bearbeiten';
+
+  @override
+  String get categoryNameLabel => 'Name';
+
+  @override
+  String get categoryNameRequired => 'Gib einen Namen ein';
+
+  @override
+  String get categoryNameTaken => 'Dieser Name wird bereits verwendet';
+
+  @override
+  String get archiveAction => 'Archivieren';
+
+  @override
+  String get unarchiveAction => 'Dearchivieren';
+
+  @override
+  String get deleteAction => 'Löschen';
+
+  @override
+  String get archivedHeader => 'Archiviert';
+
+  @override
+  String get categorySaveFailed =>
+      'Die Kategorie konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String get accountsTitle => 'Konten';
+
+  @override
+  String get accountCash => 'Bargeld';
+
+  @override
+  String get accountTypeLabel => 'Typ';
+
+  @override
+  String get accountTypeCash => 'Bargeld';
+
+  @override
+  String get accountTypeBank => 'Bank';
+
+  @override
+  String get accountTypeCard => 'Karte';
+
+  @override
+  String get accountTypeOther => 'Sonstiges';
+
+  @override
+  String get addAccountTooltip => 'Konto hinzufügen';
+
+  @override
+  String get addAccountTitle => 'Konto hinzufügen';
+
+  @override
+  String get editAccountTitle => 'Konto bearbeiten';
+
+  @override
+  String get openingBalanceLabel => 'Anfangssaldo';
+
+  @override
+  String get openingDateLabel => 'Eröffnungsdatum';
+
+  @override
+  String get accountSaveFailed =>
+      'Das Konto konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String get transferTitle => 'Umbuchung';
+
+  @override
+  String get editTransferTitle => 'Umbuchung bearbeiten';
+
+  @override
+  String get transferLabel => 'Umbuchung';
+
+  @override
+  String transferRoute(String from, String to) {
+    return '$from → $to';
+  }
+
+  @override
+  String get fromAccountLabel => 'Von';
+
+  @override
+  String get toAccountLabel => 'An';
+
+  @override
+  String get sameAccountError => 'Wähle zwei verschiedene Konten';
+
+  @override
+  String get needTwoAccounts =>
+      'Füge ein zweites Konto hinzu, um Geld zwischen Konten zu verschieben.';
+
+  @override
+  String get addTransferButton => 'Umbuchung hinzufügen';
+
+  @override
+  String get transferSaveFailed =>
+      'Die Umbuchung konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String get searchHint => 'Buchungen suchen';
+
+  @override
+  String get allTypesFilter => 'Alle';
+
+  @override
+  String get allCategoriesFilter => 'Alle Kategorien';
+
+  @override
+  String get allAccountsFilter => 'Alle Konten';
+
+  @override
+  String get allTimeFilter => 'Gesamter Zeitraum';
+
+  @override
+  String get clearDatesTooltip => 'Daten löschen';
+
+  @override
+  String searchSummary(int count, String income, String expense) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Ergebnisse',
+      one: '1 Ergebnis',
+    );
+    return '$_temp0 · Einnahmen $income · Ausgaben $expense';
+  }
+
+  @override
+  String get noSearchResults => 'Keine passenden Buchungen.';
+
+  @override
+  String get budgetsTitle => 'Budgets';
+
+  @override
+  String get budgetsTooltip => 'Budgets';
+
+  @override
+  String get overallBudget => 'Gesamt';
+
+  @override
+  String get noBudget => 'Kein Budget';
+
+  @override
+  String budgetsHint(String period) {
+    return 'Limits gelten ab $period; frühere Zeiträume behalten ihre.';
+  }
+
+  @override
+  String get budgetLimitLabel => 'Limit pro Zeitraum';
+
+  @override
+  String get budgetSaveFailed =>
+      'Das Budget konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String budgetSpentOfLimit(String spent, String limit) {
+    return '$spent von $limit';
+  }
+
+  @override
+  String budgetLeftPerDay(String remaining, String perDay) {
+    return '$remaining übrig · $perDay pro Tag';
+  }
+
+  @override
+  String budgetLeft(String remaining) {
+    return '$remaining übrig';
+  }
+
+  @override
+  String budgetOverBy(String amount) {
+    return '$amount überschritten';
+  }
+
+  @override
+  String get budgetLimitReached => 'Limit erreicht';
+
+  @override
+  String budgetLimitOnly(String limit) {
+    return 'Limit $limit';
+  }
+
+  @override
+  String get recurringTitle => 'Wiederkehrend';
+
+  @override
+  String get addRecurringTooltip => 'Wiederkehrende hinzufügen';
+
+  @override
+  String get addRecurringTitle => 'Wiederkehrende Buchung';
+
+  @override
+  String get editRecurringTitle => 'Wiederkehrende bearbeiten';
+
+  @override
+  String get dueHeader => 'Fällig';
+
+  @override
+  String get upcomingHeader => 'Nächste 30 Tage';
+
+  @override
+  String get rulesHeader => 'Regeln';
+
+  @override
+  String get nothingUpcoming => 'Nichts in den nächsten 30 Tagen.';
+
+  @override
+  String get noRules => 'Noch keine wiederkehrenden Buchungen.';
+
+  @override
+  String get postButton => 'Buchen';
+
+  @override
+  String get skipButton => 'Überspringen';
+
+  @override
+  String get postFailed =>
+      'Die Buchung konnte nicht erstellt werden. Versuche es erneut.';
+
+  @override
+  String get recurringSaveFailed =>
+      'Die wiederkehrende Buchung konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String get everyLabel => 'Alle';
+
+  @override
+  String get frequencyDays => 'Tage';
+
+  @override
+  String get frequencyWeeks => 'Wochen';
+
+  @override
+  String get frequencyMonths => 'Monate';
+
+  @override
+  String get frequencyYears => 'Jahre';
+
+  @override
+  String scheduleDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count Tage',
+      one: 'Täglich',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleWeeks(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count Wochen',
+      one: 'Wöchentlich',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count Monate',
+      one: 'Monatlich',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String scheduleYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Alle $count Jahre',
+      one: 'Jährlich',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String pausedSchedule(String schedule) {
+    return '$schedule · Pausiert';
+  }
+
+  @override
+  String get startsLabel => 'Beginn';
+
+  @override
+  String get endsLabel => 'Ende';
+
+  @override
+  String get endNever => 'Nie';
+
+  @override
+  String get endAfter => 'Nach';
+
+  @override
+  String get endOnDate => 'Am Datum';
+
+  @override
+  String get timesLabel => 'Mal';
+
+  @override
+  String get endsOnLabel => 'Endet am';
+
+  @override
+  String get wholeNumberInvalid => 'Gib eine ganze Zahl ab 1 ein';
+
+  @override
+  String get endDateInvalid => 'Das Enddatum muss nach dem Beginn liegen';
+
+  @override
+  String get autoPostLabel => 'Automatisch buchen';
+
+  @override
+  String get autoPostSubtitle => 'Sonst wartet sie unter Fällig auf einen Tipp';
+
+  @override
+  String get pauseTooltip => 'Pausieren';
+
+  @override
+  String get resumeTooltip => 'Fortsetzen';
+
+  @override
+  String get categoryFood => 'Essen';
+
+  @override
+  String get categoryGroceries => 'Lebensmittel';
+
+  @override
+  String get categoryTransport => 'Verkehr';
+
+  @override
+  String get categoryShopping => 'Einkäufe';
+
+  @override
+  String get categoryBills => 'Rechnungen';
+
+  @override
+  String get categoryRent => 'Miete';
+
+  @override
+  String get categoryHealth => 'Gesundheit';
+
+  @override
+  String get categoryEducation => 'Bildung';
+
+  @override
+  String get categoryEntertainment => 'Freizeit';
+
+  @override
+  String get categorySalary => 'Gehalt';
+
+  @override
+  String get categoryBusiness => 'Geschäftlich';
+
+  @override
+  String get categoryInvestment => 'Geldanlage';
+
+  @override
+  String get categoryGift => 'Geschenk';
+
+  @override
+  String get categoryOther => 'Sonstiges';
+
+  @override
+  String get previousPeriodTooltip => 'Vorheriger Zeitraum';
+
+  @override
+  String get nextPeriodTooltip => 'Nächster Zeitraum';
+
+  @override
+  String get insightsTooltip => 'Auswertungen';
+
+  @override
+  String get insightsTitle => 'Auswertungen';
+
+  @override
+  String get calendarTab => 'Kalender';
+
+  @override
+  String get trendTab => 'Verlauf';
+
+  @override
+  String get noIncomeInPeriod => 'Noch keine Einnahmen in diesem Zeitraum.';
+
+  @override
+  String totalIncome(String amount) {
+    return 'Einnahmen gesamt: $amount';
+  }
+
+  @override
+  String get calendarHint =>
+      'Tippe auf einen Tag, um seine Buchungen zu sehen.';
+
+  @override
+  String get dayEmpty => 'An diesem Tag nichts.';
+
+  @override
+  String trendMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Monate',
+      one: '1 Monat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String incomeExpenseLine(String income, String expense) {
+    return 'Einnahmen $income · Ausgaben $expense';
+  }
+
+  @override
+  String trendAverage(String income, String expense) {
+    return 'Durchschnitt pro Zeitraum · Einnahmen $income · Ausgaben $expense';
+  }
+
+  @override
+  String get weekStartLabel => 'Erster Tag der Woche';
+
+  @override
+  String weekStartDefault(String day) {
+    return 'Standard ($day)';
+  }
+
+  @override
+  String get firstRunTitle => 'Willkommen bei Monthly Expenses';
+
+  @override
+  String get firstRunMessage =>
+      'Behalte deine Ausgaben und Einnahmen im Blick. Deine Daten bleiben auf diesem Gerät.';
+
+  @override
+  String get addFirstTransactionButton => 'Erste Buchung hinzufügen';
+
+  @override
+  String get exportCsvMenu => 'CSV exportieren';
+
+  @override
+  String get exportCsvTooltip => 'CSV exportieren';
+
+  @override
+  String get csvExported => 'CSV gespeichert';
+
+  @override
+  String get csvExportFailed =>
+      'Die CSV-Datei konnte nicht exportiert werden. Versuche es erneut.';
+
+  @override
+  String get backupTitle => 'Sichern & wiederherstellen';
+
+  @override
+  String get backupIntro =>
+      'Sicherungen sind Dateien, die du speicherst, wo du möchtest. Nichts wird automatisch hochgeladen oder gesendet.';
+
+  @override
+  String get backUpNowTitle => 'Jetzt sichern';
+
+  @override
+  String lastBackupLine(String date) {
+    return 'Letzte Sicherung $date';
+  }
+
+  @override
+  String get neverBackedUp => 'Noch keine Sicherung';
+
+  @override
+  String get backupSaved => 'Sicherung gespeichert';
+
+  @override
+  String get backupSaveFailed =>
+      'Die Sicherung konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String get restoreFromFileTitle => 'Aus Datei wiederherstellen';
+
+  @override
+  String get restoreFromFileSubtitle =>
+      'Eine Sicherung mit deinen Daten zusammenführen oder deine Daten dadurch ersetzen';
+
+  @override
+  String get backupReminderLabel => 'Sicherungserinnerung';
+
+  @override
+  String get backupReminderSubtitle => 'Alle 30 Tage ab 20 Buchungen';
+
+  @override
+  String get backupReminderNever =>
+      'Sichere deine Daten, damit sie nicht verloren gehen';
+
+  @override
+  String backupReminderSince(String date) {
+    return 'Letzte Sicherung $date. Zeit für eine neue?';
+  }
+
+  @override
+  String get notNowTooltip => 'Nicht jetzt';
+
+  @override
+  String get keptBackupsHeader => 'Automatische Sicherungen';
+
+  @override
+  String get keptBackupsHint =>
+      'Vor jeder Wiederherstellung auf diesem Gerät gespeichert.';
+
+  @override
+  String get noKeptBackups => 'Noch keine.';
+
+  @override
+  String backupSummary(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Buchungen',
+      one: '1 Buchung',
+    );
+    return '$date · $_temp0';
+  }
+
+  @override
+  String get restoreTitle => 'Sicherung wiederherstellen';
+
+  @override
+  String get mergeOption => 'Zusammenführen';
+
+  @override
+  String get mergeOptionSubtitle =>
+      'Behalte deine Daten und füge die der Sicherung hinzu. Gibt es einen Eintrag auf beiden Seiten, gewinnt die neuere Änderung.';
+
+  @override
+  String get replaceOption => 'Ersetzen';
+
+  @override
+  String get replaceOptionSubtitle =>
+      'Lösche deine Daten und verwende nur die Sicherung samt ihren Einstellungen.';
+
+  @override
+  String get restoreSafetyNote =>
+      'Vorher wird eine Kopie deiner aktuellen Daten unter Automatische Sicherungen gespeichert.';
+
+  @override
+  String get restoreButton => 'Wiederherstellen';
+
+  @override
+  String get restoreKeptTitle => 'Diese Kopie wiederherstellen?';
+
+  @override
+  String restoreKeptMessage(String date) {
+    return 'Deine Daten werden durch die Kopie vom $date ersetzt. Vorher wird eine Kopie deiner aktuellen Daten gespeichert.';
+  }
+
+  @override
+  String get backupInvalid =>
+      'Diese Datei ist keine Sicherung von Monthly Expenses.';
+
+  @override
+  String get backupTooNew =>
+      'Diese Sicherung stammt aus einer neueren App-Version. Aktualisiere die App und versuche es erneut.';
+
+  @override
+  String get backupOpenFailed =>
+      'Die Datei konnte nicht geöffnet werden. Versuche es erneut.';
+
+  @override
+  String get backupRestoreFailed =>
+      'Die Sicherung konnte nicht wiederhergestellt werden. Deine Daten wurden nicht geändert.';
+
+  @override
+  String restoredReplace(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Buchungen wiederhergestellt',
+      one: '1 Buchung wiederhergestellt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String restoredMerge(int added, int updated, int unchanged) {
+    return 'Zusammengeführt: $added hinzugefügt, $updated aktualisiert, $unchanged unverändert';
+  }
+
+  @override
+  String get appLockLabel => 'App-Sperre';
+
+  @override
+  String get appLockSubtitle =>
+      'Mit Fingerabdruck, Gesicht oder Displaysperre entsperren';
+
+  @override
+  String get appLockUnavailable =>
+      'Richte auf diesem Gerät eine Displaysperre ein, um die App-Sperre zu nutzen';
+
+  @override
+  String get appLockReason => 'Monthly Expenses entsperren';
+
+  @override
+  String get appLockFailed =>
+      'Deine Identität konnte nicht bestätigt werden. Die App-Sperre wurde nicht geändert.';
+
+  @override
+  String get lockedTitle => 'Monthly Expenses ist gesperrt';
+
+  @override
+  String get unlockButton => 'Entsperren';
+}

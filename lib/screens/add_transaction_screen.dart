@@ -267,6 +267,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
             DropdownButtonFormField<String>(
               // A new key resets the field when the type or a chip changes it.
               key: ValueKey((_type, _categoryId)),
+              // Long names shorten instead of overflowing (LANG-6).
+              isExpanded: true,
               initialValue: categories.any((c) => c.id == _categoryId)
                   ? _categoryId
                   : null,
@@ -288,6 +290,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
             if (accounts.length > 1) ...[
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: accounts.any((a) => a.id == _accountId)
                     ? _accountId
                     : null,

@@ -1,6 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -239,15 +239,17 @@ class _BudgetProgress extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // Wraps, so long names and amounts move to a second line instead of
+          // overflowing (LANG-6).
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            spacing: 8,
             children: [
-              Expanded(
-                child: Text(
-                  category == null
-                      ? l10n.overallBudget
-                      : '${category.icon} ${category.label(l10n)}',
-                  style: theme.textTheme.titleSmall,
-                ),
+              Text(
+                category == null
+                    ? l10n.overallBudget
+                    : '${category.icon} ${category.label(l10n)}',
+                style: theme.textTheme.titleSmall,
               ),
               if (!isFuture)
                 Text(
@@ -592,6 +594,20 @@ class _TrendTabState extends State<_TrendTab> {
       ),
     );
     final rodWidth = _count == 6 ? 10.0 : 5.0;
+    // In right-to-left languages time runs right to left, and the amount
+    // axis sits on the right (LANG-5).
+    final rtl = Directionality.of(context) == TextDirection.rtl;
+    final bars = rtl ? trend.reversed.toList() : trend;
+    final amountTitles = AxisTitles(
+      sideTitles: SideTitles(
+        showTitles: true,
+        reservedSize: 48,
+        getTitlesWidget: (value, meta) => SideTitleWidget(
+          meta: meta,
+          child: Text(compact.format(value), style: small),
+        ),
+      ),
+    );
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -616,18 +632,18 @@ class _TrendTabState extends State<_TrendTab> {
           child: BarChart(
             BarChartData(
               barGroups: [
-                for (var i = 0; i < trend.length; i++)
+                for (var i = 0; i < bars.length; i++)
                   BarChartGroupData(
                     x: i,
                     barsSpace: 2,
                     barRods: [
                       BarChartRodData(
-                        toY: trend[i].income.toDouble(),
+                        toY: bars[i].income.toDouble(),
                         color: Colors.green,
                         width: rodWidth,
                       ),
                       BarChartRodData(
-                        toY: trend[i].expense.toDouble(),
+                        toY: bars[i].expense.toDouble(),
                         color: Colors.red,
                         width: rodWidth,
                       ),
@@ -638,24 +654,15 @@ class _TrendTabState extends State<_TrendTab> {
               borderData: FlBorderData(show: false),
               titlesData: FlTitlesData(
                 topTitles: const AxisTitles(),
-                rightTitles: const AxisTitles(),
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 48,
-                    getTitlesWidget: (value, meta) => SideTitleWidget(
-                      meta: meta,
-                      child: Text(compact.format(value), style: small),
-                    ),
-                  ),
-                ),
+                leftTitles: rtl ? const AxisTitles() : amountTitles,
+                rightTitles: rtl ? amountTitles : const AxisTitles(),
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     getTitlesWidget: (value, meta) => SideTitleWidget(
                       meta: meta,
                       child: Text(
-                        shortLabel(trend[value.toInt()].period),
+                        shortLabel(bars[value.toInt()].period),
                         style: small,
                       ),
                     ),

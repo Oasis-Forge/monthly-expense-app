@@ -4,6 +4,19 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-09-13
+
+### Added
+- Turkish, Arabic, French, Spanish, and German, with a language setting that follows the device by default.
+- Arabic reads right to left, while amounts and the keypad stay left to right.
+- Search ignores case and accents in every language, including the Turkish ı and İ and Arabic vowel marks.
+
+### Changed
+- Language, theme, and the first day of the month and week open their choices in a dialog, so long names always fit.
+
+### Fixed
+- With large text, the budget rows in Insights and the due rows in Recurring no longer overflow.
+
 ## [1.0.1] - 2026-09-13
 
 No changes to the app.

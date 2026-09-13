@@ -102,7 +102,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   (l10n.incomeLabel, TransactionType.income),
                 ])
                   Padding(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsetsDirectional.only(end: 8),
                     child: ChoiceChip(
                       label: Text(label),
                       selected: _type == type,
@@ -166,7 +166,7 @@ class _SearchScreenState extends State<SearchScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Text(
                 l10n.searchSummary(
                   result.transactions.length,

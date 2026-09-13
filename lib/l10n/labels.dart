@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart' show IconData, Icons;
-import 'package:intl/intl.dart';
+import 'package:flutter/material.dart' show IconData, Icons, TextDirection;
+import 'package:intl/intl.dart' show DateFormat;
 
 import '../models/account.dart';
 import '../models/category.dart';
@@ -73,6 +73,14 @@ String scheduleLabel(RecurringRule rule, AppLocalizations l10n) {
   };
   return rule.isPaused ? l10n.pausedSchedule(schedule) : schedule;
 }
+
+/// Keeps [text], such as a signed amount, in one left-to-right run inside
+/// right-to-left text, so `-$12.00` doesn't become `$12.00-` (LANG-5).
+/// Left-to-right layouts get [text] unchanged.
+String isolateLeftToRight(String text, TextDirection direction) =>
+    direction == TextDirection.rtl
+    ? '${String.fromCharCode(0x2066)}$text${String.fromCharCode(0x2069)}'
+    : text;
 
 /// "September 2026" for a calendar month, otherwise both dates, such as
 /// "Aug 25 – Sep 24" (PER-3).

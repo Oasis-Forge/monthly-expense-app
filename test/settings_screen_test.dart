@@ -90,7 +90,7 @@ void main() {
   testWidgets('the theme can be switched to dark', (tester) async {
     await showSettings(tester);
 
-    await tester.tap(find.byType(DropdownButton<ThemeMode>));
+    await tester.tap(find.text('Theme'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Dark').last);
     await tester.pumpAndSettle();
@@ -103,7 +103,7 @@ void main() {
   ) async {
     await showSettings(tester);
 
-    await tester.tap(find.byType(DropdownButton<int>));
+    await tester.tap(find.text('First day of the month'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('2').last);
     await tester.pumpAndSettle();
@@ -117,7 +117,7 @@ void main() {
     await showSettings(tester);
     expect(find.text('Default (Sunday)'), findsOneWidget);
 
-    await tester.tap(find.byType(DropdownButton<int?>));
+    await tester.tap(find.text('First day of the week'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Monday').last);
     await tester.pumpAndSettle();
@@ -198,5 +198,19 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
     }
+  });
+
+  testWidgets('choosing a language applies at once (LANG-1)', (tester) async {
+    await showSettings(tester);
+
+    expect(find.text('System default'), findsOneWidget);
+    await tester.tap(find.text('Language'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Deutsch'));
+    await tester.pumpAndSettle();
+
+    expect(settings.languageCode, 'de');
+    expect(find.text('Einstellungen'), findsOneWidget);
+    expect(find.text('Sprache'), findsOneWidget);
   });
 }

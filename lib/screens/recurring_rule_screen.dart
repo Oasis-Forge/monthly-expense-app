@@ -237,6 +237,8 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               key: ValueKey((_type, _categoryId)),
+              // Long names shorten instead of overflowing (LANG-6).
+              isExpanded: true,
               initialValue: categories.any((c) => c.id == _categoryId)
                   ? _categoryId
                   : null,
@@ -258,6 +260,7 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
             if (accounts.length > 1) ...[
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                isExpanded: true,
                 initialValue: accounts.any((a) => a.id == _accountId)
                     ? _accountId
                     : null,
@@ -297,6 +300,7 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<RecurrenceFrequency>(
+                    isExpanded: true,
                     initialValue: _frequency,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
