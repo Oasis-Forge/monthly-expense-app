@@ -16,3 +16,4 @@ Every PR merged to `main` is a release: `release-android.yml` tags `vX.Y.Z` and 
    Set `N` to the tag's build number + 1.
 3. In `CHANGELOG.md`, add `## [x.y.z] - YYYY-MM-DD` right below `## [Unreleased]`, and move anything listed under Unreleased into it. Write it from `git log --oneline origin/main..HEAD`: Added / Changed / Fixed, short, in user-facing words.
 4. Commit `chore(release): vX.Y.Z` on the branch, and put the version in the PR title or description.
+5. Build the local APK so `dist/` always matches the branch: run `D:\Desktop\projects\flutter_sdk\flutter\bin\flutter.bat build apk --release` in the background, then copy `build/app/outputs/flutter-apk/app-release.apk` to `dist/monthly-expenses-X.Y.Z.apk` with Bash `cp` (settings block PowerShell reads under `build/`). Check `versionName` and `versionCode` with `aapt2 dump badging` from the Android SDK `build-tools`, and give the user the path. Rebuild it after any later app change on the branch.
