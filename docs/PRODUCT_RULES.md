@@ -166,7 +166,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 6. Accounts and transfers are in v1 (section 6).
 
 ## Roadmap impact
-Schema v2, in Phase 1 before release, so no real user data needs migrating later:
+These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
 - amounts as integers (MONEY-1)
 - a categories table, referenced by ID (CAT-1)
 - an optional title (ADD-1)
