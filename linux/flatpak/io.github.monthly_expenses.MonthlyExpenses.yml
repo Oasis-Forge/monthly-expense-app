@@ -1,0 +1,28 @@
+# Flatpak manifest for Flathub. It installs the Linux archive that
+# release-desktop.yml attaches to each GitHub Release. For every release,
+# update the tag in `url` and the `sha256` from that workflow's summary, then
+# open a pull request with this file in the app's Flathub repository.
+app-id: io.github.monthly_expenses.MonthlyExpenses
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: monthly-expenses
+finish-args:
+  # A window on Wayland or X11 with GPU rendering. No network access, and no
+  # file access beyond the files people pick in the portal's file dialog.
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+modules:
+  - name: monthly-expenses
+    buildsystem: simple
+    build-commands:
+      - cp -r bundle /app/monthly-expenses
+      - mkdir -p /app/bin
+      - ln -s /app/monthly-expenses/monthly_expense_app /app/bin/monthly-expenses
+      - cp -r share /app/
+    sources:
+      - type: archive
+        url: https://github.com/haskalach/monthly-expense-app/releases/download/v1.0.0/monthly-expenses-linux-x64.tar.gz
+        sha256: 0000000000000000000000000000000000000000000000000000000000000000

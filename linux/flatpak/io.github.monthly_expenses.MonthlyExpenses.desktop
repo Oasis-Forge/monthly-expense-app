@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Monthly Expenses
+Comment=Track income and expenses privately on your device
+Exec=monthly-expenses
+Icon=io.github.monthly_expenses.MonthlyExpenses
+Terminal=false
+Categories=Office;Finance;
+Keywords=budget;money;expense;income;spending;
+StartupWMClass=io.github.monthly_expenses.MonthlyExpenses

@@ -61,6 +61,9 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
+  msix: ^3.18.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -106,3 +109,13 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Windows MSIX package: `dart run msix:create`. Store builds pass the
+# Partner Center identity and publisher; see docs/RELEASING.md. No
+# capabilities are declared, so the package requests no internet access.
+msix_config:
+  display_name: Monthly Expenses
+  publisher_display_name: Monthly Expenses
+  identity_name: com.monthlyexpenses.app
+  logo_path: assets/icon/icon.png
+  languages: en-us

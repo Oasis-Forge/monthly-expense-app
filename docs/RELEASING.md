@@ -27,6 +27,9 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
 | `APPSTORE_PRIVATE_KEY` | secret | `release-ios.yml` | Full contents of the `.p8` API key |
 | `APPLE_TEAM_ID` | variable | `release-ios.yml` | 10-character Apple team ID |
 | `IOS_PROFILE_NAME` | variable (optional) | `release-ios.yml` | Provisioning profile name; defaults to `Monthly Expenses App Store` |
+| `MSIX_IDENTITY_NAME` | variable | `release-desktop.yml` | Partner Center → Product identity → Package/Identity/Name |
+| `MSIX_PUBLISHER` | variable | `release-desktop.yml` | Partner Center → Product identity → Package/Identity/Publisher (`CN=…`). Without it, CI builds a test-signed MSIX only |
+| `MSIX_PUBLISHER_DISPLAY_NAME` | variable | `release-desktop.yml` | Partner Center → Product identity → Package/Properties/PublisherDisplayName |
 
 ## One-time setup: Android
 
@@ -45,14 +48,14 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
    keyAlias=upload
    storeFile=upload-keystore.jks
    ```
-4. In Play Console, create the app with package `com.markkalash.monthly_expense_app` and keep Play App Signing enabled.
+4. In Play Console, create the app with package `com.monthlyexpenses.app` and keep Play App Signing enabled.
 5. **Upload the first AAB by hand** in Play Console → Testing → Internal testing. The API can't create an app's first release. Build it with `flutter build appbundle` (after step 3), or download it from a `release-android.yml` run that had the secrets.
 6. In Google Cloud, create a service account and a JSON key. In Play Console → Users and permissions, invite the service account with release permissions for this app. Save the JSON as `PLAY_SERVICE_ACCOUNT_JSON`.
 
 ## One-time setup: iOS
 
 1. Enroll in the Apple Developer Program.
-2. Register the App ID `com.markkalash.monthlyExpenseApp`, and create the app record in App Store Connect.
+2. Register the App ID `com.monthlyexpenses.app`, and create the app record in App Store Connect.
 3. Create an Apple Distribution certificate. Without a Mac, use OpenSSL (ships with Git for Windows):
    ```bash
    openssl genrsa -out dist.key 2048
@@ -98,3 +101,42 @@ Both stores require a public privacy policy URL.
 2. The policy is then live at `https://haskalach.github.io/monthly-expense-app/privacy-policy`. Its contact is the GitHub Issues page, so no email address is published.
 
 Every file in `docs/` gets published, which is fine because the repo is public anyway.
+
+## App icon and splash screen
+
+`tool/render_app_icons_test.dart` draws the icon, a calendar page with a bar chart on the app's purple, into `assets/icon/`. After changing it, run these in order and commit `assets/icon/` with the generated platform files:
+```bash
+flutter test tool/render_app_icons_test.dart
+```
+```bash
+dart run flutter_launcher_icons
+```
+```bash
+dart run flutter_native_splash:create
+```
+
+## One-time setup: Windows (Microsoft Store)
+
+1. In Partner Center, reserve the name "Monthly Expenses".
+2. Under Product identity, copy Package/Identity/Name, Package/Identity/Publisher, and Package/Properties/PublisherDisplayName into the `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER`, and `MSIX_PUBLISHER_DISPLAY_NAME` variables.
+3. Push a tag, download the MSIX from the `release-desktop.yml` run, and upload it in a Partner Center submission. The Store signs it.
+4. For a local test install, `dart run msix:create` builds a test-signed package in `build/windows/x64/runner/Release/`.
+
+The package declares no capabilities, so it requests no internet access.
+
+## One-time setup: Linux (Flathub)
+
+Flathub checks that the publisher controls the app ID's domain. `io.github.monthly_expenses.MonthlyExpenses` is verified through a GitHub organization, so no personal name or domain appears in it.
+
+1. Create the GitHub organization `monthly-expenses`. If the name is taken, pick another and change the ID in `linux/CMakeLists.txt`, `linux/flatpak/`, and `release-desktop.yml` before the first submission.
+2. Flathub needs permission to redistribute the app. With no `LICENSE` file the code is all rights reserved, so add a license (or terms that allow redistribution) and update `project_license` in the metainfo file.
+3. Add screenshots and a `<release>` entry to `linux/flatpak/io.github.monthly_expenses.MonthlyExpenses.metainfo.xml`.
+4. Push a tag and publish the draft GitHub Release. Copy the archive's sha256 from the `release-desktop.yml` run summary into the manifest's `sha256`, and the tag into its `url`.
+5. Submit the manifest by following Flathub's submission guide (a pull request to `flathub/flathub`). Once it's accepted, verify the app through the organization in Flathub's developer portal.
+6. For each later release, update `url` and `sha256` in the app's Flathub repository.
+
+Store listings link to this repository, whose URL shows the `haskalach` account. To avoid that, transfer the repository to the organization. GitHub redirects the repository, but not the GitHub Pages site, so update the privacy policy URL in the store listings afterwards.
+
+## Mac App Store (Phase 4)
+
+The macOS app is sandboxed and can read or write only the files people pick. Signing and a release workflow come with the desktop releases. They need macOS enabled for the App ID `com.monthlyexpenses.app`, Mac App Distribution and Mac Installer Distribution certificates, and a Mac App Store provisioning profile.

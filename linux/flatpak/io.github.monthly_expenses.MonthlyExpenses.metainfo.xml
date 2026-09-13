@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream data for Flathub and Linux software centers. Add a <release>
+     entry and screenshots before the first Flathub submission. -->
+<component type="desktop-application">
+  <id>io.github.monthly_expenses.MonthlyExpenses</id>
+  <name>Monthly Expenses</name>
+  <summary>Track income and expenses privately on your device</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <developer id="io.github.monthly_expenses">
+    <name>Monthly Expenses</name>
+  </developer>
+  <description>
+    <p>
+      Record what you spend and earn, see where each month goes, and keep
+      everything on your own device. No account, no ads, and no tracking.
+    </p>
+    <ul>
+      <li>Accounts and transfers, categories, budgets, and recurring transactions</li>
+      <li>Search, a calendar of daily totals, and income and expense trends</li>
+      <li>Backups you save and restore yourself, and CSV export</li>
+      <li>Optional app lock</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.monthly_expenses.MonthlyExpenses.desktop</launchable>
+  <url type="homepage">https://github.com/haskalach/monthly-expense-app</url>
+  <url type="bugtracker">https://github.com/haskalach/monthly-expense-app/issues</url>
+  <url type="help">https://haskalach.github.io/monthly-expense-app/privacy-policy</url>
+  <content_rating type="oars-1.1"/>
+  <branding>
+    <color type="primary" scheme_preference="light">#DAD4FF</color>
+    <color type="primary" scheme_preference="dark">#3F32B5</color>
+  </branding>
+</component>

@@ -18,7 +18,7 @@ concurrency:
 
 env:
   FLUTTER_VERSION: 3.47.4
-  PACKAGE_NAME: com.markkalash.monthly_expense_app
+  PACKAGE_NAME: com.monthlyexpenses.app
 
 jobs:
   build:
@@ -79,6 +79,17 @@ jobs:
         run: |
           flutter build appbundle --release
           flutter build apk --release
+
+      # RUN-2: the store listings say the app collects no data, so the release
+      # build must not request internet access, even through a plugin.
+      - name: Check the APK requests no internet access
+        run: |
+          aapt2=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -n 1)
+          "$aapt2" dump permissions build/app/outputs/flutter-apk/app-release.apk | tee permissions.txt
+          if grep -q 'android.permission.INTERNET' permissions.txt; then
+            echo "::error::The release APK requests android.permission.INTERNET (RUN-2)."
+            exit 1
+          fi
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
