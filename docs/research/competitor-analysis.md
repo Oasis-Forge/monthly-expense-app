@@ -21,6 +21,7 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 | Reports | Donut chart by category (with %), income/expense trend lines, payment-method chart, custom periods | Monthly pie chart | Trend chart, custom periods |
 | Calendar view | Month grid with daily income/expense totals | None | Yes |
 | Recurring & reminders | Repeat daily–yearly, end never/after N/on date, pause; upcoming list | None | Same, plus notifications later |
+| Notes (checked on version 295) | NoteBook tab: a dated to-do list (text, date, time, done checkbox) with period and status filters, search, counts, and a PDF of the list. No reminders or links to transactions; delete is permanent. Counts went stale and search ignored the status filter | A note field on each transaction | Notes with due dates, reminders, and "Record as transaction" (NOTE-1–NOTE-8) |
 | Search & filters | Keyword search (unreliable in testing), filters by category/type/payment method, sort | None | Reliable text search + filters |
 | Export & backup | PDF/Excel reports, local `.db` backup, Google Drive, scheduled email statements | None | CSV + JSON backup first, PDF later |
 | Deleted items | Trash for deleted transactions | Swipe delete, no undo | Undo now, trash later |

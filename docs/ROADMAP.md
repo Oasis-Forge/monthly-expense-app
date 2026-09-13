@@ -50,14 +50,23 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [x] Android release build declares no `INTERNET` permission (RUN-2), so the Play data safety form can say no data is collected. `release-android.yml` fails if it ever does.
 - [x] Desktop packaging: macOS sandbox entitlements, a Windows MSIX, and a Flatpak for Flathub, built by `release-desktop.yml`, with app icons and names for each. Mac App Store signing moves to Phase 4.
 
-## Phase 4 — Release
+## Phase 4 — Notes, languages, widget, PDF report (before release)
+Decided 13 September 2026: these ship in v1. Languages come first. After that, every PR that adds English messages also adds the other five languages (machine translation, LANG-6).
+- [ ] **Languages:** Turkish, Arabic, French, Spanish, and German, machine-translated from today's strings; language setting with System default (LANG-1); locale formats with machine-readable exports (LANG-3); case- and accent-insensitive search (LANG-4); right-to-left layout for Arabic (LANG-5); a CI check for missing messages and mismatched placeholders (LANG-2); overflow tests in every language (LANG-6). Add the translation step to `CLAUDE.md`.
+- [ ] **Notes** (schema step): notes with an optional due date, amount, and category; open and done lists whose filters and counts match the screen; "Record as transaction"; due notes in Home notices and on the calendar; local reminders that respect app lock; Undo and trash; backup and merge (NOTE-1–NOTE-8). Reminders use inexact alarms, so Google Play needs no exact-alarm permission, and are rescheduled after a reboot or a restore. The same setup can later serve recurring reminders.
+- [ ] **PDF report:** built on the device with embedded fonts for all six languages; preview, then share, save, or print; period, custom range, or year, with privacy options (PDF-1–PDF-6). Check that the PDF packages add no `INTERNET` permission (RUN-2).
+- [ ] **Home-screen widget:** an Android app widget and an iOS WidgetKit extension, fed by the provider after every change, with amounts hidden under app lock (WID-1–WID-6). The iOS extension needs an App Group and its own provisioning profile: update `release-ios.yml` and `docs/RELEASING.md`.
+- [ ] **First-run setup and walkthrough:** a setup page for language and currency with "Restore a backup", then a skippable walkthrough of up to four pages that Settings can replay (RUN-1, RUN-3–RUN-5). It replaces today's first-run welcome, and comes last so the walkthrough shows finished features.
+- [ ] Update the privacy policy for notes, the widget, and the PDF report.
+
+## Phase 5 — Release
 - [ ] Finish the one-time setup in `docs/RELEASING.md`.
 - [ ] Exercise `release-ios.yml` and `claude.yml` once their secrets exist.
 - [ ] Google Play: new personal developer accounts must run a closed test (at least 12 testers for 14 days) before production access. Confirm the current rule in Play Console and plan for the wait.
 - [x] Every merged PR is a release: CI requires a SemVer bump and changelog entry, and `release-android.yml` tags the merge and attaches the APK to a draft GitHub Release. `v1.0.0` is the first.
 - [ ] Play internal testing + TestFlight from a release, once the signing secrets exist.
-- [ ] Store listings (screenshots, description, privacy policy URL, Play data safety form, App Store privacy labels), then promote to production.
+- [ ] Store listings in all six languages (screenshots, description, privacy policy URL, Play data safety form, App Store privacy labels), then promote to production.
 - [ ] Desktop releases: Mac App Store, Microsoft Store, and Snap Store or Flathub.
 
 ## After v1
-Web version (needs a storage layer other than sqflite), receipt photo attachments, PDF report, home-screen widget, recurring notifications, subcategories, multiple currencies, more languages.
+Web version (needs a storage layer other than sqflite), receipt photo attachments, recurring notifications, subcategories, multiple currencies, desktop widgets.
