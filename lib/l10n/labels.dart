@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../models/category.dart';
 import '../models/period.dart';
+import '../models/transaction.dart';
 import 'app_localizations.dart';
 
 extension CategoryLabel on Category {
@@ -24,6 +25,12 @@ extension CategoryLabel on Category {
         'gift' => l10n.categoryGift,
         _ => l10n.categoryOther,
       };
+}
+
+extension TransactionLabel on ExpenseTransaction {
+  /// The title, else the note, else the category name (ADD-1).
+  String label(Category? category, AppLocalizations l10n) =>
+      title ?? note ?? category?.label(l10n) ?? '';
 }
 
 /// "September 2026" for a calendar month, otherwise both dates, such as

@@ -2,6 +2,7 @@
   "@@locale": "en",
   "appTitle": "Monthly Expenses",
   "statsTooltip": "Stats",
+  "settingsTooltip": "Settings",
   "addButton": "Add",
   "emptyPeriod": "No transactions in this period yet.",
   "balanceLabel": "Balance",
@@ -17,8 +18,12 @@
     }
   },
   "deleteFailed": "Couldn't delete the transaction. Try again.",
+  "transactionDeleted": "Transaction deleted",
+  "undoButton": "Undo",
+  "restoreFailed": "Couldn't restore the transaction. Try again.",
   "addTransactionTitle": "Add Transaction",
   "editTransactionTitle": "Edit Transaction",
+  "deleteTooltip": "Delete",
   "titleOptionalLabel": "Title (optional)",
   "amountLabel": "Amount",
   "amountRequired": "Enter an amount",
@@ -59,6 +64,53 @@
       }
     }
   },
+  "settingsTitle": "Settings",
+  "currencyLabel": "Currency",
+  "currencySearchHint": "Search currencies",
+  "changeCurrencyTitle": "Change currency to {code}?",
+  "@changeCurrencyTitle": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "changeCurrencyMessage": "Amounts stay the same; only their currency label changes.",
+  "changeButton": "Change",
+  "cancelButton": "Cancel",
+  "saveButton": "Save",
+  "themeLabel": "Theme",
+  "themeSystem": "System",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+  "monthStartLabel": "First day of the month",
+  "monthStartLastDay": "Last day",
+  "trashTitle": "Trash",
+  "trashEmpty": "Trash is empty.",
+  "trashItemSubtitle": "{amount} · {days, plural, =1{deleted for good in 1 day} other{deleted for good in {days} days}}",
+  "@trashItemSubtitle": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreTooltip": "Restore",
+  "categoriesTitle": "Categories",
+  "addCategoryTooltip": "Add category",
+  "addCategoryTitle": "Add category",
+  "editCategoryTitle": "Edit category",
+  "categoryNameLabel": "Name",
+  "categoryNameRequired": "Enter a name",
+  "categoryNameTaken": "That name is already used",
+  "archiveAction": "Archive",
+  "unarchiveAction": "Unarchive",
+  "deleteAction": "Delete",
+  "archivedHeader": "Archived",
+  "categorySaveFailed": "Couldn't save the category. Try again.",
   "categoryFood": "Food",
   "categoryGroceries": "Groceries",
   "categoryTransport": "Transport",

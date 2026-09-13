@@ -1,7 +1,8 @@
 name: CI
 
-# Public repo: GitHub-hosted runners (including macOS) are free, so every PR also
-# compiles both platforms. No path filters, so required status checks never hang.
+# Public repo: GitHub-hosted runners (including macOS) are free, so every PR
+# compiles Android and iOS. Desktop builds run only on pushes to main, to keep
+# PR checks fast. No path filters, so required status checks never hang.
 
 on:
   pull_request:
@@ -95,3 +96,39 @@ jobs:
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign
+
+  desktop:
+    name: Desktop build (${{ matrix.target }})
+    if: github.event_name != 'pull_request'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows
+            os: windows-latest
+          - target: linux
+            os: ubuntu-latest
+          - target: macos
+            os: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Linux build tools
+        if: matrix.target == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build
+        run: flutter build ${{ matrix.target }} --debug

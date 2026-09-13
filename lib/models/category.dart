@@ -59,6 +59,36 @@ class Category {
       deletedAt: _optionalDate(map['deleted_at']),
     );
   }
+
+  static const Object _unset = Object();
+
+  /// Pass `null` for [name], [archivedAt], or [deletedAt] to clear it; leave
+  /// it out to keep the current value.
+  Category copyWith({
+    Object? name = _unset,
+    String? icon,
+    int? sortOrder,
+    DateTime? updatedAt,
+    Object? archivedAt = _unset,
+    Object? deletedAt = _unset,
+  }) {
+    return Category(
+      id: id,
+      type: type,
+      defaultKey: defaultKey,
+      name: identical(name, _unset) ? this.name : name as String?,
+      icon: icon ?? this.icon,
+      sortOrder: sortOrder ?? this.sortOrder,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      archivedAt: identical(archivedAt, _unset)
+          ? this.archivedAt
+          : archivedAt as DateTime?,
+      deletedAt: identical(deletedAt, _unset)
+          ? this.deletedAt
+          : deletedAt as DateTime?,
+    );
+  }
 }
 
 DateTime? _optionalDate(Object? value) =>

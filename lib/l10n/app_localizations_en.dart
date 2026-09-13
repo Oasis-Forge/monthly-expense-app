@@ -16,6 +16,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statsTooltip => 'Stats';
 
   @override
+  String get settingsTooltip => 'Settings';
+
+  @override
   String get addButton => 'Add';
 
   @override
@@ -39,10 +42,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteFailed => 'Couldn\'t delete the transaction. Try again.';
 
   @override
+  String get transactionDeleted => 'Transaction deleted';
+
+  @override
+  String get undoButton => 'Undo';
+
+  @override
+  String get restoreFailed => 'Couldn\'t restore the transaction. Try again.';
+
+  @override
   String get addTransactionTitle => 'Add Transaction';
 
   @override
   String get editTransactionTitle => 'Edit Transaction';
+
+  @override
+  String get deleteTooltip => 'Delete';
 
   @override
   String get titleOptionalLabel => 'Title (optional)';
@@ -94,6 +109,107 @@ class AppLocalizationsEn extends AppLocalizations {
   String periodRange(String start, String end) {
     return '$start – $end';
   }
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get currencyLabel => 'Currency';
+
+  @override
+  String get currencySearchHint => 'Search currencies';
+
+  @override
+  String changeCurrencyTitle(String code) {
+    return 'Change currency to $code?';
+  }
+
+  @override
+  String get changeCurrencyMessage =>
+      'Amounts stay the same; only their currency label changes.';
+
+  @override
+  String get changeButton => 'Change';
+
+  @override
+  String get cancelButton => 'Cancel';
+
+  @override
+  String get saveButton => 'Save';
+
+  @override
+  String get themeLabel => 'Theme';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get monthStartLabel => 'First day of the month';
+
+  @override
+  String get monthStartLastDay => 'Last day';
+
+  @override
+  String get trashTitle => 'Trash';
+
+  @override
+  String get trashEmpty => 'Trash is empty.';
+
+  @override
+  String trashItemSubtitle(String amount, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'deleted for good in $days days',
+      one: 'deleted for good in 1 day',
+    );
+    return '$amount · $_temp0';
+  }
+
+  @override
+  String get restoreTooltip => 'Restore';
+
+  @override
+  String get categoriesTitle => 'Categories';
+
+  @override
+  String get addCategoryTooltip => 'Add category';
+
+  @override
+  String get addCategoryTitle => 'Add category';
+
+  @override
+  String get editCategoryTitle => 'Edit category';
+
+  @override
+  String get categoryNameLabel => 'Name';
+
+  @override
+  String get categoryNameRequired => 'Enter a name';
+
+  @override
+  String get categoryNameTaken => 'That name is already used';
+
+  @override
+  String get archiveAction => 'Archive';
+
+  @override
+  String get unarchiveAction => 'Unarchive';
+
+  @override
+  String get deleteAction => 'Delete';
+
+  @override
+  String get archivedHeader => 'Archived';
+
+  @override
+  String get categorySaveFailed => 'Couldn\'t save the category. Try again.';
 
   @override
   String get categoryFood => 'Food';

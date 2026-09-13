@@ -106,6 +106,12 @@ abstract class AppLocalizations {
   /// **'Stats'**
   String get statsTooltip;
 
+  /// No description provided for @settingsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTooltip;
+
   /// No description provided for @addButton.
   ///
   /// In en, this message translates to:
@@ -148,6 +154,24 @@ abstract class AppLocalizations {
   /// **'Couldn\'t delete the transaction. Try again.'**
   String get deleteFailed;
 
+  /// No description provided for @transactionDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction deleted'**
+  String get transactionDeleted;
+
+  /// No description provided for @undoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undoButton;
+
+  /// No description provided for @restoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t restore the transaction. Try again.'**
+  String get restoreFailed;
+
   /// No description provided for @addTransactionTitle.
   ///
   /// In en, this message translates to:
@@ -159,6 +183,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Transaction'**
   String get editTransactionTitle;
+
+  /// No description provided for @deleteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteTooltip;
 
   /// No description provided for @titleOptionalLabel.
   ///
@@ -249,6 +279,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{start} – {end}'**
   String periodRange(String start, String end);
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @currencyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currencyLabel;
+
+  /// No description provided for @currencySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search currencies'**
+  String get currencySearchHint;
+
+  /// No description provided for @changeCurrencyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change currency to {code}?'**
+  String changeCurrencyTitle(String code);
+
+  /// No description provided for @changeCurrencyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts stay the same; only their currency label changes.'**
+  String get changeCurrencyMessage;
+
+  /// No description provided for @changeButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get changeButton;
+
+  /// No description provided for @cancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancelButton;
+
+  /// No description provided for @saveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveButton;
+
+  /// No description provided for @themeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get themeLabel;
+
+  /// No description provided for @themeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeSystem;
+
+  /// No description provided for @themeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeLight;
+
+  /// No description provided for @themeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeDark;
+
+  /// No description provided for @monthStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of the month'**
+  String get monthStartLabel;
+
+  /// No description provided for @monthStartLastDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Last day'**
+  String get monthStartLastDay;
+
+  /// No description provided for @trashTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash'**
+  String get trashTitle;
+
+  /// No description provided for @trashEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Trash is empty.'**
+  String get trashEmpty;
+
+  /// No description provided for @trashItemSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} · {days, plural, =1{deleted for good in 1 day} other{deleted for good in {days} days}}'**
+  String trashItemSubtitle(String amount, int days);
+
+  /// No description provided for @restoreTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreTooltip;
+
+  /// No description provided for @categoriesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Categories'**
+  String get categoriesTitle;
+
+  /// No description provided for @addCategoryTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get addCategoryTooltip;
+
+  /// No description provided for @addCategoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add category'**
+  String get addCategoryTitle;
+
+  /// No description provided for @editCategoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit category'**
+  String get editCategoryTitle;
+
+  /// No description provided for @categoryNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get categoryNameLabel;
+
+  /// No description provided for @categoryNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name'**
+  String get categoryNameRequired;
+
+  /// No description provided for @categoryNameTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'That name is already used'**
+  String get categoryNameTaken;
+
+  /// No description provided for @archiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Archive'**
+  String get archiveAction;
+
+  /// No description provided for @unarchiveAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Unarchive'**
+  String get unarchiveAction;
+
+  /// No description provided for @deleteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteAction;
+
+  /// No description provided for @archivedHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get archivedHeader;
+
+  /// No description provided for @categorySaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the category. Try again.'**
+  String get categorySaveFailed;
 
   /// No description provided for @categoryFood.
   ///

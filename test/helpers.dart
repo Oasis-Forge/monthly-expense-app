@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
@@ -7,6 +8,7 @@ import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 
 final _created = DateTime.utc(2026);
@@ -52,31 +54,31 @@ Account testAccount(String id, {num opening = 0, DateTime? on}) {
   );
 }
 
-/// A subset of the built-in categories, with the same IDs.
+/// A subset of the built-in categories, with the same IDs, in display order.
 List<Category> testCategories() {
-  Category category(String id, TransactionType type, String key, String icon) {
-    return Category(
-      id: id,
-      type: type,
-      defaultKey: key,
-      icon: icon,
-      sortOrder: 0,
-      createdAt: _created,
-      updatedAt: _created,
-    );
-  }
-
+  const defaults = [
+    ('cat-food', TransactionType.expense, 'food', '🍔'),
+    ('cat-rent', TransactionType.expense, 'rent', '🏠'),
+    ('cat-other', TransactionType.expense, 'other', '📦'),
+    ('cat-salary', TransactionType.income, 'salary', '💼'),
+    ('cat-income-other', TransactionType.income, 'other', '📦'),
+  ];
   return [
-    category('cat-food', TransactionType.expense, 'food', '🍔'),
-    category('cat-rent', TransactionType.expense, 'rent', '🏠'),
-    category('cat-other', TransactionType.expense, 'other', '📦'),
-    category('cat-salary', TransactionType.income, 'salary', '💼'),
-    category('cat-income-other', TransactionType.income, 'other', '📦'),
+    for (var i = 0; i < defaults.length; i++)
+      Category(
+        id: defaults[i].$1,
+        type: defaults[i].$2,
+        defaultKey: defaults[i].$3,
+        icon: defaults[i].$4,
+        sortOrder: i,
+        createdAt: _created,
+        updatedAt: _created,
+      ),
   ];
 }
 
 /// An in-memory [DBHelper] for tests that don't need sqflite. Set
-/// [failWrites] to make every insert and update throw.
+/// [failWrites] to make every write throw.
 class FakeDB extends DBHelper {
   FakeDB({
     List<ExpenseTransaction> transactions = const [],
@@ -88,6 +90,8 @@ class FakeDB extends DBHelper {
 
   /// Every stored transaction, soft-deleted ones included.
   final List<ExpenseTransaction> rows;
+
+  /// Every stored category, soft-deleted ones included.
   final List<Category> categories;
   final List<Account> accounts;
   bool failWrites = false;
@@ -103,10 +107,14 @@ class FakeDB extends DBHelper {
   ];
 
   @override
-  Future<List<Category>> fetchCategories() async => [...categories];
+  Future<List<ExpenseTransaction>> fetchDeletedTransactions() async => [
+    for (final row in rows)
+      if (row.deletedAt != null) row,
+  ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
   @override
-  Future<List<Account>> fetchAccounts() async => [...accounts];
+  Future<void> purgeDeletedBefore(DateTime cutoff) async =>
+      rows.removeWhere((row) => row.deletedAt?.isBefore(cutoff) ?? false);
 
   @override
   Future<void> insertTransaction(ExpenseTransaction tx) async {
@@ -119,12 +127,54 @@ class FakeDB extends DBHelper {
     _checkWrite();
     rows[rows.indexWhere((t) => t.id == tx.id)] = tx;
   }
+
+  @override
+  Future<List<Category>> fetchCategories() async => [
+    for (final category in categories)
+      if (category.deletedAt == null) category,
+  ];
+
+  @override
+  Future<void> insertCategory(Category category) async {
+    _checkWrite();
+    categories.add(category);
+  }
+
+  @override
+  Future<void> updateCategories(List<Category> changed) async {
+    _checkWrite();
+    for (final category in changed) {
+      categories[categories.indexWhere((c) => c.id == category.id)] = category;
+    }
+  }
+
+  @override
+  Future<List<Account>> fetchAccounts() async => [...accounts];
 }
 
-/// [home] inside a localized [MaterialApp] with [provider] above it.
-Widget testApp(TransactionProvider provider, Widget home) {
-  return ChangeNotifierProvider.value(
-    value: provider,
+/// Settings over in-memory shared_preferences [values], for a US English
+/// device.
+Future<SettingsProvider> testSettings([
+  Map<String, Object> values = const {},
+]) async {
+  SharedPreferences.setMockInitialValues(values);
+  return SettingsProvider(
+    await SharedPreferences.getInstance(),
+    deviceLocale: 'en_US',
+  );
+}
+
+/// [home] inside a localized [MaterialApp] with both providers above it.
+Widget testApp(
+  TransactionProvider provider,
+  SettingsProvider settings,
+  Widget home,
+) {
+  return MultiProvider(
+    providers: [
+      ChangeNotifierProvider.value(value: settings),
+      ChangeNotifierProvider.value(value: provider),
+    ],
     child: MaterialApp(
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:uuid/uuid.dart';
 
 import '../db/db_helper.dart';
 import '../models/account.dart';
@@ -12,23 +13,40 @@ import '../models/transaction.dart';
 /// (PER-1, BAL-1–BAL-5).
 class TransactionProvider extends ChangeNotifier {
   /// Stores data in [db], or the app database when null. [clock] supplies
-  /// "now"; tests pass a fixed time.
-  TransactionProvider({DBHelper? db, DateTime Function()? clock})
-    : _db = db ?? DBHelper.instance,
-      _clock = clock ?? DateTime.now,
-      _period = Period.containing((clock ?? DateTime.now)());
+  /// "now"; tests pass a fixed time. [startDay] is the first day of each
+  /// month (PER-2).
+  TransactionProvider({
+    DBHelper? db,
+    DateTime Function()? clock,
+    int startDay = 1,
+  }) : _db = db ?? DBHelper.instance,
+       _clock = clock ?? DateTime.now,
+       _startDay = startDay,
+       _period = Period.containing(
+         (clock ?? DateTime.now)(),
+         startDay: startDay,
+       );
+
+  /// How long deleted transactions stay in the trash (DEL-3).
+  static const trashRetention = Duration(days: 30);
 
   final DBHelper _db;
   final DateTime Function() _clock;
   final List<ExpenseTransaction> _transactions = [];
+  final List<ExpenseTransaction> _deleted = [];
   List<Category> _categories = const [];
   List<Account> _accounts = const [];
-  int _startDay = 1;
+  int _startDay;
   Period _period;
   _PeriodSummary? _summary;
 
   /// Transactions that aren't deleted, newest first.
   List<ExpenseTransaction> get transactions => List.unmodifiable(_transactions);
+
+  /// Transactions in the trash, most recently deleted first.
+  List<ExpenseTransaction> get deletedTransactions =>
+      List.unmodifiable(_deleted);
+
   List<Category> get categories => List.unmodifiable(_categories);
   List<Account> get accounts => List.unmodifiable(_accounts);
   Period get period => _period;
@@ -38,6 +56,12 @@ class TransactionProvider extends ChangeNotifier {
   List<Category> categoriesFor(TransactionType type) => [
     for (final category in _categories)
       if (category.type == type && category.archivedAt == null) category,
+  ];
+
+  /// Archived categories of [type] (CAT-4).
+  List<Category> archivedCategoriesFor(TransactionType type) => [
+    for (final category in _categories)
+      if (category.type == type && category.archivedAt != null) category,
   ];
 
   Category? categoryById(String id) {
@@ -50,22 +74,36 @@ class TransactionProvider extends ChangeNotifier {
   /// Whether [tx] is dated after today, so it doesn't count yet (BAL-4).
   bool isUpcoming(ExpenseTransaction tx) => _dayOf(tx.date).isAfter(_today);
 
+  /// Whole days before a trashed [tx] is deleted for good, at least 1.
+  int trashDaysLeft(ExpenseTransaction tx) {
+    final left =
+        trashRetention.inDays - _clock().difference(tx.deletedAt!).inDays;
+    return left < 1 ? 1 : left;
+  }
+
   DateTime get _today => _dayOf(_clock());
 
+  /// Purges old trash (DEL-3), then loads everything.
   Future<void> load() async {
+    await _db.purgeDeletedBefore(_clock().subtract(trashRetention));
     _categories = await _db.fetchCategories();
     _accounts = await _db.fetchAccounts();
     final loaded = await _db.fetchTransactions();
+    final deleted = await _db.fetchDeletedTransactions();
     _transactions
       ..clear()
       ..addAll(loaded)
       ..sort(_newestFirst);
+    _deleted
+      ..clear()
+      ..addAll(deleted);
     _changed();
   }
 
   /// Sets the first day of each month (PER-2) and shows the period that
   /// contains today.
   void setStartDay(int day) {
+    if (day == _startDay) return;
     _startDay = day;
     _period = Period.containing(_clock(), startDay: day);
     _changed();
@@ -106,17 +144,124 @@ class TransactionProvider extends ChangeNotifier {
     }
   }
 
-  /// Marks the transaction deleted in the database (DEL-1), then removes it
-  /// from the list. If saving fails, the list is unchanged and the error is
-  /// rethrown.
+  /// Moves the transaction to the trash (DEL-1). If saving fails, nothing
+  /// changes and the error is rethrown.
   Future<void> deleteTransaction(String id) async {
     final index = _transactions.indexWhere((t) => t.id == id);
     if (index == -1) return;
     final now = _clock().toUtc();
-    await _db.updateTransaction(
-      _transactions[index].copyWith(deletedAt: now, updatedAt: now),
+    final deleted = _transactions[index].copyWith(
+      deletedAt: now,
+      updatedAt: now,
     );
+    await _db.updateTransaction(deleted);
     _transactions.removeWhere((t) => t.id == id);
+    _deleted.insert(0, deleted);
+    _changed();
+  }
+
+  /// Takes the transaction out of the trash with its original ID, date, and
+  /// category (DEL-4). If saving fails, nothing changes and the error is
+  /// rethrown.
+  Future<void> restoreTransaction(String id) async {
+    final index = _deleted.indexWhere((t) => t.id == id);
+    if (index == -1) return;
+    final restored = _deleted[index].copyWith(
+      deletedAt: null,
+      updatedAt: _clock().toUtc(),
+    );
+    await _db.updateTransaction(restored);
+    _deleted.removeWhere((t) => t.id == id);
+    _transactions
+      ..add(restored)
+      ..sort(_newestFirst);
+    _changed();
+  }
+
+  /// Adds a custom category at the end of its type's list (CAT-3).
+  Future<Category> addCategory({
+    required TransactionType type,
+    required String name,
+    required String icon,
+  }) async {
+    final now = _clock().toUtc();
+    var sortOrder = 0;
+    for (final category in _categories) {
+      if (category.type == type && category.sortOrder >= sortOrder) {
+        sortOrder = category.sortOrder + 1;
+      }
+    }
+    final category = Category(
+      id: const Uuid().v4(),
+      type: type,
+      name: name,
+      icon: icon,
+      sortOrder: sortOrder,
+      createdAt: now,
+      updatedAt: now,
+    );
+    await _db.insertCategory(category);
+    _categories = [..._categories, category]..sort(_byTypeAndOrder);
+    _changed();
+    return category;
+  }
+
+  /// Saves a renamed or re-iconed category (CAT-3).
+  Future<void> updateCategory(Category category) => _saveCategories([category]);
+
+  Future<void> archiveCategory(String id) => _saveCategories([
+    categoryById(id)!.copyWith(archivedAt: _clock().toUtc()),
+  ]);
+
+  Future<void> unarchiveCategory(String id) =>
+      _saveCategories([categoryById(id)!.copyWith(archivedAt: null)]);
+
+  /// Whether any transaction, trashed ones included, uses the category.
+  bool isCategoryUsed(String id) =>
+      _transactions.any((t) => t.categoryId == id) ||
+      _deleted.any((t) => t.categoryId == id);
+
+  /// Deletes an unused category. A used category can only be archived
+  /// (CAT-4), so this throws a [StateError] for one.
+  Future<void> deleteCategory(String id) async {
+    if (isCategoryUsed(id)) {
+      throw StateError('Category $id has transactions; archive it instead.');
+    }
+    await _saveCategories([
+      categoryById(id)!.copyWith(deletedAt: _clock().toUtc()),
+    ]);
+  }
+
+  /// Moves the active category at [oldIndex] of [type] to [newIndex], both
+  /// positions in [categoriesFor] (CAT-3).
+  Future<void> reorderCategories(
+    TransactionType type,
+    int oldIndex,
+    int newIndex,
+  ) {
+    final ordered = categoriesFor(type);
+    ordered.insert(newIndex, ordered.removeAt(oldIndex));
+    return _saveCategories([
+      for (var i = 0; i < ordered.length; i++)
+        if (ordered[i].sortOrder != i) ordered[i].copyWith(sortOrder: i),
+    ]);
+  }
+
+  /// Stamps and saves [changed] categories, then updates the list. Deleted
+  /// categories leave the list.
+  Future<void> _saveCategories(List<Category> changed) async {
+    if (changed.isEmpty) return;
+    final now = _clock().toUtc();
+    final stamped = {
+      for (final category in changed)
+        category.id: category.copyWith(updatedAt: now),
+    };
+    await _db.updateCategories(stamped.values.toList());
+    _categories = [
+      for (final category in _categories)
+        if (stamped[category.id]?.deletedAt == null)
+          stamped[category.id] ?? category,
+    ]..sort(_byTypeAndOrder);
     _changed();
   }
 
@@ -156,6 +301,11 @@ class TransactionProvider extends ChangeNotifier {
 
   static int _newestFirst(ExpenseTransaction a, ExpenseTransaction b) =>
       b.date.compareTo(a.date);
+
+  static int _byTypeAndOrder(Category a, Category b) {
+    final byType = a.type.index.compareTo(b.type.index);
+    return byType != 0 ? byType : a.sortOrder.compareTo(b.sortOrder);
+  }
 }
 
 /// Totals for one period as of [today], computed once per change.

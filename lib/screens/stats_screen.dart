@@ -1,11 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/money.dart';
+import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 
 const List<Color> _chartColors = [
@@ -28,8 +28,10 @@ class StatsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
+    final currency = context.watch<SettingsProvider>().currencyFormat(
+      l10n.localeName,
+    );
     final byCategory = provider.expenseByCategory;
-    final currency = NumberFormat.currency(symbol: '\$');
     final total = byCategory.values.fold(Money.zero, (a, b) => a + b);
 
     final entries = byCategory.entries.toList()

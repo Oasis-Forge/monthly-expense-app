@@ -22,6 +22,13 @@ void main() {
       }
     });
 
+    test('rejects more decimals than the currency allows (CUR-2)', () {
+      expect(Money.tryParse('12', maxDecimals: 0), const Money(12000));
+      expect(Money.tryParse('12.5', maxDecimals: 0), isNull);
+      expect(Money.tryParse('12.34', maxDecimals: 2), const Money(12340));
+      expect(Money.tryParse('12.345', maxDecimals: 2), isNull);
+    });
+
     test('adds, negates, and formats for editing', () {
       expect(const Money(12500) + const Money(500), const Money(13000));
       expect(const Money(500) - const Money(1500), const Money(-1000));
@@ -71,7 +78,7 @@ void main() {
     });
   });
 
-  test('Category and Account round-trip through maps', () {
+  group('Category', () {
     final category = Category(
       id: 'c',
       type: TransactionType.income,
@@ -82,8 +89,25 @@ void main() {
       updatedAt: DateTime.utc(2026, 2),
       archivedAt: DateTime.utc(2026, 3),
     );
-    expect(Category.fromMap(category.toMap()).toMap(), category.toMap());
 
+    test('round-trips through maps', () {
+      expect(Category.fromMap(category.toMap()).toMap(), category.toMap());
+    });
+
+    test('copyWith clears name and archivedAt only when given null', () {
+      final kept = category.copyWith(icon: '💰');
+      expect(
+        (kept.name, kept.archivedAt, kept.icon),
+        ('Tips', DateTime.utc(2026, 3), '💰'),
+      );
+
+      final cleared = category.copyWith(name: null, archivedAt: null);
+      expect((cleared.name, cleared.archivedAt), (null, null));
+      expect(cleared.id, category.id);
+    });
+  });
+
+  test('Account round-trips through maps', () {
     final account = Account(
       id: 'b',
       type: AccountType.bank,

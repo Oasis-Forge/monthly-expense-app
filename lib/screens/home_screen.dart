@@ -6,8 +6,11 @@ import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/money.dart';
 import '../models/transaction.dart';
+import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import 'delete_snack_bar.dart';
+import 'settings_screen.dart';
 import 'stats_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -17,7 +20,9 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
-    final currency = NumberFormat.currency(symbol: '\$');
+    final currency = context.watch<SettingsProvider>().currencyFormat(
+      l10n.localeName,
+    );
     final grouped = provider.groupedByDay;
 
     return Scaffold(
@@ -29,6 +34,13 @@ class HomeScreen extends StatelessWidget {
             tooltip: l10n.statsTooltip,
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const StatsScreen())),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l10n.settingsTooltip,
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
           ),
         ],
       ),
@@ -262,11 +274,12 @@ class _TransactionTile extends StatelessWidget {
         final messenger = ScaffoldMessenger.of(context);
         try {
           await provider.deleteTransaction(transaction.id);
-          return true;
         } catch (_) {
           messenger.showSnackBar(SnackBar(content: Text(l10n.deleteFailed)));
           return false;
         }
+        showDeletedSnackBar(messenger, provider, l10n, transaction.id);
+        return true;
       },
       child: ListTile(
         leading: CircleAvatar(
@@ -276,8 +289,7 @@ class _TransactionTile extends StatelessWidget {
             style: const TextStyle(fontSize: 18),
           ),
         ),
-        // ADD-1: the title, else the note, else the category name.
-        title: Text(transaction.title ?? transaction.note ?? categoryName),
+        title: Text(transaction.label(category, l10n)),
         subtitle: Text(
           provider.isUpcoming(transaction)
               ? l10n.upcomingCategory(categoryName)
