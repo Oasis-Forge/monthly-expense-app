@@ -35,6 +35,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 ## Read on demand only
 - `docs/ROADMAP.md`: phased plan and known bugs — read when planning or picking up work.
 - `docs/RELEASING.md`: signing, secrets, store release steps.
+- `docs/PRODUCT_RULES.md`: behavior rules with IDs (`BUD-3`) — read the relevant section before implementing or testing a feature; cite rule IDs in tests and PRs.
 
 ## Gotchas
 - The repo is public: never commit secrets or personal data, and never print secrets in workflows.
