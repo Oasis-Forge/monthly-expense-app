@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/period.dart';
+import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import 'app_localizations.dart';
 
@@ -54,6 +55,23 @@ extension TransactionLabel on ExpenseTransaction {
   /// The title, else the note, else the category name (ADD-1).
   String label(Category? category, AppLocalizations l10n) =>
       title ?? note ?? category?.label(l10n) ?? '';
+}
+
+extension RecurringRuleLabel on RecurringRule {
+  /// The title, else the note, else the category name, like a transaction.
+  String label(Category? category, AppLocalizations l10n) =>
+      title ?? note ?? category?.label(l10n) ?? '';
+}
+
+/// "Every month", "Every 2 weeks", and so on, with "Paused" when paused.
+String scheduleLabel(RecurringRule rule, AppLocalizations l10n) {
+  final schedule = switch (rule.frequency) {
+    RecurrenceFrequency.day => l10n.scheduleDays(rule.interval),
+    RecurrenceFrequency.week => l10n.scheduleWeeks(rule.interval),
+    RecurrenceFrequency.month => l10n.scheduleMonths(rule.interval),
+    RecurrenceFrequency.year => l10n.scheduleYears(rule.interval),
+  };
+  return rule.isPaused ? l10n.pausedSchedule(schedule) : schedule;
 }
 
 /// "September 2026" for a calendar month, otherwise both dates, such as

@@ -10,13 +10,21 @@ import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import 'budgets_screen.dart';
 import 'delete_snack_bar.dart';
+import 'recurring_screen.dart';
+import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'stats_screen.dart';
 import 'transfer_screen.dart';
 
+enum _MenuItem { transfer, recurring, budgets, settings }
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
+  static void _open(BuildContext context, Widget screen) =>
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
 
   @override
   Widget build(BuildContext context) {
@@ -28,30 +36,39 @@ class HomeScreen extends StatelessWidget {
       ...provider.groupedByDay.keys,
       ...provider.transfersByDay.keys,
     }.toList()..sort((a, b) => b.compareTo(a));
+    final dueCount = provider.dueOccurrences.length;
+    final overCount = provider.budgetsOver;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
         actions: [
           IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: l10n.searchTooltip,
+            onPressed: () => _open(context, const SearchScreen()),
+          ),
+          IconButton(
             icon: const Icon(Icons.pie_chart_outline),
             tooltip: l10n.statsTooltip,
-            onPressed: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => const StatsScreen())),
+            onPressed: () => _open(context, const StatsScreen()),
           ),
-          IconButton(
-            icon: const Icon(Icons.swap_horiz),
-            tooltip: l10n.transferTooltip,
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const TransferScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            tooltip: l10n.settingsTooltip,
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+          PopupMenuButton<_MenuItem>(
+            onSelected: (item) => _open(context, switch (item) {
+              _MenuItem.transfer => const TransferScreen(),
+              _MenuItem.recurring => const RecurringScreen(),
+              _MenuItem.budgets => const BudgetsScreen(),
+              _MenuItem.settings => const SettingsScreen(),
+            }),
+            itemBuilder: (_) => [
+              for (final (item, label) in [
+                (_MenuItem.transfer, l10n.transferTitle),
+                (_MenuItem.recurring, l10n.recurringTitle),
+                (_MenuItem.budgets, l10n.budgetsTitle),
+                (_MenuItem.settings, l10n.settingsTitle),
+              ])
+                PopupMenuItem(value: item, child: Text(label)),
+            ],
           ),
         ],
       ),
@@ -70,6 +87,20 @@ class HomeScreen extends StatelessWidget {
                 : null,
             currency: currency,
           ),
+          if (dueCount > 0)
+            _Notice(
+              icon: Icons.event_repeat,
+              color: Theme.of(context).colorScheme.primary,
+              text: l10n.recurringDueNotice(dueCount),
+              onTap: () => _open(context, const RecurringScreen()),
+            ),
+          if (overCount > 0)
+            _Notice(
+              icon: Icons.warning_amber_rounded,
+              color: Theme.of(context).colorScheme.error,
+              text: l10n.budgetsOverNotice(overCount),
+              onTap: () => _open(context, const StatsScreen()),
+            ),
           const Divider(height: 1),
           Expanded(
             child: days.isEmpty
@@ -90,11 +121,40 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.of(
-          context,
-        ).push(MaterialPageRoute(builder: (_) => const AddTransactionScreen())),
+        onPressed: () => _open(context, const AddTransactionScreen()),
         icon: const Icon(Icons.add),
         label: Text(l10n.addButton),
+      ),
+    );
+  }
+}
+
+/// A tappable one-line notice under the balance card.
+class _Notice extends StatelessWidget {
+  const _Notice({
+    required this.icon,
+    required this.color,
+    required this.text,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      elevation: 0,
+      color: color.withValues(alpha: 0.12),
+      child: ListTile(
+        dense: true,
+        leading: Icon(icon, color: color),
+        title: Text(text),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
     );
   }

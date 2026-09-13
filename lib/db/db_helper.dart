@@ -5,7 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/account.dart';
+import '../models/budget.dart';
 import '../models/category.dart';
+import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
 import 'migrations.dart';
@@ -30,6 +32,8 @@ class DBHelper {
     migrateToVersion3,
     migrateToVersion4,
     migrateToVersion5,
+    migrateToVersion6,
+    migrateToVersion7,
   ];
 
   static const _fileName = 'monthly_expense_app.db';
@@ -242,5 +246,87 @@ class DBHelper {
       where: 'id = ?',
       whereArgs: [transfer.id],
     );
+  }
+
+  /// Budget versions that aren't deleted.
+  Future<List<Budget>> fetchBudgets() async {
+    final db = await database;
+    final maps = await db.query('budgets', where: 'deleted_at IS NULL');
+    return [for (final map in maps) Budget.fromMap(map)];
+  }
+
+  Future<void> insertBudget(Budget budget) async {
+    final db = await database;
+    await db.insert('budgets', budget.toMap());
+  }
+
+  Future<void> updateBudget(Budget budget) async {
+    final db = await database;
+    await db.update(
+      'budgets',
+      budget.toMap(),
+      where: 'id = ?',
+      whereArgs: [budget.id],
+    );
+  }
+
+  /// Recurring rules that aren't deleted, oldest first.
+  Future<List<RecurringRule>> fetchRecurringRules() async {
+    final db = await database;
+    final maps = await db.query(
+      'recurring_rules',
+      where: 'deleted_at IS NULL',
+      orderBy: 'created_at',
+    );
+    return [for (final map in maps) RecurringRule.fromMap(map)];
+  }
+
+  Future<void> insertRecurringRule(RecurringRule rule) async {
+    final db = await database;
+    await db.insert('recurring_rules', rule.toMap());
+  }
+
+  /// Saves every field of [rule], including `deleted_at`.
+  Future<void> updateRecurringRule(RecurringRule rule) async {
+    final db = await database;
+    await db.update(
+      'recurring_rules',
+      rule.toMap(),
+      where: 'id = ?',
+      whereArgs: [rule.id],
+    );
+  }
+
+  Future<List<RecurringOccurrence>> fetchOccurrences() async {
+    final db = await database;
+    final maps = await db.query('recurring_occurrences');
+    return [for (final map in maps) RecurringOccurrence.fromMap(map)];
+  }
+
+  /// Records a skipped occurrence. Recording the same one again is ignored.
+  Future<void> insertOccurrence(RecurringOccurrence occurrence) async {
+    final db = await database;
+    await db.insert(
+      'recurring_occurrences',
+      occurrence.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
+
+  /// Saves [tx] and its occurrence record together. If the occurrence was
+  /// already handled, this throws and saves nothing (RCR-4).
+  Future<void> postOccurrence(
+    ExpenseTransaction tx,
+    RecurringOccurrence occurrence,
+  ) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.insert(
+        'recurring_occurrences',
+        occurrence.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+      await txn.insert('transactions', tx.toMap());
+    });
   }
 }

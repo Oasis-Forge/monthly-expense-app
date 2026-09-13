@@ -6,8 +6,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -62,6 +64,32 @@ Transfer testTransfer(
   );
 }
 
+/// A monthly Cash expense rule titled [id], for [amount] whole units, in the
+/// Rent category, starting on [start].
+RecurringRule testRule(
+  String id,
+  num amount,
+  DateTime start, {
+  bool autoPost = false,
+}) {
+  return RecurringRule(
+    id: id,
+    title: id,
+    amount: _money(amount),
+    categoryId: 'cat-rent',
+    accountId: Account.cashId,
+    type: TransactionType.expense,
+    frequency: RecurrenceFrequency.month,
+    interval: 1,
+    startDate: start,
+    endType: RecurrenceEnd.never,
+    autoPost: autoPost,
+    activeFrom: start,
+    createdAt: _created,
+    updatedAt: _created,
+  );
+}
+
 /// An account named [id] whose opening balance ([opening], in whole units)
 /// counts from [on].
 Account testAccount(String id, {num opening = 0, DateTime? on}) {
@@ -108,10 +136,14 @@ class FakeDB extends DBHelper {
     List<Transfer> transfers = const [],
     List<Category>? categories,
     List<Account>? accounts,
+    List<Budget> budgets = const [],
+    List<RecurringRule> rules = const [],
   }) : rows = [...transactions],
        transfers = [...transfers],
        categories = categories ?? testCategories(),
-       accounts = accounts ?? [testAccount(Account.cashId)];
+       accounts = accounts ?? [testAccount(Account.cashId)],
+       budgets = [...budgets],
+       rules = [...rules];
 
   /// Every stored transaction, soft-deleted ones included.
   final List<ExpenseTransaction> rows;
@@ -124,6 +156,15 @@ class FakeDB extends DBHelper {
 
   /// Every stored account, soft-deleted ones included.
   final List<Account> accounts;
+
+  /// Every stored budget version.
+  final List<Budget> budgets;
+
+  /// Every stored recurring rule, soft-deleted ones included.
+  final List<RecurringRule> rules;
+
+  /// Every posted or skipped occurrence.
+  final List<RecurringOccurrence> occurrences = [];
   bool failWrites = false;
 
   void _checkWrite() {
@@ -216,6 +257,68 @@ class FakeDB extends DBHelper {
   Future<void> updateTransfer(Transfer transfer) async {
     _checkWrite();
     transfers[transfers.indexWhere((t) => t.id == transfer.id)] = transfer;
+  }
+
+  @override
+  Future<List<Budget>> fetchBudgets() async => [
+    for (final budget in budgets)
+      if (budget.deletedAt == null) budget,
+  ];
+
+  @override
+  Future<void> insertBudget(Budget budget) async {
+    _checkWrite();
+    budgets.add(budget);
+  }
+
+  @override
+  Future<void> updateBudget(Budget budget) async {
+    _checkWrite();
+    budgets[budgets.indexWhere((b) => b.id == budget.id)] = budget;
+  }
+
+  @override
+  Future<List<RecurringRule>> fetchRecurringRules() async => [
+    for (final rule in rules)
+      if (rule.deletedAt == null) rule,
+  ];
+
+  @override
+  Future<void> insertRecurringRule(RecurringRule rule) async {
+    _checkWrite();
+    rules.add(rule);
+  }
+
+  @override
+  Future<void> updateRecurringRule(RecurringRule rule) async {
+    _checkWrite();
+    rules[rules.indexWhere((r) => r.id == rule.id)] = rule;
+  }
+
+  @override
+  Future<List<RecurringOccurrence>> fetchOccurrences() async => [
+    ...occurrences,
+  ];
+
+  @override
+  Future<void> insertOccurrence(RecurringOccurrence occurrence) async {
+    _checkWrite();
+    if (!occurrences.any((o) => o.key == occurrence.key)) {
+      occurrences.add(occurrence);
+    }
+  }
+
+  @override
+  Future<void> postOccurrence(
+    ExpenseTransaction tx,
+    RecurringOccurrence occurrence,
+  ) async {
+    _checkWrite();
+    if (occurrences.any((o) => o.key == occurrence.key)) {
+      throw StateError('occurrence already handled');
+    }
+    occurrences.add(occurrence);
+    rows.add(tx);
   }
 }
 

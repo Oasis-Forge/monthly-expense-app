@@ -1,3 +1,6 @@
+/// Where a period sits relative to today.
+enum PeriodTiming { past, current, future }
+
 /// A span of days for totals and budgets (PER-1): from [start] up to, but not
 /// including, [end]. Months begin on [startDay], which is 1–28 or
 /// [lastDayOfMonth] (PER-2).
@@ -39,6 +42,12 @@ class Period {
 
   bool contains(DateTime moment) =>
       !moment.isBefore(start) && moment.isBefore(end);
+
+  /// Whether the period is over, contains [today], or hasn't started yet.
+  PeriodTiming timingOn(DateTime today) {
+    if (contains(today)) return PeriodTiming.current;
+    return today.isBefore(start) ? PeriodTiming.future : PeriodTiming.past;
+  }
 
   @override
   bool operator ==(Object other) =>
