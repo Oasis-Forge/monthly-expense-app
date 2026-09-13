@@ -42,13 +42,13 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [x] **First run:** Home empty state with one "Add your first transaction" action (RUN-1).
 
 ## Phase 3 — Store readiness (after Phase 2)
-- [ ] Display name "Monthly Expenses": `android:label` in `android/app/src/main/AndroidManifest.xml` and `CFBundleDisplayName` in `ios/Runner/Info.plist`.
-- [ ] Launcher icons (`flutter_launcher_icons`) and splash screen (`flutter_native_splash`).
-- [ ] Finalize bundle IDs before the first upload — they're permanent afterwards. Today: Android `com.markkalash.monthly_expense_app`, iOS `com.markkalash.monthlyExpenseApp`.
+- [x] Display name "Monthly Expenses" on every platform: the Android label, the iOS and macOS bundle names, the Windows version info and window title, and the Linux window title.
+- [x] Launcher icons (`flutter_launcher_icons`) and splash screen (`flutter_native_splash`), drawn by `tool/render_app_icons_test.dart`.
+- [x] Store IDs, permanent after the first upload and free of personal names: `com.monthlyexpenses.app` on Google Play, the App Store, the Mac App Store, and the Microsoft Store; `io.github.monthly_expenses.MonthlyExpenses` on Flathub, verified through the `monthly-expenses` GitHub organization.
 - [x] Privacy policy published at https://haskalach.github.io/monthly-expense-app/privacy-policy.
-- [ ] Update the privacy policy for accounts, backup and restore, CSV export, and app lock; link it from every store listing.
-- [ ] Android release build declares no `INTERNET` permission (RUN-2), so the Play data safety form can say no data is collected.
-- [ ] Desktop packaging: macOS sandbox entitlements and signing, a Windows MSIX, and a Linux Snap or Flatpak, plus app icons and names for each.
+- [x] Update the privacy policy for accounts, backup and restore, CSV export, and app lock.
+- [x] Android release build declares no `INTERNET` permission (RUN-2), so the Play data safety form can say no data is collected. `release-android.yml` fails if it ever does.
+- [x] Desktop packaging: macOS sandbox entitlements, a Windows MSIX, and a Flatpak for Flathub, built by `release-desktop.yml`, with app icons and names for each. Mac App Store signing moves to Phase 4.
 
 ## Phase 4 — Release
 - [ ] Finish the one-time setup in `docs/RELEASING.md`.

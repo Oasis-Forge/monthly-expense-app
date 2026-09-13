@@ -1,0 +1,11 @@
+# Native splash screens (Android and iOS) from assets/icon/, which
+# tool/render_app_icons_test.dart draws. Regenerate with:
+#   dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#6C5CE7"
+  image: assets/icon/splash.png
+  android_12:
+    image: assets/icon/splash_android12.png
+    color: "#6C5CE7"
+    icon_background_color: "#6C5CE7"
+  web: false

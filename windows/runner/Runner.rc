@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.markkalash" "\0"
-            VALUE "FileDescription", "monthly_expense_app" "\0"
+            VALUE "CompanyName", "Monthly Expenses" "\0"
+            VALUE "FileDescription", "Monthly Expenses" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "monthly_expense_app" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.markkalash. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 Monthly Expenses. All rights reserved." "\0"
             VALUE "OriginalFilename", "monthly_expense_app.exe" "\0"
-            VALUE "ProductName", "monthly_expense_app" "\0"
+            VALUE "ProductName", "Monthly Expenses" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

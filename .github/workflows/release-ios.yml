@@ -23,7 +23,7 @@ concurrency:
 
 env:
   FLUTTER_VERSION: 3.47.4
-  BUNDLE_ID: com.markkalash.monthlyExpenseApp
+  BUNDLE_ID: com.monthlyexpenses.app
 
 jobs:
   build:

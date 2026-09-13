@@ -46,5 +46,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - The project path contains spaces: quote it in shell commands.
 - Targets: Android, iOS, and desktop (macOS, Windows, Linux; desktop CI builds run only on pushes to `main`). Windows and Linux use `sqflite_common_ffi`, set up in `main.dart`, with the database in the app support folder. Web comes after v1: sqflite has no web implementation.
 - Release signing reads `android/key.properties` (gitignored); without it, release builds are debug-signed.
+- Store IDs are permanent after the first upload and carry no personal names: `com.monthlyexpenses.app` (Android, iOS, macOS, Windows) and `io.github.monthly_expenses.MonthlyExpenses` (Linux and Flathub). Run the app with `adb shell am start -n com.monthlyexpenses.app/.MainActivity`.
+- Icons and splash screens come from `tool/render_app_icons_test.dart`: run it with `flutter test`, then `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create`, and commit the generated platform files.
 - App lock uses `local_auth`: Android's `MainActivity` is a `FlutterFragmentActivity` with an AppCompat launch theme, and iOS needs `NSFaceIDUsageDescription`. Backups on macOS need the user-selected files entitlement.
 - Generated `lib/l10n/app_localizations*.dart` are committed; after editing `app_en.arb`, run `flutter gen-l10n` and commit the output.

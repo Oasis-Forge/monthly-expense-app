@@ -1,0 +1,127 @@
+name: Release desktop
+
+# Tag push (vX.Y.Z matching pubspec.yaml) builds the Linux archive that the
+# Flathub manifest installs, attached to a draft GitHub Release, and the Windows
+# MSIX for the Microsoft Store, kept as an artifact. Mac App Store builds come
+# with the desktop releases in Phase 4.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-desktop-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: 3.47.4
+  FLATPAK_ID: io.github.monthly_expenses.MonthlyExpenses
+
+jobs:
+  linux:
+    name: Linux archive (Flathub)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Check tag matches pubspec version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          pubspec_version=$(grep -E '^version:' pubspec.yaml | sed -E 's/^version: *([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          if [ "v$pubspec_version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match pubspec.yaml version $pubspec_version"
+            exit 1
+          fi
+
+      - name: Install Linux build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build
+        run: flutter build linux --release
+
+      # Layout the manifest expects: bundle/ plus share/ for the desktop entry,
+      # AppStream data, and icon.
+      - name: Package the archive
+        run: |
+          root=monthly-expenses
+          mkdir -p "$root/share/applications" "$root/share/metainfo" "$root/share/icons/hicolor/512x512/apps"
+          cp -r build/linux/x64/release/bundle "$root/bundle"
+          cp "linux/flatpak/$FLATPAK_ID.desktop" "$root/share/applications/"
+          cp "linux/flatpak/$FLATPAK_ID.metainfo.xml" "$root/share/metainfo/"
+          cp assets/icon/icon_linux.png "$root/share/icons/hicolor/512x512/apps/$FLATPAK_ID.png"
+          tar -czf monthly-expenses-linux-x64.tar.gz "$root"
+          sha=$(sha256sum monthly-expenses-linux-x64.tar.gz | cut -d ' ' -f 1)
+          echo "Flathub manifest sha256: \`$sha\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: linux-${{ github.ref_name }}
+          path: monthly-expenses-linux-x64.tar.gz
+          retention-days: 14
+
+      # Draft: the archive becomes downloadable, and usable by Flathub, once
+      # you publish the release.
+      - name: Attach the archive to a draft GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: monthly-expenses-linux-x64.tar.gz
+          draft: true
+
+  windows:
+    name: Windows MSIX (Microsoft Store)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      MSIX_IDENTITY_NAME: ${{ vars.MSIX_IDENTITY_NAME }}
+      MSIX_PUBLISHER: ${{ vars.MSIX_PUBLISHER }}
+      MSIX_PUBLISHER_DISPLAY_NAME: ${{ vars.MSIX_PUBLISHER_DISPLAY_NAME }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build the MSIX
+        shell: bash
+        run: |
+          if [ -z "$MSIX_PUBLISHER" ]; then
+            echo "::warning::MSIX_PUBLISHER is not set: building a test-signed MSIX for local installs only."
+            dart run msix:create
+            exit 0
+          fi
+          # Store package: Partner Center signs it on upload.
+          dart run msix:create --store \
+            --identity-name "$MSIX_IDENTITY_NAME" \
+            --publisher "$MSIX_PUBLISHER" \
+            --publisher-display-name "$MSIX_PUBLISHER_DISPLAY_NAME"
+
+      - name: Upload the MSIX
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-${{ github.ref_name }}
+          path: build/windows/x64/runner/Release/*.msix
+          retention-days: 14

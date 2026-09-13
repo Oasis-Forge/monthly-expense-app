@@ -1,4 +1,4 @@
-package com.markkalash.monthly_expense_app
+package com.monthlyexpenses.app
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
