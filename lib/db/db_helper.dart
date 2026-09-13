@@ -1,12 +1,15 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../models/account.dart';
+import '../models/category.dart';
 import '../models/transaction.dart';
+import 'migrations.dart';
 
 /// One schema step. It runs inside the transaction that opens the database.
 typedef Migration = Future<void> Function(DatabaseExecutor db);
 
-/// Thin wrapper around a local sqflite database for storing transactions.
+/// Thin wrapper around the local sqflite database.
 class DBHelper {
   /// Opens the database at [path], or the app's database file when null.
   /// Tests pass `inMemoryDatabasePath`, and can pass their own [migrations].
@@ -16,9 +19,13 @@ class DBHelper {
   static final DBHelper instance = DBHelper();
 
   /// The app's schema steps, in order: step 1 upgrades version 1 to 2, and so
-  /// on. To change the schema, append a step. Never edit a merged step or the
-  /// version 1 tables in [_createVersion1].
-  static const List<Migration> schemaMigrations = [];
+  /// on. To change the schema, append a step in `migrations.dart`. Never edit
+  /// a merged step or the version 1 tables in [_createVersion1].
+  static const List<Migration> schemaMigrations = [
+    migrateToVersion2,
+    migrateToVersion3,
+    migrateToVersion4,
+  ];
 
   final String? path;
   final List<Migration> migrations;
@@ -86,6 +93,7 @@ class DBHelper {
     );
   }
 
+  /// Saves every field of [tx], including `deleted_at` for soft deletes.
   Future<void> updateTransaction(ExpenseTransaction tx) async {
     final db = await database;
     await db.update(
@@ -96,14 +104,34 @@ class DBHelper {
     );
   }
 
-  Future<void> deleteTransaction(String id) async {
+  /// Transactions that aren't deleted, newest first.
+  Future<List<ExpenseTransaction>> fetchTransactions() async {
     final db = await database;
-    await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
+    final maps = await db.query(
+      'transactions',
+      where: 'deleted_at IS NULL',
+      orderBy: 'date DESC',
+    );
+    return [for (final map in maps) ExpenseTransaction.fromMap(map)];
   }
 
-  Future<List<ExpenseTransaction>> fetchAllTransactions() async {
+  Future<List<Category>> fetchCategories() async {
     final db = await database;
-    final maps = await db.query('transactions', orderBy: 'date DESC');
-    return maps.map((m) => ExpenseTransaction.fromMap(m)).toList();
+    final maps = await db.query(
+      'categories',
+      where: 'deleted_at IS NULL',
+      orderBy: 'type, sort_order',
+    );
+    return [for (final map in maps) Category.fromMap(map)];
+  }
+
+  Future<List<Account>> fetchAccounts() async {
+    final db = await database;
+    final maps = await db.query(
+      'accounts',
+      where: 'deleted_at IS NULL',
+      orderBy: 'sort_order',
+    );
+    return [for (final map in maps) Account.fromMap(map)];
   }
 }

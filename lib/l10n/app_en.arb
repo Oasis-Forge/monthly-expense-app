@@ -1,0 +1,76 @@
+{
+  "@@locale": "en",
+  "appTitle": "Monthly Expenses",
+  "statsTooltip": "Stats",
+  "addButton": "Add",
+  "emptyPeriod": "No transactions in this period yet.",
+  "balanceLabel": "Balance",
+  "incomeLabel": "Income",
+  "expenseLabel": "Expense",
+  "upcomingCategory": "{category} · Upcoming",
+  "@upcomingCategory": {
+    "description": "Subtitle of a future-dated transaction row.",
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "deleteFailed": "Couldn't delete the transaction. Try again.",
+  "addTransactionTitle": "Add Transaction",
+  "editTransactionTitle": "Edit Transaction",
+  "titleOptionalLabel": "Title (optional)",
+  "amountLabel": "Amount",
+  "amountRequired": "Enter an amount",
+  "amountInvalid": "Enter a valid amount",
+  "categoryLabel": "Category",
+  "categoryRequired": "Choose a category",
+  "dateLabel": "Date",
+  "noteOptionalLabel": "Note (optional)",
+  "saveChangesButton": "Save Changes",
+  "addTransactionButton": "Add Transaction",
+  "saveFailed": "Couldn't save the transaction. Try again.",
+  "statsTitle": "Stats — {period}",
+  "@statsTitle": {
+    "placeholders": {
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "noExpensesInPeriod": "No expenses in this period yet.",
+  "totalSpent": "Total spent: {amount}",
+  "@totalSpent": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "periodRange": "{start} – {end}",
+  "@periodRange": {
+    "description": "A period that doesn't start on the 1st, e.g. 25 Aug – 24 Sep.",
+    "placeholders": {
+      "start": {
+        "type": "String"
+      },
+      "end": {
+        "type": "String"
+      }
+    }
+  },
+  "categoryFood": "Food",
+  "categoryGroceries": "Groceries",
+  "categoryTransport": "Transport",
+  "categoryShopping": "Shopping",
+  "categoryBills": "Bills",
+  "categoryRent": "Rent",
+  "categoryHealth": "Health",
+  "categoryEducation": "Education",
+  "categoryEntertainment": "Entertainment",
+  "categorySalary": "Salary",
+  "categoryBusiness": "Business",
+  "categoryInvestment": "Investment",
+  "categoryGift": "Gift",
+  "categoryOther": "Other"
+}

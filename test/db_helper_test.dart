@@ -5,7 +5,11 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/db/db_helper.dart';
+import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+
+import 'helpers.dart';
 
 void main() {
   late Directory dir;
@@ -28,18 +32,13 @@ void main() {
     dir.deleteSync(recursive: true);
   });
 
-  DBHelper helperAt(String file, List<Migration> steps) {
+  /// A helper for [file] in the temp directory, using the app's schema steps
+  /// unless [steps] is given.
+  DBHelper helperAt(String file, [List<Migration>? steps]) {
     final helper = DBHelper(path: p.join(dir.path, file), migrations: steps);
     opened.add(helper);
     return helper;
   }
-
-  Future<void> addCurrency(DatabaseExecutor db) => db.execute(
-    "ALTER TABLE transactions ADD COLUMN currency TEXT NOT NULL DEFAULT 'USD'",
-  );
-
-  Future<void> addTags(DatabaseExecutor db) =>
-      db.execute('CREATE TABLE tags (id TEXT PRIMARY KEY, name TEXT NOT NULL)');
 
   Future<List<String>> columns(DBHelper helper, String table) async {
     final db = await helper.database;
@@ -47,66 +46,128 @@ void main() {
     return [for (final row in rows) row['name']! as String];
   }
 
-  final lunch = ExpenseTransaction(
-    id: 'a',
-    title: 'Lunch',
-    amount: 12.5,
-    category: 'Food',
-    type: TransactionType.expense,
-    date: DateTime(2026, 9, 13),
-  );
+  group('migration scaffold', () {
+    Future<void> addTags(DatabaseExecutor db) =>
+        db.execute('CREATE TABLE tags (id TEXT PRIMARY KEY)');
+    Future<void> addLabels(DatabaseExecutor db) =>
+        db.execute('CREATE TABLE labels (id TEXT PRIMARY KEY)');
 
-  test('version is 1 plus the number of steps', () {
-    expect(DBHelper(migrations: []).version, 1);
-    expect(DBHelper(migrations: [addCurrency, addTags]).version, 3);
+    test('version is 1 plus the number of steps', () {
+      expect(DBHelper(migrations: []).version, 1);
+      expect(DBHelper(migrations: [addTags, addLabels]).version, 3);
+      expect(DBHelper().version, DBHelper.schemaMigrations.length + 1);
+    });
+
+    test(
+      'upgrading from an intermediate version runs only newer steps',
+      () async {
+        final v2 = helperAt('app.db', [addTags]);
+        await v2.database;
+        await v2.close();
+
+        // Re-running addTags would fail because the table already exists.
+        final v3 = helperAt('app.db', [addTags, addLabels]);
+
+        expect(await (await v3.database).getVersion(), 3);
+        expect(await columns(v3, 'labels'), ['id']);
+      },
+    );
   });
 
-  test(
-    'upgrading a version 1 database runs the steps and keeps data',
-    () async {
+  group('app schema', () {
+    test('upgrading version 1 data converts every row', () async {
       final v1 = helperAt('app.db', []);
-      await v1.insertTransaction(lunch);
+      final raw = await v1.database;
+      for (final row in [
+        {
+          'id': 'a',
+          'title': 'Lunch',
+          'amount': 19.99,
+          'category': 'Food',
+          'type': 'expense',
+          'date': '2026-09-13T12:00:00.000',
+          'note': 'with team',
+        },
+        {
+          'id': 'b',
+          'title': ' ',
+          'amount': 500.0,
+          'category': 'Freelance',
+          'type': 'income',
+          'date': '2026-09-01T00:00:00.000',
+          'note': null,
+        },
+        {
+          'id': 'c',
+          'title': 'Coffee',
+          'amount': 3.5,
+          'category': 'Coffee',
+          'type': 'expense',
+          'date': '2026-09-02T08:30:00.000',
+          'note': null,
+        },
+      ]) {
+        await raw.insert('transactions', row);
+      }
       await v1.close();
 
-      final v3 = helperAt('app.db', [addCurrency, addTags]);
-      final db = await v3.database;
+      final current = helperAt('app.db');
+      final byId = {for (final t in await current.fetchTransactions()) t.id: t};
 
-      expect(await db.getVersion(), 3);
-      expect(await columns(v3, 'transactions'), contains('currency'));
-      expect(await columns(v3, 'tags'), ['id', 'name']);
-      expect((await db.query('transactions')).single['currency'], 'USD');
-      expect((await v3.fetchAllTransactions()).single.amount, 12.5);
-    },
-  );
+      expect(await (await current.database).getVersion(), current.version);
+      expect(byId['a']!.amount, const Money(19990));
+      expect(byId['a']!.categoryId, 'cat-food');
+      expect(byId['a']!.note, 'with team');
+      expect(byId['b']!.title, isNull);
+      expect(byId['b']!.categoryId, 'cat-business');
+      expect(byId['c']!.amount, const Money(3500));
+      expect(byId['c']!.categoryId, 'cat-other');
+      expect({for (final t in byId.values) t.accountId}, {Account.cashId});
+    });
 
-  test(
-    'upgrading from an intermediate version runs only newer steps',
-    () async {
-      final v2 = helperAt('app.db', [addCurrency]);
-      await v2.insertTransaction(lunch);
-      await v2.close();
+    test(
+      'a fresh install has the defaults and matches an upgraded install',
+      () async {
+        final old = helperAt('upgraded.db', []);
+        await old.database;
+        await old.close();
+        final upgraded = helperAt('upgraded.db');
+        final fresh = helperAt('fresh.db');
 
-      // Re-running addCurrency would fail with a duplicate column error.
-      final v3 = helperAt('app.db', [addCurrency, addTags]);
+        final categories = await fresh.fetchCategories();
+        expect(
+          categories.where((c) => c.type == TransactionType.expense),
+          hasLength(10),
+        );
+        expect(
+          categories.where((c) => c.type == TransactionType.income),
+          hasLength(5),
+        );
+        expect((await fresh.fetchAccounts()).single.id, Account.cashId);
+        for (final table in ['transactions', 'categories', 'accounts']) {
+          expect(await columns(fresh, table), await columns(upgraded, table));
+        }
+      },
+    );
 
-      expect(await (await v3.database).getVersion(), 3);
-      expect(await columns(v3, 'tags'), ['id', 'name']);
-      expect(await v3.fetchAllTransactions(), hasLength(1));
-    },
-  );
+    test('fetchTransactions skips soft-deleted rows', () async {
+      final helper = helperAt('app.db');
+      final lunch = testTx(
+        'a',
+        TransactionType.expense,
+        12.5,
+        DateTime(2026, 9, 13),
+      );
+      await helper.insertTransaction(lunch);
+      await helper.insertTransaction(
+        testTx('b', TransactionType.expense, 3, DateTime(2026, 9, 12)),
+      );
+      await helper.updateTransaction(
+        lunch.copyWith(deletedAt: DateTime.utc(2026, 9, 14)),
+      );
 
-  test('a fresh install matches an upgraded install', () async {
-    final steps = [addCurrency, addTags];
-
-    final old = helperAt('upgraded.db', []);
-    await old.database;
-    await old.close();
-    final upgraded = helperAt('upgraded.db', steps);
-    final fresh = helperAt('fresh.db', steps);
-
-    expect(await (await fresh.database).getVersion(), 3);
-    for (final table in ['transactions', 'tags']) {
-      expect(await columns(fresh, table), await columns(upgraded, table));
-    }
+      final ids = [for (final t in await helper.fetchTransactions()) t.id];
+      expect(ids, ['b']);
+    });
   });
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'l10n/app_localizations.dart';
 import 'providers/transaction_provider.dart';
 import 'screens/home_screen.dart';
 
@@ -16,7 +17,9 @@ class MonthlyExpenseApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => TransactionProvider()..load(),
       child: MaterialApp(
-        title: 'Monthly Expenses',
+        onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6C5CE7)),

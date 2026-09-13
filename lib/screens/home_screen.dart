@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/app_localizations.dart';
+import '../l10n/labels.dart';
+import '../models/money.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
@@ -12,17 +15,18 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
     final currency = NumberFormat.currency(symbol: '\$');
-    final grouped = provider.groupedBySelectedDay;
+    final grouped = provider.groupedByDay;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monthly Expenses'),
+        title: Text(l10n.appTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.pie_chart_outline),
-            tooltip: 'Stats',
+            tooltip: l10n.statsTooltip,
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => const StatsScreen())),
           ),
@@ -30,17 +34,17 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          _MonthSelector(provider: provider),
+          _PeriodSelector(provider: provider),
           _SummaryCard(
-            income: provider.monthlyIncome,
-            expense: provider.monthlyExpense,
-            balance: provider.monthlyBalance,
+            income: provider.periodIncome,
+            expense: provider.periodExpense,
+            balance: provider.periodNet,
             currency: currency,
           ),
           const Divider(height: 1),
           Expanded(
             child: grouped.isEmpty
-                ? const Center(child: Text('No transactions this month yet.'))
+                ? Center(child: Text(l10n.emptyPeriod))
                 : ListView(
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
@@ -60,16 +64,16 @@ class HomeScreen extends StatelessWidget {
           context,
         ).push(MaterialPageRoute(builder: (_) => const AddTransactionScreen())),
         icon: const Icon(Icons.add),
-        label: const Text('Add'),
+        label: Text(l10n.addButton),
       ),
     );
   }
 }
 
-class _MonthSelector extends StatelessWidget {
+class _PeriodSelector extends StatelessWidget {
   final TransactionProvider provider;
 
-  const _MonthSelector({required this.provider});
+  const _PeriodSelector({required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -80,15 +84,15 @@ class _MonthSelector extends StatelessWidget {
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left),
-            onPressed: provider.previousMonth,
+            onPressed: provider.previousPeriod,
           ),
           Text(
-            DateFormat.yMMMM().format(provider.selectedMonth),
+            periodLabel(provider.period, AppLocalizations.of(context)),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right),
-            onPressed: provider.nextMonth,
+            onPressed: provider.nextPeriod,
           ),
         ],
       ),
@@ -97,9 +101,9 @@ class _MonthSelector extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  final double income;
-  final double expense;
-  final double balance;
+  final Money income;
+  final Money expense;
+  final Money balance;
   final NumberFormat currency;
 
   const _SummaryCard({
@@ -111,6 +115,7 @@ class _SummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       elevation: 2,
@@ -118,12 +123,15 @@ class _SummaryCard extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text('Balance', style: Theme.of(context).textTheme.bodyMedium),
             Text(
-              currency.format(balance),
+              l10n.balanceLabel,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            Text(
+              currency.format(balance.toDouble()),
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
-                color: balance >= 0 ? Colors.green : Colors.red,
+                color: balance.isNegative ? Colors.red : Colors.green,
               ),
             ),
             const SizedBox(height: 12),
@@ -131,7 +139,7 @@ class _SummaryCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _AmountTile(
-                  label: 'Income',
+                  label: l10n.incomeLabel,
                   amount: income,
                   color: Colors.green,
                   icon: Icons.arrow_downward,
@@ -139,7 +147,7 @@ class _SummaryCard extends StatelessWidget {
                 ),
                 Container(width: 1, height: 40, color: Colors.grey.shade300),
                 _AmountTile(
-                  label: 'Expense',
+                  label: l10n.expenseLabel,
                   amount: expense,
                   color: Colors.red,
                   icon: Icons.arrow_upward,
@@ -156,7 +164,7 @@ class _SummaryCard extends StatelessWidget {
 
 class _AmountTile extends StatelessWidget {
   final String label;
-  final double amount;
+  final Money amount;
   final Color color;
   final IconData icon;
   final NumberFormat currency;
@@ -183,7 +191,7 @@ class _AmountTile extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          currency.format(amount),
+          currency.format(amount.toDouble()),
           style: Theme.of(context).textTheme.titleMedium
               ?.copyWith(color: color, fontWeight: FontWeight.w600),
         ),
@@ -205,13 +213,14 @@ class _DaySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
           child: Text(
-            DateFormat.yMMMd().format(day),
+            DateFormat.yMMMd(l10n.localeName).format(day),
             style: Theme.of(context).textTheme.labelLarge
                 ?.copyWith(color: Colors.grey.shade600),
           ),
@@ -231,6 +240,10 @@ class _TransactionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final provider = context.watch<TransactionProvider>();
+    final category = provider.categoryById(transaction.categoryId);
+    final categoryName = category?.label(l10n) ?? '';
     final isIncome = transaction.type == TransactionType.income;
     final sign = isIncome ? '+' : '-';
     final color = isIncome ? Colors.green : Colors.red;
@@ -244,21 +257,34 @@ class _TransactionTile extends StatelessWidget {
         padding: const EdgeInsets.only(right: 20),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      onDismissed: (_) {
-        context.read<TransactionProvider>().deleteTransaction(transaction.id);
+      // Delete before the row animates away; if that fails, it slides back.
+      confirmDismiss: (_) async {
+        final messenger = ScaffoldMessenger.of(context);
+        try {
+          await provider.deleteTransaction(transaction.id);
+          return true;
+        } catch (_) {
+          messenger.showSnackBar(SnackBar(content: Text(l10n.deleteFailed)));
+          return false;
+        }
       },
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: color.withValues(alpha: 0.15),
           child: Text(
-            Categories.icons[transaction.category] ?? '📦',
+            category?.icon ?? '📦',
             style: const TextStyle(fontSize: 18),
           ),
         ),
-        title: Text(transaction.title),
-        subtitle: Text(transaction.category),
+        // ADD-1: the title, else the note, else the category name.
+        title: Text(transaction.title ?? transaction.note ?? categoryName),
+        subtitle: Text(
+          provider.isUpcoming(transaction)
+              ? l10n.upcomingCategory(categoryName)
+              : categoryName,
+        ),
         trailing: Text(
-          '$sign${currency.format(transaction.amount)}',
+          '$sign${currency.format(transaction.amount.toDouble())}',
           style: TextStyle(color: color, fontWeight: FontWeight.w600),
         ),
         onTap: () => Navigator.of(context).push(
