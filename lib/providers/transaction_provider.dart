@@ -6,6 +6,11 @@ import '../models/transaction.dart';
 /// Holds all transactions in memory, persists them to sqflite, and exposes
 /// derived data (monthly totals, category breakdowns) to the UI.
 class TransactionProvider extends ChangeNotifier {
+  /// Stores transactions in [db], or the app database when null. Tests pass
+  /// an in-memory [DBHelper].
+  TransactionProvider({DBHelper? db}) : _db = db ?? DBHelper.instance;
+
+  final DBHelper _db;
   final List<ExpenseTransaction> _transactions = [];
   DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
 
@@ -13,7 +18,7 @@ class TransactionProvider extends ChangeNotifier {
   DateTime get selectedMonth => _selectedMonth;
 
   Future<void> load() async {
-    final loaded = await DBHelper.instance.fetchAllTransactions();
+    final loaded = await _db.fetchAllTransactions();
     _transactions
       ..clear()
       ..addAll(loaded);
@@ -37,7 +42,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions.insert(0, tx);
     _transactions.sort((a, b) => b.date.compareTo(a.date));
     notifyListeners();
-    await DBHelper.instance.insertTransaction(tx);
+    await _db.insertTransaction(tx);
   }
 
   Future<void> updateTransaction(ExpenseTransaction tx) async {
@@ -46,13 +51,13 @@ class TransactionProvider extends ChangeNotifier {
       _transactions[index] = tx;
       notifyListeners();
     }
-    await DBHelper.instance.updateTransaction(tx);
+    await _db.updateTransaction(tx);
   }
 
   Future<void> deleteTransaction(String id) async {
     _transactions.removeWhere((t) => t.id == id);
     notifyListeners();
-    await DBHelper.instance.deleteTransaction(id);
+    await _db.deleteTransaction(id);
   }
 
   List<ExpenseTransaction> get transactionsForSelectedMonth {
