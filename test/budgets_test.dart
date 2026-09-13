@@ -71,6 +71,42 @@ void main() {
       },
     );
 
+    test('versions from the same period go by the one saved last, like '
+        'ones merged from a backup (BAK-3)', () {
+      Budget savedOn(String id, int limit, DateTime updated) => Budget(
+        id: id,
+        categoryId: 'cat-food',
+        limit: Money(limit),
+        effectiveFrom: DateTime(2026, 9),
+        createdAt: DateTime.utc(2026),
+        updatedAt: updated,
+      );
+      final september = Period.containing(DateTime(2026, 9, 5));
+
+      expect(
+        limitFor(
+          [
+            savedOn('later', 2000, DateTime.utc(2026, 9, 10)),
+            savedOn('earlier', 1000, DateTime.utc(2026, 9, 2)),
+          ],
+          'cat-food',
+          september,
+        ),
+        const Money(2000),
+      );
+      expect(
+        limitFor(
+          [
+            savedOn('earlier', 1000, DateTime.utc(2026, 9, 2)),
+            savedOn('later', 2000, DateTime.utc(2026, 9, 10)),
+          ],
+          'cat-food',
+          september,
+        ),
+        const Money(2000),
+      );
+    });
+
     test('levels, remaining, and per-day allowance (BUD-3, BUD-4)', () {
       BudgetStatus status(
         int spent, {

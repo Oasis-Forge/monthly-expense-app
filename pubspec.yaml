@@ -47,6 +47,9 @@ dependencies:
   path_provider: ^2.1.5
   # sqflite has no Windows or Linux plugin; main.dart switches to FFI there.
   sqflite_common_ffi: ^2.3.4+4
+  file_picker: ^12.3.0
+  local_auth: ^3.0.2
+  package_info_plus: ^10.2.1
 
 dev_dependencies:
   flutter_test:

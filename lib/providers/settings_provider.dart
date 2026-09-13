@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart' show ChangeNotifier, ThemeMode;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,28 +7,64 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/period.dart';
 
 /// App settings kept in shared_preferences: currency (CUR-1–CUR-3), theme
-/// mode, the first day of the month (PER-2), and whether Home carries the
-/// balance forward (BAL-3).
+/// mode, the first day of the month (PER-2) and of the week (PER-4), whether
+/// Home carries the balance forward (BAL-3), the backup reminder (BAK-7), and
+/// app lock (LOCK-1).
 class SettingsProvider extends ChangeNotifier {
   /// Reads saved settings from [_prefs]. Without a saved currency, the
-  /// currency of [deviceLocale] (such as `en_GB`) is preselected.
-  SettingsProvider(this._prefs, {String? deviceLocale})
-    : _currencyCode =
-          _prefs.getString(_currencyKey) ?? defaultCurrencyFor(deviceLocale),
-      _themeMode = _themeModeNamed(_prefs.getString(_themeKey)),
-      _startDay = _validStartDay(_prefs.getInt(_startDayKey)),
-      _showCarriedForward = _prefs.getBool(_carriedForwardKey) ?? true;
+  /// currency of [deviceLocale] (such as `en_GB`) is preselected. [clock]
+  /// supplies "now"; tests pass a fixed time.
+  SettingsProvider(
+    this._prefs, {
+    String? deviceLocale,
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now,
+       _currencyCode =
+           _prefs.getString(_currencyKey) ?? defaultCurrencyFor(deviceLocale),
+       _themeMode = _themeModeNamed(_prefs.getString(_themeKey)),
+       _startDay = _validStartDay(_prefs.getInt(_startDayKey)),
+       _showCarriedForward = _prefs.getBool(_carriedForwardKey) ?? true,
+       _weekStartDay = _validWeekDay(_prefs.getInt(_weekStartKey)),
+       _backupReminder = _prefs.getBool(_backupReminderKey) ?? true,
+       _lastBackupAt = _dateOrNull(_prefs.getString(_lastBackupKey)),
+       _reminderSnoozedAt = _dateOrNull(_prefs.getString(_snoozedKey)),
+       _appLock = _prefs.getBool(_appLockKey) ?? false {
+    final firstOpened = _dateOrNull(_prefs.getString(_firstOpenedKey));
+    _firstOpenedAt = firstOpened ?? _clock();
+    if (firstOpened == null) {
+      unawaited(_prefs.setString(_firstOpenedKey, _stamp(_firstOpenedAt)));
+    }
+  }
 
   static const _currencyKey = 'currency_code';
   static const _themeKey = 'theme_mode';
   static const _startDayKey = 'month_start_day';
   static const _carriedForwardKey = 'show_carried_forward';
+  static const _weekStartKey = 'week_start_day';
+  static const _backupReminderKey = 'backup_reminder';
+  static const _lastBackupKey = 'last_backup_at';
+  static const _snoozedKey = 'backup_reminder_snoozed_at';
+  static const _firstOpenedKey = 'first_opened_at';
+  static const _appLockKey = 'app_lock';
+
+  /// Transactions needed before the first backup reminder (BAK-7).
+  static const backupReminderThreshold = 20;
+
+  /// The shortest gap between backup reminders (BAK-7).
+  static const backupReminderInterval = Duration(days: 30);
 
   final SharedPreferences _prefs;
+  final DateTime Function() _clock;
   String _currencyCode;
   ThemeMode _themeMode;
   int _startDay;
   bool _showCarriedForward;
+  int? _weekStartDay;
+  bool _backupReminder;
+  DateTime? _lastBackupAt;
+  DateTime? _reminderSnoozedAt;
+  late final DateTime _firstOpenedAt;
+  bool _appLock;
 
   String get currencyCode => _currencyCode;
   ThemeMode get themeMode => _themeMode;
@@ -37,6 +75,20 @@ class SettingsProvider extends ChangeNotifier {
   /// Whether Home shows the closing balance, carried forward from earlier
   /// periods, instead of only this period's net. On by default.
   bool get showCarriedForward => _showCarriedForward;
+
+  /// The first day of the week, from 0 (Sunday) to 6 (Saturday), or null to
+  /// follow the device locale (PER-4).
+  int? get weekStartDay => _weekStartDay;
+
+  /// Whether Home reminds the user to back up (BAK-7). On by default.
+  bool get backupReminder => _backupReminder;
+
+  /// When the user last saved a backup file.
+  DateTime? get lastBackupAt => _lastBackupAt;
+
+  /// Whether the app asks for the device's biometrics or screen lock
+  /// (LOCK-1). Off by default.
+  bool get appLock => _appLock;
 
   /// The currency [locale] uses, or USD when intl doesn't know the locale.
   static String defaultCurrencyFor(String? locale) {
@@ -51,6 +103,10 @@ class SettingsProvider extends ChangeNotifier {
   /// currency's decimals (CUR-2).
   NumberFormat currencyFormat(String locale) =>
       NumberFormat.simpleCurrency(locale: locale, name: _currencyCode);
+
+  /// Short amounts like `$1.2K`, for small spaces such as calendar days.
+  NumberFormat compactCurrencyFormat(String locale) =>
+      NumberFormat.compactSimpleCurrency(locale: locale, name: _currencyCode);
 
   /// Changes the currency label only; stored amounts never change (CUR-3).
   Future<void> setCurrencyCode(String code) async {
@@ -82,6 +138,100 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Sets the first day of the week, or follows the locale again with null.
+  Future<void> setWeekStartDay(int? day) async {
+    assert(day == null || _validWeekDay(day) == day, 'Invalid week day: $day');
+    if (day == _weekStartDay) return;
+    if (day == null) {
+      await _prefs.remove(_weekStartKey);
+    } else {
+      await _prefs.setInt(_weekStartKey, day);
+    }
+    _weekStartDay = day;
+    notifyListeners();
+  }
+
+  Future<void> setBackupReminder(bool on) async {
+    if (on == _backupReminder) return;
+    await _prefs.setBool(_backupReminderKey, on);
+    _backupReminder = on;
+    notifyListeners();
+  }
+
+  /// Records that the user just saved a backup file.
+  Future<void> recordBackup() async {
+    final now = _clock();
+    await _prefs.setString(_lastBackupKey, _stamp(now));
+    _lastBackupAt = now;
+    notifyListeners();
+  }
+
+  /// Hides the backup reminder for [backupReminderInterval].
+  Future<void> snoozeBackupReminder() async {
+    final now = _clock();
+    await _prefs.setString(_snoozedKey, _stamp(now));
+    _reminderSnoozedAt = now;
+    notifyListeners();
+  }
+
+  /// Whether Home should remind the user to back up (BAK-7): only with at
+  /// least [backupReminderThreshold] transactions, never within a day of
+  /// first opening the app, and at most every [backupReminderInterval] since
+  /// the last backup or dismissal.
+  bool backupReminderDue(int transactionCount) {
+    final now = _clock();
+    if (!_backupReminder ||
+        transactionCount < backupReminderThreshold ||
+        now.difference(_firstOpenedAt) < const Duration(days: 1)) {
+      return false;
+    }
+    final last = switch ((_lastBackupAt, _reminderSnoozedAt)) {
+      (final backup?, final snoozed?) =>
+        backup.isAfter(snoozed) ? backup : snoozed,
+      (final backup, final snoozed) => backup ?? snoozed,
+    };
+    return last == null || now.difference(last) >= backupReminderInterval;
+  }
+
+  Future<void> setAppLock(bool on) async {
+    if (on == _appLock) return;
+    await _prefs.setBool(_appLockKey, on);
+    _appLock = on;
+    notifyListeners();
+  }
+
+  /// Settings that travel with a backup (BAK-1). App lock and the backup
+  /// reminder belong to the device, so they stay out.
+  Map<String, Object?> get backupValues => {
+    _currencyKey: _currencyCode,
+    _themeKey: _themeMode.name,
+    _startDayKey: _startDay,
+    _carriedForwardKey: _showCarriedForward,
+    _weekStartKey: _weekStartDay,
+  };
+
+  /// Applies settings from a backup. Missing or invalid values are ignored.
+  Future<void> restoreBackupValues(Map<String, Object?> values) async {
+    final currency = values[_currencyKey];
+    if (currency is String && RegExp(r'^[A-Z]{3}$').hasMatch(currency)) {
+      await setCurrencyCode(currency);
+    }
+    final theme = values[_themeKey];
+    if (theme is String) await setThemeMode(_themeModeNamed(theme));
+    final startDay = values[_startDayKey];
+    if (startDay is int && _validStartDay(startDay) == startDay) {
+      await setStartDay(startDay);
+    }
+    final carry = values[_carriedForwardKey];
+    if (carry is bool) await setShowCarriedForward(carry);
+    if (values.containsKey(_weekStartKey)) {
+      final week = values[_weekStartKey];
+      if (week == null || (week is int && _validWeekDay(week) == week)) {
+        await setWeekStartDay(week as int?);
+      }
+    }
+  }
+
   static ThemeMode _themeModeNamed(String? name) {
     for (final mode in ThemeMode.values) {
       if (mode.name == name) return mode;
@@ -93,4 +243,12 @@ class SettingsProvider extends ChangeNotifier {
       day != null && ((day >= 1 && day <= 28) || day == Period.lastDayOfMonth)
       ? day
       : 1;
+
+  static int? _validWeekDay(int? day) =>
+      day != null && day >= 0 && day <= 6 ? day : null;
+
+  static DateTime? _dateOrNull(String? value) =>
+      value == null ? null : DateTime.tryParse(value);
+
+  static String _stamp(DateTime moment) => moment.toUtc().toIso8601String();
 }

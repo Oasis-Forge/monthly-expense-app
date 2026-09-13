@@ -4,27 +4,45 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/csv_export.dart';
 import '../models/money.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
+import 'backup_screen.dart';
 import 'budgets_screen.dart';
+import 'csv_export_action.dart';
 import 'delete_snack_bar.dart';
+import 'insights_screen.dart';
+import 'period_selector.dart';
 import 'recurring_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
-import 'stats_screen.dart';
 import 'transfer_screen.dart';
 
-enum _MenuItem { transfer, recurring, budgets, settings }
+enum _MenuItem { transfer, recurring, budgets, exportCsv, backup, settings }
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   static void _open(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+
+  /// Exports the selected period's transactions and transfers (BAK-5).
+  static Future<void> _exportPeriod(
+    BuildContext context,
+    TransactionProvider provider,
+  ) {
+    final period = provider.period;
+    return exportCsv(
+      context,
+      name: '${isoDate(period.start)}_${isoDate(period.lastDay)}',
+      transactions: provider.periodTransactions,
+      transfers: provider.periodTransfers,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +56,13 @@ class HomeScreen extends StatelessWidget {
     }.toList()..sort((a, b) => b.compareTo(a));
     final dueCount = provider.dueOccurrences.length;
     final overCount = provider.budgetsOver;
+    final lastBackup = settings.lastBackupAt;
+    // RUN-1: before anything is recorded, Home offers one clear action.
+    final firstRun =
+        provider.isLoaded &&
+        provider.transactions.isEmpty &&
+        provider.transfers.isEmpty &&
+        provider.deletedTransactions.isEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -49,22 +74,33 @@ class HomeScreen extends StatelessWidget {
             onPressed: () => _open(context, const SearchScreen()),
           ),
           IconButton(
-            icon: const Icon(Icons.pie_chart_outline),
-            tooltip: l10n.statsTooltip,
-            onPressed: () => _open(context, const StatsScreen()),
+            icon: const Icon(Icons.insights_outlined),
+            tooltip: l10n.insightsTooltip,
+            onPressed: () => _open(context, const InsightsScreen()),
           ),
           PopupMenuButton<_MenuItem>(
-            onSelected: (item) => _open(context, switch (item) {
-              _MenuItem.transfer => const TransferScreen(),
-              _MenuItem.recurring => const RecurringScreen(),
-              _MenuItem.budgets => const BudgetsScreen(),
-              _MenuItem.settings => const SettingsScreen(),
-            }),
+            onSelected: (item) {
+              final screen = switch (item) {
+                _MenuItem.transfer => const TransferScreen(),
+                _MenuItem.recurring => const RecurringScreen(),
+                _MenuItem.budgets => const BudgetsScreen(),
+                _MenuItem.backup => const BackupScreen(),
+                _MenuItem.settings => const SettingsScreen(),
+                _MenuItem.exportCsv => null,
+              };
+              if (screen == null) {
+                _exportPeriod(context, provider);
+              } else {
+                _open(context, screen);
+              }
+            },
             itemBuilder: (_) => [
               for (final (item, label) in [
                 (_MenuItem.transfer, l10n.transferTitle),
                 (_MenuItem.recurring, l10n.recurringTitle),
                 (_MenuItem.budgets, l10n.budgetsTitle),
+                (_MenuItem.exportCsv, l10n.exportCsvMenu),
+                (_MenuItem.backup, l10n.backupTitle),
                 (_MenuItem.settings, l10n.settingsTitle),
               ])
                 PopupMenuItem(value: item, child: Text(label)),
@@ -74,7 +110,7 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
-          _PeriodSelector(provider: provider),
+          const PeriodSelector(),
           _SummaryCard(
             income: provider.periodIncome,
             expense: provider.periodExpense,
@@ -99,11 +135,25 @@ class HomeScreen extends StatelessWidget {
               icon: Icons.warning_amber_rounded,
               color: Theme.of(context).colorScheme.error,
               text: l10n.budgetsOverNotice(overCount),
-              onTap: () => _open(context, const StatsScreen()),
+              onTap: () => _open(context, const InsightsScreen()),
+            ),
+          if (settings.backupReminderDue(provider.transactions.length))
+            _Notice(
+              icon: Icons.backup_outlined,
+              color: Theme.of(context).colorScheme.tertiary,
+              text: lastBackup == null
+                  ? l10n.backupReminderNever
+                  : l10n.backupReminderSince(
+                      DateFormat.yMMMd(l10n.localeName).format(lastBackup),
+                    ),
+              onTap: () => _open(context, const BackupScreen()),
+              onDismiss: settings.snoozeBackupReminder,
             ),
           const Divider(height: 1),
           Expanded(
-            child: days.isEmpty
+            child: firstRun
+                ? const _FirstRun()
+                : days.isEmpty
                 ? Center(child: Text(l10n.emptyPeriod))
                 : ListView(
                     padding: const EdgeInsets.only(bottom: 80),
@@ -120,28 +170,74 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _open(context, const AddTransactionScreen()),
-        icon: const Icon(Icons.add),
-        label: Text(l10n.addButton),
+      floatingActionButton: firstRun
+          ? null
+          : FloatingActionButton.extended(
+              onPressed: () => _open(context, const AddTransactionScreen()),
+              icon: const Icon(Icons.add),
+              label: Text(l10n.addButton),
+            ),
+    );
+  }
+}
+
+/// The welcome shown until the first transaction is added (RUN-1).
+class _FirstRun extends StatelessWidget {
+  const _FirstRun();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.savings_outlined,
+              size: 72,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.firstRunTitle,
+              style: theme.textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.firstRunMessage, textAlign: TextAlign.center),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: () =>
+                  HomeScreen._open(context, const AddTransactionScreen()),
+              icon: const Icon(Icons.add),
+              label: Text(l10n.addFirstTransactionButton),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-/// A tappable one-line notice under the balance card.
+/// A tappable one-line notice under the balance card, optionally with a
+/// button that dismisses it.
 class _Notice extends StatelessWidget {
   const _Notice({
     required this.icon,
     required this.color,
     required this.text,
     required this.onTap,
+    this.onDismiss,
   });
 
   final IconData icon;
   final Color color;
   final String text;
   final VoidCallback onTap;
+  final VoidCallback? onDismiss;
 
   @override
   Widget build(BuildContext context) {
@@ -153,38 +249,14 @@ class _Notice extends StatelessWidget {
         dense: true,
         leading: Icon(icon, color: color),
         title: Text(text),
-        trailing: const Icon(Icons.chevron_right),
+        trailing: onDismiss == null
+            ? const Icon(Icons.chevron_right)
+            : IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: AppLocalizations.of(context).notNowTooltip,
+                onPressed: onDismiss,
+              ),
         onTap: onTap,
-      ),
-    );
-  }
-}
-
-class _PeriodSelector extends StatelessWidget {
-  final TransactionProvider provider;
-
-  const _PeriodSelector({required this.provider});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.chevron_left),
-            onPressed: provider.previousPeriod,
-          ),
-          Text(
-            periodLabel(provider.period, AppLocalizations.of(context)),
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          IconButton(
-            icon: const Icon(Icons.chevron_right),
-            onPressed: provider.nextPeriod,
-          ),
-        ],
       ),
     );
   }

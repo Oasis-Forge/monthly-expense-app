@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -158,5 +160,39 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Edit Transaction'), findsOneWidget);
+  });
+
+  testWidgets('Export CSV saves exactly the matches (BAK-5)', (tester) async {
+    final files = FakeBackupFiles();
+    await tester.pumpWidget(
+      testApp(
+        provider,
+        settings,
+        const SearchScreen(),
+        backup: testBackupService(fake, files: files),
+      ),
+    );
+    await tester.pump();
+
+    await type(tester, 'flat');
+    await tester.tap(find.byTooltip('Export CSV'));
+    await tester.pumpAndSettle();
+
+    final csv = utf8.decode(
+      files.saved['monthly-expenses-search-2026-09-15.csv']!,
+    );
+    expect(csv, contains(',Flat,'));
+    expect(csv, isNot(contains('Salary')));
+    expect(find.text('CSV saved'), findsOneWidget);
+
+    await type(tester, 'zzz');
+    expect(
+      tester
+          .widget<IconButton>(
+            find.widgetWithIcon(IconButton, Icons.file_download_outlined),
+          )
+          .onPressed,
+      isNull,
+    );
   });
 }

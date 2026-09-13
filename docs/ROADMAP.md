@@ -36,10 +36,10 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [x] **Search and filters** (SRCH-1–SRCH-3).
 - [x] **Budgets** (schema step): per-category and overall monthly budgets with per-day allowance and warnings; progress on Stats, over-budget marker on Home (BUD-1–BUD-6).
 - [x] **Recurring** (schema step): rules, an Upcoming list that waits for a tap by default, and idempotent posting on app start (RCR-1–RCR-7).
-- [ ] **Backup, restore, export:** JSON backup of every table, Replace or Merge restore with an automatic safety backup, CSV export of the current view, and the backup reminder (BAK-1–BAK-7). Comes after the last schema step so the format covers every table.
-- [ ] **Insights:** calendar month view with daily totals and the first day of week setting (PER-4), a 6–12 month income vs. expense trend, and the category chart for any period.
-- [ ] **App lock:** optional PIN or biometric unlock (`local_auth` on mobile and desktop).
-- [ ] **First run:** Home empty state with one "Add your first transaction" action (RUN-1).
+- [x] **Backup, restore, export:** JSON backup of every table, Replace or Merge restore with an automatic safety backup, CSV export of the current view, and the backup reminder (BAK-1–BAK-7). Comes after the last schema step so the format covers every table.
+- [x] **Insights:** calendar month view with daily totals and the first day of week setting (PER-4), a 6–12 month income vs. expense trend, and the category chart for any period (INS-1–INS-3).
+- [x] **App lock:** the device's biometrics or screen lock through `local_auth` on Android, iOS, macOS, and Windows, with no app PIN (LOCK-1–LOCK-3). Linux has no app lock.
+- [x] **First run:** Home empty state with one "Add your first transaction" action (RUN-1).
 
 ## Phase 3 — Store readiness (after Phase 2)
 - [ ] Display name "Monthly Expenses": `android:label` in `android/app/src/main/AndroidManifest.xml` and `CFBundleDisplayName` in `ios/Runner/Info.plist`.

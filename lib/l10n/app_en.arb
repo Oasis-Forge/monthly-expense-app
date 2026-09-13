@@ -1,7 +1,6 @@
 {
   "@@locale": "en",
   "appTitle": "Monthly Expenses",
-  "statsTooltip": "Stats",
   "settingsTooltip": "Settings",
   "transferTooltip": "Transfer",
   "searchTooltip": "Search",
@@ -82,14 +81,6 @@
   "saveAndAddAnotherButton": "Save & add another",
   "transactionAdded": "Transaction added",
   "saveFailed": "Couldn't save the transaction. Try again.",
-  "statsTitle": "Stats — {period}",
-  "@statsTitle": {
-    "placeholders": {
-      "period": {
-        "type": "String"
-      }
-    }
-  },
   "noExpensesInPeriod": "No expenses in this period yet.",
   "totalSpent": "Total spent: {amount}",
   "@totalSpent": {
@@ -371,5 +362,160 @@
   "categoryBusiness": "Business",
   "categoryInvestment": "Investment",
   "categoryGift": "Gift",
-  "categoryOther": "Other"
+  "categoryOther": "Other",
+  "previousPeriodTooltip": "Previous period",
+  "nextPeriodTooltip": "Next period",
+  "insightsTooltip": "Insights",
+  "insightsTitle": "Insights",
+  "calendarTab": "Calendar",
+  "trendTab": "Trend",
+  "noIncomeInPeriod": "No income in this period yet.",
+  "totalIncome": "Total income: {amount}",
+  "@totalIncome": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "calendarHint": "Tap a day to see its transactions.",
+  "dayEmpty": "Nothing on this day.",
+  "trendMonths": "{count} months",
+  "@trendMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "incomeExpenseLine": "Income {income} · Expense {expense}",
+  "@incomeExpenseLine": {
+    "placeholders": {
+      "income": {
+        "type": "String"
+      },
+      "expense": {
+        "type": "String"
+      }
+    }
+  },
+  "trendAverage": "Average per period · Income {income} · Expense {expense}",
+  "@trendAverage": {
+    "placeholders": {
+      "income": {
+        "type": "String"
+      },
+      "expense": {
+        "type": "String"
+      }
+    }
+  },
+  "weekStartLabel": "First day of the week",
+  "weekStartDefault": "Default ({day})",
+  "@weekStartDefault": {
+    "description": "The locale's first day of the week, used until the user picks one.",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
+  "firstRunTitle": "Welcome to Monthly Expenses",
+  "firstRunMessage": "Track what you spend and earn. Your data stays on this device.",
+  "addFirstTransactionButton": "Add your first transaction",
+  "exportCsvMenu": "Export CSV",
+  "exportCsvTooltip": "Export CSV",
+  "csvExported": "CSV saved",
+  "csvExportFailed": "Couldn't export the CSV. Try again.",
+  "backupTitle": "Backup & restore",
+  "backupIntro": "Backups are files you save where you choose. Nothing is uploaded or sent automatically.",
+  "backUpNowTitle": "Back up now",
+  "lastBackupLine": "Last backup {date}",
+  "@lastBackupLine": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "neverBackedUp": "No backup yet",
+  "backupSaved": "Backup saved",
+  "backupSaveFailed": "Couldn't save the backup. Try again.",
+  "restoreFromFileTitle": "Restore from a file",
+  "restoreFromFileSubtitle": "Merge a backup into your data, or replace your data with it",
+  "backupReminderLabel": "Backup reminder",
+  "backupReminderSubtitle": "Every 30 days once you have 20 transactions",
+  "backupReminderNever": "Back up your data to keep it safe",
+  "backupReminderSince": "Last backup {date}. Time for a new one?",
+  "@backupReminderSince": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "notNowTooltip": "Not now",
+  "keptBackupsHeader": "Automatic backups",
+  "keptBackupsHint": "Saved on this device before each restore.",
+  "noKeptBackups": "None yet.",
+  "backupSummary": "{date} · {count, plural, =1{1 transaction} other{{count} transactions}}",
+  "@backupSummary": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreTitle": "Restore backup",
+  "mergeOption": "Merge",
+  "mergeOptionSubtitle": "Keep your data and add the backup's. Where both have a record, the newer change wins.",
+  "replaceOption": "Replace",
+  "replaceOptionSubtitle": "Delete your data and use only the backup, with its settings.",
+  "restoreSafetyNote": "A copy of your current data is saved under Automatic backups first.",
+  "restoreButton": "Restore",
+  "restoreKeptTitle": "Restore this copy?",
+  "restoreKeptMessage": "Your data is replaced by the copy from {date}. A copy of your current data is saved first.",
+  "@restoreKeptMessage": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "backupInvalid": "This file isn't a Monthly Expenses backup.",
+  "backupTooNew": "This backup is from a newer version of the app. Update the app, then try again.",
+  "backupOpenFailed": "Couldn't open the file. Try again.",
+  "backupRestoreFailed": "Couldn't restore the backup. Your data wasn't changed.",
+  "restoredReplace": "{count, plural, =1{Restored 1 transaction} other{Restored {count} transactions}}",
+  "@restoredReplace": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoredMerge": "Merged: {added} added, {updated} updated, {unchanged} unchanged",
+  "@restoredMerge": {
+    "placeholders": {
+      "added": {
+        "type": "int"
+      },
+      "updated": {
+        "type": "int"
+      },
+      "unchanged": {
+        "type": "int"
+      }
+    }
+  },
+  "appLockLabel": "App lock",
+  "appLockSubtitle": "Unlock with your fingerprint, face, or screen lock",
+  "appLockUnavailable": "Set up a screen lock on this device to use app lock",
+  "appLockReason": "Unlock Monthly Expenses",
+  "appLockFailed": "Couldn't confirm it's you. App lock wasn't changed.",
+  "lockedTitle": "Monthly Expenses is locked",
+  "unlockButton": "Unlock"
 }

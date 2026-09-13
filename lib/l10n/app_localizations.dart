@@ -100,12 +100,6 @@ abstract class AppLocalizations {
   /// **'Monthly Expenses'**
   String get appTitle;
 
-  /// No description provided for @statsTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Stats'**
-  String get statsTooltip;
-
   /// No description provided for @settingsTooltip.
   ///
   /// In en, this message translates to:
@@ -363,12 +357,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t save the transaction. Try again.'**
   String get saveFailed;
-
-  /// No description provided for @statsTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Stats — {period}'**
-  String statsTitle(String period);
 
   /// No description provided for @noExpensesInPeriod.
   ///
@@ -1155,6 +1143,378 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get categoryOther;
+
+  /// No description provided for @previousPeriodTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous period'**
+  String get previousPeriodTooltip;
+
+  /// No description provided for @nextPeriodTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Next period'**
+  String get nextPeriodTooltip;
+
+  /// No description provided for @insightsTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insightsTooltip;
+
+  /// No description provided for @insightsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Insights'**
+  String get insightsTitle;
+
+  /// No description provided for @calendarTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get calendarTab;
+
+  /// No description provided for @trendTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend'**
+  String get trendTab;
+
+  /// No description provided for @noIncomeInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No income in this period yet.'**
+  String get noIncomeInPeriod;
+
+  /// No description provided for @totalIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Total income: {amount}'**
+  String totalIncome(String amount);
+
+  /// No description provided for @calendarHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a day to see its transactions.'**
+  String get calendarHint;
+
+  /// No description provided for @dayEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing on this day.'**
+  String get dayEmpty;
+
+  /// No description provided for @trendMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} months'**
+  String trendMonths(int count);
+
+  /// No description provided for @incomeExpenseLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Income {income} · Expense {expense}'**
+  String incomeExpenseLine(String income, String expense);
+
+  /// No description provided for @trendAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per period · Income {income} · Expense {expense}'**
+  String trendAverage(String income, String expense);
+
+  /// No description provided for @weekStartLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'First day of the week'**
+  String get weekStartLabel;
+
+  /// The locale's first day of the week, used until the user picks one.
+  ///
+  /// In en, this message translates to:
+  /// **'Default ({day})'**
+  String weekStartDefault(String day);
+
+  /// No description provided for @firstRunTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Monthly Expenses'**
+  String get firstRunTitle;
+
+  /// No description provided for @firstRunMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Track what you spend and earn. Your data stays on this device.'**
+  String get firstRunMessage;
+
+  /// No description provided for @addFirstTransactionButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first transaction'**
+  String get addFirstTransactionButton;
+
+  /// No description provided for @exportCsvMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get exportCsvMenu;
+
+  /// No description provided for @exportCsvTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get exportCsvTooltip;
+
+  /// No description provided for @csvExported.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV saved'**
+  String get csvExported;
+
+  /// No description provided for @csvExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t export the CSV. Try again.'**
+  String get csvExportFailed;
+
+  /// No description provided for @backupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup & restore'**
+  String get backupTitle;
+
+  /// No description provided for @backupIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are files you save where you choose. Nothing is uploaded or sent automatically.'**
+  String get backupIntro;
+
+  /// No description provided for @backUpNowTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get backUpNowTitle;
+
+  /// No description provided for @lastBackupLine.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup {date}'**
+  String lastBackupLine(String date);
+
+  /// No description provided for @neverBackedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup yet'**
+  String get neverBackedUp;
+
+  /// No description provided for @backupSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved'**
+  String get backupSaved;
+
+  /// No description provided for @backupSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the backup. Try again.'**
+  String get backupSaveFailed;
+
+  /// No description provided for @restoreFromFileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a file'**
+  String get restoreFromFileTitle;
+
+  /// No description provided for @restoreFromFileSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge a backup into your data, or replace your data with it'**
+  String get restoreFromFileSubtitle;
+
+  /// No description provided for @backupReminderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup reminder'**
+  String get backupReminderLabel;
+
+  /// No description provided for @backupReminderSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Every 30 days once you have 20 transactions'**
+  String get backupReminderSubtitle;
+
+  /// No description provided for @backupReminderNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up your data to keep it safe'**
+  String get backupReminderNever;
+
+  /// No description provided for @backupReminderSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Last backup {date}. Time for a new one?'**
+  String backupReminderSince(String date);
+
+  /// No description provided for @notNowTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get notNowTooltip;
+
+  /// No description provided for @keptBackupsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic backups'**
+  String get keptBackupsHeader;
+
+  /// No description provided for @keptBackupsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device before each restore.'**
+  String get keptBackupsHint;
+
+  /// No description provided for @noKeptBackups.
+  ///
+  /// In en, this message translates to:
+  /// **'None yet.'**
+  String get noKeptBackups;
+
+  /// No description provided for @backupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{date} · {count, plural, =1{1 transaction} other{{count} transactions}}'**
+  String backupSummary(String date, int count);
+
+  /// No description provided for @restoreTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore backup'**
+  String get restoreTitle;
+
+  /// No description provided for @mergeOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get mergeOption;
+
+  /// No description provided for @mergeOptionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your data and add the backup\'s. Where both have a record, the newer change wins.'**
+  String get mergeOptionSubtitle;
+
+  /// No description provided for @replaceOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get replaceOption;
+
+  /// No description provided for @replaceOptionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete your data and use only the backup, with its settings.'**
+  String get replaceOptionSubtitle;
+
+  /// No description provided for @restoreSafetyNote.
+  ///
+  /// In en, this message translates to:
+  /// **'A copy of your current data is saved under Automatic backups first.'**
+  String get restoreSafetyNote;
+
+  /// No description provided for @restoreButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore'**
+  String get restoreButton;
+
+  /// No description provided for @restoreKeptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this copy?'**
+  String get restoreKeptTitle;
+
+  /// No description provided for @restoreKeptMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data is replaced by the copy from {date}. A copy of your current data is saved first.'**
+  String restoreKeptMessage(String date);
+
+  /// No description provided for @backupInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This file isn\'t a Monthly Expenses backup.'**
+  String get backupInvalid;
+
+  /// No description provided for @backupTooNew.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is from a newer version of the app. Update the app, then try again.'**
+  String get backupTooNew;
+
+  /// No description provided for @backupOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open the file. Try again.'**
+  String get backupOpenFailed;
+
+  /// No description provided for @backupRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t restore the backup. Your data wasn\'t changed.'**
+  String get backupRestoreFailed;
+
+  /// No description provided for @restoredReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Restored 1 transaction} other{Restored {count} transactions}}'**
+  String restoredReplace(int count);
+
+  /// No description provided for @restoredMerge.
+  ///
+  /// In en, this message translates to:
+  /// **'Merged: {added} added, {updated} updated, {unchanged} unchanged'**
+  String restoredMerge(int added, int updated, int unchanged);
+
+  /// No description provided for @appLockLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'App lock'**
+  String get appLockLabel;
+
+  /// No description provided for @appLockSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock with your fingerprint, face, or screen lock'**
+  String get appLockSubtitle;
+
+  /// No description provided for @appLockUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up a screen lock on this device to use app lock'**
+  String get appLockUnavailable;
+
+  /// No description provided for @appLockReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock Monthly Expenses'**
+  String get appLockReason;
+
+  /// No description provided for @appLockFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t confirm it\'s you. App lock wasn\'t changed.'**
+  String get appLockFailed;
+
+  /// No description provided for @lockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Expenses is locked'**
+  String get lockedTitle;
+
+  /// No description provided for @unlockButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get unlockButton;
 }
 
 class _AppLocalizationsDelegate

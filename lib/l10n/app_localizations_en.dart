@@ -13,9 +13,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Monthly Expenses';
 
   @override
-  String get statsTooltip => 'Stats';
-
-  @override
   String get settingsTooltip => 'Settings';
 
   @override
@@ -165,11 +162,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveFailed => 'Couldn\'t save the transaction. Try again.';
-
-  @override
-  String statsTitle(String period) {
-    return 'Stats — $period';
-  }
 
   @override
   String get noExpensesInPeriod => 'No expenses in this period yet.';
@@ -639,4 +631,236 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryOther => 'Other';
+
+  @override
+  String get previousPeriodTooltip => 'Previous period';
+
+  @override
+  String get nextPeriodTooltip => 'Next period';
+
+  @override
+  String get insightsTooltip => 'Insights';
+
+  @override
+  String get insightsTitle => 'Insights';
+
+  @override
+  String get calendarTab => 'Calendar';
+
+  @override
+  String get trendTab => 'Trend';
+
+  @override
+  String get noIncomeInPeriod => 'No income in this period yet.';
+
+  @override
+  String totalIncome(String amount) {
+    return 'Total income: $amount';
+  }
+
+  @override
+  String get calendarHint => 'Tap a day to see its transactions.';
+
+  @override
+  String get dayEmpty => 'Nothing on this day.';
+
+  @override
+  String trendMonths(int count) {
+    return '$count months';
+  }
+
+  @override
+  String incomeExpenseLine(String income, String expense) {
+    return 'Income $income · Expense $expense';
+  }
+
+  @override
+  String trendAverage(String income, String expense) {
+    return 'Average per period · Income $income · Expense $expense';
+  }
+
+  @override
+  String get weekStartLabel => 'First day of the week';
+
+  @override
+  String weekStartDefault(String day) {
+    return 'Default ($day)';
+  }
+
+  @override
+  String get firstRunTitle => 'Welcome to Monthly Expenses';
+
+  @override
+  String get firstRunMessage =>
+      'Track what you spend and earn. Your data stays on this device.';
+
+  @override
+  String get addFirstTransactionButton => 'Add your first transaction';
+
+  @override
+  String get exportCsvMenu => 'Export CSV';
+
+  @override
+  String get exportCsvTooltip => 'Export CSV';
+
+  @override
+  String get csvExported => 'CSV saved';
+
+  @override
+  String get csvExportFailed => 'Couldn\'t export the CSV. Try again.';
+
+  @override
+  String get backupTitle => 'Backup & restore';
+
+  @override
+  String get backupIntro =>
+      'Backups are files you save where you choose. Nothing is uploaded or sent automatically.';
+
+  @override
+  String get backUpNowTitle => 'Back up now';
+
+  @override
+  String lastBackupLine(String date) {
+    return 'Last backup $date';
+  }
+
+  @override
+  String get neverBackedUp => 'No backup yet';
+
+  @override
+  String get backupSaved => 'Backup saved';
+
+  @override
+  String get backupSaveFailed => 'Couldn\'t save the backup. Try again.';
+
+  @override
+  String get restoreFromFileTitle => 'Restore from a file';
+
+  @override
+  String get restoreFromFileSubtitle =>
+      'Merge a backup into your data, or replace your data with it';
+
+  @override
+  String get backupReminderLabel => 'Backup reminder';
+
+  @override
+  String get backupReminderSubtitle =>
+      'Every 30 days once you have 20 transactions';
+
+  @override
+  String get backupReminderNever => 'Back up your data to keep it safe';
+
+  @override
+  String backupReminderSince(String date) {
+    return 'Last backup $date. Time for a new one?';
+  }
+
+  @override
+  String get notNowTooltip => 'Not now';
+
+  @override
+  String get keptBackupsHeader => 'Automatic backups';
+
+  @override
+  String get keptBackupsHint => 'Saved on this device before each restore.';
+
+  @override
+  String get noKeptBackups => 'None yet.';
+
+  @override
+  String backupSummary(String date, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transactions',
+      one: '1 transaction',
+    );
+    return '$date · $_temp0';
+  }
+
+  @override
+  String get restoreTitle => 'Restore backup';
+
+  @override
+  String get mergeOption => 'Merge';
+
+  @override
+  String get mergeOptionSubtitle =>
+      'Keep your data and add the backup\'s. Where both have a record, the newer change wins.';
+
+  @override
+  String get replaceOption => 'Replace';
+
+  @override
+  String get replaceOptionSubtitle =>
+      'Delete your data and use only the backup, with its settings.';
+
+  @override
+  String get restoreSafetyNote =>
+      'A copy of your current data is saved under Automatic backups first.';
+
+  @override
+  String get restoreButton => 'Restore';
+
+  @override
+  String get restoreKeptTitle => 'Restore this copy?';
+
+  @override
+  String restoreKeptMessage(String date) {
+    return 'Your data is replaced by the copy from $date. A copy of your current data is saved first.';
+  }
+
+  @override
+  String get backupInvalid => 'This file isn\'t a Monthly Expenses backup.';
+
+  @override
+  String get backupTooNew =>
+      'This backup is from a newer version of the app. Update the app, then try again.';
+
+  @override
+  String get backupOpenFailed => 'Couldn\'t open the file. Try again.';
+
+  @override
+  String get backupRestoreFailed =>
+      'Couldn\'t restore the backup. Your data wasn\'t changed.';
+
+  @override
+  String restoredReplace(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Restored $count transactions',
+      one: 'Restored 1 transaction',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String restoredMerge(int added, int updated, int unchanged) {
+    return 'Merged: $added added, $updated updated, $unchanged unchanged';
+  }
+
+  @override
+  String get appLockLabel => 'App lock';
+
+  @override
+  String get appLockSubtitle =>
+      'Unlock with your fingerprint, face, or screen lock';
+
+  @override
+  String get appLockUnavailable =>
+      'Set up a screen lock on this device to use app lock';
+
+  @override
+  String get appLockReason => 'Unlock Monthly Expenses';
+
+  @override
+  String get appLockFailed =>
+      'Couldn\'t confirm it\'s you. App lock wasn\'t changed.';
+
+  @override
+  String get lockedTitle => 'Monthly Expenses is locked';
+
+  @override
+  String get unlockButton => 'Unlock';
 }
