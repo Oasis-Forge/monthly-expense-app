@@ -177,6 +177,60 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **LOCK-2** With app lock on, the app asks at launch and again after at least a minute in the background, and hides its content until unlocked.
 - **LOCK-3** If the device no longer has biometrics or a screen lock, app lock turns itself off instead of locking the data away.
 
+## 16. Languages
+
+**They do:** 16 languages. Translation quality, right-to-left layout, and number formats in those languages: not verified.
+
+**Learn:** a translated app only feels native when numbers, dates, plurals, search, and layout direction are right too. A cut-off label or a half-translated screen looks broken.
+
+- **LANG-1** The app is in English, Turkish, Arabic, French, Spanish, and German. It follows the device language and falls back to English. Settings offers "System default" or any of the six, each listed in its own language, and a change applies at once, without a restart.
+- **LANG-2** Every user-facing text comes from the ARB files: screens, notices, errors, default category and account names (CAT-1), the widget, and the PDF report. CI fails when a language is missing a message. Plurals and variable parts use ICU messages, never pieced-together strings.
+- **LANG-3** Dates, numbers, and amounts follow the chosen language's format (CUR-2), and the first day of the week keeps following PER-4. CSV exports and backups always use ISO dates and plain decimals with a `.`, whatever the language (BAK-5), so the files read the same everywhere.
+- **LANG-4** Search ignores case and accents in every language, including the Turkish dotted and dotless i: `istanbul` finds "İstanbul" and `cafe` finds "Café" (section 10).
+- **LANG-5** In Arabic the layout runs right to left: navigation, lists, swipe actions, charts, and the date arrows (ADD-6), whose "earlier" arrow points right. Amounts and keypad expressions (ADD-2) stay left to right inside Arabic text.
+- **LANG-6** Widget tests render the main screens and the add form in all six languages, on a phone-size screen at 1.3× text size, and fail on overflow. A language ships only after a fluent speaker has used it on a device.
+
+## 17. PDF report
+
+**They do:** PDF and Excel reports. Their contents and options: not verified.
+
+**Learn:** people send a report to a partner, an accountant, or a landlord, so it has to make sense without the app, look right in every language, and leave the device only when the user sends it (BAK-6).
+
+- **PDF-1** "Export PDF" in the Home, Insights, and Search menus creates a report for the selected period, a custom date range, or a whole year, optionally for one account. From Search, the current filters apply, as with CSV (BAK-5).
+- **PDF-2** The report opens with a summary: income, expense, net, and the opening and closing balance (BAL-2, BAL-3). Then come spending by category with amounts, shares, and budget progress (BUD-2); a trend by day, or by period for ranges longer than two periods (INS-2); and the transactions grouped by day, with transfers marked. Entries that don't count yet appear in a separate Upcoming list, outside the totals (BAL-4).
+- **PDF-3** Before creating it, the user can leave out the transaction list, titles and notes, or account names. The header shows the app name, the range (PER-3), the currency, and when the report was created. No watermark, no promotion.
+- **PDF-4** The report is built on the device without a network connection and previewed, then shared, saved, or printed only when the user chooses (BAK-6, RUN-2).
+- **PDF-5** It uses the app language and formats (LANG-3), runs right to left in Arabic, and embeds fonts that cover all six languages. Pages are A4, or US Letter in regions that use it, with page numbers and table headers repeated on every page.
+- **PDF-6** A year with thousands of transactions builds without freezing the app, shows progress, and can be cancelled.
+
+## 18. Home-screen widget
+
+**They do:** in-app dashboard sections that can be turned on or off. A home-screen widget: not verified.
+
+**Learn:** a widget is the quickest way to log a purchase and to see what's left this month. It also puts money on a screen anyone can glance at, so it must respect app lock.
+
+- **WID-1** Android and iOS offer a small widget (the period's expense, or the budget left when an overall budget exists, with an Add expense button) and a medium one (the period's income, expense, balance, and budget left, with Add expense and Add income buttons). Desktop has no widget.
+- **WID-2** The widget always shows the current period (PER-1) and counts only entries that count (BAL-4), whatever period the app showed last.
+- **WID-3** Add opens the add form on the keypad with the usual defaults (ADD-3), and tapping the numbers opens Home on the current period. With app lock on, both go through the lock first (LOCK-2).
+- **WID-4** With app lock on, the widget hides amounts and shows only its buttons, unless the user turns on "Show amounts on the widget" in Settings.
+- **WID-5** The widget refreshes after every change in the app and at midnight, when a new day can start a period or make upcoming entries count. It never uses the network, and the app shares only the numbers the widget shows, never the database.
+- **WID-6** It follows the app language, the currency format, and the device's light or dark theme, and stays readable at its smallest size.
+
+## 19. Notes
+
+**They do:** a NoteBook tab that works as a dated to-do list. Each note is text with a date, a time, and a done checkbox. The tab has period filters, search, Completed and Pending filters, counts, and a PDF of the list. Notes don't link to transactions and have no reminders, and a confirmed delete removes them for good. In testing on version 295, the counts went stale, search ignored the Pending filter, and the PDF quietly kept an earlier search. Whether backups include notes: not verified.
+
+**Learn:** people use notes for money to-dos, like "pay the water bill on the 5th". Their value is the due date and turning the note into a transaction once it's paid. A list whose counts and filters disagree with the screen can't be trusted.
+
+- **NOTE-1** A note has text (required, several lines allowed) and, optionally, a due date, an amount, and a category. It is open or done. Notes follow the record rules: UUID, timestamps, and soft delete (REC-1, REC-2, DEL-1).
+- **NOTE-2** The Notes screen lists open notes first: overdue, then by due date, then notes without a date by last edit. Done notes collapse into a Done section below. An empty list explains what notes are for, with one "Add a note" action.
+- **NOTE-3** Search (LANG-4) and the Open, Done, and due-date filters combine. The screen always shows which are on, with one tap to clear them, and every count comes from the list on screen.
+- **NOTE-4** "Record as transaction" opens the add form with the note's amount, category, and text as the title, dated today; ADD-3 fills the rest. Saving marks the note done and links the two, and each shows the other. Deleting that transaction reopens the note.
+- **NOTE-5** Open notes due in the selected period appear in the Home notices, next to the recurring and budget ones, and the Insights calendar marks their days (INS-1).
+- **NOTE-6** A due date can have a reminder at a chosen time, sent as a local notification from the device. The app asks for notification permission only when the user first sets a reminder, and everything else works if it's refused. Android may deliver it a few minutes late. With app lock on, the notification says only that a note is due, and tapping it opens the note through the lock (LOCK-2).
+- **NOTE-7** Deleting a note works like deleting a transaction: Undo, then the trash, then a purge after 30 days (DEL-2–DEL-4).
+- **NOTE-8** Backups include notes, and restore merges them by ID like every other record (BAK-1, BAK-3). CSV and PDF exports leave notes out.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -184,6 +238,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 4. Restore offers both Replace and Merge (BAK-2, BAK-3).
 5. First day of month is in v1 (PER-2).
 6. Accounts and transfers are in v1 (section 6).
+7. Notes, five more languages (Turkish, Arabic, French, Spanish, German), a home-screen widget, and a PDF report ship in v1, before release (roadmap Phase 4).
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
