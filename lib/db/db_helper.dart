@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:path/path.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/account.dart';
@@ -27,6 +30,8 @@ class DBHelper {
     migrateToVersion4,
   ];
 
+  static const _fileName = 'monthly_expense_app.db';
+
   final String? path;
   final List<Migration> migrations;
   Database? _db;
@@ -47,7 +52,7 @@ class DBHelper {
 
   Future<Database> _initDB() async {
     return openDatabase(
-      path ?? join(await getDatabasesPath(), 'monthly_expense_app.db'),
+      path ?? await _defaultPath(),
       version: version,
       onCreate: (db, newVersion) async {
         await _createVersion1(db);
@@ -56,6 +61,17 @@ class DBHelper {
       onUpgrade: (db, oldVersion, newVersion) =>
           _migrate(db, from: oldVersion, to: newVersion),
     );
+  }
+
+  /// On Windows and Linux the FFI factory's default folder is under the
+  /// working directory, so keep the database in the per-user app support
+  /// folder instead.
+  static Future<String> _defaultPath() async {
+    if (defaultTargetPlatform == TargetPlatform.windows ||
+        defaultTargetPlatform == TargetPlatform.linux) {
+      return join((await getApplicationSupportDirectory()).path, _fileName);
+    }
+    return join(await getDatabasesPath(), _fileName);
   }
 
   /// The original schema. A fresh install creates it and then runs every
@@ -115,6 +131,27 @@ class DBHelper {
     return [for (final map in maps) ExpenseTransaction.fromMap(map)];
   }
 
+  /// Transactions in the trash, most recently deleted first.
+  Future<List<ExpenseTransaction>> fetchDeletedTransactions() async {
+    final db = await database;
+    final maps = await db.query(
+      'transactions',
+      where: 'deleted_at IS NOT NULL',
+      orderBy: 'deleted_at DESC',
+    );
+    return [for (final map in maps) ExpenseTransaction.fromMap(map)];
+  }
+
+  /// Permanently removes transactions deleted before [cutoff] (DEL-3).
+  Future<void> purgeDeletedBefore(DateTime cutoff) async {
+    final db = await database;
+    await db.delete(
+      'transactions',
+      where: 'deleted_at IS NOT NULL AND deleted_at < ?',
+      whereArgs: [cutoff.toUtc().toIso8601String()],
+    );
+  }
+
   Future<List<Category>> fetchCategories() async {
     final db = await database;
     final maps = await db.query(
@@ -123,6 +160,26 @@ class DBHelper {
       orderBy: 'type, sort_order',
     );
     return [for (final map in maps) Category.fromMap(map)];
+  }
+
+  Future<void> insertCategory(Category category) async {
+    final db = await database;
+    await db.insert('categories', category.toMap());
+  }
+
+  /// Saves every field of [categories] in one database transaction.
+  Future<void> updateCategories(List<Category> categories) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      for (final category in categories) {
+        await txn.update(
+          'categories',
+          category.toMap(),
+          where: 'id = ?',
+          whereArgs: [category.id],
+        );
+      }
+    });
   }
 
   Future<List<Account>> fetchAccounts() async {

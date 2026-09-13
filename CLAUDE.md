@@ -1,6 +1,6 @@
 # Monthly Expense App
 
-Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targets the Android and iOS stores. All data is local (sqflite); there is no backend.
+Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targets Android, iOS, and desktop (macOS, Windows, Linux); web comes after v1. All data is local (sqflite); there is no backend.
 
 ## Commands (use the quiet forms)
 - `flutter pub get > $null`
@@ -26,6 +26,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Every model/provider change gets a test. DB tests use `sqflite_common_ffi` (copy the setup in `test/widget_test.dart`); widget and write-failure tests use `FakeDB`, `testApp`, and `testTx` from `test/helpers.dart`.
 - Feature order: model → migration → provider → screen → test → analyze.
 - One branch per feature, PR to `main`; CI (`.github/workflows/ci.yml`) must pass.
+- Before a branch is merged: check coverage of the changed files (`flutter test --coverage`) and add tests for gaps, then run the app (`flutter run`) so the user can test it by hand.
 
 ## Token rules
 - Don't open `android/ ios/ linux/ macos/ windows/ web/` unless the task is platform-specific.
@@ -41,7 +42,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 ## Gotchas
 - The repo is public: never commit secrets or personal data, and never print secrets in workflows.
 - The project path contains spaces: quote it in shell commands.
-- sqflite has no web implementation; web and desktop aren't targets.
+- Targets: Android, iOS, and desktop (macOS, Windows, Linux; desktop CI builds run only on pushes to `main`). Windows and Linux use `sqflite_common_ffi`, set up in `main.dart`, with the database in the app support folder. Web comes after v1: sqflite has no web implementation.
 - Release signing reads `android/key.properties` (gitignored); without it, release builds are debug-signed.
 - The currency symbol is hard-coded `$` until settings land (ROADMAP Phase 2).
 - Generated `lib/l10n/app_localizations*.dart` are committed; after editing `app_en.arb`, run `flutter gen-l10n` and commit the output.

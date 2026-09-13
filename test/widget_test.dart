@@ -6,6 +6,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/main.dart';
 
+import 'helpers.dart';
+
 void main() {
   setUpAll(() {
     sqfliteFfiInit();
@@ -15,7 +17,8 @@ void main() {
   testWidgets('App starts and shows the home screen', (
     WidgetTester tester,
   ) async {
-    await tester.pumpWidget(const MonthlyExpenseApp());
+    final settings = await testSettings();
+    await tester.pumpWidget(MonthlyExpenseApp(settings: settings));
     await tester.pump();
 
     expect(find.text('Monthly Expenses'), findsOneWidget);

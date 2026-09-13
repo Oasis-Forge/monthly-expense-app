@@ -18,7 +18,8 @@ void main() {
       clock: () => today,
     );
     await provider.load();
-    await tester.pumpWidget(testApp(provider, const StatsScreen()));
+    final settings = await testSettings();
+    await tester.pumpWidget(testApp(provider, settings, const StatsScreen()));
     await tester.pump();
   }
 

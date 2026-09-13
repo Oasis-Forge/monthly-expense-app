@@ -8,7 +8,9 @@ import '../l10n/labels.dart';
 import '../models/account.dart';
 import '../models/money.dart';
 import '../models/transaction.dart';
+import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'delete_snack_bar.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   final ExpenseTransaction? editing;
@@ -128,19 +130,56 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  /// Moves the edited transaction to the trash, with Undo on the next screen.
+  /// This is also the delete path for mouse users, who can't swipe.
+  Future<void> _delete() async {
+    final provider = context.read<TransactionProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final id = widget.editing!.id;
+    try {
+      await provider.deleteTransaction(id);
+    } catch (_) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.deleteFailed)));
+      return;
+    }
+    showDeletedSnackBar(messenger, provider, l10n, id);
+    if (mounted) Navigator.of(context).pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final categories = context.watch<TransactionProvider>().categoriesFor(
-      _type,
+    final provider = context.watch<TransactionProvider>();
+    final currency = context.watch<SettingsProvider>().currencyFormat(
+      l10n.localeName,
     );
     final isEditing = widget.editing != null;
+    final editedCategory = isEditing
+        ? provider.categoryById(widget.editing!.categoryId)
+        : null;
+    final categories = [
+      ...provider.categoriesFor(_type),
+      // An archived category stays selectable for transactions that use it.
+      if (editedCategory != null &&
+          editedCategory.archivedAt != null &&
+          editedCategory.type == _type)
+        editedCategory,
+    ];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           isEditing ? l10n.editTransactionTitle : l10n.addTransactionTitle,
         ),
+        actions: [
+          if (isEditing)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: l10n.deleteTooltip,
+              onPressed: _delete,
+            ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -177,7 +216,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               decoration: InputDecoration(
                 labelText: l10n.amountLabel,
                 border: const OutlineInputBorder(),
-                prefixText: '\$ ',
+                prefixText: '${currency.currencySymbol} ',
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -186,7 +225,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 if (value == null || value.trim().isEmpty) {
                   return l10n.amountRequired;
                 }
-                final amount = Money.tryParse(value);
+                final amount = Money.tryParse(
+                  value,
+                  maxDecimals: currency.maximumFractionDigits,
+                );
                 if (amount == null || !amount.isPositive) {
                   return l10n.amountInvalid;
                 }

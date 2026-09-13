@@ -6,12 +6,14 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 
 import 'helpers.dart';
 
 void main() {
+  const expense = TransactionType.expense;
   late Directory dir;
   final opened = <DBHelper>[];
 
@@ -135,10 +137,7 @@ void main() {
         final fresh = helperAt('fresh.db');
 
         final categories = await fresh.fetchCategories();
-        expect(
-          categories.where((c) => c.type == TransactionType.expense),
-          hasLength(10),
-        );
+        expect(categories.where((c) => c.type == expense), hasLength(10));
         expect(
           categories.where((c) => c.type == TransactionType.income),
           hasLength(5),
@@ -150,24 +149,80 @@ void main() {
       },
     );
 
-    test('fetchTransactions skips soft-deleted rows', () async {
+    test('soft-deleted rows move from the list to the trash', () async {
       final helper = helperAt('app.db');
-      final lunch = testTx(
-        'a',
-        TransactionType.expense,
-        12.5,
-        DateTime(2026, 9, 13),
-      );
+      final lunch = testTx('a', expense, 12.5, DateTime(2026, 9, 13));
       await helper.insertTransaction(lunch);
       await helper.insertTransaction(
-        testTx('b', TransactionType.expense, 3, DateTime(2026, 9, 12)),
+        testTx('b', expense, 3, DateTime(2026, 9, 12)),
       );
       await helper.updateTransaction(
         lunch.copyWith(deletedAt: DateTime.utc(2026, 9, 14)),
       );
 
-      final ids = [for (final t in await helper.fetchTransactions()) t.id];
-      expect(ids, ['b']);
+      expect([for (final t in await helper.fetchTransactions()) t.id], ['b']);
+      expect(
+        [for (final t in await helper.fetchDeletedTransactions()) t.id],
+        ['a'],
+      );
+    });
+
+    test('purgeDeletedBefore removes only older trash (DEL-3)', () async {
+      final helper = helperAt('app.db');
+      await helper.insertTransaction(
+        testTx('active', expense, 1, DateTime(2026, 9, 1)),
+      );
+      await helper.insertTransaction(
+        testTx(
+          'old',
+          expense,
+          1,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime.utc(2026, 8, 1)),
+      );
+      await helper.insertTransaction(
+        testTx(
+          'recent',
+          expense,
+          1,
+          DateTime(2026, 9, 1),
+        ).copyWith(deletedAt: DateTime.utc(2026, 9, 10)),
+      );
+
+      await helper.purgeDeletedBefore(DateTime.utc(2026, 9));
+
+      expect(
+        [for (final t in await helper.fetchDeletedTransactions()) t.id],
+        ['recent'],
+      );
+      expect(
+        [for (final t in await helper.fetchTransactions()) t.id],
+        ['active'],
+      );
+    });
+
+    test('categories can be added and updated', () async {
+      final helper = helperAt('app.db');
+      final coffee = Category(
+        id: 'c1',
+        type: expense,
+        name: 'Coffee',
+        icon: '☕',
+        sortOrder: 10,
+        createdAt: DateTime.utc(2026),
+        updatedAt: DateTime.utc(2026),
+      );
+
+      await helper.insertCategory(coffee);
+      await helper.updateCategories([
+        coffee.copyWith(name: 'Café', archivedAt: DateTime.utc(2026, 9)),
+      ]);
+
+      final saved = (await helper.fetchCategories()).firstWhere(
+        (c) => c.id == 'c1',
+      );
+      expect(saved.name, 'Café');
+      expect(saved.archivedAt, DateTime.utc(2026, 9));
     });
   });
 }

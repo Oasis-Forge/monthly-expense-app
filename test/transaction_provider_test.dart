@@ -39,6 +39,9 @@ void main() {
 
     tearDown(() => db.close());
 
+    TransactionProvider reloadable() =>
+        TransactionProvider(db: db, clock: () => now);
+
     test('load reads the default categories and the Cash account', () {
       expect(provider.categoriesFor(expense), hasLength(10));
       expect(provider.categoriesFor(income), hasLength(5));
@@ -64,14 +67,32 @@ void main() {
 
       await provider.deleteTransaction('a');
       expect(provider.transactions, isEmpty);
+      expect(provider.deletedTransactions.single.id, 'a');
 
-      final reloaded = TransactionProvider(db: db, clock: () => now);
+      final reloaded = reloadable();
       await reloaded.load();
       expect(reloaded.transactions, isEmpty);
+      expect(reloaded.deletedTransactions.single.id, 'a');
 
       final row = (await (await db.database).query('transactions')).single;
       expect(row['amount'], 12500);
       expect(row['deleted_at'], now.toUtc().toIso8601String());
+    });
+
+    test('restore brings a trashed transaction back (DEL-4)', () async {
+      await provider.addTransaction(
+        testTx('a', expense, 10, DateTime(2026, 9, 1)),
+      );
+      await provider.deleteTransaction('a');
+
+      await provider.restoreTransaction('a');
+
+      expect(provider.deletedTransactions, isEmpty);
+      expect(provider.transactions.single.deletedAt, isNull);
+      final reloaded = reloadable();
+      await reloaded.load();
+      expect(reloaded.transactions.single.id, 'a');
+      expect(reloaded.deletedTransactions, isEmpty);
     });
   });
 
@@ -191,6 +212,16 @@ void main() {
       },
     );
 
+    test('the start day can be set when the provider is created', () {
+      final provider = TransactionProvider(
+        db: FakeDB(),
+        clock: () => today,
+        startDay: 25,
+      );
+
+      expect(provider.period.start, DateTime(2026, 8, 25));
+    });
+
     test('cached totals refresh after a change', () async {
       final provider = await loaded(FakeDB());
       expect(provider.periodExpense, Money.zero);
@@ -200,6 +231,91 @@ void main() {
       );
 
       expect(provider.periodExpense, const Money(8000));
+    });
+  });
+
+  test('load purges trash older than 30 days (DEL-3)', () async {
+    final fake = FakeDB(
+      transactions: [
+        testTx(
+          'old',
+          expense,
+          1,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime(2026, 8, 1)),
+        testTx(
+          'recent',
+          expense,
+          1,
+          DateTime(2026, 9, 1),
+        ).copyWith(deletedAt: DateTime(2026, 9, 10)),
+      ],
+    );
+
+    final provider = await loaded(fake);
+
+    expect([for (final t in provider.deletedTransactions) t.id], ['recent']);
+    expect([for (final t in fake.rows) t.id], ['recent']);
+    expect(provider.trashDaysLeft(provider.deletedTransactions.single), 25);
+  });
+
+  group('categories (CAT-3, CAT-4)', () {
+    late FakeDB fake;
+    late TransactionProvider provider;
+
+    setUp(() async {
+      fake = FakeDB(
+        transactions: [testTx('a', expense, 5, DateTime(2026, 9, 1))],
+      );
+      provider = await loaded(fake);
+    });
+
+    List<String> expenseIds() => [
+      for (final c in provider.categoriesFor(expense)) c.id,
+    ];
+
+    test('a new category goes to the end of its type and is saved', () async {
+      final coffee = await provider.addCategory(
+        type: expense,
+        name: 'Coffee',
+        icon: '☕',
+      );
+
+      expect(expenseIds(), ['cat-food', 'cat-rent', 'cat-other', coffee.id]);
+      expect(coffee.sortOrder, 3);
+      expect(fake.categories.last.name, 'Coffee');
+    });
+
+    test('reordering saves the new order', () async {
+      await provider.reorderCategories(expense, 2, 0);
+
+      expect(expenseIds(), ['cat-other', 'cat-food', 'cat-rent']);
+      final saved = {for (final c in fake.categories) c.id: c.sortOrder};
+      expect(
+        [saved['cat-other'], saved['cat-food'], saved['cat-rent']],
+        [0, 1, 2],
+      );
+    });
+
+    test('archiving hides a category from pickers until unarchived', () async {
+      await provider.archiveCategory('cat-food');
+      expect(expenseIds(), ['cat-rent', 'cat-other']);
+      expect(provider.archivedCategoriesFor(expense).single.id, 'cat-food');
+
+      await provider.unarchiveCategory('cat-food');
+      expect(expenseIds(), ['cat-food', 'cat-rent', 'cat-other']);
+    });
+
+    test('only an unused category can be deleted', () async {
+      await expectLater(provider.deleteCategory('cat-food'), throwsStateError);
+
+      await provider.deleteCategory('cat-rent');
+
+      expect(expenseIds(), ['cat-food', 'cat-other']);
+      expect(
+        fake.categories.firstWhere((c) => c.id == 'cat-rent').deletedAt,
+        isNotNull,
+      );
     });
   });
 
@@ -246,6 +362,13 @@ void main() {
     test('delete rethrows and leaves the list unchanged', () async {
       await expectLater(provider.deleteTransaction('keep'), throwsStateError);
       expect(ids(), ['keep', 'x']);
+      expect(provider.deletedTransactions, isEmpty);
+      expect(notifications, 0);
+    });
+
+    test('a failed category change leaves categories unchanged', () async {
+      await expectLater(provider.archiveCategory('cat-food'), throwsStateError);
+      expect(provider.categoriesFor(expense), hasLength(3));
       expect(notifications, 0);
     });
   });

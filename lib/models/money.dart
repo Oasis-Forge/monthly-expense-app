@@ -6,13 +6,17 @@ extension type const Money(int thousandths) {
 
   static final _input = RegExp(r'^(\d{1,12})(?:\.(\d{1,3}))?$');
 
-  /// Parses user input like `12`, `12.5`, or `12,5`. Returns null for anything
-  /// else, including negative numbers and more than three decimals.
-  static Money? tryParse(String input) {
+  /// Parses user input like `12`, `12.5`, or `12,5`, allowing at most
+  /// [maxDecimals] decimals (the currency's, CUR-2). Returns null for anything
+  /// else, including negative numbers.
+  static Money? tryParse(String input, {int maxDecimals = 3}) {
     final match = _input.firstMatch(input.trim().replaceAll(',', '.'));
     if (match == null) return null;
-    final fraction = (match[2] ?? '').padRight(3, '0');
-    return Money(int.parse(match[1]!) * 1000 + int.parse(fraction));
+    final fraction = match[2] ?? '';
+    if (fraction.length > maxDecimals) return null;
+    return Money(
+      int.parse(match[1]!) * 1000 + int.parse(fraction.padRight(3, '0')),
+    );
   }
 
   bool get isPositive => thousandths > 0;
