@@ -3,8 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/languages.dart';
 import '../models/currencies.dart';
 import '../models/period.dart';
+import '../models/transaction_filter.dart' show foldForSearch;
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/authenticator.dart';
@@ -31,74 +33,61 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         children: [
+          _ChoiceTile<String?>(
+            icon: Icons.language,
+            title: l10n.languageLabel,
+            value: settings.languageCode,
+            options: [
+              (null, l10n.languageSystem),
+              for (final MapEntry(key: code, value: name)
+                  in appLanguages.entries)
+                (code, name),
+            ],
+            onChanged: settings.setLanguageCode,
+          ),
           ListTile(
             leading: const Icon(Icons.payments_outlined),
             title: Text(l10n.currencyLabel),
             subtitle: Text(_currencyLabel(settings.currencyCode)),
             onTap: () => _pickCurrency(context),
           ),
-          ListTile(
-            leading: const Icon(Icons.brightness_6_outlined),
-            title: Text(l10n.themeLabel),
-            trailing: DropdownButton<ThemeMode>(
-              value: settings.themeMode,
-              onChanged: (mode) {
-                if (mode != null) settings.setThemeMode(mode);
-              },
-              items: [
-                DropdownMenuItem(
-                  value: ThemeMode.system,
-                  child: Text(l10n.themeSystem),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.light,
-                  child: Text(l10n.themeLight),
-                ),
-                DropdownMenuItem(
-                  value: ThemeMode.dark,
-                  child: Text(l10n.themeDark),
-                ),
-              ],
-            ),
+          _ChoiceTile<ThemeMode>(
+            icon: Icons.brightness_6_outlined,
+            title: l10n.themeLabel,
+            value: settings.themeMode,
+            options: [
+              (ThemeMode.system, l10n.themeSystem),
+              (ThemeMode.light, l10n.themeLight),
+              (ThemeMode.dark, l10n.themeDark),
+            ],
+            onChanged: settings.setThemeMode,
           ),
-          ListTile(
-            leading: const Icon(Icons.event_outlined),
-            title: Text(l10n.monthStartLabel),
-            trailing: DropdownButton<int>(
-              value: settings.startDay,
-              onChanged: (day) {
-                if (day != null) _setStartDay(context, day);
-              },
-              items: [
-                for (var day = 1; day <= 28; day++)
-                  DropdownMenuItem(value: day, child: Text('$day')),
-                DropdownMenuItem(
-                  value: Period.lastDayOfMonth,
-                  child: Text(l10n.monthStartLastDay),
-                ),
-              ],
-            ),
+          _ChoiceTile<int>(
+            icon: Icons.event_outlined,
+            title: l10n.monthStartLabel,
+            value: settings.startDay,
+            options: [
+              for (var day = 1; day <= 28; day++) (day, '$day'),
+              (Period.lastDayOfMonth, l10n.monthStartLastDay),
+            ],
+            onChanged: (day) => _setStartDay(context, day),
           ),
-          ListTile(
-            leading: const Icon(Icons.view_week_outlined),
-            title: Text(l10n.weekStartLabel),
-            trailing: DropdownButton<int?>(
-              value: settings.weekStartDay,
-              onChanged: settings.setWeekStartDay,
-              items: [
-                DropdownMenuItem(
-                  child: Text(
-                    l10n.weekStartDefault(
-                      weekday(
-                        MaterialLocalizations.of(context).firstDayOfWeekIndex,
-                      ),
-                    ),
+          _ChoiceTile<int?>(
+            icon: Icons.view_week_outlined,
+            title: l10n.weekStartLabel,
+            value: settings.weekStartDay,
+            options: [
+              (
+                null,
+                l10n.weekStartDefault(
+                  weekday(
+                    MaterialLocalizations.of(context).firstDayOfWeekIndex,
                   ),
                 ),
-                for (var day = 0; day < 7; day++)
-                  DropdownMenuItem(value: day, child: Text(weekday(day))),
-              ],
-            ),
+              ),
+              for (var day = 0; day < 7; day++) (day, weekday(day)),
+            ],
+            onChanged: settings.setWeekStartDay,
           ),
           SwitchListTile(
             secondary: const Icon(Icons.redo),
@@ -186,6 +175,60 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+/// A setting that shows its current choice and opens the options in a
+/// dialog, so long names in any language never squeeze the row (LANG-6).
+class _ChoiceTile<T> extends StatelessWidget {
+  const _ChoiceTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.options,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String title;
+  final T value;
+
+  /// Each option's value and label.
+  final List<(T, String)> options;
+  final ValueChanged<T> onChanged;
+
+  Future<void> _choose(BuildContext context) async {
+    // A record, so choosing a null option differs from dismissing the dialog.
+    final chosen = await showDialog<(T,)>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(title),
+        children: [
+          for (final (option, label) in options)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop((option,)),
+              child: Row(
+                children: [
+                  Expanded(child: Text(label)),
+                  if (option == value) const Icon(Icons.check),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+    if (chosen != null && chosen.$1 != value) onChanged(chosen.$1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final current = options.where((option) => option.$1 == value).firstOrNull;
+    return ListTile(
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: current == null ? null : Text(current.$2),
+      onTap: () => _choose(context),
+    );
+  }
+}
+
 /// Turns app lock on or off after the device owner authenticates (LOCK-1,
 /// LOCK-3). Disabled when the device has no biometrics or screen lock.
 class _AppLockTile extends StatefulWidget {
@@ -258,7 +301,7 @@ class _CurrencyPickerScreenState extends State<CurrencyPickerScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final query = _query.trim().toLowerCase();
+    final query = foldForSearch(_query.trim());
     final options = [
       // Keep a preselected code the list doesn't have.
       if (!currencies.any((c) => c.$1 == widget.selected))
@@ -281,8 +324,8 @@ class _CurrencyPickerScreenState extends State<CurrencyPickerScreen> {
         children: [
           for (final (code, name) in options)
             if (query.isEmpty ||
-                code.toLowerCase().contains(query) ||
-                name.toLowerCase().contains(query))
+                foldForSearch(code).contains(query) ||
+                foldForSearch(name).contains(query))
               ListTile(
                 leading: SizedBox(
                   width: 48,

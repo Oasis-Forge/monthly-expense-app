@@ -17,7 +17,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - `lib/providers/transaction_provider.dart`: loaded data, selected `Period`, cached totals and balances, daily totals and trend, account balances, form defaults, write-first mutations with soft delete; `settings_provider.dart`: currency, theme, month and week start, carry-forward, backup reminder, app lock
 - `lib/services/`: `BackupService` (create, read, restore, CSV) over `BackupFiles` (file dialogs, automatic backups); `Authenticator` over `local_auth`
 - `lib/screens/form_fields.dart`: `AmountEntry` mixin + keypad and `DateField`, shared by the transaction and transfer forms; `period_selector.dart`, shared by Home and Insights
-- `lib/l10n/`: `app_en.arb` → generated `AppLocalizations` (`flutter gen-l10n`, committed); `labels.dart` for category and period labels
+- `lib/l10n/`: `app_en.arb` plus `app_{tr,ar,fr,es,de}.arb` → generated `AppLocalizations` (`flutter gen-l10n`, committed); `languages.dart` for the language list and English fallback; `labels.dart` for category and period labels
 - `lib/screens/`: `home_screen` (period selector, summary, notices, day list, swipe delete, first-run welcome), `add_transaction_screen` (add + edit), `insights_screen` (categories, calendar, trend), `backup_screen`, `app_lock`
 - Flow: screen → `context.read/watch<TransactionProvider>()` → `DBHelper`
 
@@ -28,7 +28,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Every model/provider change gets a test. DB tests use `sqflite_common_ffi` (copy the setup in `test/widget_test.dart`); widget and write-failure tests use `FakeDB`, `testApp`, and `testTx` from `test/helpers.dart`, with `FakeBackupFiles` and `FakeAuthenticator` standing in for file dialogs and `local_auth`.
 - Feature order: model → migration → provider → screen → test → analyze.
 - One branch per feature, PR to `main`; CI (`.github/workflows/ci.yml`) must pass.
-- Every merged PR is a release: bump the version on the branch with `/release [major|minor|patch]` (SemVer `x.y.z+N` plus a `CHANGELOG.md` entry; CI checks it), and the merge tags `vX.Y.Z` and attaches the APK to a draft GitHub Release.
+- Every merged PR is a release: bump the version on the branch with `/release [major|minor|patch]` (SemVer `x.y.z+N` plus a `CHANGELOG.md` entry; CI checks it), and the merge tags `vX.Y.Z` and attaches the APK to a draft GitHub Release. `/release` also builds the same version locally into `dist/monthly-expenses-X.Y.Z.apk` (gitignored); rebuild it after any app change on the branch.
 - Before a branch is merged: check coverage of the changed files (`flutter test --coverage`) and add tests for gaps, then run the app (`flutter run`) so the user can test it by hand.
 
 ## Token rules
@@ -50,4 +50,4 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Store IDs are permanent after the first upload and carry no personal names: `com.monthlyexpenses.app` (Android, iOS, macOS, Windows) and `io.github.monthly_expenses.MonthlyExpenses` (Linux and Flathub). Run the app with `adb shell am start -n com.monthlyexpenses.app/.MainActivity`.
 - Icons and splash screens come from `tool/render_app_icons_test.dart`: run it with `flutter test`, then `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create`, and commit the generated platform files.
 - App lock uses `local_auth`: Android's `MainActivity` is a `FlutterFragmentActivity` with an AppCompat launch theme, and iOS needs `NSFaceIDUsageDescription`. Backups on macOS need the user-selected files entitlement.
-- Generated `lib/l10n/app_localizations*.dart` are committed; after editing `app_en.arb`, run `flutter gen-l10n` and commit the output.
+- Six languages: every message added or changed in `app_en.arb` gets machine translations in `app_tr.arb`, `app_ar.arb`, `app_fr.arb`, `app_es.arb`, and `app_de.arb` in the same change (LANG-6), then run `flutter gen-l10n` and commit the generated `app_localizations*.dart`. `test/l10n_test.dart` fails on missing messages or placeholders; `test/languages_test.dart` on overflow at 1.3× text or right-to-left mistakes. Use directional padding and alignment (`EdgeInsetsDirectional`, `AlignmentDirectional`), and keep amounts left to right.

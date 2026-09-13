@@ -195,6 +195,8 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<AccountType>(
+              // Long names shorten instead of overflowing (LANG-6).
+              isExpanded: true,
               initialValue: _type,
               decoration: InputDecoration(
                 labelText: l10n.accountTypeLabel,
@@ -208,7 +210,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                       children: [
                         Icon(accountTypeIcon(type)),
                         const SizedBox(width: 12),
-                        Text(accountTypeLabel(type, l10n)),
+                        Flexible(child: Text(accountTypeLabel(type, l10n))),
                       ],
                     ),
                   ),
@@ -220,6 +222,8 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _openingController,
+              textDirection: TextDirection.ltr,
+              textAlign: amountTextAlign(context),
               keyboardType: const TextInputType.numberWithOptions(
                 signed: true,
                 decimal: true,

@@ -166,6 +166,8 @@ class _TransferScreenState extends State<TransferScreen> with AmountEntry {
     }) {
       return DropdownButtonFormField<String>(
         key: ValueKey((label, value)),
+        // Long names shorten instead of overflowing (LANG-6).
+        isExpanded: true,
         initialValue: accounts.any((a) => a.id == value) ? value : null,
         decoration: InputDecoration(
           labelText: label,

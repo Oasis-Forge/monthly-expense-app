@@ -13,9 +13,18 @@ void main() {
   const income = TransactionType.income;
   const cash = Account.cashId;
 
-  test('foldForSearch lowercases and strips accents (SRCH-1)', () {
+  test('foldForSearch lowercases and strips accents (SRCH-1, LANG-4)', () {
     expect(foldForSearch('Café Crème'), 'cafe creme');
     expect(foldForSearch('ŁÓDŹ'), 'lodz');
+    // Turkish dotted and dotless i.
+    expect(foldForSearch('İstanbul'), 'istanbul');
+    expect(foldForSearch('ILIK'), foldForSearch('ılık'));
+    expect(foldForSearch('Şişli Ağaç'), 'sisli agac');
+    // Arabic with a vowel mark and a tatweel, and alef with hamza.
+    final damma = String.fromCharCode(0x064F);
+    final tatweel = String.fromCharCode(0x0640);
+    expect(foldForSearch('م$damma$tatweelحمد'), 'محمد');
+    expect(foldForSearch('أحمد'), foldForSearch('احمد'));
   });
 
   group('search (SRCH-1–SRCH-3)', () {

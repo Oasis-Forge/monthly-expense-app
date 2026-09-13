@@ -133,6 +133,8 @@
   "themeSystem": "System",
   "themeLight": "Light",
   "themeDark": "Dark",
+  "languageLabel": "Language",
+  "languageSystem": "System default",
   "monthStartLabel": "First day of the month",
   "monthStartLastDay": "Last day",
   "showCarriedForwardLabel": "Carry balance forward",
@@ -380,7 +382,7 @@
   },
   "calendarHint": "Tap a day to see its transactions.",
   "dayEmpty": "Nothing on this day.",
-  "trendMonths": "{count} months",
+  "trendMonths": "{count, plural, =1{1 month} other{{count} months}}",
   "@trendMonths": {
     "placeholders": {
       "count": {

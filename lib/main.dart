@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'l10n/app_localizations.dart';
+import 'l10n/languages.dart';
 import 'providers/settings_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'screens/app_lock.dart';
@@ -62,6 +63,9 @@ class MonthlyExpenseApp extends StatelessWidget {
           onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          locale: settings.locale,
+          localeListResolutionCallback: (locales, _) =>
+              resolveAppLocale(locales),
           debugShowCheckedModeBanner: false,
           themeMode: settings.themeMode,
           theme: ThemeData(

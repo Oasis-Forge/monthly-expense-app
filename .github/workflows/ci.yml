@@ -40,6 +40,13 @@ jobs:
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed lib test
 
+      # The generated lib/l10n/app_localizations*.dart files are committed;
+      # they must match the ARB files (LANG-2).
+      - name: Check generated localizations
+        run: |
+          flutter gen-l10n
+          git diff --exit-code -- lib/l10n
+
       - name: Analyze
         run: flutter analyze
 

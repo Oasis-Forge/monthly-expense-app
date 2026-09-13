@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -9,6 +9,7 @@ import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'form_fields.dart';
 import 'recurring_rule_screen.dart';
 
 /// Recurring transactions: what's due and waiting for a tap (RCR-2), the
@@ -142,28 +143,39 @@ class _DueTile extends StatelessWidget {
     return ListTile(
       leading: CircleAvatar(child: Text(category?.icon ?? '📦')),
       title: Text(name),
-      subtitle: Text(
-        l10n.categoryAndDate(
-          _signedAmount(rule, currency),
-          DateFormat.yMMMd(l10n.localeName).format(occurrence.date),
-        ),
-      ),
-      onTap: () => _postWithAmount(context, name),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextButton(
-            onPressed: () =>
-                _run(context, () => provider.skipOccurrence(occurrence)),
-            child: Text(l10n.skipButton),
+          Text(
+            l10n.categoryAndDate(
+              isolateLeftToRight(
+                _signedAmount(rule, currency),
+                Directionality.of(context),
+              ),
+              DateFormat.yMMMd(l10n.localeName).format(occurrence.date),
+            ),
           ),
-          FilledButton.tonal(
-            onPressed: () =>
-                _run(context, () => provider.postOccurrence(occurrence)),
-            child: Text(l10n.postButton),
+          // Under the text rather than trailing, so the buttons fit at any
+          // text size and in every language (LANG-6).
+          OverflowBar(
+            alignment: MainAxisAlignment.end,
+            spacing: 8,
+            children: [
+              TextButton(
+                onPressed: () =>
+                    _run(context, () => provider.skipOccurrence(occurrence)),
+                child: Text(l10n.skipButton),
+              ),
+              FilledButton.tonal(
+                onPressed: () =>
+                    _run(context, () => provider.postOccurrence(occurrence)),
+                child: Text(l10n.postButton),
+              ),
+            ],
           ),
         ],
       ),
+      onTap: () => _postWithAmount(context, name),
     );
   }
 }
@@ -189,7 +201,10 @@ class _OccurrenceTile extends StatelessWidget {
       subtitle: Text(
         DateFormat.yMMMEd(l10n.localeName).format(occurrence.date),
       ),
-      trailing: Text(_signedAmount(rule, currency)),
+      trailing: Text(
+        _signedAmount(rule, currency),
+        textDirection: TextDirection.ltr,
+      ),
     );
   }
 }
@@ -214,7 +229,10 @@ class _RuleTile extends StatelessWidget {
       ),
       title: Text(rule.label(category, l10n)),
       subtitle: Text(scheduleLabel(rule, l10n)),
-      trailing: Text(_signedAmount(rule, currency)),
+      trailing: Text(
+        _signedAmount(rule, currency),
+        textDirection: TextDirection.ltr,
+      ),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => RecurringRuleScreen(editing: rule)),
       ),
@@ -265,6 +283,8 @@ class _PostDialogState extends State<_PostDialog> {
         child: TextFormField(
           controller: _controller,
           autofocus: true,
+          textDirection: TextDirection.ltr,
+          textAlign: amountTextAlign(context),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: l10n.amountLabel,

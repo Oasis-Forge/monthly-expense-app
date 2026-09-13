@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -8,6 +8,7 @@ import '../models/money.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'form_fields.dart';
 
 /// Sets the overall and per-category budgets for the current period on
 /// (BUD-1, BUD-5).
@@ -149,6 +150,8 @@ class _BudgetDialogState extends State<_BudgetDialog> {
         child: TextFormField(
           controller: _controller,
           autofocus: true,
+          textDirection: TextDirection.ltr,
+          textAlign: amountTextAlign(context),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: l10n.budgetLimitLabel,

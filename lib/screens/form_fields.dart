@@ -2,11 +2,19 @@ import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 
 import '../l10n/app_localizations.dart';
 import '../models/amount_expression.dart';
 import '../models/money.dart';
+
+/// Amounts and expressions like `12.5+3` read left to right in every
+/// language, but sit on the label's side in right-to-left layouts (LANG-5).
+/// Use with `textDirection: TextDirection.ltr` on amount fields.
+TextAlign amountTextAlign(BuildContext context) =>
+    Directionality.of(context) == TextDirection.rtl
+    ? TextAlign.right
+    : TextAlign.left;
 
 /// Amount entry shared by the transaction and transfer forms (ADD-2): the
 /// field accepts `+` and `−`, shows the result live, and on phones uses
@@ -54,6 +62,8 @@ mixin AmountEntry<T extends StatefulWidget> on State<T> {
       controller: amountController,
       focusNode: amountFocus,
       autofocus: autofocus,
+      textDirection: TextDirection.ltr,
+      textAlign: amountTextAlign(context),
       keyboardType: useKeypad
           ? TextInputType.none
           : const TextInputType.numberWithOptions(decimal: true),
@@ -123,33 +133,37 @@ class AmountKeypad extends StatelessWidget {
         top: false,
         child: Padding(
           padding: const EdgeInsets.all(4),
-          child: GridView(
-            // A fixed key height keeps the keypad compact on wide screens.
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 4,
-              mainAxisExtent: 52,
+          // Number pads keep 7 8 9 left to right in every language (LANG-5).
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: GridView(
+              // A fixed key height keeps the keypad compact on wide screens.
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                mainAxisExtent: 52,
+              ),
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                for (final key in _keys)
+                  switch (key) {
+                    'back' => IconButton(
+                      tooltip: l10n.backspaceTooltip,
+                      onPressed: () => _press(key),
+                      icon: const Icon(Icons.backspace_outlined),
+                    ),
+                    'done' => IconButton(
+                      tooltip: l10n.hideKeypadTooltip,
+                      onPressed: onDone,
+                      icon: const Icon(Icons.keyboard_hide_outlined),
+                    ),
+                    _ => TextButton(
+                      onPressed: () => _press(key),
+                      child: Text(key == '-' ? '−' : key, style: keyStyle),
+                    ),
+                  },
+              ],
             ),
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: [
-              for (final key in _keys)
-                switch (key) {
-                  'back' => IconButton(
-                    tooltip: l10n.backspaceTooltip,
-                    onPressed: () => _press(key),
-                    icon: const Icon(Icons.backspace_outlined),
-                  ),
-                  'done' => IconButton(
-                    tooltip: l10n.hideKeypadTooltip,
-                    onPressed: onDone,
-                    icon: const Icon(Icons.keyboard_hide_outlined),
-                  ),
-                  _ => TextButton(
-                    onPressed: () => _press(key),
-                    child: Text(key == '-' ? '−' : key, style: keyStyle),
-                  ),
-                },
-            ],
           ),
         ),
       ),

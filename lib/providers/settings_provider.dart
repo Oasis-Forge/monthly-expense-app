@@ -1,15 +1,16 @@
 import 'dart:async' show unawaited;
 
-import 'package:flutter/material.dart' show ChangeNotifier, ThemeMode;
+import 'package:flutter/material.dart' show ChangeNotifier, Locale, ThemeMode;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../l10n/languages.dart';
 import '../models/period.dart';
 
-/// App settings kept in shared_preferences: currency (CUR-1–CUR-3), theme
-/// mode, the first day of the month (PER-2) and of the week (PER-4), whether
-/// Home carries the balance forward (BAL-3), the backup reminder (BAK-7), and
-/// app lock (LOCK-1).
+/// App settings kept in shared_preferences: language (LANG-1), currency
+/// (CUR-1–CUR-3), theme mode, the first day of the month (PER-2) and of the
+/// week (PER-4), whether Home carries the balance forward (BAL-3), the backup
+/// reminder (BAK-7), and app lock (LOCK-1).
 class SettingsProvider extends ChangeNotifier {
   /// Reads saved settings from [_prefs]. Without a saved currency, the
   /// currency of [deviceLocale] (such as `en_GB`) is preselected. [clock]
@@ -19,6 +20,7 @@ class SettingsProvider extends ChangeNotifier {
     String? deviceLocale,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now,
+       _languageCode = _validLanguage(_prefs.getString(_languageKey)),
        _currencyCode =
            _prefs.getString(_currencyKey) ?? defaultCurrencyFor(deviceLocale),
        _themeMode = _themeModeNamed(_prefs.getString(_themeKey)),
@@ -36,6 +38,7 @@ class SettingsProvider extends ChangeNotifier {
     }
   }
 
+  static const _languageKey = 'language';
   static const _currencyKey = 'currency_code';
   static const _themeKey = 'theme_mode';
   static const _startDayKey = 'month_start_day';
@@ -55,6 +58,7 @@ class SettingsProvider extends ChangeNotifier {
 
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
+  String? _languageCode;
   String _currencyCode;
   ThemeMode _themeMode;
   int _startDay;
@@ -65,6 +69,15 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? _reminderSnoozedAt;
   late final DateTime _firstOpenedAt;
   bool _appLock;
+
+  /// The chosen language code, or null to follow the device (LANG-1).
+  String? get languageCode => _languageCode;
+
+  /// The locale the app shows, or null to follow the device.
+  Locale? get locale => switch (_languageCode) {
+    final code? => Locale(code),
+    null => null,
+  };
 
   String get currencyCode => _currencyCode;
   ThemeMode get themeMode => _themeMode;
@@ -113,6 +126,23 @@ class SettingsProvider extends ChangeNotifier {
     if (code == _currencyCode) return;
     await _prefs.setString(_currencyKey, code);
     _currencyCode = code;
+    notifyListeners();
+  }
+
+  /// Shows the app in [code], or follows the device again with null. The
+  /// app switches at once (LANG-1).
+  Future<void> setLanguageCode(String? code) async {
+    assert(
+      code == null || appLanguages.containsKey(code),
+      'Unknown language: $code',
+    );
+    if (code == _languageCode) return;
+    if (code == null) {
+      await _prefs.remove(_languageKey);
+    } else {
+      await _prefs.setString(_languageKey, code);
+    }
+    _languageCode = code;
     notifyListeners();
   }
 
@@ -203,6 +233,7 @@ class SettingsProvider extends ChangeNotifier {
   /// Settings that travel with a backup (BAK-1). App lock and the backup
   /// reminder belong to the device, so they stay out.
   Map<String, Object?> get backupValues => {
+    _languageKey: _languageCode,
     _currencyKey: _currencyCode,
     _themeKey: _themeMode.name,
     _startDayKey: _startDay,
@@ -212,6 +243,13 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Applies settings from a backup. Missing or invalid values are ignored.
   Future<void> restoreBackupValues(Map<String, Object?> values) async {
+    if (values.containsKey(_languageKey)) {
+      final language = values[_languageKey];
+      if (language == null ||
+          (language is String && _validLanguage(language) == language)) {
+        await setLanguageCode(language as String?);
+      }
+    }
     final currency = values[_currencyKey];
     if (currency is String && RegExp(r'^[A-Z]{3}$').hasMatch(currency)) {
       await setCurrencyCode(currency);
@@ -243,6 +281,9 @@ class SettingsProvider extends ChangeNotifier {
       day != null && ((day >= 1 && day <= 28) || day == Period.lastDayOfMonth)
       ? day
       : 1;
+
+  static String? _validLanguage(String? code) =>
+      appLanguages.containsKey(code) ? code : null;
 
   static int? _validWeekDay(int? day) =>
       day != null && day >= 0 && day <= 6 ? day : null;

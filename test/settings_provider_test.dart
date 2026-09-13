@@ -163,6 +163,7 @@ void main() {
     );
     final values = source.backupValues;
     expect(values, {
+      'language': null,
       'currency_code': 'EUR',
       'theme_mode': 'dark',
       'month_start_day': 25,
@@ -202,5 +203,26 @@ void main() {
 
     await target.restoreBackupValues({'week_start_day': null});
     expect(target.weekStartDay, isNull);
+  });
+
+  test('language follows the device until one is chosen (LANG-1)', () async {
+    final prefs = await prefsWith({'language': 'xx'});
+    final settings = SettingsProvider(prefs);
+    expect((settings.languageCode, settings.locale), (null, null));
+
+    await settings.setLanguageCode('tr');
+    expect(SettingsProvider(prefs).locale, const Locale('tr'));
+    expect(settings.backupValues['language'], 'tr');
+
+    await settings.setLanguageCode(null);
+    expect(SettingsProvider(prefs).languageCode, isNull);
+
+    await settings.restoreBackupValues({'language': 'ar'});
+    expect(settings.languageCode, 'ar');
+    await settings.restoreBackupValues({'language': 'klingon'});
+    await settings.restoreBackupValues({'currency_code': 'EUR'});
+    expect(settings.languageCode, 'ar');
+    await settings.restoreBackupValues({'language': null});
+    expect(settings.languageCode, isNull);
   });
 }

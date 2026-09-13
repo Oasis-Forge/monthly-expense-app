@@ -224,6 +224,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
+  String get languageLabel => 'Language';
+
+  @override
+  String get languageSystem => 'System default';
+
+  @override
   String get monthStartLabel => 'First day of the month';
 
   @override
@@ -666,7 +672,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trendMonths(int count) {
-    return '$count months';
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months',
+      one: '1 month',
+    );
+    return '$_temp0';
   }
 
   @override
