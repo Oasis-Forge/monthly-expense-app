@@ -5,9 +5,13 @@ import '../models/transaction.dart';
 
 /// Thin wrapper around a local sqflite database for storing transactions.
 class DBHelper {
-  DBHelper._internal();
-  static final DBHelper instance = DBHelper._internal();
+  /// Opens the database at [path], or the app's database file when null.
+  /// Tests pass `inMemoryDatabasePath`.
+  DBHelper({this.path});
 
+  static final DBHelper instance = DBHelper();
+
+  final String? path;
   Database? _db;
 
   Future<Database> get database async {
@@ -16,12 +20,14 @@ class DBHelper {
     return _db!;
   }
 
-  Future<Database> _initDB() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'monthly_expense_app.db');
+  Future<void> close() async {
+    await _db?.close();
+    _db = null;
+  }
 
+  Future<Database> _initDB() async {
     return openDatabase(
-      path,
+      path ?? join(await getDatabasesPath(), 'monthly_expense_app.db'),
       version: 1,
       onCreate: (db, version) async {
         await db.execute('''
