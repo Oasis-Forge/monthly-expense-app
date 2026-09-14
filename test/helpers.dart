@@ -13,6 +13,7 @@ import 'package:monthly_expense_app/models/backup.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
@@ -21,6 +22,7 @@ import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
 import 'package:monthly_expense_app/services/backup_files.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
+import 'package:monthly_expense_app/services/reminder_service.dart';
 
 final _created = DateTime.utc(2026);
 
@@ -135,6 +137,30 @@ List<Category> testCategories() {
   ];
 }
 
+/// A note with test defaults. [amount], when given, is in whole currency
+/// units.
+Note testNote(
+  String id,
+  String text, {
+  DateTime? dueDate,
+  DateTime? reminderAt,
+  num? amount,
+  String? categoryId,
+  DateTime? doneAt,
+}) {
+  return Note(
+    id: id,
+    text: text,
+    dueDate: dueDate,
+    reminderAt: reminderAt,
+    amount: amount == null ? null : _money(amount),
+    categoryId: categoryId,
+    doneAt: doneAt,
+    createdAt: _created,
+    updatedAt: _created,
+  );
+}
+
 /// An in-memory [DBHelper] for tests that don't need sqflite. Set
 /// [failWrites] to make every write throw.
 class FakeDB extends DBHelper {
@@ -145,12 +171,14 @@ class FakeDB extends DBHelper {
     List<Account>? accounts,
     List<Budget> budgets = const [],
     List<RecurringRule> rules = const [],
+    List<Note> notes = const [],
   }) : rows = [...transactions],
        transfers = [...transfers],
        categories = categories ?? testCategories(),
        accounts = accounts ?? [testAccount(Account.cashId)],
        budgets = [...budgets],
-       rules = [...rules];
+       rules = [...rules],
+       notes = [...notes];
 
   /// Every stored transaction, soft-deleted ones included.
   final List<ExpenseTransaction> rows;
@@ -169,6 +197,9 @@ class FakeDB extends DBHelper {
 
   /// Every stored recurring rule, soft-deleted ones included.
   final List<RecurringRule> rules;
+
+  /// Every stored note, soft-deleted ones included.
+  final List<Note> notes;
 
   /// Every posted or skipped occurrence.
   final List<RecurringOccurrence> occurrences = [];
@@ -194,6 +225,7 @@ class FakeDB extends DBHelper {
   Future<void> purgeDeletedBefore(DateTime cutoff) async {
     rows.removeWhere((row) => row.deletedAt?.isBefore(cutoff) ?? false);
     transfers.removeWhere((t) => t.deletedAt?.isBefore(cutoff) ?? false);
+    notes.removeWhere((n) => n.deletedAt?.isBefore(cutoff) ?? false);
   }
 
   @override
@@ -303,6 +335,24 @@ class FakeDB extends DBHelper {
   }
 
   @override
+  Future<List<Note>> fetchNotes() async => [
+    for (final note in notes)
+      if (note.deletedAt == null) note,
+  ];
+
+  @override
+  Future<void> insertNote(Note note) async {
+    _checkWrite();
+    notes.add(note);
+  }
+
+  @override
+  Future<void> updateNote(Note note) async {
+    _checkWrite();
+    notes[notes.indexWhere((n) => n.id == note.id)] = note;
+  }
+
+  @override
   Future<List<RecurringOccurrence>> fetchOccurrences() async => [
     ...occurrences,
   ];
@@ -339,6 +389,7 @@ class FakeDB extends DBHelper {
     'recurring_occurrences': [
       for (final occurrence in occurrences) occurrence.toMap(),
     ],
+    'notes': [for (final note in notes) note.toMap()],
   };
 
   @override
@@ -368,6 +419,9 @@ class FakeDB extends DBHelper {
     occurrences
       ..clear()
       ..addAll(read('recurring_occurrences', RecurringOccurrence.fromMap));
+    notes
+      ..clear()
+      ..addAll(read('notes', Note.fromMap));
   }
 
   @override
@@ -467,6 +521,45 @@ class FakeAuthenticator implements Authenticator {
   }
 }
 
+/// A [ReminderService] that records calls instead of touching the device.
+/// [permissionGranted] answers [requestPermission].
+class FakeReminderService implements ReminderService {
+  FakeReminderService({this.permissionGranted = true});
+
+  bool permissionGranted;
+
+  /// Notes currently scheduled, by ID, with the [appLockOn] they were
+  /// scheduled with.
+  final Map<String, bool> scheduled = {};
+
+  /// How many times [requestPermission] was called.
+  int permissionRequests = 0;
+
+  @override
+  Future<bool> requestPermission() async {
+    permissionRequests++;
+    return permissionGranted;
+  }
+
+  @override
+  Future<void> schedule(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    if (note.reminderAt == null || note.isDone || note.deletedAt != null) {
+      scheduled.remove(note.id);
+    } else {
+      scheduled[note.id] = appLockOn;
+    }
+  }
+
+  @override
+  Future<void> cancel(Note note) async {
+    scheduled.remove(note.id);
+  }
+}
+
 /// A [BackupService] over [db] with fake files and a fixed app version.
 BackupService testBackupService(
   DBHelper db, {
@@ -503,6 +596,7 @@ Widget testApp(
   Widget home, {
   BackupService? backup,
   Authenticator? authenticator,
+  ReminderService? reminders,
 }) {
   return MultiProvider(
     providers: [
@@ -513,6 +607,9 @@ Widget testApp(
       ),
       Provider<Authenticator>.value(
         value: authenticator ?? FakeAuthenticator(),
+      ),
+      Provider<ReminderService>.value(
+        value: reminders ?? FakeReminderService(),
       ),
     ],
     // Like the app, the language follows the settings (LANG-1).

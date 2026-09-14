@@ -4,6 +4,7 @@ import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/amount_expression.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/period.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
@@ -194,6 +195,66 @@ void main() {
 
       final cleared = account.copyWith(name: null, archivedAt: null);
       expect((cleared.name, cleared.archivedAt), (null, null));
+    });
+  });
+
+  group('Note (NOTE-1)', () {
+    final full = Note(
+      id: 'n',
+      text: 'Pay rent',
+      dueDate: DateTime(2026, 9, 30),
+      reminderAt: DateTime(2026, 9, 30, 9),
+      amount: const Money(900000),
+      categoryId: 'cat-rent',
+      transactionId: 'tx-1',
+      doneAt: DateTime.utc(2026, 9, 29),
+      createdAt: DateTime.utc(2026, 9, 1),
+      updatedAt: DateTime.utc(2026, 9, 2),
+      deletedAt: DateTime.utc(2026, 9, 3),
+    );
+
+    test('round-trips through maps', () {
+      expect(Note.fromMap(full.toMap()).toMap(), full.toMap());
+    });
+
+    test('isDone follows doneAt', () {
+      expect(full.isDone, isTrue);
+      expect(full.copyWith(doneAt: null).isDone, isFalse);
+    });
+
+    test('copyWith clears nullable fields only when given null', () {
+      final kept = full.copyWith(text: 'Pay rent early');
+      expect(
+        (kept.dueDate, kept.reminderAt, kept.amount, kept.categoryId),
+        (full.dueDate, full.reminderAt, full.amount, full.categoryId),
+      );
+      expect(
+        (kept.transactionId, kept.doneAt),
+        (full.transactionId, full.doneAt),
+      );
+
+      final cleared = full.copyWith(
+        dueDate: null,
+        reminderAt: null,
+        amount: null,
+        categoryId: null,
+        transactionId: null,
+        doneAt: null,
+        deletedAt: null,
+      );
+      expect(
+        (
+          cleared.dueDate,
+          cleared.reminderAt,
+          cleared.amount,
+          cleared.categoryId,
+          cleared.transactionId,
+          cleared.doneAt,
+          cleared.deletedAt,
+        ),
+        (null, null, null, null, null, null, null),
+      );
+      expect(cleared.text, full.text);
     });
   });
 

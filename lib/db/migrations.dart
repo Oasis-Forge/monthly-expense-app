@@ -242,3 +242,23 @@ Future<void> migrateToVersion7(DatabaseExecutor db) async {
     )
   ''');
 }
+
+/// Version 8: notes, with an optional due date, reminder, amount, category,
+/// and a link to the transaction they were recorded as (NOTE-1, NOTE-4).
+Future<void> migrateToVersion8(DatabaseExecutor db) async {
+  await db.execute('''
+    CREATE TABLE notes (
+      id TEXT PRIMARY KEY,
+      text TEXT NOT NULL,
+      due_date TEXT,
+      reminder_at TEXT,
+      amount INTEGER,
+      category_id TEXT,
+      transaction_id TEXT,
+      done_at TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      deleted_at TEXT
+    )
+  ''');
+}

@@ -118,6 +118,8 @@ dart run flutter_native_splash:create
 
 ## One-time setup: Windows (Microsoft Store)
 
+Building for Windows needs the ATL component for MSVC (Visual Studio Installer → Individual components → "C++ ATL for latest v143 build tools"); `flutter_local_notifications_windows` (note reminders, NOTE-6) needs it to compile. `ci.yml` and `release-desktop.yml` install it on the runner before building.
+
 1. In Partner Center, reserve the name "Monthly Expenses".
 2. Under Product identity, copy Package/Identity/Name, Package/Identity/Publisher, and Package/Properties/PublisherDisplayName into the `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER`, and `MSIX_PUBLISHER_DISPLAY_NAME` variables.
 3. Run `release-desktop.yml` on the release tag, download the MSIX from the run, and upload it in a Partner Center submission. The Store signs it.

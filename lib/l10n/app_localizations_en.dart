@@ -875,4 +875,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unlockButton => 'Unlock';
+
+  @override
+  String get notesTitle => 'Notes';
+
+  @override
+  String get addNoteTooltip => 'Add note';
+
+  @override
+  String get addNoteTitle => 'Add note';
+
+  @override
+  String get editNoteTitle => 'Edit note';
+
+  @override
+  String get noteTextLabel => 'Note';
+
+  @override
+  String get noteTextRequired => 'Enter some text';
+
+  @override
+  String get noteAmountOptionalLabel => 'Amount (optional)';
+
+  @override
+  String get noteDueDateToggle => 'Set a due date';
+
+  @override
+  String get noteDueDateLabel => 'Due date';
+
+  @override
+  String get noteReminderToggle => 'Remind me';
+
+  @override
+  String get noteReminderTimeLabel => 'Reminder time';
+
+  @override
+  String get noteReminderTimeUnset => 'Choose a time';
+
+  @override
+  String get noteCategoryOptionalLabel => 'Category (optional)';
+
+  @override
+  String get noteCategoryNone => 'None';
+
+  @override
+  String get recordNoteButton => 'Record as transaction';
+
+  @override
+  String get noteMarkDoneTooltip => 'Mark done';
+
+  @override
+  String get noteMarkOpenTooltip => 'Mark open';
+
+  @override
+  String get notesEmptyTitle => 'Nothing here yet';
+
+  @override
+  String get notesEmptyMessage =>
+      'Notes remember things to do or check on, with an optional date, amount, and category.';
+
+  @override
+  String get addNoteButton => 'Add a note';
+
+  @override
+  String get notesOpenHeader => 'Open';
+
+  @override
+  String get notesDoneHeader => 'Done';
+
+  @override
+  String get noteDeleted => 'Note deleted.';
+
+  @override
+  String get noteSaveFailed => 'Couldn\'t save the note. Try again.';
+
+  @override
+  String get noteDeleteFailed => 'Couldn\'t delete the note. Try again.';
+
+  @override
+  String get noteRestoreFailed => 'Couldn\'t restore the note. Try again.';
+
+  @override
+  String get notesSearchHint => 'Search notes';
+
+  @override
+  String get noteFilterAll => 'All';
+
+  @override
+  String get noteFilterOverdue => 'Overdue';
+
+  @override
+  String get noteFilterDueToday => 'Due today';
+
+  @override
+  String get noteFilterUpcoming => 'Upcoming';
+
+  @override
+  String get noteFilterNoDate => 'No date';
+
+  @override
+  String get noNoteResults => 'No matching notes.';
+
+  @override
+  String get noteLinkedTransactionLabel => 'Recorded as a transaction';
+
+  @override
+  String get noteLinkedNoteLabel => 'From a note';
+
+  @override
+  String notesDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes are due',
+      one: '1 note is due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dayNotesDueHeader => 'Notes due';
+
+  @override
+  String get noteReminderTitle => 'Note reminder';
+
+  @override
+  String get noteReminderLockedTitle => 'A note is due';
+
+  @override
+  String get noteReminderPermissionDenied =>
+      'Turn on notifications in system settings to get reminders for notes.';
 }

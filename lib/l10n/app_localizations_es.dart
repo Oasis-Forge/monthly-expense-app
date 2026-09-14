@@ -890,4 +890,137 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get unlockButton => 'Desbloquear';
+
+  @override
+  String get notesTitle => 'Notas';
+
+  @override
+  String get addNoteTooltip => 'Añadir nota';
+
+  @override
+  String get addNoteTitle => 'Añadir nota';
+
+  @override
+  String get editNoteTitle => 'Editar nota';
+
+  @override
+  String get noteTextLabel => 'Nota';
+
+  @override
+  String get noteTextRequired => 'Introduce un texto';
+
+  @override
+  String get noteAmountOptionalLabel => 'Importe (opcional)';
+
+  @override
+  String get noteDueDateToggle => 'Establecer una fecha límite';
+
+  @override
+  String get noteDueDateLabel => 'Fecha límite';
+
+  @override
+  String get noteReminderToggle => 'Recordármelo';
+
+  @override
+  String get noteReminderTimeLabel => 'Hora del recordatorio';
+
+  @override
+  String get noteReminderTimeUnset => 'Elegir una hora';
+
+  @override
+  String get noteCategoryOptionalLabel => 'Categoría (opcional)';
+
+  @override
+  String get noteCategoryNone => 'Ninguna';
+
+  @override
+  String get recordNoteButton => 'Registrar como transacción';
+
+  @override
+  String get noteMarkDoneTooltip => 'Marcar como hecha';
+
+  @override
+  String get noteMarkOpenTooltip => 'Marcar como pendiente';
+
+  @override
+  String get notesEmptyTitle => 'Nada por aquí todavía';
+
+  @override
+  String get notesEmptyMessage =>
+      'Las notas recuerdan cosas por hacer o comprobar, con una fecha, un importe y una categoría opcionales.';
+
+  @override
+  String get addNoteButton => 'Añadir una nota';
+
+  @override
+  String get notesOpenHeader => 'Pendientes';
+
+  @override
+  String get notesDoneHeader => 'Hechas';
+
+  @override
+  String get noteDeleted => 'Nota eliminada.';
+
+  @override
+  String get noteSaveFailed =>
+      'No se pudo guardar la nota. Inténtalo de nuevo.';
+
+  @override
+  String get noteDeleteFailed =>
+      'No se pudo eliminar la nota. Inténtalo de nuevo.';
+
+  @override
+  String get noteRestoreFailed =>
+      'No se pudo restaurar la nota. Inténtalo de nuevo.';
+
+  @override
+  String get notesSearchHint => 'Buscar notas';
+
+  @override
+  String get noteFilterAll => 'Todas';
+
+  @override
+  String get noteFilterOverdue => 'Atrasada';
+
+  @override
+  String get noteFilterDueToday => 'Vence hoy';
+
+  @override
+  String get noteFilterUpcoming => 'Próximas';
+
+  @override
+  String get noteFilterNoDate => 'Sin fecha';
+
+  @override
+  String get noNoteResults => 'No hay notas coincidentes.';
+
+  @override
+  String get noteLinkedTransactionLabel => 'Registrada como transacción';
+
+  @override
+  String get noteLinkedNoteLabel => 'Desde una nota';
+
+  @override
+  String notesDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notas vencen',
+      one: '1 nota vence',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dayNotesDueHeader => 'Notas que vencen';
+
+  @override
+  String get noteReminderTitle => 'Recordatorio de nota';
+
+  @override
+  String get noteReminderLockedTitle => 'Hay una nota que vence';
+
+  @override
+  String get noteReminderPermissionDenied =>
+      'Activa las notificaciones en los ajustes del sistema para recibir recordatorios de notas.';
 }

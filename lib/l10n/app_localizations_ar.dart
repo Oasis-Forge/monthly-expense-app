@@ -905,4 +905,137 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get unlockButton => 'فتح القفل';
+
+  @override
+  String get notesTitle => 'الملاحظات';
+
+  @override
+  String get addNoteTooltip => 'إضافة ملاحظة';
+
+  @override
+  String get addNoteTitle => 'إضافة ملاحظة';
+
+  @override
+  String get editNoteTitle => 'تعديل الملاحظة';
+
+  @override
+  String get noteTextLabel => 'الملاحظة';
+
+  @override
+  String get noteTextRequired => 'أدخل نصًا';
+
+  @override
+  String get noteAmountOptionalLabel => 'المبلغ (اختياري)';
+
+  @override
+  String get noteDueDateToggle => 'تحديد تاريخ استحقاق';
+
+  @override
+  String get noteDueDateLabel => 'تاريخ الاستحقاق';
+
+  @override
+  String get noteReminderToggle => 'ذكّرني';
+
+  @override
+  String get noteReminderTimeLabel => 'وقت التذكير';
+
+  @override
+  String get noteReminderTimeUnset => 'اختر وقتًا';
+
+  @override
+  String get noteCategoryOptionalLabel => 'الفئة (اختياري)';
+
+  @override
+  String get noteCategoryNone => 'بلا';
+
+  @override
+  String get recordNoteButton => 'تسجيل كمعاملة';
+
+  @override
+  String get noteMarkDoneTooltip => 'وضع علامة تم';
+
+  @override
+  String get noteMarkOpenTooltip => 'وضع علامة مفتوح';
+
+  @override
+  String get notesEmptyTitle => 'لا يوجد شيء هنا بعد';
+
+  @override
+  String get notesEmptyMessage =>
+      'تُستخدم الملاحظات لتذكّر أمور يجب فعلها أو التحقق منها، مع تاريخ ومبلغ وفئة اختيارية.';
+
+  @override
+  String get addNoteButton => 'إضافة ملاحظة';
+
+  @override
+  String get notesOpenHeader => 'مفتوحة';
+
+  @override
+  String get notesDoneHeader => 'منجزة';
+
+  @override
+  String get noteDeleted => 'تم حذف الملاحظة.';
+
+  @override
+  String get noteSaveFailed => 'تعذّر حفظ الملاحظة. حاول مرة أخرى.';
+
+  @override
+  String get noteDeleteFailed => 'تعذّر حذف الملاحظة. حاول مرة أخرى.';
+
+  @override
+  String get noteRestoreFailed => 'تعذّرت استعادة الملاحظة. حاول مرة أخرى.';
+
+  @override
+  String get notesSearchHint => 'البحث في الملاحظات';
+
+  @override
+  String get noteFilterAll => 'الكل';
+
+  @override
+  String get noteFilterOverdue => 'متأخرة';
+
+  @override
+  String get noteFilterDueToday => 'مستحقة اليوم';
+
+  @override
+  String get noteFilterUpcoming => 'قادمة';
+
+  @override
+  String get noteFilterNoDate => 'بلا تاريخ';
+
+  @override
+  String get noNoteResults => 'لا توجد ملاحظات مطابقة.';
+
+  @override
+  String get noteLinkedTransactionLabel => 'سُجّلت كمعاملة';
+
+  @override
+  String get noteLinkedNoteLabel => 'من ملاحظة';
+
+  @override
+  String notesDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ملاحظة مستحقة',
+      many: '$count ملاحظة مستحقة',
+      few: '$count ملاحظات مستحقة',
+      two: 'ملاحظتان مستحقتان',
+      one: 'ملاحظة واحدة مستحقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dayNotesDueHeader => 'الملاحظات المستحقة';
+
+  @override
+  String get noteReminderTitle => 'تذكير بملاحظة';
+
+  @override
+  String get noteReminderLockedTitle => 'هناك ملاحظة مستحقة';
+
+  @override
+  String get noteReminderPermissionDenied =>
+      'فعّل الإشعارات من إعدادات النظام لتلقي تذكيرات الملاحظات.';
 }

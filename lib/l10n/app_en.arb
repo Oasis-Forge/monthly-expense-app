@@ -519,5 +519,52 @@
   "appLockReason": "Unlock Monthly Expenses",
   "appLockFailed": "Couldn't confirm it's you. App lock wasn't changed.",
   "lockedTitle": "Monthly Expenses is locked",
-  "unlockButton": "Unlock"
+  "unlockButton": "Unlock",
+  "notesTitle": "Notes",
+  "addNoteTooltip": "Add note",
+  "addNoteTitle": "Add note",
+  "editNoteTitle": "Edit note",
+  "noteTextLabel": "Note",
+  "noteTextRequired": "Enter some text",
+  "noteAmountOptionalLabel": "Amount (optional)",
+  "noteDueDateToggle": "Set a due date",
+  "noteDueDateLabel": "Due date",
+  "noteReminderToggle": "Remind me",
+  "noteReminderTimeLabel": "Reminder time",
+  "noteReminderTimeUnset": "Choose a time",
+  "noteCategoryOptionalLabel": "Category (optional)",
+  "noteCategoryNone": "None",
+  "recordNoteButton": "Record as transaction",
+  "noteMarkDoneTooltip": "Mark done",
+  "noteMarkOpenTooltip": "Mark open",
+  "notesEmptyTitle": "Nothing here yet",
+  "notesEmptyMessage": "Notes remember things to do or check on, with an optional date, amount, and category.",
+  "addNoteButton": "Add a note",
+  "notesOpenHeader": "Open",
+  "notesDoneHeader": "Done",
+  "noteDeleted": "Note deleted.",
+  "noteSaveFailed": "Couldn't save the note. Try again.",
+  "noteDeleteFailed": "Couldn't delete the note. Try again.",
+  "noteRestoreFailed": "Couldn't restore the note. Try again.",
+  "notesSearchHint": "Search notes",
+  "noteFilterAll": "All",
+  "noteFilterOverdue": "Overdue",
+  "noteFilterDueToday": "Due today",
+  "noteFilterUpcoming": "Upcoming",
+  "noteFilterNoDate": "No date",
+  "noNoteResults": "No matching notes.",
+  "noteLinkedTransactionLabel": "Recorded as a transaction",
+  "noteLinkedNoteLabel": "From a note",
+  "notesDueNotice": "{count, plural, =1{1 note is due} other{{count} notes are due}}",
+  "@notesDueNotice": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dayNotesDueHeader": "Notes due",
+  "noteReminderTitle": "Note reminder",
+  "noteReminderLockedTitle": "A note is due",
+  "noteReminderPermissionDenied": "Turn on notifications in system settings to get reminders for notes."
 }

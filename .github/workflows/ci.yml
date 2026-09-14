@@ -153,6 +153,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
 
+      # flutter_local_notifications_windows (note reminders, NOTE-6) needs the
+      # ATL headers, an optional MSVC component the runner doesn't ship with.
+      - name: Install the ATL component for MSVC
+        if: matrix.target == 'windows'
+        shell: pwsh
+        run: |
+          $vsPath = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "$vsPath" --add Microsoft.VisualStudio.Component.VC.ATL --quiet --norestart --wait
+
       - uses: subosito/flutter-action@v2
         with:
           channel: stable

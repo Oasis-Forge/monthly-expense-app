@@ -876,4 +876,134 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get unlockButton => 'Kilidi aç';
+
+  @override
+  String get notesTitle => 'Notlar';
+
+  @override
+  String get addNoteTooltip => 'Not ekle';
+
+  @override
+  String get addNoteTitle => 'Not ekle';
+
+  @override
+  String get editNoteTitle => 'Notu düzenle';
+
+  @override
+  String get noteTextLabel => 'Not';
+
+  @override
+  String get noteTextRequired => 'Bir metin girin';
+
+  @override
+  String get noteAmountOptionalLabel => 'Tutar (isteğe bağlı)';
+
+  @override
+  String get noteDueDateToggle => 'Son tarih belirle';
+
+  @override
+  String get noteDueDateLabel => 'Son tarih';
+
+  @override
+  String get noteReminderToggle => 'Bana hatırlat';
+
+  @override
+  String get noteReminderTimeLabel => 'Hatırlatma saati';
+
+  @override
+  String get noteReminderTimeUnset => 'Bir saat seçin';
+
+  @override
+  String get noteCategoryOptionalLabel => 'Kategori (isteğe bağlı)';
+
+  @override
+  String get noteCategoryNone => 'Yok';
+
+  @override
+  String get recordNoteButton => 'İşlem olarak kaydet';
+
+  @override
+  String get noteMarkDoneTooltip => 'Tamamlandı olarak işaretle';
+
+  @override
+  String get noteMarkOpenTooltip => 'Açık olarak işaretle';
+
+  @override
+  String get notesEmptyTitle => 'Henüz bir şey yok';
+
+  @override
+  String get notesEmptyMessage =>
+      'Notlar, isteğe bağlı bir tarih, tutar ve kategoriyle yapılacak veya kontrol edilecek şeyleri hatırlatır.';
+
+  @override
+  String get addNoteButton => 'Not ekle';
+
+  @override
+  String get notesOpenHeader => 'Açık';
+
+  @override
+  String get notesDoneHeader => 'Tamamlandı';
+
+  @override
+  String get noteDeleted => 'Not silindi.';
+
+  @override
+  String get noteSaveFailed => 'Not kaydedilemedi. Tekrar deneyin.';
+
+  @override
+  String get noteDeleteFailed => 'Not silinemedi. Tekrar deneyin.';
+
+  @override
+  String get noteRestoreFailed => 'Not geri yüklenemedi. Tekrar deneyin.';
+
+  @override
+  String get notesSearchHint => 'Notlarda ara';
+
+  @override
+  String get noteFilterAll => 'Tümü';
+
+  @override
+  String get noteFilterOverdue => 'Gecikmiş';
+
+  @override
+  String get noteFilterDueToday => 'Bugün son tarih';
+
+  @override
+  String get noteFilterUpcoming => 'Yaklaşan';
+
+  @override
+  String get noteFilterNoDate => 'Tarihsiz';
+
+  @override
+  String get noNoteResults => 'Eşleşen not yok.';
+
+  @override
+  String get noteLinkedTransactionLabel => 'Bir işlem olarak kaydedildi';
+
+  @override
+  String get noteLinkedNoteLabel => 'Bir nottan';
+
+  @override
+  String notesDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notun son tarihi geldi',
+      one: '1 notun son tarihi geldi',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dayNotesDueHeader => 'Son tarihi gelen notlar';
+
+  @override
+  String get noteReminderTitle => 'Not hatırlatması';
+
+  @override
+  String get noteReminderLockedTitle => 'Son tarihi gelen bir not var';
+
+  @override
+  String get noteReminderPermissionDenied =>
+      'Not hatırlatmaları alabilmek için sistem ayarlarından bildirimleri açın.';
 }

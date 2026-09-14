@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
@@ -26,7 +27,11 @@ void main() {
   });
 
   /// Opens the add/edit screen from a placeholder page on a phone screen.
-  Future<void> open(WidgetTester tester, {ExpenseTransaction? editing}) async {
+  Future<void> open(
+    WidgetTester tester, {
+    ExpenseTransaction? editing,
+    Note? recordingNote,
+  }) async {
     usePhoneScreen(tester);
     await tester.pumpWidget(
       testApp(
@@ -37,7 +42,10 @@ void main() {
             body: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => AddTransactionScreen(editing: editing),
+                  builder: (_) => AddTransactionScreen(
+                    editing: editing,
+                    recordingNote: recordingNote,
+                  ),
                 ),
               ),
               child: const Text('open'),
@@ -412,4 +420,27 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'recording a note prefills it, dates it today, and links it (NOTE-4)',
+    (tester) async {
+      final note = testNote('n', 'Buy milk', amount: 5, categoryId: 'cat-food');
+      await provider.addNote(
+        note,
+        appLockOn: false,
+        locale: const Locale('en'),
+      );
+
+      await open(tester, recordingNote: note);
+      await expectInForm(tester, 'Buy milk');
+      await tapButton(tester, 'Record as transaction');
+
+      final saved = provider.transactions.single;
+      expect(saved.title, 'Buy milk');
+      expect(saved.amount, const Money(5000));
+      expect(dayOf(saved.date), dayOf(DateTime.now()));
+      expect(provider.noteById('n')!.isDone, isTrue);
+      expect(provider.noteById('n')!.transactionId, saved.id);
+    },
+  );
 }
