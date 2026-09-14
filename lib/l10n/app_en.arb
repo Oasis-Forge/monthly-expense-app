@@ -718,6 +718,11 @@
       }
     }
   },
+  "importRowUnreadableDate": "Date can't be read",
+  "importRowUnreadableAmount": "Amount can't be read",
+  "importRowZero": "No money at all",
+  "importRowAlreadyThere": "Already in the app",
+  "importRowIncompleteTransfer": "Only one account named",
   "importNamesHeader": "Names this app hasn't got",
   "importNamesSubtitle": "Pick what each one becomes. Importing never creates a category or an account.",
   "importRowsHeader": "The first rows, as the app read them",

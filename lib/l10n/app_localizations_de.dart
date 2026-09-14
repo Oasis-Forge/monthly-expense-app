@@ -1309,6 +1309,21 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get importRowUnreadableDate => 'Datum nicht lesbar';
+
+  @override
+  String get importRowUnreadableAmount => 'Betrag nicht lesbar';
+
+  @override
+  String get importRowZero => 'Gar kein Betrag';
+
+  @override
+  String get importRowAlreadyThere => 'Schon in der App';
+
+  @override
+  String get importRowIncompleteTransfer => 'Nur ein Konto genannt';
+
+  @override
   String get importNamesHeader => 'Namen, die es in dieser App nicht gibt';
 
   @override

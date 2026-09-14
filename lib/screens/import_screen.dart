@@ -294,7 +294,7 @@ class _ImportScreenState extends State<ImportScreen> {
               currency: currency,
               skipLine: row.skipped == null
                   ? null
-                  : _skipLine(l10n, row.skipped!, 1),
+                  : _rowSkipLine(l10n, row.skipped!),
             ),
           if (plan.rows.length > _previewRows)
             Padding(
@@ -366,6 +366,17 @@ class _ImportScreenState extends State<ImportScreen> {
     }
     return unknown;
   }
+
+  /// Why one row won't import, said the short way — the counts above the
+  /// list already do the counting.
+  String _rowSkipLine(AppLocalizations l10n, SkipReason reason) =>
+      switch (reason) {
+        SkipReason.unreadableDate => l10n.importRowUnreadableDate,
+        SkipReason.unreadableAmount => l10n.importRowUnreadableAmount,
+        SkipReason.zeroAmount => l10n.importRowZero,
+        SkipReason.alreadyThere => l10n.importRowAlreadyThere,
+        SkipReason.incompleteTransfer => l10n.importRowIncompleteTransfer,
+      };
 
   String _skipLine(AppLocalizations l10n, SkipReason reason, int count) =>
       switch (reason) {

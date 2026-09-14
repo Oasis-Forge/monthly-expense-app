@@ -182,13 +182,15 @@ void main() {
     );
     await pickFile(tester);
 
+    // Counted once each above the list...
     expect(find.text('1 row will be imported'), findsOne);
-    expect(find.text("1 row has a date the app can't read"), findsAtLeast(1));
-    expect(
-      find.text("1 row has an amount the app can't read"),
-      findsAtLeast(1),
-    );
-    expect(find.text('1 row is for no money at all'), findsAtLeast(1));
+    expect(find.text("1 row has a date the app can't read"), findsOne);
+    expect(find.text("1 row has an amount the app can't read"), findsOne);
+    expect(find.text('1 row is for no money at all'), findsOne);
+    // ...and said the short way against the row itself.
+    expect(find.text("Date can't be read"), findsOne);
+    expect(find.text("Amount can't be read"), findsOne);
+    expect(find.text('No money at all'), findsOne);
     // The unreadable cell is shown as written, so the user can find it.
     expect(find.text('sometime · Tea'), findsOne);
   });
@@ -276,7 +278,8 @@ void main() {
     fileHolds(csv);
     await pickFile(tester);
 
-    expect(find.text('1 row is already in the app'), findsAtLeast(1));
+    expect(find.text('1 row is already in the app'), findsOne);
+    expect(find.text('Already in the app'), findsOne);
     expect(find.text('Nothing will be imported'), findsOne);
     expect(
       tester

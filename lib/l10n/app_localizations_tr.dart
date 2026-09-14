@@ -1289,6 +1289,21 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get importRowUnreadableDate => 'Tarih okunamıyor';
+
+  @override
+  String get importRowUnreadableAmount => 'Tutar okunamıyor';
+
+  @override
+  String get importRowZero => 'Hiç tutar yok';
+
+  @override
+  String get importRowAlreadyThere => 'Uygulamada zaten var';
+
+  @override
+  String get importRowIncompleteTransfer => 'Yalnızca tek hesap belirtilmiş';
+
+  @override
   String get importNamesHeader => 'Bu uygulamada olmayan adlar';
 
   @override

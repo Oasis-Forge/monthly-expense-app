@@ -1338,6 +1338,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get importRowUnreadableDate => 'تعذّرت قراءة التاريخ';
+
+  @override
+  String get importRowUnreadableAmount => 'تعذّرت قراءة المبلغ';
+
+  @override
+  String get importRowZero => 'بلا أي مبلغ';
+
+  @override
+  String get importRowAlreadyThere => 'موجود في التطبيق بالفعل';
+
+  @override
+  String get importRowIncompleteTransfer => 'حساب واحد فقط مذكور';
+
+  @override
   String get importNamesHeader => 'أسماء لا يملكها هذا التطبيق';
 
   @override

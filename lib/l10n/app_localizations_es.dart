@@ -1308,6 +1308,21 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get importRowUnreadableDate => 'No se puede leer la fecha';
+
+  @override
+  String get importRowUnreadableAmount => 'No se puede leer el importe';
+
+  @override
+  String get importRowZero => 'Sin importe';
+
+  @override
+  String get importRowAlreadyThere => 'Ya está en la aplicación';
+
+  @override
+  String get importRowIncompleteTransfer => 'Solo se nombra una cuenta';
+
+  @override
   String get importNamesHeader => 'Nombres que esta aplicación no tiene';
 
   @override

@@ -1288,6 +1288,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get importRowUnreadableDate => 'Date can\'t be read';
+
+  @override
+  String get importRowUnreadableAmount => 'Amount can\'t be read';
+
+  @override
+  String get importRowZero => 'No money at all';
+
+  @override
+  String get importRowAlreadyThere => 'Already in the app';
+
+  @override
+  String get importRowIncompleteTransfer => 'Only one account named';
+
+  @override
   String get importNamesHeader => 'Names this app hasn\'t got';
 
   @override

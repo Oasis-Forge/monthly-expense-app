@@ -2212,6 +2212,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 transfer names only one account} other{{count} transfers name only one account}}'**
   String importSkippedTransfer(int count);
 
+  /// No description provided for @importRowUnreadableDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date can\'t be read'**
+  String get importRowUnreadableDate;
+
+  /// No description provided for @importRowUnreadableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount can\'t be read'**
+  String get importRowUnreadableAmount;
+
+  /// No description provided for @importRowZero.
+  ///
+  /// In en, this message translates to:
+  /// **'No money at all'**
+  String get importRowZero;
+
+  /// No description provided for @importRowAlreadyThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in the app'**
+  String get importRowAlreadyThere;
+
+  /// No description provided for @importRowIncompleteTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one account named'**
+  String get importRowIncompleteTransfer;
+
   /// No description provided for @importNamesHeader.
   ///
   /// In en, this message translates to:

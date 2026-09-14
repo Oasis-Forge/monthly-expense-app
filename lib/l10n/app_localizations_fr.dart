@@ -1300,6 +1300,21 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get importRowUnreadableDate => 'Date illisible';
+
+  @override
+  String get importRowUnreadableAmount => 'Montant illisible';
+
+  @override
+  String get importRowZero => 'Aucun montant';
+
+  @override
+  String get importRowAlreadyThere => 'Déjà dans l\'application';
+
+  @override
+  String get importRowIncompleteTransfer => 'Un seul compte nommé';
+
+  @override
   String get importNamesHeader => 'Noms que cette application n\'a pas';
 
   @override
