@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -571,6 +571,8 @@ class _RowLine extends StatelessWidget {
             amount == null
                 ? '—'
                 : '${_sign(row.type)}${currency.format(amount.toDouble())}',
+            // The sign stays in front of the amount in Arabic (LANG-5).
+            textDirection: TextDirection.ltr,
             style: TextStyle(
               color: skipLine == null ? null : scheme.onSurfaceVariant,
             ),

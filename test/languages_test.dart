@@ -203,6 +203,19 @@ void main() {
       expect(amount.textAlign, TextAlign.right);
     });
 
+    testWidgets('an imported row keeps its amount left to right', (
+      tester,
+    ) async {
+      await show(tester, 'ar', const ImportScreen(), backup: withSampleCsv());
+      await tester.tap(find.text(l10n.importChooseFile));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.textContaining('12.50'), 200);
+      await tester.pumpAndSettle();
+
+      final amount = tester.widget<Text>(find.textContaining('12.50'));
+      expect(amount.textDirection, TextDirection.ltr);
+    });
+
     testWidgets('the trend starts with the newest period on the left, and '
         'amounts sit on the right', (tester) async {
       await show(tester, 'ar', const InsightsScreen());
