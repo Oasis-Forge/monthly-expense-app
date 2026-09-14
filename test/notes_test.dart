@@ -128,18 +128,70 @@ void main() {
       expect(provider.noteForTransaction('tx-1')?.id, 'a');
     });
 
-    test('deleting the linked transaction reopens the note (NOTE-4)', () async {
-      await add('a', 'Buy milk');
+    test('deleting the linked transaction reopens the note and re-arms its '
+        'reminder (NOTE-4)', () async {
+      await add(
+        'a',
+        'Buy milk',
+        dueDate: DateTime(2026, 9, 20),
+        reminderAt: DateTime(2026, 9, 20, 9),
+      );
       await provider.addTransaction(
         testTx('tx-1', TransactionType.expense, 5, now),
       );
       await provider.recordNote('a', 'tx-1', appLockOn: false, locale: locale);
+      expect(reminders.scheduled.containsKey('a'), isFalse);
 
       await provider.deleteTransaction('tx-1');
 
       final note = provider.noteById('a')!;
       expect(note.isDone, isFalse);
       expect(note.transactionId, isNull);
+      expect(reminders.scheduled['a'], false);
+    });
+
+    test('undoing that delete marks the note done and linked again '
+        '(NOTE-4, DEL-2)', () async {
+      await add(
+        'a',
+        'Buy milk',
+        dueDate: DateTime(2026, 9, 20),
+        reminderAt: DateTime(2026, 9, 20, 9),
+      );
+      await provider.addTransaction(
+        testTx('tx-1', TransactionType.expense, 5, now),
+      );
+      await provider.recordNote('a', 'tx-1', appLockOn: false, locale: locale);
+      final doneAt = provider.noteById('a')!.doneAt;
+      await provider.deleteTransaction('tx-1');
+
+      await provider.restoreTransaction('tx-1');
+
+      final note = provider.noteById('a')!;
+      expect(note.transactionId, 'tx-1');
+      expect(note.doneAt, doneAt);
+      expect(reminders.scheduled.containsKey('a'), isFalse);
+    });
+
+    test('an edit made before the undo survives it (NOTE-4)', () async {
+      await add('a', 'Buy milk');
+      await provider.addTransaction(
+        testTx('tx-1', TransactionType.expense, 5, now),
+      );
+      await provider.recordNote('a', 'tx-1', appLockOn: false, locale: locale);
+      await provider.deleteTransaction('tx-1');
+      await provider.updateNote(
+        provider.noteById('a')!.copyWith(text: 'Buy oat milk'),
+        appLockOn: false,
+        locale: locale,
+      );
+
+      await provider.restoreTransaction('tx-1');
+
+      final note = provider.noteById('a')!;
+      expect(note.text, 'Buy oat milk');
+      expect(note.transactionId, 'tx-1');
+      expect(note.isDone, isTrue);
     });
 
     test('reminders are scheduled while open with a future time, and cancelled '
@@ -178,5 +230,20 @@ void main() {
         expect(reminders.scheduled['a'], false);
       },
     );
+
+    test('rescheduling re-words pending reminders for the new app lock '
+        '(NOTE-6, LOCK-2)', () async {
+      await add(
+        'a',
+        'Remind me',
+        dueDate: DateTime(2026, 9, 20),
+        reminderAt: DateTime(2026, 9, 20, 9),
+      );
+      expect(reminders.scheduled['a'], false);
+
+      await provider.rescheduleReminders(appLockOn: true, locale: locale);
+
+      expect(reminders.scheduled['a'], true);
+    });
   });
 }

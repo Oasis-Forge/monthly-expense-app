@@ -63,6 +63,16 @@ class TransactionProvider extends ChangeNotifier {
   /// Notes deleted since loading, kept so Undo can restore them.
   final List<Note> _deletedNotes = [];
 
+  /// Notes reopened by deleting the transaction they were recorded as, keyed
+  /// by that transaction's ID and holding when the note had been done, so
+  /// undoing the delete links them again (NOTE-4, DEL-2).
+  final Map<String, ({String noteId, DateTime doneAt})> _reopenedNotes = {};
+
+  /// The app lock and language the last [rescheduleReminders] ran with, for
+  /// re-arming a reminder away from a screen that could pass its own.
+  bool _appLockOn = false;
+  Locale _locale = const Locale('en');
+
   /// Handled occurrences by [RecurringOccurrence.key].
   final Map<String, RecurringOccurrence> _occurrences = {};
   int _startDay;
@@ -335,19 +345,23 @@ class TransactionProvider extends ChangeNotifier {
       ..sort(_newestTransferFirst);
     _deletedTransfers.clear();
     _deletedNotes.clear();
+    _reopenedNotes.clear();
     await _postAutomaticOccurrences();
     await rescheduleReminders(appLockOn: appLockOn, locale: locale);
     _loaded = true;
     _changed();
   }
 
-  /// Re-schedules every open note's reminder (NOTE-6). Call this after a
-  /// change to app lock or the app's language, so already-scheduled
-  /// notifications pick up the new [appLockOn] and [locale].
+  /// Re-schedules every open note's reminder (NOTE-6). Settings calls this
+  /// after a change to app lock or the app's language, so notifications
+  /// already scheduled pick up the new [appLockOn] and [locale] instead of
+  /// waiting for the next launch (LOCK-2).
   Future<void> rescheduleReminders({
     required bool appLockOn,
     required Locale locale,
   }) async {
+    _appLockOn = appLockOn;
+    _locale = locale;
     for (final note in _notes) {
       await _reminders.schedule(note, appLockOn: appLockOn, locale: locale);
     }
@@ -429,6 +443,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions
       ..add(restored)
       ..sort(_newestFirst);
+    await _relinkNoteFor(id);
     _changed();
   }
 
@@ -752,21 +767,49 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Reopens the note recorded as [transactionId], if any: its reminder, if
-  /// still upcoming, resumes at the next [rescheduleReminders] (NOTE-4).
+  /// Reopens the note recorded as [transactionId], if any, and re-arms its
+  /// reminder for a due date still ahead (NOTE-4). [_relinkNoteFor] puts both
+  /// back when the delete is undone.
   Future<void> _reopenNoteFor(String transactionId) async {
     final note = noteForTransaction(transactionId);
     if (note == null) return;
+    final now = _clock().toUtc();
+    _reopenedNotes[transactionId] = (
+      noteId: note.id,
+      doneAt: note.doneAt ?? now,
+    );
     final reopened = note.copyWith(
       transactionId: null,
       doneAt: null,
-      updatedAt: _clock().toUtc(),
+      updatedAt: now,
     );
     await _db.updateNote(reopened);
     _notes = [
       for (final existing in _notes)
         if (existing.id == note.id) reopened else existing,
     ];
+    await _reminders.schedule(reopened, appLockOn: _appLockOn, locale: _locale);
+  }
+
+  /// Marks the note that deleting [transactionId] reopened done and linked
+  /// again, so undoing that delete undoes both halves (NOTE-4). Its reminder
+  /// goes back off, since the note is done. Any edit made in between stays.
+  Future<void> _relinkNoteFor(String transactionId) async {
+    final reopened = _reopenedNotes.remove(transactionId);
+    if (reopened == null) return;
+    final note = noteById(reopened.noteId);
+    if (note == null) return;
+    final relinked = note.copyWith(
+      transactionId: transactionId,
+      doneAt: reopened.doneAt,
+      updatedAt: _clock().toUtc(),
+    );
+    await _db.updateNote(relinked);
+    _notes = [
+      for (final existing in _notes)
+        if (existing.id == note.id) relinked else existing,
+    ];
+    await _reminders.cancel(relinked);
   }
 
   // Search (SRCH-1–SRCH-3).

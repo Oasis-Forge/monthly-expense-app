@@ -66,11 +66,7 @@ class MonthlyExpenseApp extends StatelessWidget {
                 reminders: reminderService,
               )..load(
                 appLockOn: settings.appLock,
-                locale:
-                    settings.locale ??
-                    resolveAppLocale(
-                      WidgetsBinding.instance.platformDispatcher.locales,
-                    ),
+                locale: effectiveAppLocale(settings.locale),
               ),
         ),
         Provider<BackupService>(create: (_) => backup ?? BackupService()),

@@ -157,6 +157,34 @@ void main() {
     expect(authenticator.requests, 2);
   });
 
+  testWidgets('turning app lock on re-words the reminders already scheduled '
+      'for notes (NOTE-6, LOCK-2)', (tester) async {
+    final reminders = FakeReminderService();
+    provider = TransactionProvider(
+      db: FakeDB(
+        notes: [
+          testNote(
+            'a',
+            'Remind me',
+            dueDate: DateTime(2026, 9, 20),
+            reminderAt: DateTime(2026, 9, 20, 9),
+          ),
+        ],
+      ),
+      clock: () => DateTime(2026, 9, 15),
+      reminders: reminders,
+    );
+    await provider.load();
+    expect(reminders.scheduled['a'], false);
+
+    await showSettings(tester, authenticator: FakeAuthenticator());
+    await tester.tap(find.text('App lock'));
+    await tester.pumpAndSettle();
+
+    expect(settings.appLock, isTrue);
+    expect(reminders.scheduled['a'], true);
+  });
+
   testWidgets('without a screen lock, app lock can only be turned off '
       '(LOCK-3)', (tester) async {
     final authenticator = FakeAuthenticator(available: false);
