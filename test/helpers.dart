@@ -37,6 +37,7 @@ ExpenseTransaction testTx(
   String? title,
   String? note,
   String? categoryId,
+  String? accountId,
 }) {
   return ExpenseTransaction(
     id: id,
@@ -45,7 +46,7 @@ ExpenseTransaction testTx(
     categoryId:
         categoryId ??
         (type == TransactionType.income ? 'cat-salary' : 'cat-food'),
-    accountId: Account.cashId,
+    accountId: accountId ?? Account.cashId,
     type: type,
     date: date,
     note: note,

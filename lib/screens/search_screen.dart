@@ -11,6 +11,7 @@ import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
 import 'csv_export_action.dart';
+import 'report_screen.dart';
 
 /// Searches every transaction as you type, with filters for type, category,
 /// account, and dates (SRCH-1–SRCH-3).
@@ -46,15 +47,16 @@ class _SearchScreenState extends State<SearchScreen> {
       l10n.localeName,
     );
     final range = _range;
+    final filter = TransactionFilter(
+      query: _query,
+      type: _type,
+      categoryId: _categoryId,
+      accountId: _accountId,
+      from: range?.start,
+      to: range?.end,
+    );
     final result = provider.search(
-      TransactionFilter(
-        query: _query,
-        type: _type,
-        categoryId: _categoryId,
-        accountId: _accountId,
-        from: range?.start,
-        to: range?.end,
-      ),
+      filter,
       categoryName: (category) => category.label(l10n),
       accountName: (account) => account.label(l10n),
     );
@@ -86,6 +88,14 @@ class _SearchScreenState extends State<SearchScreen> {
                     name: 'search-${isoDate(provider.today)}',
                     transactions: result.transactions,
                   ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            tooltip: l10n.exportPdfMenu,
+            // PDF-1: the report opens on the dates being searched.
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => ReportScreen(filter: filter)),
+            ),
           ),
         ],
       ),

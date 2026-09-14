@@ -17,6 +17,7 @@ import 'add_transaction_screen.dart';
 import 'budgets_screen.dart';
 import 'note_form_screen.dart';
 import 'period_selector.dart';
+import 'report_screen.dart';
 import 'transfer_screen.dart';
 
 const List<Color> _chartColors = [
@@ -53,6 +54,14 @@ class InsightsScreen extends StatelessWidget {
               onPressed: () => Navigator.of(
                 context,
               ).push(MaterialPageRoute(builder: (_) => const BudgetsScreen())),
+            ),
+            // PDF-1: a report for the period Insights is showing.
+            IconButton(
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              tooltip: l10n.exportPdfMenu,
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const ReportScreen())),
             ),
           ],
           bottom: TabBar(

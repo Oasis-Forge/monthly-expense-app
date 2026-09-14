@@ -1005,4 +1005,132 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noteReminderPermissionDenied =>
       'Turn on notifications in system settings to get reminders for notes.';
+
+  @override
+  String reportRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String reportCreated(String when) {
+    return 'Created $when';
+  }
+
+  @override
+  String reportPageOf(int page, int pages) {
+    return 'Page $page of $pages';
+  }
+
+  @override
+  String get reportNet => 'Net';
+
+  @override
+  String get reportOpeningBalance => 'Opening balance';
+
+  @override
+  String get reportClosingBalance => 'Closing balance';
+
+  @override
+  String get reportSpendingHeader => 'Spending by category';
+
+  @override
+  String get reportEarningHeader => 'Income by category';
+
+  @override
+  String get reportTrendHeader => 'Trend';
+
+  @override
+  String get reportEntriesHeader => 'Transactions';
+
+  @override
+  String get reportUpcomingHeader => 'Upcoming';
+
+  @override
+  String get reportUpcomingNote =>
+      'Dated ahead, so not counted in the totals above.';
+
+  @override
+  String get reportAmountColumn => 'Amount';
+
+  @override
+  String get reportShareColumn => 'Share';
+
+  @override
+  String get reportBudgetColumn => 'Budget';
+
+  @override
+  String reportBudgetOf(String used, String limit) {
+    return '$used of $limit';
+  }
+
+  @override
+  String get reportDetailsColumn => 'Details';
+
+  @override
+  String get reportEmpty => 'Nothing to report for these dates.';
+
+  @override
+  String get exportPdfMenu => 'Export PDF';
+
+  @override
+  String get reportTitle => 'Export PDF';
+
+  @override
+  String get reportPreviewTitle => 'Report';
+
+  @override
+  String get reportCoversHeader => 'What it covers';
+
+  @override
+  String get reportRangePeriod => 'This period';
+
+  @override
+  String get reportRangeCustom => 'Dates';
+
+  @override
+  String get reportRangeYear => 'Year';
+
+  @override
+  String get reportFromLabel => 'From';
+
+  @override
+  String get reportToLabel => 'To';
+
+  @override
+  String get reportYearLabel => 'Year';
+
+  @override
+  String get reportAccountLabel => 'Account';
+
+  @override
+  String get reportAllAccounts => 'All accounts';
+
+  @override
+  String get reportIncludeHeader => 'What it includes';
+
+  @override
+  String get reportIncludeSubtitle =>
+      'Leave out anything you would rather not share.';
+
+  @override
+  String get reportIncludeTransactions => 'The transaction list';
+
+  @override
+  String get reportIncludeDetails => 'Titles and notes';
+
+  @override
+  String get reportIncludeAccounts => 'Account names';
+
+  @override
+  String get reportCreateButton => 'Create the report';
+
+  @override
+  String get reportBuilding => 'Building the report';
+
+  @override
+  String get reportFailed => 'Couldn\'t build the report. Try again.';
+
+  @override
+  String get reportRangeBackwards =>
+      'The first date has to come before the last.';
 }

@@ -4,6 +4,19 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-09-14
+
+### Added
+- A PDF report of your spending, from the Home menu, Insights, or Search: the period, dates you pick, or a whole year, and one account or all of them.
+- The report opens with income, expense, net, and the balances either side, then spending and income by category with each share and budget, a trend, and the entries day by day, with anything dated ahead listed apart.
+- Before creating it you can leave out the transaction list, the titles and notes, or the account names, so a report can be shared without the whole picture.
+- The report is built on your device with no internet connection, shown to you first, and shared, saved, or printed only if you then choose to.
+- It follows the app's language and formats, reads right to left in Arabic, and comes on A4 or US Letter with numbered pages.
+
+### Fixed
+- Turning app lock on now hides the text of note reminders that were already scheduled, instead of waiting for the next launch.
+- Undoing the deletion of a transaction recorded from a note marks that note done and linked again.
+
 ## [1.2.0] - 2026-09-14
 
 ### Added

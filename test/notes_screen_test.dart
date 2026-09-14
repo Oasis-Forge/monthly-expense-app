@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/note.dart';
+import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
@@ -331,5 +332,163 @@ void main() {
       find.widgetWithText(OutlinedButton, 'Record as transaction'),
       findsNothing,
     );
+  });
+
+  testWidgets('a recorded note links to its transaction, which opens from '
+      'the form (NOTE-4)', (tester) async {
+    await provider.addNote(
+      testNote('a', 'Buy milk'),
+      appLockOn: false,
+      locale: locale,
+    );
+    await provider.addTransaction(
+      testTx('tx-1', TransactionType.expense, 5, DateTime(2026, 9, 15)),
+    );
+    await provider.recordNote('a', 'tx-1', appLockOn: false, locale: locale);
+    await openForm(tester, editing: provider.noteById('a'));
+
+    await tapInForm(
+      tester,
+      find.widgetWithText(ListTile, 'Recorded as a transaction'),
+    );
+
+    expect(find.byType(AddTransactionScreen), findsOneWidget);
+  });
+
+  testWidgets('an amount and a category round-trip through the form '
+      '(NOTE-1)', (tester) async {
+    await openForm(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Note'),
+      'Buy milk',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Amount (optional)'),
+      '12.50',
+    );
+    await revealInForm(
+      tester,
+      find.widgetWithText(DropdownButtonFormField<String?>, 'None'),
+    );
+    await tester.tap(
+      find.widgetWithText(DropdownButtonFormField<String?>, 'None'),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('🍔 Food').last);
+    await tester.pumpAndSettle();
+    await tapInForm(tester, find.widgetWithText(FilledButton, 'Add a note'));
+
+    final note = provider.notes.single;
+    expect(note.amount!.toDouble(), 12.5);
+    expect(note.categoryId, 'cat-food');
+
+    // Editing it shows both again; the amount drops its trailing zero.
+    await openForm(tester, editing: note);
+    expect(find.widgetWithText(TextFormField, '12.5'), findsOneWidget);
+    expect(find.text('🍔 Food'), findsWidgets);
+  });
+
+  testWidgets('the form rejects empty text and an unparseable amount', (
+    tester,
+  ) async {
+    await openForm(tester);
+
+    await tapInForm(tester, find.widgetWithText(FilledButton, 'Add a note'));
+    expect(find.text('Enter some text'), findsOneWidget);
+    expect(provider.notes, isEmpty);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Note'),
+      'Buy milk',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Amount (optional)'),
+      'abc',
+    );
+    await tapInForm(tester, find.widgetWithText(FilledButton, 'Add a note'));
+    expect(find.text('Enter a valid amount'), findsOneWidget);
+    expect(provider.notes, isEmpty);
+  });
+
+  testWidgets('turning the due date off drops the reminder with it (NOTE-6)', (
+    tester,
+  ) async {
+    final reminders = FakeReminderService();
+    provider = TransactionProvider(
+      db: fake,
+      clock: () => DateTime(2026, 9, 15),
+      reminders: reminders,
+    );
+    await provider.load();
+    await openForm(tester, reminders: reminders);
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Note'),
+      'Pay rent',
+    );
+    await tapInForm(
+      tester,
+      find.widgetWithText(SwitchListTile, 'Set a due date'),
+    );
+    await tapInForm(tester, find.widgetWithText(SwitchListTile, 'Remind me'));
+    expect(find.widgetWithText(SwitchListTile, 'Remind me'), findsOneWidget);
+
+    await tapInForm(
+      tester,
+      find.widgetWithText(SwitchListTile, 'Set a due date'),
+    );
+    await tapInForm(tester, find.widgetWithText(FilledButton, 'Add a note'));
+
+    final note = provider.notes.single;
+    expect(note.dueDate, isNull);
+    expect(note.reminderAt, isNull);
+    expect(reminders.scheduled.containsKey(note.id), isFalse);
+  });
+
+  testWidgets('the due date and reminder time can be picked (NOTE-1, NOTE-6)', (
+    tester,
+  ) async {
+    await provider.addNote(
+      testNote(
+        'a',
+        'Pay rent',
+        dueDate: DateTime(2026, 9, 20),
+        reminderAt: DateTime(2026, 9, 20, 9),
+      ),
+      appLockOn: false,
+      locale: locale,
+    );
+    await openForm(tester, editing: provider.noteById('a'));
+
+    await revealInForm(tester, find.text('Due date'));
+    await tester.tap(find.text('Sun, Sep 20, 2026'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('25'));
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    await tapInForm(tester, find.widgetWithText(FilledButton, 'Save Changes'));
+
+    final note = provider.noteById('a')!;
+    expect(note.dueDate!.day, 25);
+    // The reminder follows the new date, keeping its time (NOTE-6).
+    expect(note.reminderAt, DateTime(2026, 9, 25, 9));
+  });
+
+  testWidgets('a note that fails to save says so and stays unsaved', (
+    tester,
+  ) async {
+    await openForm(tester);
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Note'),
+      'Buy milk',
+    );
+    fake.failWrites = true;
+
+    await tapInForm(tester, find.widgetWithText(FilledButton, 'Add a note'));
+    await tester.pumpAndSettle();
+
+    expect(find.text("Couldn't save the note. Try again."), findsOneWidget);
+    expect(provider.notes, isEmpty);
   });
 }

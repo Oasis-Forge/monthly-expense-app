@@ -1006,4 +1006,131 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noteReminderPermissionDenied =>
       'Not hatırlatmaları alabilmek için sistem ayarlarından bildirimleri açın.';
+
+  @override
+  String reportRange(String from, String to) {
+    return '$from - $to';
+  }
+
+  @override
+  String reportCreated(String when) {
+    return 'Oluşturulma: $when';
+  }
+
+  @override
+  String reportPageOf(int page, int pages) {
+    return 'Sayfa $page / $pages';
+  }
+
+  @override
+  String get reportNet => 'Net';
+
+  @override
+  String get reportOpeningBalance => 'Açılış bakiyesi';
+
+  @override
+  String get reportClosingBalance => 'Kapanış bakiyesi';
+
+  @override
+  String get reportSpendingHeader => 'Kategoriye göre harcama';
+
+  @override
+  String get reportEarningHeader => 'Kategoriye göre gelir';
+
+  @override
+  String get reportTrendHeader => 'Eğilim';
+
+  @override
+  String get reportEntriesHeader => 'İşlemler';
+
+  @override
+  String get reportUpcomingHeader => 'Yaklaşan';
+
+  @override
+  String get reportUpcomingNote =>
+      'İleri tarihli olduğundan yukarıdaki toplamlara dahil değil.';
+
+  @override
+  String get reportAmountColumn => 'Tutar';
+
+  @override
+  String get reportShareColumn => 'Pay';
+
+  @override
+  String get reportBudgetColumn => 'Bütçe';
+
+  @override
+  String reportBudgetOf(String used, String limit) {
+    return '$limit bütçesinin $used kadarı';
+  }
+
+  @override
+  String get reportDetailsColumn => 'Ayrıntılar';
+
+  @override
+  String get reportEmpty => 'Bu tarihler için raporlanacak bir şey yok.';
+
+  @override
+  String get exportPdfMenu => 'PDF dışa aktar';
+
+  @override
+  String get reportTitle => 'PDF dışa aktar';
+
+  @override
+  String get reportPreviewTitle => 'Rapor';
+
+  @override
+  String get reportCoversHeader => 'Kapsamı';
+
+  @override
+  String get reportRangePeriod => 'Bu dönem';
+
+  @override
+  String get reportRangeCustom => 'Tarihler';
+
+  @override
+  String get reportRangeYear => 'Yıl';
+
+  @override
+  String get reportFromLabel => 'Başlangıç';
+
+  @override
+  String get reportToLabel => 'Bitiş';
+
+  @override
+  String get reportYearLabel => 'Yıl';
+
+  @override
+  String get reportAccountLabel => 'Hesap';
+
+  @override
+  String get reportAllAccounts => 'Tüm hesaplar';
+
+  @override
+  String get reportIncludeHeader => 'İçeriği';
+
+  @override
+  String get reportIncludeSubtitle =>
+      'Paylaşmak istemediğiniz her şeyi çıkarın.';
+
+  @override
+  String get reportIncludeTransactions => 'İşlem listesi';
+
+  @override
+  String get reportIncludeDetails => 'Başlıklar ve notlar';
+
+  @override
+  String get reportIncludeAccounts => 'Hesap adları';
+
+  @override
+  String get reportCreateButton => 'Raporu oluştur';
+
+  @override
+  String get reportBuilding => 'Rapor oluşturuluyor';
+
+  @override
+  String get reportFailed => 'Rapor oluşturulamadı. Tekrar deneyin.';
+
+  @override
+  String get reportRangeBackwards => 'İlk tarih son tarihten önce olmalı.';
 }
