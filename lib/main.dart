@@ -84,7 +84,7 @@ class MonthlyExpenseApp extends StatelessWidget {
         Provider<ReminderService>(create: (_) => reminderService),
       ],
       child: _HomeWidgetSync(
-        service: homeWidget ?? DeviceHomeWidgetService(),
+        service: homeWidget,
         child: Consumer<SettingsProvider>(
           builder: (context, settings, _) => MaterialApp(
             navigatorKey: navigatorKey,
@@ -125,7 +125,8 @@ class MonthlyExpenseApp extends StatelessWidget {
 class _HomeWidgetSync extends StatefulWidget {
   const _HomeWidgetSync({required this.service, required this.child});
 
-  final HomeWidgetService service;
+  /// The device implementation when null; tests pass their own.
+  final HomeWidgetService? service;
   final Widget child;
 
   @override
@@ -133,19 +134,23 @@ class _HomeWidgetSync extends StatefulWidget {
 }
 
 class _HomeWidgetSyncState extends State<_HomeWidgetSync> {
+  // Built once here rather than in the parent's build, so a rebuild can't
+  // leave a second one talking to the same widget.
+  late final HomeWidgetService _service =
+      widget.service ?? DeviceHomeWidgetService();
   HomeWidgetUpdater? _updater;
 
   @override
   void initState() {
     super.initState();
-    unawaited(widget.service.listenForTaps());
+    unawaited(_service.listenForTaps());
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _updater ??= HomeWidgetUpdater(
-      service: widget.service,
+      service: _service,
       transactions: context.read<TransactionProvider>(),
       settings: context.read<SettingsProvider>(),
     )..start();
