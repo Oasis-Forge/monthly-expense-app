@@ -236,6 +236,21 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **NOTE-7** Deleting a note works like deleting a transaction: Undo, then the trash, then a purge after 30 days (DEL-2–DEL-4).
 - **NOTE-8** Backups include notes, and restore merges them by ID like every other record (BAK-1, BAK-3). CSV and PDF exports leave notes out.
 
+## 20. Importing a CSV
+
+**They do:** the reference app exports PDF and Excel reports and keeps a local `.db` backup it can put back. There is no documented CSV export, and no way to bring data in from anywhere else.
+
+**Learn:** the cost of switching trackers is the history you'd leave behind. Reading a plain CSV is the one import that works no matter which app someone is coming from — but only if it is honest about what it understood, because a silent mis-mapping puts wrong numbers in the one place a person needs to trust.
+
+- **IMP-1** "Import a CSV" sits with Backup & restore, and next to "Restore a backup" on the first-run page (RUN-3). It reads a file the user picks and only adds records; it never replaces or deletes what is already there, and it is not how a backup is restored (BAK-2).
+- **IMP-2** A CSV this app wrote reads back exactly, columns and all (BAK-5), including transfers.
+- **IMP-3** For a file from another app, columns are matched by their headers — date, amount, type, category, account, title, note — ignoring case, spaces and accents (LANG-4) and allowing for the usual alternative names. A column that can't be matched with confidence is left out rather than guessed at, and the user can correct any match before importing.
+- **IMP-4** A file needs a date and an amount to be importable. Without them, nothing is written: the app says the file can't be imported and names what it couldn't find, so the user knows whether to fix the file or give up (this is the whole point of IMP-5's preview).
+- **IMP-5** Before anything is written the user sees what the app understood: which column became which field, how many rows will import, how many will be skipped and why, and the first few rows as they were read. Importing happens only on confirmation.
+- **IMP-6** Imported rows follow the record rules like any other (REC-1, REC-2, DEL-1), so an import can be undone from the trash. Amounts and dates are read the way exports are written — ISO dates, plain decimals — and a row whose amount or date can't be read is skipped and counted, not rounded or guessed.
+- **IMP-7** A category or account named in the file that this app doesn't have is chosen once on the preview screen, from those that exist, defaulting to Other and the default account. Importing never creates categories or accounts, so a file from an app with dozens of them can't flood a list this app keeps deliberately short (section 5).
+- **IMP-8** A row matching one already in the app on date, amount, type, and title is taken as already imported and skipped; the preview says how many. A foreign CSV has no IDs, so this stands in for BAK-3's merge, and it is the one place the import decides something for itself — the preview says so plainly.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -246,6 +261,10 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 7. Notes, five more languages (Turkish, Arabic, French, Spanish, German), a home-screen widget, and a PDF report ship in v1, before release (roadmap Phase 4).
 8. Translations are machine-made, without a fluent-speaker review; CI checks and overflow tests guard them (LANG-2, LANG-6).
 9. The first launch shows a setup page for language and currency, then a short walkthrough (RUN-3–RUN-5). This replaces "no prompts before first use".
+
+## Decisions (14 September 2026)
+
+10. Importing a CSV ships in v1, before the first-run page (section 20, roadmap Phase 4). It reads this app's own export exactly and makes a best effort at a foreign one, showing what it understood first and refusing a file it can't read rather than importing part of it. Accepting *any* CSV layout is the aim, not a promise: what can't be mapped is declined with a reason. Unknown categories and accounts are mapped on the preview, never created (IMP-7), and a row already in the app is skipped (IMP-8).
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
