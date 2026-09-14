@@ -38,31 +38,4 @@ class WidgetSummary {
   final Money? budgetLeft;
 
   bool get isOverBudget => budgetLeft?.isNegative ?? false;
-
-  @override
-  bool operator ==(Object other) =>
-      other is WidgetSummary &&
-      other.from == from &&
-      other.period == period &&
-      other.income == income &&
-      other.expense == expense &&
-      other.balance == balance &&
-      other.balanceIsNet == balanceIsNet &&
-      other.budgetLeft == budgetLeft;
-
-  @override
-  int get hashCode => Object.hash(
-    from,
-    period,
-    income,
-    expense,
-    balance,
-    balanceIsNet,
-    budgetLeft,
-  );
-
-  @override
-  String toString() =>
-      'WidgetSummary($from, income: $income, expense: $expense, '
-      'balance: $balance, budgetLeft: $budgetLeft)';
 }

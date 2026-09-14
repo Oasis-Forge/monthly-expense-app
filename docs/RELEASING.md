@@ -69,6 +69,10 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
    ```
    Base64 `dist.p12` into `IOS_DIST_CERT_P12_BASE64`, and put its export password in `IOS_DIST_CERT_PASSWORD`.
 4. Create an **App Store** provisioning profile for the App ID named `Monthly Expenses App Store`, or set `IOS_PROFILE_NAME` to your profile's name.
+   The home-screen widget is a second target, so it needs its own of both (WID-1):
+   - Register the App Group `group.com.monthlyexpenses.app`, and enable the App Groups capability on **both** App IDs, ticking that group. Without it the widget shows nothing — it reads the app's numbers through the group and has no other way in.
+   - Register the App ID `com.monthlyexpenses.app.MonthlyExpensesWidget` for the extension.
+   - Create a second **App Store** profile for it named `Monthly Expenses Widget App Store`, or set `IOS_WIDGET_PROFILE_NAME`. `release-ios.yml` installs both and maps each to its target.
 5. In App Store Connect → Users and Access → Integrations, create an API key with the App Manager role. Fill in `APPSTORE_ISSUER_ID`, `APPSTORE_KEY_ID` and `APPSTORE_PRIVATE_KEY`.
 6. Set the `APPLE_TEAM_ID` variable. This enables iOS on tag pushes.
 7. Test it: run `release-ios.yml` manually with `upload: true` before tagging a real release.

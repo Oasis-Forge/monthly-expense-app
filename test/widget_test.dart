@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/main.dart';
+import 'package:monthly_expense_app/services/home_widget_service.dart';
 
 import 'helpers.dart';
 
@@ -18,7 +19,13 @@ void main() {
     WidgetTester tester,
   ) async {
     final settings = await testSettings();
-    await tester.pumpWidget(MonthlyExpenseApp(settings: settings));
+    // Deliberately not the device one: no test should reach the platform.
+    await tester.pumpWidget(
+      MonthlyExpenseApp(
+        settings: settings,
+        homeWidget: const NoopHomeWidgetService(),
+      ),
+    );
     await tester.pump();
 
     expect(find.text('Monthly Expenses'), findsOneWidget);

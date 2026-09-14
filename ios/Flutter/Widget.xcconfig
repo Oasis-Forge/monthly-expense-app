@@ -1,0 +1,7 @@
+// The home-screen widget extension's base configuration (WID-1).
+//
+// It takes the Flutter build name and number from Generated.xcconfig, the
+// same as the app, so both halves carry one version. It is separate from
+// Release.xcconfig because release-ios.yml appends the app's signing there
+// and the extension needs its own provisioning profile; see docs/RELEASING.md.
+#include "Generated.xcconfig"

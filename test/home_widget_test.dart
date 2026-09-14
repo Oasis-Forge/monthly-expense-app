@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -292,6 +296,79 @@ void main() {
       await pumpEventQueue();
 
       expect(service.updates.length, after);
+    });
+  });
+
+  group('the platform edge', () {
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final channel = DeviceHomeWidgetService.channel;
+    late List<MethodCall> calls;
+
+    void answer(Object? Function(MethodCall) handler) {
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        return handler(call);
+      });
+    }
+
+    setUp(() {
+      calls = [];
+      tappedWidgetAction.value = null;
+      answer((_) => null);
+    });
+
+    tearDown(() {
+      messenger.setMockMethodCallHandler(channel, null);
+      tappedWidgetAction.value = null;
+    });
+
+    test('the payload crosses as one JSON string', () async {
+      await DeviceHomeWidgetService().update(await payload());
+
+      expect(calls.single.method, 'update');
+      final sent =
+          jsonDecode(calls.single.arguments as String) as Map<String, Object?>;
+      expect(sent['title'], 'Monthly Expenses');
+      expect((sent['entries']! as List), hasLength(1));
+    });
+
+    test('a platform that has no widget is left alone (WID-1)', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.linux;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+      await DeviceHomeWidgetService().update(await payload());
+      expect(calls, isEmpty);
+    });
+
+    test('a refused update is not worth failing the change over', () async {
+      answer((_) => throw PlatformException(code: 'no_widget'));
+      // Doesn't throw.
+      await DeviceHomeWidgetService().update(await payload());
+      expect(calls, hasLength(1));
+    });
+
+    test('the tap that launched the app is picked up', () async {
+      answer((call) => call.method == 'launchAction' ? 'add_income' : null);
+
+      await DeviceHomeWidgetService().listenForTaps();
+      expect(tappedWidgetAction.value, HomeWidgetAction.addIncome);
+    });
+
+    test('a tap while running arrives on the channel', () async {
+      final service = DeviceHomeWidgetService();
+      await service.listenForTaps();
+      expect(tappedWidgetAction.value, isNull);
+
+      await messenger.handlePlatformMessage(
+        channel.name,
+        channel.codec.encodeMethodCall(
+          const MethodCall('tapped', 'add_expense'),
+        ),
+        (_) {},
+      );
+
+      expect(tappedWidgetAction.value, HomeWidgetAction.addExpense);
     });
   });
 
