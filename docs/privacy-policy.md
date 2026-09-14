@@ -37,6 +37,14 @@ None. The app has no accounts, analytics, advertising, tracking, or crash report
 - To restore, the app reads only the file you pick.
 - The app can remind you to back up. The reminder appears only on your device, and you can turn it off.
 
+## Home-screen widget
+
+- The widget is optional; nothing changes unless you add one to your home screen.
+- The app gives it only the numbers it shows — this period's income, spending, balance, and what is left of an overall budget — already written out in your language and currency. It never gets your transactions, titles, notes, accounts, or the database itself.
+- Those numbers are kept in a private area shared by the app and the widget on your device (a private file on Android, an App Group on iOS), so the widget can still show them when the app isn't running. Nothing is sent anywhere, and the widget never uses the internet.
+- With app lock on, the amounts aren't given to the widget at all, so it shows only its buttons — unless you turn on "Show amounts on the widget" in Settings.
+- Removing the widget from your home screen leaves those numbers behind until the app next runs; uninstalling the app removes them.
+
 ## App lock
 
 App lock is optional and off by default. When it is on, the app asks your device's operating system to check your fingerprint, face, or screen lock. The app never receives or stores your biometric data or your screen lock code; it only learns whether the check succeeded.

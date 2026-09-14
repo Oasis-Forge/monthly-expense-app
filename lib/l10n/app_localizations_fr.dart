@@ -887,6 +887,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get unlockButton => 'Déverrouiller';
 
   @override
+  String get widgetShowAmountsLabel => 'Afficher les montants sur le widget';
+
+  @override
+  String get widgetShowAmountsSubtitle =>
+      'Le widget d\'écran d\'accueil les masque tant que le verrouillage est activé';
+
+  @override
+  String get widgetLeftLabel => 'Restant';
+
+  @override
+  String get widgetAddExpense => 'Ajouter une dépense';
+
+  @override
+  String get widgetAddIncome => 'Ajouter un revenu';
+
+  @override
+  String get widgetAmountsHidden => 'Montants masqués par le verrouillage';
+
+  @override
   String get notesTitle => 'Notes';
 
   @override

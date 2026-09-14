@@ -877,6 +877,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get unlockButton => 'Unlock';
 
   @override
+  String get widgetShowAmountsLabel => 'Show amounts on the widget';
+
+  @override
+  String get widgetShowAmountsSubtitle =>
+      'The home-screen widget hides them while app lock is on';
+
+  @override
+  String get widgetLeftLabel => 'Left';
+
+  @override
+  String get widgetAddExpense => 'Add expense';
+
+  @override
+  String get widgetAddIncome => 'Add income';
+
+  @override
+  String get widgetAmountsHidden => 'Amounts are hidden by app lock';
+
+  @override
   String get notesTitle => 'Notes';
 
   @override

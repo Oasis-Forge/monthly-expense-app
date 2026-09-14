@@ -18,16 +18,21 @@ class AddTransactionScreen extends StatefulWidget {
   /// from [template] when duplicating one (ADD-7), or from [recordingNote]'s
   /// amount, category, and text as the title, dated today (NOTE-4). Saving
   /// then marks that note done and links the two.
+  ///
+  /// [startAs] opens on income instead of expense, for the home-screen
+  /// widget's Add income button (WID-3). The other prefills win over it.
   const AddTransactionScreen({
     super.key,
     this.editing,
     this.template,
     this.recordingNote,
+    this.startAs,
   });
 
   final ExpenseTransaction? editing;
   final ExpenseTransaction? template;
   final Note? recordingNote;
+  final TransactionType? startAs;
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -73,6 +78,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       _categoryId = category?.id ?? provider.defaultCategoryId(_type);
       _accountId = provider.defaultAccountId();
     } else {
+      _type = widget.startAs ?? _type;
       // ADD-3: the last category and account used.
       _categoryId = provider.defaultCategoryId(_type);
       _accountId = provider.defaultAccountId();

@@ -892,6 +892,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get unlockButton => 'Desbloquear';
 
   @override
+  String get widgetShowAmountsLabel => 'Mostrar los importes en el widget';
+
+  @override
+  String get widgetShowAmountsSubtitle =>
+      'El widget de la pantalla de inicio los oculta mientras el bloqueo esté activado';
+
+  @override
+  String get widgetLeftLabel => 'Restante';
+
+  @override
+  String get widgetAddExpense => 'Añadir gasto';
+
+  @override
+  String get widgetAddIncome => 'Añadir ingreso';
+
+  @override
+  String get widgetAmountsHidden => 'Importes ocultos por el bloqueo';
+
+  @override
   String get notesTitle => 'Notas';
 
   @override

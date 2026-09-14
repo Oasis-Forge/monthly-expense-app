@@ -31,6 +31,7 @@ void main() {
     WidgetTester tester, {
     ExpenseTransaction? editing,
     Note? recordingNote,
+    TransactionType? startAs,
   }) async {
     usePhoneScreen(tester);
     await tester.pumpWidget(
@@ -45,6 +46,7 @@ void main() {
                   builder: (_) => AddTransactionScreen(
                     editing: editing,
                     recordingNote: recordingNote,
+                    startAs: startAs,
                   ),
                 ),
               ),
@@ -151,6 +153,19 @@ void main() {
     final saved = provider.transactions.single;
     expect(saved.type, TransactionType.income);
     expect(saved.categoryId, 'cat-salary');
+  });
+
+  testWidgets("the widget's Add income button opens on income (WID-3)", (
+    tester,
+  ) async {
+    await open(tester, startAs: TransactionType.income);
+    // Its category came with it, so ADD-3 still applies (WID-3).
+    await expectInForm(tester, '💼 Salary');
+
+    await enterAmount(tester, '1000');
+    await tapButton(tester, 'Add Transaction');
+
+    expect(provider.transactions.single.type, TransactionType.income);
   });
 
   testWidgets('save & add another keeps the choices and clears the amount', (

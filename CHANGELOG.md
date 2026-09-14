@@ -4,6 +4,15 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-09-14
+
+### Added
+- A home-screen widget, in two sizes: a small one with this period's spending, or what's left of your budget when you've set an overall one, and a wider one with income, spending, the balance, and the budget left.
+- Both have an Add expense button, and the wider one adds Add income; tapping the numbers opens the app on the current period.
+- The widget always shows the current period, whatever the app was last left on, and keeps up as the day turns even if you don't open the app.
+- It follows the app's language, currency, and your device's light or dark theme, and reads right to left in Arabic.
+- With app lock on the widget shows only its buttons, and the amounts aren't given to it at all. A new setting, "Show amounts on the widget", puts them back.
+
 ## [1.3.1] - 2026-09-14
 
 ### Fixed

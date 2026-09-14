@@ -110,6 +110,15 @@ class SettingsScreen extends StatelessWidget {
             onChanged: settings.setShowCarriedForward,
           ),
           const _AppLockTile(),
+          SwitchListTile(
+            secondary: const Icon(Icons.widgets_outlined),
+            title: Text(l10n.widgetShowAmountsLabel),
+            subtitle: Text(l10n.widgetShowAmountsSubtitle),
+            value: settings.showWidgetAmounts,
+            // Only app lock hides them, so off the setting says nothing
+            // (WID-4).
+            onChanged: settings.appLock ? settings.setShowWidgetAmounts : null,
+          ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.account_balance_wallet_outlined),

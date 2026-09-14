@@ -207,6 +207,26 @@ void main() {
     expect(settings.appLock, isFalse);
   });
 
+  testWidgets('showing widget amounts is only offered under app lock '
+      '(WID-4)', (tester) async {
+    await showSettings(tester, authenticator: FakeAuthenticator());
+    SwitchListTile widgetTile() => tester.widget<SwitchListTile>(
+      find.widgetWithText(SwitchListTile, 'Show amounts on the widget'),
+    );
+
+    // Nothing hides them while app lock is off, so there's nothing to say.
+    expect(widgetTile().onChanged, isNull);
+    expect(settings.showWidgetAmounts, isFalse);
+
+    await settings.setAppLock(true);
+    await tester.pumpAndSettle();
+    expect(widgetTile().onChanged, isNotNull);
+
+    await tester.tap(find.text('Show amounts on the widget'));
+    await tester.pumpAndSettle();
+    expect(settings.showWidgetAmounts, isTrue);
+  });
+
   testWidgets('Accounts, Categories, Backup, and Trash open their screens', (
     tester,
   ) async {
@@ -218,7 +238,9 @@ void main() {
       ('Backup & restore', BackupScreen),
       ('Trash', TrashScreen),
     ]) {
-      await tester.ensureVisible(find.text(label));
+      // The list is longer than the screen, and the last rows aren't built
+      // until they're scrolled to.
+      await tester.scrollUntilVisible(find.text(label), 200);
       await tester.pumpAndSettle();
       await tester.tap(find.text(label));
       await tester.pumpAndSettle();
