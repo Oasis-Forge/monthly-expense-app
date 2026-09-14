@@ -12,5 +12,11 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    // The home-screen widget's channel (WID-3, WID-5).
+    if let registrar = engineBridge.pluginRegistry.registrar(
+      forPlugin: "HomeWidgetBridge"
+    ) {
+      HomeWidgetBridge.shared.attach(to: registrar.messenger())
+    }
   }
 }

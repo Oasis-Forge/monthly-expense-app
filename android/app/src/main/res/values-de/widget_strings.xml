@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">Die Ausgaben dieser Periode oder das restliche Budget</string>
+    <string name="widget_medium_description">Einnahmen, Ausgaben und Saldo dieser Periode</string>
+    <string name="widget_open_the_app">Öffne Monthly Expenses, um diese Periode zu sehen</string>
+    <string name="widget_preview_period">Diese Periode</string>
+    <string name="widget_preview_income">Einnahmen</string>
+    <string name="widget_preview_expense">Ausgaben</string>
+    <string name="widget_preview_balance">Saldo</string>
+    <string name="widget_preview_left">Übrig</string>
+    <string name="widget_preview_add_expense">Ausgabe hinzufügen</string>
+    <string name="widget_preview_add_income">Einnahme hinzufügen</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

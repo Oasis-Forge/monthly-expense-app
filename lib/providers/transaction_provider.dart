@@ -14,6 +14,7 @@ import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../models/transfer.dart';
+import '../models/widget_summary.dart';
 import '../services/reminder_service.dart';
 
 /// Holds the app's data in memory, persists changes through [DBHelper], and
@@ -1182,6 +1183,79 @@ class TransactionProvider extends ChangeNotifier {
       for (var i = 0; i < count; i++)
         PeriodTotals(periods[i], income: income[i], expense: expense[i]),
     ];
+  }
+
+  // The home-screen widget (WID-1–WID-6).
+
+  /// Shows the period that contains today, whatever was selected before
+  /// (WID-3).
+  void showCurrentPeriod() {
+    final current = currentPeriod;
+    if (current == _period) return;
+    _period = current;
+    _changed();
+  }
+
+  /// What the home-screen widget should show: the current period as of
+  /// today, then one entry for each of the next [days] days on which the
+  /// numbers change — a new period starting, or a dated-ahead entry
+  /// beginning to count (WID-2, WID-5, BAL-4).
+  ///
+  /// The widget can't recompute anything itself, so it is handed the days
+  /// ahead as well and picks the entry whose day has come. That keeps it
+  /// right past midnight even if the app is never opened.
+  List<WidgetSummary> widgetTimeline({
+    bool carryForward = true,
+    int days = 31,
+  }) {
+    final today = _today;
+    final last = today.add(Duration(days: days));
+
+    final changeDays = <DateTime>{today};
+    for (final tx in _transactions) {
+      final day = _dayOf(tx.date);
+      if (day.isAfter(today) && !day.isAfter(last)) changeDays.add(day);
+    }
+    for (final account in _accounts) {
+      final day = _dayOf(account.openingDate);
+      if (day.isAfter(today) && !day.isAfter(last)) changeDays.add(day);
+    }
+    for (
+      var period = currentPeriod.next;
+      !period.start.isAfter(last);
+      period = period.next
+    ) {
+      changeDays.add(_dayOf(period.start));
+    }
+
+    final ordered = changeDays.toList()..sort();
+    return [
+      for (final day in ordered)
+        _widgetEntryOn(day, carryForward: carryForward),
+    ];
+  }
+
+  WidgetSummary _widgetEntryOn(DateTime day, {required bool carryForward}) {
+    final period = Period.containing(day, startDay: _startDay);
+    final summary = _PeriodSummary(
+      period,
+      day,
+      _transactions,
+      _transfers,
+      _accounts,
+    );
+    final limit = limitFor(_budgets, null, period);
+    return WidgetSummary(
+      from: day,
+      period: period,
+      income: summary.income,
+      expense: summary.expense,
+      balance: carryForward
+          ? summary.closingBalance
+          : summary.income - summary.expense,
+      balanceIsNet: !carryForward,
+      budgetLeft: limit == null ? null : limit - summary.expense,
+    );
   }
 
   void _changed() {

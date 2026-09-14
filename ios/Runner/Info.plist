@@ -22,6 +22,21 @@
 		<string>$(FLUTTER_BUILD_NAME)</string>
 		<key>CFBundleSignature</key>
 		<string>????</string>
+		<!-- How the home-screen widget opens the app (WID-3). Nothing else
+		     uses it, and it carries no data beyond which button was tapped. -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.monthlyexpenses.app.widget</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>monthlyexpenses</string>
+				</array>
+			</dict>
+		</array>
 		<key>CFBundleVersion</key>
 		<string>$(FLUTTER_BUILD_NUMBER)</string>
 		<key>LSRequiresIPhoneOS</key>

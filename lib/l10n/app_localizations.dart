@@ -1540,6 +1540,42 @@ abstract class AppLocalizations {
   /// **'Unlock'**
   String get unlockButton;
 
+  /// No description provided for @widgetShowAmountsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Show amounts on the widget'**
+  String get widgetShowAmountsLabel;
+
+  /// No description provided for @widgetShowAmountsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The home-screen widget hides them while app lock is on'**
+  String get widgetShowAmountsSubtitle;
+
+  /// No description provided for @widgetLeftLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get widgetLeftLabel;
+
+  /// No description provided for @widgetAddExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Add expense'**
+  String get widgetAddExpense;
+
+  /// No description provided for @widgetAddIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Add income'**
+  String get widgetAddIncome;
+
+  /// No description provided for @widgetAmountsHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Amounts are hidden by app lock'**
+  String get widgetAmountsHidden;
+
   /// No description provided for @notesTitle.
   ///
   /// In en, this message translates to:

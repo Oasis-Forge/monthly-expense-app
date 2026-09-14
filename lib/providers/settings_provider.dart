@@ -30,7 +30,8 @@ class SettingsProvider extends ChangeNotifier {
        _backupReminder = _prefs.getBool(_backupReminderKey) ?? true,
        _lastBackupAt = _dateOrNull(_prefs.getString(_lastBackupKey)),
        _reminderSnoozedAt = _dateOrNull(_prefs.getString(_snoozedKey)),
-       _appLock = _prefs.getBool(_appLockKey) ?? false {
+       _appLock = _prefs.getBool(_appLockKey) ?? false,
+       _showWidgetAmounts = _prefs.getBool(_showWidgetAmountsKey) ?? false {
     final firstOpened = _dateOrNull(_prefs.getString(_firstOpenedKey));
     _firstOpenedAt = firstOpened ?? _clock();
     if (firstOpened == null) {
@@ -49,6 +50,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _snoozedKey = 'backup_reminder_snoozed_at';
   static const _firstOpenedKey = 'first_opened_at';
   static const _appLockKey = 'app_lock';
+  static const _showWidgetAmountsKey = 'show_widget_amounts';
 
   /// Transactions needed before the first backup reminder (BAK-7).
   static const backupReminderThreshold = 20;
@@ -69,6 +71,7 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? _reminderSnoozedAt;
   late final DateTime _firstOpenedAt;
   bool _appLock;
+  bool _showWidgetAmounts;
 
   /// The chosen language code, or null to follow the device (LANG-1).
   String? get languageCode => _languageCode;
@@ -102,6 +105,11 @@ class SettingsProvider extends ChangeNotifier {
   /// Whether the app asks for the device's biometrics or screen lock
   /// (LOCK-1). Off by default.
   bool get appLock => _appLock;
+
+  /// Whether the home-screen widget still shows amounts while app lock is on
+  /// (WID-4). Off by default, so turning app lock on takes them off the home
+  /// screen too.
+  bool get showWidgetAmounts => _showWidgetAmounts;
 
   /// The currency [locale] uses, or USD when intl doesn't know the locale.
   static String defaultCurrencyFor(String? locale) {
@@ -230,8 +238,15 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Settings that travel with a backup (BAK-1). App lock and the backup
-  /// reminder belong to the device, so they stay out.
+  Future<void> setShowWidgetAmounts(bool show) async {
+    if (show == _showWidgetAmounts) return;
+    await _prefs.setBool(_showWidgetAmountsKey, show);
+    _showWidgetAmounts = show;
+    notifyListeners();
+  }
+
+  /// Settings that travel with a backup (BAK-1). App lock, the widget, and
+  /// the backup reminder belong to the device, so they stay out.
   Map<String, Object?> get backupValues => {
     _languageKey: _languageCode,
     _currencyKey: _currencyCode,

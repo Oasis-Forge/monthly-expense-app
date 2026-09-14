@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
@@ -7,14 +9,18 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'l10n/app_localizations.dart';
 import 'l10n/languages.dart';
+import 'models/transaction.dart';
 import 'providers/settings_provider.dart';
 import 'providers/transaction_provider.dart';
+import 'screens/add_transaction_screen.dart';
 import 'screens/app_lock.dart';
 import 'screens/home_screen.dart';
 import 'screens/note_form_screen.dart';
 import 'screens/notes_screen.dart';
 import 'services/authenticator.dart';
 import 'services/backup_service.dart';
+import 'services/home_widget_service.dart';
+import 'services/home_widget_updater.dart';
 import 'services/reminder_service.dart';
 
 Future<void> main() async {
@@ -34,20 +40,22 @@ Future<void> main() async {
 }
 
 class MonthlyExpenseApp extends StatelessWidget {
-  /// [backup], [authenticator], and [reminders] default to the device
-  /// implementations; tests pass their own.
+  /// [backup], [authenticator], [reminders], and [homeWidget] default to the
+  /// device implementations; tests pass their own.
   const MonthlyExpenseApp({
     super.key,
     required this.settings,
     this.backup,
     this.authenticator,
     this.reminders,
+    this.homeWidget,
   });
 
   final SettingsProvider settings;
   final BackupService? backup;
   final Authenticator? authenticator;
   final ReminderService? reminders;
+  final HomeWidgetService? homeWidget;
 
   /// So a tapped reminder notification can open its note (NOTE-6, LOCK-2),
   /// from outside the widget tree that the notification callback runs in.
@@ -75,37 +83,135 @@ class MonthlyExpenseApp extends StatelessWidget {
         ),
         Provider<ReminderService>(create: (_) => reminderService),
       ],
-      child: Consumer<SettingsProvider>(
-        builder: (context, settings, _) => MaterialApp(
-          navigatorKey: navigatorKey,
-          onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: settings.locale,
-          localeListResolutionCallback: (locales, _) =>
-              resolveAppLocale(locales),
-          debugShowCheckedModeBanner: false,
-          themeMode: settings.themeMode,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF6C5CE7),
+      child: _HomeWidgetSync(
+        service: homeWidget ?? DeviceHomeWidgetService(),
+        child: Consumer<SettingsProvider>(
+          builder: (context, settings, _) => MaterialApp(
+            navigatorKey: navigatorKey,
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            locale: settings.locale,
+            localeListResolutionCallback: (locales, _) =>
+                resolveAppLocale(locales),
+            debugShowCheckedModeBanner: false,
+            themeMode: settings.themeMode,
+            theme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF6C5CE7),
+              ),
+              useMaterial3: true,
             ),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF6C5CE7),
-              brightness: Brightness.dark,
+            darkTheme: ThemeData(
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF6C5CE7),
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
             ),
-            useMaterial3: true,
+            builder: (context, child) => AppLock(
+              child: _NoteReminderTaps(child: _WidgetTaps(child: child!)),
+            ),
+            home: const HomeScreen(),
           ),
-          builder: (context, child) =>
-              AppLock(child: _NoteReminderTaps(child: child!)),
-          home: const HomeScreen(),
         ),
       ),
     );
   }
+}
+
+/// Owns the [HomeWidgetUpdater], where both providers are in reach, and
+/// starts listening for widget taps (WID-3, WID-5).
+class _HomeWidgetSync extends StatefulWidget {
+  const _HomeWidgetSync({required this.service, required this.child});
+
+  final HomeWidgetService service;
+  final Widget child;
+
+  @override
+  State<_HomeWidgetSync> createState() => _HomeWidgetSyncState();
+}
+
+class _HomeWidgetSyncState extends State<_HomeWidgetSync> {
+  HomeWidgetUpdater? _updater;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(widget.service.listenForTaps());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updater ??= HomeWidgetUpdater(
+      service: widget.service,
+      transactions: context.read<TransactionProvider>(),
+      settings: context.read<SettingsProvider>(),
+    )..start();
+  }
+
+  @override
+  void dispose() {
+    _updater?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// Acts on a tap from the home-screen widget, through the lock (WID-3,
+/// LOCK-2), the same way a tapped reminder opens its note.
+class _WidgetTaps extends StatefulWidget {
+  const _WidgetTaps({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_WidgetTaps> createState() => _WidgetTapsState();
+}
+
+class _WidgetTapsState extends State<_WidgetTaps> {
+  @override
+  void initState() {
+    super.initState();
+    tappedWidgetAction.addListener(_open);
+    // A tap that launched the app from cold may already be pending.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _open());
+  }
+
+  @override
+  void dispose() {
+    tappedWidgetAction.removeListener(_open);
+    super.dispose();
+  }
+
+  void _open() {
+    final action = tappedWidgetAction.value;
+    if (action == null) return;
+    tappedWidgetAction.value = null;
+    final navigator = MonthlyExpenseApp.navigatorKey.currentState;
+    if (navigator == null) return;
+    // Whatever was open before the tap is not what was asked for.
+    navigator.popUntil((route) => route.isFirst);
+    // The numbers on the widget are the current period's, so Home shows that
+    // one however it was left (WID-2, WID-3).
+    navigator.context.read<TransactionProvider>().showCurrentPeriod();
+    if (action == HomeWidgetAction.openHome) return;
+    navigator.push(
+      MaterialPageRoute(
+        builder: (_) => AddTransactionScreen(
+          startAs: action == HomeWidgetAction.addIncome
+              ? TransactionType.income
+              : TransactionType.expense,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// Opens the tapped reminder's note, through the lock (NOTE-6, LOCK-2): the

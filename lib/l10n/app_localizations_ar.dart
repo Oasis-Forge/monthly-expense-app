@@ -907,6 +907,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unlockButton => 'فتح القفل';
 
   @override
+  String get widgetShowAmountsLabel => 'إظهار المبالغ في الأداة';
+
+  @override
+  String get widgetShowAmountsSubtitle =>
+      'تخفي أداة الشاشة الرئيسية المبالغ عندما يكون قفل التطبيق مفعّلاً';
+
+  @override
+  String get widgetLeftLabel => 'المتبقي';
+
+  @override
+  String get widgetAddExpense => 'إضافة مصروف';
+
+  @override
+  String get widgetAddIncome => 'إضافة دخل';
+
+  @override
+  String get widgetAmountsHidden => 'المبالغ مخفية بقفل التطبيق';
+
+  @override
   String get notesTitle => 'الملاحظات';
 
   @override

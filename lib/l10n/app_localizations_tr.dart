@@ -878,6 +878,25 @@ class AppLocalizationsTr extends AppLocalizations {
   String get unlockButton => 'Kilidi aç';
 
   @override
+  String get widgetShowAmountsLabel => 'Tutarları widget\'ta göster';
+
+  @override
+  String get widgetShowAmountsSubtitle =>
+      'Uygulama kilidi açıkken ana ekran widget\'ı tutarları gizler';
+
+  @override
+  String get widgetLeftLabel => 'Kalan';
+
+  @override
+  String get widgetAddExpense => 'Gider ekle';
+
+  @override
+  String get widgetAddIncome => 'Gelir ekle';
+
+  @override
+  String get widgetAmountsHidden => 'Tutarlar uygulama kilidiyle gizlendi';
+
+  @override
   String get notesTitle => 'Notlar';
 
   @override

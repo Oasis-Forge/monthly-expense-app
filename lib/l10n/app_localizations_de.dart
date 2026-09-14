@@ -892,6 +892,25 @@ class AppLocalizationsDe extends AppLocalizations {
   String get unlockButton => 'Entsperren';
 
   @override
+  String get widgetShowAmountsLabel => 'Beträge im Widget anzeigen';
+
+  @override
+  String get widgetShowAmountsSubtitle =>
+      'Das Startbildschirm-Widget blendet sie aus, solange die App-Sperre an ist';
+
+  @override
+  String get widgetLeftLabel => 'Übrig';
+
+  @override
+  String get widgetAddExpense => 'Ausgabe hinzufügen';
+
+  @override
+  String get widgetAddIncome => 'Einnahme hinzufügen';
+
+  @override
+  String get widgetAmountsHidden => 'Beträge durch die App-Sperre ausgeblendet';
+
+  @override
   String get notesTitle => 'Notizen';
 
   @override

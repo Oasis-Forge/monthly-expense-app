@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The widget's own colours. A launcher inflates its layout with the
+     system's light or dark configuration, so the -night variants below are
+     what makes the widget follow the device theme (WID-6). -->
+<resources>
+    <color name="widget_background">#FFFFFFFF</color>
+    <color name="widget_label">#FF5F5F6B</color>
+    <color name="widget_amount">#FF1B1B1F</color>
+    <color name="widget_accent">#FF6C5CE7</color>
+    <color name="widget_on_button">#FFFFFFFF</color>
+    <color name="widget_outline">#FFCFCBE3</color>
+</resources>
