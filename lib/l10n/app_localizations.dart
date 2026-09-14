@@ -1887,6 +1887,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing to report for these dates.'**
   String get reportEmpty;
+
+  /// No description provided for @exportPdfMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Export PDF'**
+  String get exportPdfMenu;
+
+  /// No description provided for @reportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export PDF'**
+  String get reportTitle;
+
+  /// No description provided for @reportPreviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get reportPreviewTitle;
+
+  /// No description provided for @reportCoversHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'What it covers'**
+  String get reportCoversHeader;
+
+  /// No description provided for @reportRangePeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'This period'**
+  String get reportRangePeriod;
+
+  /// No description provided for @reportRangeCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates'**
+  String get reportRangeCustom;
+
+  /// No description provided for @reportRangeYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get reportRangeYear;
+
+  /// No description provided for @reportFromLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get reportFromLabel;
+
+  /// No description provided for @reportToLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get reportToLabel;
+
+  /// No description provided for @reportYearLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get reportYearLabel;
+
+  /// No description provided for @reportAccountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get reportAccountLabel;
+
+  /// No description provided for @reportAllAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'All accounts'**
+  String get reportAllAccounts;
+
+  /// No description provided for @reportIncludeHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'What it includes'**
+  String get reportIncludeHeader;
+
+  /// No description provided for @reportIncludeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave out anything you would rather not share.'**
+  String get reportIncludeSubtitle;
+
+  /// No description provided for @reportIncludeTransactions.
+  ///
+  /// In en, this message translates to:
+  /// **'The transaction list'**
+  String get reportIncludeTransactions;
+
+  /// No description provided for @reportIncludeDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Titles and notes'**
+  String get reportIncludeDetails;
+
+  /// No description provided for @reportIncludeAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Account names'**
+  String get reportIncludeAccounts;
+
+  /// No description provided for @reportCreateButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Create the report'**
+  String get reportCreateButton;
+
+  /// No description provided for @reportBuilding.
+  ///
+  /// In en, this message translates to:
+  /// **'Building the report'**
+  String get reportBuilding;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t build the report. Try again.'**
+  String get reportFailed;
+
+  /// No description provided for @reportRangeBackwards.
+  ///
+  /// In en, this message translates to:
+  /// **'The first date has to come before the last.'**
+  String get reportRangeBackwards;
 }
 
 class _AppLocalizationsDelegate

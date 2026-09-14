@@ -1068,4 +1068,69 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportEmpty => 'Nothing to report for these dates.';
+
+  @override
+  String get exportPdfMenu => 'Export PDF';
+
+  @override
+  String get reportTitle => 'Export PDF';
+
+  @override
+  String get reportPreviewTitle => 'Report';
+
+  @override
+  String get reportCoversHeader => 'What it covers';
+
+  @override
+  String get reportRangePeriod => 'This period';
+
+  @override
+  String get reportRangeCustom => 'Dates';
+
+  @override
+  String get reportRangeYear => 'Year';
+
+  @override
+  String get reportFromLabel => 'From';
+
+  @override
+  String get reportToLabel => 'To';
+
+  @override
+  String get reportYearLabel => 'Year';
+
+  @override
+  String get reportAccountLabel => 'Account';
+
+  @override
+  String get reportAllAccounts => 'All accounts';
+
+  @override
+  String get reportIncludeHeader => 'What it includes';
+
+  @override
+  String get reportIncludeSubtitle =>
+      'Leave out anything you would rather not share.';
+
+  @override
+  String get reportIncludeTransactions => 'The transaction list';
+
+  @override
+  String get reportIncludeDetails => 'Titles and notes';
+
+  @override
+  String get reportIncludeAccounts => 'Account names';
+
+  @override
+  String get reportCreateButton => 'Create the report';
+
+  @override
+  String get reportBuilding => 'Building the report';
+
+  @override
+  String get reportFailed => 'Couldn\'t build the report. Try again.';
+
+  @override
+  String get reportRangeBackwards =>
+      'The first date has to come before the last.';
 }

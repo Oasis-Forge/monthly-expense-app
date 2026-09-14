@@ -19,6 +19,7 @@ import 'insights_screen.dart';
 import 'notes_screen.dart';
 import 'period_selector.dart';
 import 'recurring_screen.dart';
+import 'report_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'transfer_screen.dart';
@@ -29,6 +30,7 @@ enum _MenuItem {
   budgets,
   notes,
   exportCsv,
+  exportPdf,
   backup,
   settings,
 }
@@ -95,6 +97,7 @@ class HomeScreen extends StatelessWidget {
                 _MenuItem.recurring => const RecurringScreen(),
                 _MenuItem.budgets => const BudgetsScreen(),
                 _MenuItem.notes => const NotesScreen(),
+                _MenuItem.exportPdf => const ReportScreen(),
                 _MenuItem.backup => const BackupScreen(),
                 _MenuItem.settings => const SettingsScreen(),
                 _MenuItem.exportCsv => null,
@@ -112,6 +115,7 @@ class HomeScreen extends StatelessWidget {
                 (_MenuItem.budgets, l10n.budgetsTitle),
                 (_MenuItem.notes, l10n.notesTitle),
                 (_MenuItem.exportCsv, l10n.exportCsvMenu),
+                (_MenuItem.exportPdf, l10n.exportPdfMenu),
                 (_MenuItem.backup, l10n.backupTitle),
                 (_MenuItem.settings, l10n.settingsTitle),
               ])

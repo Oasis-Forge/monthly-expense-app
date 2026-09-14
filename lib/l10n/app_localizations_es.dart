@@ -1086,4 +1086,69 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get reportEmpty => 'No hay nada que informar en estas fechas.';
+
+  @override
+  String get exportPdfMenu => 'Exportar PDF';
+
+  @override
+  String get reportTitle => 'Exportar PDF';
+
+  @override
+  String get reportPreviewTitle => 'Informe';
+
+  @override
+  String get reportCoversHeader => 'Qué abarca';
+
+  @override
+  String get reportRangePeriod => 'Este periodo';
+
+  @override
+  String get reportRangeCustom => 'Fechas';
+
+  @override
+  String get reportRangeYear => 'Año';
+
+  @override
+  String get reportFromLabel => 'Desde';
+
+  @override
+  String get reportToLabel => 'Hasta';
+
+  @override
+  String get reportYearLabel => 'Año';
+
+  @override
+  String get reportAccountLabel => 'Cuenta';
+
+  @override
+  String get reportAllAccounts => 'Todas las cuentas';
+
+  @override
+  String get reportIncludeHeader => 'Qué incluye';
+
+  @override
+  String get reportIncludeSubtitle =>
+      'Deja fuera lo que prefieras no compartir.';
+
+  @override
+  String get reportIncludeTransactions => 'La lista de transacciones';
+
+  @override
+  String get reportIncludeDetails => 'Títulos y notas';
+
+  @override
+  String get reportIncludeAccounts => 'Nombres de las cuentas';
+
+  @override
+  String get reportCreateButton => 'Crear el informe';
+
+  @override
+  String get reportBuilding => 'Creando el informe';
+
+  @override
+  String get reportFailed => 'No se pudo crear el informe. Inténtalo de nuevo.';
+
+  @override
+  String get reportRangeBackwards =>
+      'La primera fecha debe ser anterior a la última.';
 }

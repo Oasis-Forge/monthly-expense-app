@@ -36,6 +36,16 @@ class ReportOptions {
 
   /// Which account an entry belongs to.
   final bool accountNames;
+
+  ReportOptions copyWith({
+    bool? transactions,
+    bool? titlesAndNotes,
+    bool? accountNames,
+  }) => ReportOptions(
+    transactions: transactions ?? this.transactions,
+    titlesAndNotes: titlesAndNotes ?? this.titlesAndNotes,
+    accountNames: accountNames ?? this.accountNames,
+  );
 }
 
 /// One category's spending or income over the range, with its share of the

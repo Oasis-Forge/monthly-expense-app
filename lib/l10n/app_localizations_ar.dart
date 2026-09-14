@@ -1101,4 +1101,68 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportEmpty => 'لا شيء لعرضه في هذه التواريخ.';
+
+  @override
+  String get exportPdfMenu => 'تصدير PDF';
+
+  @override
+  String get reportTitle => 'تصدير PDF';
+
+  @override
+  String get reportPreviewTitle => 'التقرير';
+
+  @override
+  String get reportCoversHeader => 'ما يشمله';
+
+  @override
+  String get reportRangePeriod => 'هذه الفترة';
+
+  @override
+  String get reportRangeCustom => 'تواريخ';
+
+  @override
+  String get reportRangeYear => 'سنة';
+
+  @override
+  String get reportFromLabel => 'من';
+
+  @override
+  String get reportToLabel => 'إلى';
+
+  @override
+  String get reportYearLabel => 'السنة';
+
+  @override
+  String get reportAccountLabel => 'الحساب';
+
+  @override
+  String get reportAllAccounts => 'كل الحسابات';
+
+  @override
+  String get reportIncludeHeader => 'ما يتضمنه';
+
+  @override
+  String get reportIncludeSubtitle => 'استبعد أي شيء تفضل عدم مشاركته.';
+
+  @override
+  String get reportIncludeTransactions => 'قائمة المعاملات';
+
+  @override
+  String get reportIncludeDetails => 'العناوين والملاحظات';
+
+  @override
+  String get reportIncludeAccounts => 'أسماء الحسابات';
+
+  @override
+  String get reportCreateButton => 'إنشاء التقرير';
+
+  @override
+  String get reportBuilding => 'جارٍ إنشاء التقرير';
+
+  @override
+  String get reportFailed => 'تعذّر إنشاء التقرير. حاول مرة أخرى.';
+
+  @override
+  String get reportRangeBackwards =>
+      'يجب أن يسبق التاريخ الأول التاريخ الأخير.';
 }
