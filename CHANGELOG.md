@@ -4,6 +4,14 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-14
+
+### Added
+- Notes: text with an optional due date, amount, and category; open notes list overdue first, Done notes collapse below, and search combines with Open, Done, and due-date filters.
+- "Record as transaction" fills the add form from a note's amount, category, and text, marks the note done, and links the two; deleting that transaction reopens the note.
+- A reminder notification at a chosen time on a note's due date, asking for notification permission only the first time one is set; with app lock on, the notification names only the app, and tapping it opens the note through the lock.
+- Open notes due in the selected period show a Home notice, and the Insights calendar marks the days they're due.
+
 ## [1.1.0] - 2026-09-13
 
 ### Added

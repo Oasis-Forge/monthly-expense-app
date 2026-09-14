@@ -16,13 +16,22 @@ import 'budgets_screen.dart';
 import 'csv_export_action.dart';
 import 'delete_snack_bar.dart';
 import 'insights_screen.dart';
+import 'notes_screen.dart';
 import 'period_selector.dart';
 import 'recurring_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'transfer_screen.dart';
 
-enum _MenuItem { transfer, recurring, budgets, exportCsv, backup, settings }
+enum _MenuItem {
+  transfer,
+  recurring,
+  budgets,
+  notes,
+  exportCsv,
+  backup,
+  settings,
+}
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -56,6 +65,7 @@ class HomeScreen extends StatelessWidget {
     }.toList()..sort((a, b) => b.compareTo(a));
     final dueCount = provider.dueOccurrences.length;
     final overCount = provider.budgetsOver;
+    final dueNotesCount = provider.notesDueInPeriod.length;
     final lastBackup = settings.lastBackupAt;
     // RUN-1: before anything is recorded, Home offers one clear action.
     final firstRun =
@@ -84,6 +94,7 @@ class HomeScreen extends StatelessWidget {
                 _MenuItem.transfer => const TransferScreen(),
                 _MenuItem.recurring => const RecurringScreen(),
                 _MenuItem.budgets => const BudgetsScreen(),
+                _MenuItem.notes => const NotesScreen(),
                 _MenuItem.backup => const BackupScreen(),
                 _MenuItem.settings => const SettingsScreen(),
                 _MenuItem.exportCsv => null,
@@ -99,6 +110,7 @@ class HomeScreen extends StatelessWidget {
                 (_MenuItem.transfer, l10n.transferTitle),
                 (_MenuItem.recurring, l10n.recurringTitle),
                 (_MenuItem.budgets, l10n.budgetsTitle),
+                (_MenuItem.notes, l10n.notesTitle),
                 (_MenuItem.exportCsv, l10n.exportCsvMenu),
                 (_MenuItem.backup, l10n.backupTitle),
                 (_MenuItem.settings, l10n.settingsTitle),
@@ -136,6 +148,13 @@ class HomeScreen extends StatelessWidget {
               color: Theme.of(context).colorScheme.error,
               text: l10n.budgetsOverNotice(overCount),
               onTap: () => _open(context, const InsightsScreen()),
+            ),
+          if (dueNotesCount > 0)
+            _Notice(
+              icon: Icons.sticky_note_2_outlined,
+              color: Theme.of(context).colorScheme.primary,
+              text: l10n.notesDueNotice(dueNotesCount),
+              onTap: () => _open(context, const NotesScreen()),
             ),
           if (settings.backupReminderDue(provider.transactions.length))
             _Notice(

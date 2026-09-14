@@ -114,6 +114,7 @@ void main() {
         tx('rent-sep'),
         posted('rent-sep', DateTime(2026, 9)),
       );
+      await source.insertNote(testNote('note-1', 'Pay the rent'));
       final backup = await testBackupService(source, clock: () => now).create(
         await testSettings({
           'currency_code': 'EUR',
@@ -196,6 +197,35 @@ void main() {
     expect(byId['gone']!.deletedAt, isNotNull);
     expect(byId.keys, containsAll(['local-only', 'backup-only']));
     expect(settings.currencyCode, 'GBP');
+  });
+
+  test('Merge treats notes like every other record (NOTE-8)', () async {
+    final other = helperAt('other-notes.db');
+    await other.insertNote(
+      testNote('shared', 'There').copyWith(
+        doneAt: DateTime.utc(2026, 9, 5),
+        updatedAt: DateTime.utc(2026, 9, 5),
+      ),
+    );
+    await other.insertNote(testNote('backup-only', 'New note'));
+    final backup = await testBackupService(other).create(await testSettings());
+
+    final device = helperAt('device-notes.db');
+    await device.insertNote(
+      testNote('shared', 'Here').copyWith(updatedAt: DateTime.utc(2026, 9, 1)),
+    );
+    await device.insertNote(testNote('local-only', 'Mine'));
+    final service = testBackupService(device);
+
+    await service.restore(
+      await service.read(encode(backup)),
+      RestoreMode.merge,
+      await testSettings(),
+    );
+
+    final byId = {for (final n in await device.fetchNotes()) n.id: n};
+    expect(byId['shared']!.doneAt, isNotNull);
+    expect(byId.keys, containsAll(['local-only', 'backup-only']));
   });
 
   test('Merge never posts a recurring occurrence twice (RCR-4)', () async {

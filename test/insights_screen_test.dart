@@ -3,12 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
+import 'package:monthly_expense_app/screens/note_form_screen.dart';
 
 import 'helpers.dart';
 
@@ -23,6 +25,7 @@ void main() {
     List<ExpenseTransaction> transactions, {
     List<Budget> budgets = const [],
     List<Transfer> transfers = const [],
+    List<Note> notes = const [],
     Map<String, Object> settingsValues = const {},
   }) async {
     usePhoneScreen(tester);
@@ -31,6 +34,7 @@ void main() {
         transactions: transactions,
         budgets: budgets,
         transfers: transfers,
+        notes: notes,
         accounts: [testAccount(Account.cashId), testAccount('bank')],
       ),
       clock: () => today,
@@ -212,6 +216,26 @@ void main() {
       await tester.tap(find.text('acc-cash → bank'));
       await tester.pumpAndSettle();
       expect(find.text('Edit transfer'), findsOneWidget);
+    });
+
+    testWidgets('a note due that day lists there and opens it (NOTE-5)', (
+      tester,
+    ) async {
+      await showInsights(
+        tester,
+        month,
+        notes: [testNote('n', 'Pay rent', dueDate: DateTime(2026, 9, 6))],
+      );
+      await openTab(tester, 'Calendar');
+
+      await tester.tap(find.text('6'));
+      await tester.pumpAndSettle();
+      expect(find.text('Notes due'), findsOneWidget);
+      expect(find.text('Pay rent'), findsOneWidget);
+
+      await tester.tap(find.text('Pay rent'));
+      await tester.pumpAndSettle();
+      expect(find.byType(NoteFormScreen), findsOneWidget);
     });
 
     testWidgets('weeks start on the locale day until one is chosen (PER-4)', (

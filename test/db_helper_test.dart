@@ -152,6 +152,7 @@ void main() {
           'budgets',
           'recurring_rules',
           'recurring_occurrences',
+          'notes',
         ]) {
           expect(await columns(fresh, table), await columns(upgraded, table));
         }
@@ -307,6 +308,26 @@ void main() {
         rule.copyWith(deletedAt: DateTime.utc(2026, 9, 6)),
       );
       expect(await helper.fetchRecurringRules(), isEmpty);
+    });
+
+    test('notes are saved, updated, and purged from the trash', () async {
+      final helper = helperAt('app.db');
+      final note = testNote('n', 'Pay rent', dueDate: DateTime(2026, 9, 1));
+      await helper.insertNote(note);
+
+      await helper.updateNote(note.copyWith(doneAt: DateTime.utc(2026, 9, 2)));
+      expect(
+        (await helper.fetchNotes()).single.doneAt,
+        DateTime.utc(2026, 9, 2),
+      );
+
+      await helper.updateNote(
+        note.copyWith(deletedAt: DateTime.utc(2026, 8, 1)),
+      );
+      expect(await helper.fetchNotes(), isEmpty);
+
+      await helper.purgeDeletedBefore(DateTime.utc(2026, 9));
+      expect(await (await helper.database).query('notes'), isEmpty);
     });
   });
 }

@@ -5,19 +5,29 @@ import 'package:uuid/uuid.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/account.dart';
+import '../models/note.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'delete_snack_bar.dart';
 import 'form_fields.dart';
+import 'note_form_screen.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   /// Edits [editing] when set. Otherwise adds a new transaction, prefilled
-  /// from [template] when duplicating one (ADD-7).
-  const AddTransactionScreen({super.key, this.editing, this.template});
+  /// from [template] when duplicating one (ADD-7), or from [recordingNote]'s
+  /// amount, category, and text as the title, dated today (NOTE-4). Saving
+  /// then marks that note done and links the two.
+  const AddTransactionScreen({
+    super.key,
+    this.editing,
+    this.template,
+    this.recordingNote,
+  });
 
   final ExpenseTransaction? editing;
   final ExpenseTransaction? template;
+  final Note? recordingNote;
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -42,6 +52,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     super.initState();
     final provider = context.read<TransactionProvider>();
     final source = widget.editing ?? widget.template;
+    final note = widget.recordingNote;
     if (source != null) {
       _titleController.text = source.title ?? '';
       amountController.text = source.amount.toInputString();
@@ -49,12 +60,25 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       _type = source.type;
       _categoryId = source.categoryId;
       _accountId = source.accountId;
+    } else if (note != null) {
+      // NOTE-4: the note's amount, category, and text as the title.
+      _titleController.text = note.text;
+      if (note.amount != null) {
+        amountController.text = note.amount!.toInputString();
+      }
+      final category = note.categoryId == null
+          ? null
+          : provider.categoryById(note.categoryId!);
+      _type = category?.type ?? _type;
+      _categoryId = category?.id ?? provider.defaultCategoryId(_type);
+      _accountId = provider.defaultAccountId();
     } else {
       // ADD-3: the last category and account used.
       _categoryId = provider.defaultCategoryId(_type);
       _accountId = provider.defaultAccountId();
     }
-    // A new transaction or a duplicate is dated now (ADD-3, ADD-7).
+    // A new transaction, a duplicate, or a recorded note is dated now
+    // (ADD-3, ADD-7, NOTE-4).
     _date = widget.editing?.date ?? DateTime.now();
   }
 
@@ -80,13 +104,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
 
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
+    final settings = context.read<SettingsProvider>();
     final messenger = ScaffoldMessenger.of(context);
-    final currency = context.read<SettingsProvider>().currencyFormat(
-      l10n.localeName,
-    );
+    final currency = settings.currencyFormat(l10n.localeName);
+    final locale = Localizations.localeOf(context);
     final amount = parsedAmount(currency)!;
     final title = _titleController.text.trim();
     final note = _noteController.text.trim();
+    final recordingNote = widget.recordingNote;
 
     _saving = true;
     try {
@@ -104,18 +129,25 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
           ),
         );
       } else {
-        await provider.addTransaction(
-          ExpenseTransaction(
-            id: const Uuid().v4(),
-            title: title.isEmpty ? null : title,
-            amount: amount,
-            categoryId: _categoryId!,
-            accountId: _accountId ?? Account.cashId,
-            type: _type,
-            date: _date,
-            note: note.isEmpty ? null : note,
-          ),
+        final tx = ExpenseTransaction(
+          id: const Uuid().v4(),
+          title: title.isEmpty ? null : title,
+          amount: amount,
+          categoryId: _categoryId!,
+          accountId: _accountId ?? Account.cashId,
+          type: _type,
+          date: _date,
+          note: note.isEmpty ? null : note,
         );
+        await provider.addTransaction(tx);
+        if (recordingNote != null) {
+          await provider.recordNote(
+            recordingNote.id,
+            tx.id,
+            appLockOn: settings.appLock,
+            locale: locale,
+          );
+        }
       }
     } catch (_) {
       _saving = false;
@@ -172,6 +204,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     );
     final isEditing = widget.editing != null;
     final source = widget.editing ?? widget.template;
+    // NOTE-4: shows the note this transaction was recorded from, if any.
+    final linkedNote = widget.editing == null
+        ? null
+        : provider.noteForTransaction(widget.editing!.id);
 
     // Archived choices stay selectable for a transaction that uses them.
     final sourceCategory = source == null
@@ -197,7 +233,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isEditing ? l10n.editTransactionTitle : l10n.addTransactionTitle,
+          isEditing
+              ? l10n.editTransactionTitle
+              : widget.recordingNote != null
+              ? l10n.recordNoteButton
+              : l10n.addTransactionTitle,
         ),
         actions: [
           if (isEditing) ...[
@@ -324,15 +364,34 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
               ),
               maxLines: 2,
             ),
+            if (linkedNote != null) ...[
+              const SizedBox(height: 16),
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.sticky_note_2_outlined),
+                  title: Text(l10n.noteLinkedNoteLabel),
+                  subtitle: Text(linkedNote.text),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => NoteFormScreen(editing: linkedNote),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             FilledButton(
               onPressed: _submit,
               style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
               child: Text(
-                isEditing ? l10n.saveChangesButton : l10n.addTransactionButton,
+                isEditing
+                    ? l10n.saveChangesButton
+                    : widget.recordingNote != null
+                    ? l10n.recordNoteButton
+                    : l10n.addTransactionButton,
               ),
             ),
-            if (!isEditing) ...[
+            if (!isEditing && widget.recordingNote == null) ...[
               const SizedBox(height: 8),
               OutlinedButton(
                 onPressed: () => _submit(addAnother: true),

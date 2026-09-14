@@ -885,4 +885,134 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get unlockButton => 'Déverrouiller';
+
+  @override
+  String get notesTitle => 'Notes';
+
+  @override
+  String get addNoteTooltip => 'Ajouter une note';
+
+  @override
+  String get addNoteTitle => 'Ajouter une note';
+
+  @override
+  String get editNoteTitle => 'Modifier la note';
+
+  @override
+  String get noteTextLabel => 'Note';
+
+  @override
+  String get noteTextRequired => 'Saisissez du texte';
+
+  @override
+  String get noteAmountOptionalLabel => 'Montant (facultatif)';
+
+  @override
+  String get noteDueDateToggle => 'Définir une échéance';
+
+  @override
+  String get noteDueDateLabel => 'Échéance';
+
+  @override
+  String get noteReminderToggle => 'Me le rappeler';
+
+  @override
+  String get noteReminderTimeLabel => 'Heure du rappel';
+
+  @override
+  String get noteReminderTimeUnset => 'Choisir une heure';
+
+  @override
+  String get noteCategoryOptionalLabel => 'Catégorie (facultatif)';
+
+  @override
+  String get noteCategoryNone => 'Aucune';
+
+  @override
+  String get recordNoteButton => 'Enregistrer comme transaction';
+
+  @override
+  String get noteMarkDoneTooltip => 'Marquer comme terminée';
+
+  @override
+  String get noteMarkOpenTooltip => 'Marquer comme à faire';
+
+  @override
+  String get notesEmptyTitle => 'Rien pour l’instant';
+
+  @override
+  String get notesEmptyMessage =>
+      'Les notes permettent de se souvenir de choses à faire ou à vérifier, avec une date, un montant et une catégorie facultatifs.';
+
+  @override
+  String get addNoteButton => 'Ajouter une note';
+
+  @override
+  String get notesOpenHeader => 'À faire';
+
+  @override
+  String get notesDoneHeader => 'Terminées';
+
+  @override
+  String get noteDeleted => 'Note supprimée.';
+
+  @override
+  String get noteSaveFailed => 'Impossible d’enregistrer la note. Réessayez.';
+
+  @override
+  String get noteDeleteFailed => 'Impossible de supprimer la note. Réessayez.';
+
+  @override
+  String get noteRestoreFailed => 'Impossible de restaurer la note. Réessayez.';
+
+  @override
+  String get notesSearchHint => 'Rechercher des notes';
+
+  @override
+  String get noteFilterAll => 'Toutes';
+
+  @override
+  String get noteFilterOverdue => 'En retard';
+
+  @override
+  String get noteFilterDueToday => 'À échéance aujourd’hui';
+
+  @override
+  String get noteFilterUpcoming => 'À venir';
+
+  @override
+  String get noteFilterNoDate => 'Sans date';
+
+  @override
+  String get noNoteResults => 'Aucune note correspondante.';
+
+  @override
+  String get noteLinkedTransactionLabel => 'Enregistrée comme transaction';
+
+  @override
+  String get noteLinkedNoteLabel => 'Depuis une note';
+
+  @override
+  String notesDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count notes sont dues',
+      one: '1 note est due',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dayNotesDueHeader => 'Notes à échéance';
+
+  @override
+  String get noteReminderTitle => 'Rappel de note';
+
+  @override
+  String get noteReminderLockedTitle => 'Une note arrive à échéance';
+
+  @override
+  String get noteReminderPermissionDenied =>
+      'Activez les notifications dans les réglages système pour recevoir des rappels de notes.';
 }

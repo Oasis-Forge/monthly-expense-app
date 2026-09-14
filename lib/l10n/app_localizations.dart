@@ -1539,6 +1539,246 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock'**
   String get unlockButton;
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesTitle;
+
+  /// No description provided for @addNoteTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add note'**
+  String get addNoteTooltip;
+
+  /// No description provided for @addNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add note'**
+  String get addNoteTitle;
+
+  /// No description provided for @editNoteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit note'**
+  String get editNoteTitle;
+
+  /// No description provided for @noteTextLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get noteTextLabel;
+
+  /// No description provided for @noteTextRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter some text'**
+  String get noteTextRequired;
+
+  /// No description provided for @noteAmountOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount (optional)'**
+  String get noteAmountOptionalLabel;
+
+  /// No description provided for @noteDueDateToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a due date'**
+  String get noteDueDateToggle;
+
+  /// No description provided for @noteDueDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Due date'**
+  String get noteDueDateLabel;
+
+  /// No description provided for @noteReminderToggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me'**
+  String get noteReminderToggle;
+
+  /// No description provided for @noteReminderTimeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder time'**
+  String get noteReminderTimeLabel;
+
+  /// No description provided for @noteReminderTimeUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a time'**
+  String get noteReminderTimeUnset;
+
+  /// No description provided for @noteCategoryOptionalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Category (optional)'**
+  String get noteCategoryOptionalLabel;
+
+  /// No description provided for @noteCategoryNone.
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get noteCategoryNone;
+
+  /// No description provided for @recordNoteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Record as transaction'**
+  String get recordNoteButton;
+
+  /// No description provided for @noteMarkDoneTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark done'**
+  String get noteMarkDoneTooltip;
+
+  /// No description provided for @noteMarkOpenTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark open'**
+  String get noteMarkOpenTooltip;
+
+  /// No description provided for @notesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet'**
+  String get notesEmptyTitle;
+
+  /// No description provided for @notesEmptyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes remember things to do or check on, with an optional date, amount, and category.'**
+  String get notesEmptyMessage;
+
+  /// No description provided for @addNoteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get addNoteButton;
+
+  /// No description provided for @notesOpenHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get notesOpenHeader;
+
+  /// No description provided for @notesDoneHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get notesDoneHeader;
+
+  /// No description provided for @noteDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Note deleted.'**
+  String get noteDeleted;
+
+  /// No description provided for @noteSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t save the note. Try again.'**
+  String get noteSaveFailed;
+
+  /// No description provided for @noteDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t delete the note. Try again.'**
+  String get noteDeleteFailed;
+
+  /// No description provided for @noteRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t restore the note. Try again.'**
+  String get noteRestoreFailed;
+
+  /// No description provided for @notesSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search notes'**
+  String get notesSearchHint;
+
+  /// No description provided for @noteFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get noteFilterAll;
+
+  /// No description provided for @noteFilterOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get noteFilterOverdue;
+
+  /// No description provided for @noteFilterDueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due today'**
+  String get noteFilterDueToday;
+
+  /// No description provided for @noteFilterUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get noteFilterUpcoming;
+
+  /// No description provided for @noteFilterNoDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No date'**
+  String get noteFilterNoDate;
+
+  /// No description provided for @noNoteResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching notes.'**
+  String get noNoteResults;
+
+  /// No description provided for @noteLinkedTransactionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recorded as a transaction'**
+  String get noteLinkedTransactionLabel;
+
+  /// No description provided for @noteLinkedNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'From a note'**
+  String get noteLinkedNoteLabel;
+
+  /// No description provided for @notesDueNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 note is due} other{{count} notes are due}}'**
+  String notesDueNotice(int count);
+
+  /// No description provided for @dayNotesDueHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes due'**
+  String get dayNotesDueHeader;
+
+  /// No description provided for @noteReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Note reminder'**
+  String get noteReminderTitle;
+
+  /// No description provided for @noteReminderLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A note is due'**
+  String get noteReminderLockedTitle;
+
+  /// No description provided for @noteReminderPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications in system settings to get reminders for notes.'**
+  String get noteReminderPermissionDenied;
 }
 
 class _AppLocalizationsDelegate

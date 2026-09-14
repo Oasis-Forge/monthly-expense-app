@@ -21,6 +21,19 @@ class SettingsScreen extends StatelessWidget {
   static void _open(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
 
+  /// Changes the language, then re-words the reminders already scheduled for
+  /// notes (NOTE-6), which otherwise stay in the old one until the next
+  /// launch.
+  static Future<void> _setLanguage(BuildContext context, String? code) async {
+    final settings = context.read<SettingsProvider>();
+    final transactions = context.read<TransactionProvider>();
+    await settings.setLanguageCode(code);
+    await transactions.rescheduleReminders(
+      appLockOn: settings.appLock,
+      locale: effectiveAppLocale(settings.locale),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -43,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
                   in appLanguages.entries)
                 (code, name),
             ],
-            onChanged: settings.setLanguageCode,
+            onChanged: (code) => _setLanguage(context, code),
           ),
           ListTile(
             leading: const Icon(Icons.payments_outlined),
@@ -249,12 +262,19 @@ class _AppLockTileState extends State<_AppLockTile> {
     final messenger = ScaffoldMessenger.of(context);
     final settings = context.read<SettingsProvider>();
     final authenticator = context.read<Authenticator>();
+    final transactions = context.read<TransactionProvider>();
     setState(() => _busy = true);
     final result = await authenticator.authenticate(l10n.appLockReason);
     // Turning the lock off never needs a check the device can't perform.
     if (result == AuthResult.success ||
         (!on && result == AuthResult.unavailable)) {
       await settings.setAppLock(on);
+      // LOCK-2: a reminder already scheduled would otherwise keep showing the
+      // note's text on the lock screen until the next launch.
+      await transactions.rescheduleReminders(
+        appLockOn: on,
+        locale: effectiveAppLocale(settings.locale),
+      );
     } else {
       messenger.showSnackBar(SnackBar(content: Text(l10n.appLockFailed)));
     }

@@ -8,6 +8,7 @@ import '../models/account.dart';
 import '../models/backup.dart';
 import '../models/budget.dart';
 import '../models/category.dart';
+import '../models/note.dart';
 import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
@@ -35,6 +36,7 @@ class DBHelper {
     migrateToVersion5,
     migrateToVersion6,
     migrateToVersion7,
+    migrateToVersion8,
   ];
 
   static const _fileName = 'monthly_expense_app.db';
@@ -149,11 +151,11 @@ class DBHelper {
     return [for (final map in maps) ExpenseTransaction.fromMap(map)];
   }
 
-  /// Permanently removes transactions and transfers deleted before [cutoff]
-  /// (DEL-3).
+  /// Permanently removes transactions, transfers, and notes deleted before
+  /// [cutoff] (DEL-3, NOTE-7).
   Future<void> purgeDeletedBefore(DateTime cutoff) async {
     final db = await database;
-    for (final table in ['transactions', 'transfers']) {
+    for (final table in ['transactions', 'transfers', 'notes']) {
       await db.delete(
         table,
         where: 'deleted_at IS NOT NULL AND deleted_at < ?',
@@ -329,6 +331,29 @@ class DBHelper {
       );
       await txn.insert('transactions', tx.toMap());
     });
+  }
+
+  /// Notes that aren't deleted.
+  Future<List<Note>> fetchNotes() async {
+    final db = await database;
+    final maps = await db.query('notes', where: 'deleted_at IS NULL');
+    return [for (final map in maps) Note.fromMap(map)];
+  }
+
+  Future<void> insertNote(Note note) async {
+    final db = await database;
+    await db.insert('notes', note.toMap());
+  }
+
+  /// Saves every field of [note], including `deleted_at`.
+  Future<void> updateNote(Note note) async {
+    final db = await database;
+    await db.update(
+      'notes',
+      note.toMap(),
+      where: 'id = ?',
+      whereArgs: [note.id],
+    );
   }
 
   /// Every row of every table, deleted rows included, for a backup (BAK-1).

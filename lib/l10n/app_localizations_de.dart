@@ -890,4 +890,137 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get unlockButton => 'Entsperren';
+
+  @override
+  String get notesTitle => 'Notizen';
+
+  @override
+  String get addNoteTooltip => 'Notiz hinzufügen';
+
+  @override
+  String get addNoteTitle => 'Notiz hinzufügen';
+
+  @override
+  String get editNoteTitle => 'Notiz bearbeiten';
+
+  @override
+  String get noteTextLabel => 'Notiz';
+
+  @override
+  String get noteTextRequired => 'Text eingeben';
+
+  @override
+  String get noteAmountOptionalLabel => 'Betrag (optional)';
+
+  @override
+  String get noteDueDateToggle => 'Fälligkeitsdatum festlegen';
+
+  @override
+  String get noteDueDateLabel => 'Fälligkeitsdatum';
+
+  @override
+  String get noteReminderToggle => 'Erinnern';
+
+  @override
+  String get noteReminderTimeLabel => 'Erinnerungszeit';
+
+  @override
+  String get noteReminderTimeUnset => 'Uhrzeit wählen';
+
+  @override
+  String get noteCategoryOptionalLabel => 'Kategorie (optional)';
+
+  @override
+  String get noteCategoryNone => 'Keine';
+
+  @override
+  String get recordNoteButton => 'Als Transaktion erfassen';
+
+  @override
+  String get noteMarkDoneTooltip => 'Als erledigt markieren';
+
+  @override
+  String get noteMarkOpenTooltip => 'Als offen markieren';
+
+  @override
+  String get notesEmptyTitle => 'Hier ist noch nichts';
+
+  @override
+  String get notesEmptyMessage =>
+      'Notizen erinnern an Dinge, die zu erledigen oder zu prüfen sind, mit optionalem Datum, Betrag und Kategorie.';
+
+  @override
+  String get addNoteButton => 'Notiz hinzufügen';
+
+  @override
+  String get notesOpenHeader => 'Offen';
+
+  @override
+  String get notesDoneHeader => 'Erledigt';
+
+  @override
+  String get noteDeleted => 'Notiz gelöscht.';
+
+  @override
+  String get noteSaveFailed =>
+      'Die Notiz konnte nicht gespeichert werden. Versuche es erneut.';
+
+  @override
+  String get noteDeleteFailed =>
+      'Die Notiz konnte nicht gelöscht werden. Versuche es erneut.';
+
+  @override
+  String get noteRestoreFailed =>
+      'Die Notiz konnte nicht wiederhergestellt werden. Versuche es erneut.';
+
+  @override
+  String get notesSearchHint => 'Notizen durchsuchen';
+
+  @override
+  String get noteFilterAll => 'Alle';
+
+  @override
+  String get noteFilterOverdue => 'Überfällig';
+
+  @override
+  String get noteFilterDueToday => 'Heute fällig';
+
+  @override
+  String get noteFilterUpcoming => 'Anstehend';
+
+  @override
+  String get noteFilterNoDate => 'Ohne Datum';
+
+  @override
+  String get noNoteResults => 'Keine passenden Notizen.';
+
+  @override
+  String get noteLinkedTransactionLabel => 'Als Transaktion erfasst';
+
+  @override
+  String get noteLinkedNoteLabel => 'Aus einer Notiz';
+
+  @override
+  String notesDueNotice(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Notizen sind fällig',
+      one: '1 Notiz ist fällig',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get dayNotesDueHeader => 'Fällige Notizen';
+
+  @override
+  String get noteReminderTitle => 'Notiz-Erinnerung';
+
+  @override
+  String get noteReminderLockedTitle => 'Eine Notiz ist fällig';
+
+  @override
+  String get noteReminderPermissionDenied =>
+      'Aktiviere Benachrichtigungen in den Systemeinstellungen, um Erinnerungen für Notizen zu erhalten.';
 }

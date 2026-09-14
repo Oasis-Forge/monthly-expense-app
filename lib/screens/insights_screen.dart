@@ -15,6 +15,7 @@ import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'add_transaction_screen.dart';
 import 'budgets_screen.dart';
+import 'note_form_screen.dart';
 import 'period_selector.dart';
 import 'transfer_screen.dart';
 
@@ -364,6 +365,8 @@ class _CalendarTabState extends State<_CalendarTab> {
                 isToday: day == today,
                 isSelected: day == selected,
                 isUpcoming: provider.isUpcomingDate(day),
+                // NOTE-5, INS-1: marks days with an open note due.
+                hasNoteDue: provider.notesDueOn(day).isNotEmpty,
                 onTap: () => setState(() => _selected = day),
               ),
           ],
@@ -389,6 +392,7 @@ class _DayCell extends StatelessWidget {
     required this.isToday,
     required this.isSelected,
     required this.isUpcoming,
+    required this.hasNoteDue,
     required this.onTap,
   });
 
@@ -398,6 +402,9 @@ class _DayCell extends StatelessWidget {
   final bool isToday;
   final bool isSelected;
   final bool isUpcoming;
+
+  /// Marks the day with an open note due (NOTE-5, INS-1).
+  final bool hasNoteDue;
   final VoidCallback onTap;
 
   @override
@@ -427,31 +434,51 @@ class _DayCell extends StatelessWidget {
         child: InkWell(
           customBorder: shape,
           onTap: onTap,
-          child: Opacity(
-            // Upcoming days don't count yet, so their amounts are faint
-            // (BAL-4).
-            opacity: isUpcoming ? 0.5 : 1,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-              child: Column(
-                children: [
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      label,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: isToday ? FontWeight.bold : null,
+          child: Stack(
+            children: [
+              Opacity(
+                // Upcoming days don't count yet, so their amounts are faint
+                // (BAL-4).
+                opacity: isUpcoming ? 0.5 : 1,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 2,
+                    vertical: 4,
+                  ),
+                  child: Column(
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          label,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            fontWeight: isToday ? FontWeight.bold : null,
+                          ),
+                        ),
                       ),
+                      const Spacer(),
+                      if (totals != null && totals.expense.isPositive)
+                        amount(totals.expense, Colors.red),
+                      if (totals != null && totals.income.isPositive)
+                        amount(totals.income, Colors.green),
+                    ],
+                  ),
+                ),
+              ),
+              if (hasNoteDue)
+                PositionedDirectional(
+                  top: 2,
+                  end: 2,
+                  child: Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: scheme.primary,
+                      shape: BoxShape.circle,
                     ),
                   ),
-                  const Spacer(),
-                  if (totals != null && totals.expense.isPositive)
-                    amount(totals.expense, Colors.red),
-                  if (totals != null && totals.income.isPositive)
-                    amount(totals.income, Colors.green),
-                ],
-              ),
-            ),
+                ),
+            ],
           ),
         ),
       ),
@@ -539,6 +566,25 @@ class _DayDetails extends StatelessWidget {
             ),
             trailing: Text(money(transfer.amount)),
             onTap: () => open(TransferScreen(editing: transfer)),
+          ),
+        // NOTE-5, INS-1: open notes due this day.
+        if (provider.notesDueOn(day).isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Text(
+              l10n.dayNotesDueHeader,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+          ),
+        for (final note in provider.notesDueOn(day))
+          ListTile(
+            leading: const Icon(Icons.sticky_note_2_outlined),
+            title: Text(
+              note.text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            onTap: () => open(NoteFormScreen(editing: note)),
           ),
       ],
     );

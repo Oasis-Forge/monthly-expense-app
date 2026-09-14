@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart' show Locale;
+import 'package:flutter/widgets.dart' show Locale, WidgetsBinding;
 
 /// The app's languages (LANG-1), each named in its own language. The names
 /// stay untranslated on purpose, so people can find their language whatever
@@ -23,3 +23,10 @@ Locale resolveAppLocale(List<Locale>? preferred) {
   }
   return const Locale('en');
 }
+
+/// The locale the app runs in: the [chosen] language, or the best match for
+/// the device's when the user follows the system (LANG-1). For code outside
+/// the widget tree, such as a note's reminder notification (NOTE-6).
+Locale effectiveAppLocale(Locale? chosen) =>
+    chosen ??
+    resolveAppLocale(WidgetsBinding.instance.platformDispatcher.locales);

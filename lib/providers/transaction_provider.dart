@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'package:flutter/widgets.dart' show Locale;
 import 'package:uuid/uuid.dart';
 
 import '../db/db_helper.dart';
@@ -7,11 +8,13 @@ import '../models/budget.dart';
 import '../models/category.dart';
 import '../models/insights.dart';
 import '../models/money.dart';
+import '../models/note.dart';
 import '../models/period.dart';
 import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../models/transfer.dart';
+import '../services/reminder_service.dart';
 
 /// Holds the app's data in memory, persists changes through [DBHelper], and
 /// computes the selected period's totals, balances, and budgets (PER-1,
@@ -20,14 +23,17 @@ import '../models/transfer.dart';
 class TransactionProvider extends ChangeNotifier {
   /// Stores data in [db], or the app database when null. [clock] supplies
   /// "now"; tests pass a fixed time. [startDay] is the first day of each
-  /// month (PER-2).
+  /// month (PER-2). [reminders] schedules note notifications; `main.dart`
+  /// passes a [DeviceReminderService] and everyone else does nothing.
   TransactionProvider({
     DBHelper? db,
     DateTime Function()? clock,
     int startDay = 1,
+    ReminderService? reminders,
   }) : _db = db ?? DBHelper.instance,
        _clock = clock ?? DateTime.now,
        _startDay = startDay,
+       _reminders = reminders ?? const NoopReminderService(),
        _period = Period.containing(
          (clock ?? DateTime.now)(),
          startDay: startDay,
@@ -41,6 +47,7 @@ class TransactionProvider extends ChangeNotifier {
 
   final DBHelper _db;
   final DateTime Function() _clock;
+  final ReminderService _reminders;
   final List<ExpenseTransaction> _transactions = [];
   final List<ExpenseTransaction> _deleted = [];
   final List<Transfer> _transfers = [];
@@ -51,6 +58,20 @@ class TransactionProvider extends ChangeNotifier {
   List<Account> _accounts = const [];
   List<Budget> _budgets = const [];
   List<RecurringRule> _rules = const [];
+  List<Note> _notes = [];
+
+  /// Notes deleted since loading, kept so Undo can restore them.
+  final List<Note> _deletedNotes = [];
+
+  /// Notes reopened by deleting the transaction they were recorded as, keyed
+  /// by that transaction's ID and holding when the note had been done, so
+  /// undoing the delete links them again (NOTE-4, DEL-2).
+  final Map<String, ({String noteId, DateTime doneAt})> _reopenedNotes = {};
+
+  /// The app lock and language the last [rescheduleReminders] ran with, for
+  /// re-arming a reminder away from a screen that could pass its own.
+  bool _appLockOn = false;
+  Locale _locale = const Locale('en');
 
   /// Handled occurrences by [RecurringOccurrence.key].
   final Map<String, RecurringOccurrence> _occurrences = {};
@@ -64,6 +85,14 @@ class TransactionProvider extends ChangeNotifier {
 
   /// Transactions that aren't deleted, newest first.
   List<ExpenseTransaction> get transactions => List.unmodifiable(_transactions);
+
+  /// The active transaction with [id], or null (also for one in the trash).
+  ExpenseTransaction? transactionById(String id) {
+    for (final tx in _transactions) {
+      if (tx.id == id) return tx;
+    }
+    return null;
+  }
 
   /// Transactions in the trash, most recently deleted first.
   List<ExpenseTransaction> get deletedTransactions =>
@@ -126,6 +155,79 @@ class TransactionProvider extends ChangeNotifier {
   RecurringRule? recurringRuleById(String id) {
     for (final rule in _rules) {
       if (rule.id == id) return rule;
+    }
+    return null;
+  }
+
+  /// Every note that isn't deleted, open and done alike.
+  List<Note> get notes => List.unmodifiable(_notes);
+
+  Note? noteById(String id) {
+    for (final note in _notes) {
+      if (note.id == id) return note;
+    }
+    return null;
+  }
+
+  /// Open notes, overdue first (earliest due date first), then by due date,
+  /// then dateless notes by last edit (NOTE-2).
+  List<Note> get openNotes {
+    final today = _today;
+    int bucket(Note note) {
+      final due = note.dueDate;
+      if (due == null) return 2;
+      return _dayOf(due).isBefore(today) ? 0 : 1;
+    }
+
+    final open =
+        [
+          for (final note in _notes)
+            if (!note.isDone) note,
+        ]..sort((a, b) {
+          final bucketA = bucket(a);
+          final bucketB = bucket(b);
+          if (bucketA != bucketB) return bucketA.compareTo(bucketB);
+          return bucketA == 2
+              ? b.updatedAt.compareTo(a.updatedAt)
+              : a.dueDate!.compareTo(b.dueDate!);
+        });
+    return open;
+  }
+
+  /// Done notes, most recently done first.
+  List<Note> get doneNotes {
+    final done = [
+      for (final note in _notes)
+        if (note.isDone) note,
+    ]..sort((a, b) => b.doneAt!.compareTo(a.doneAt!));
+    return done;
+  }
+
+  /// Open notes due in the selected period, for the Home notice (NOTE-5).
+  List<Note> get notesDueInPeriod => [
+    for (final note in _notes)
+      if (!note.isDone &&
+          note.dueDate != null &&
+          _period.contains(note.dueDate!))
+        note,
+  ];
+
+  /// Open notes due on [day], for the Insights calendar (NOTE-5, INS-1).
+  List<Note> notesDueOn(DateTime day) {
+    final target = _dayOf(day);
+    return [
+      for (final note in _notes)
+        if (!note.isDone &&
+            note.dueDate != null &&
+            _dayOf(note.dueDate!) == target)
+          note,
+    ];
+  }
+
+  /// The note recorded as [transactionId], if any (NOTE-4).
+  Note? noteForTransaction(String transactionId) {
+    for (final note in _notes) {
+      if (note.transactionId == transactionId) return note;
     }
     return null;
   }
@@ -210,12 +312,19 @@ class TransactionProvider extends ChangeNotifier {
 
   /// Purges old trash (DEL-3), loads everything, and posts due occurrences of
   /// automatic recurring rules (RCR-4).
-  Future<void> load() async {
+  /// [appLockOn] and [locale] shape reminder notifications rescheduled for
+  /// open notes (NOTE-6): after a reboot clears the OS alarms, or a restore
+  /// changes which notes are open, the next launch resyncs them.
+  Future<void> load({
+    bool appLockOn = false,
+    Locale locale = const Locale('en'),
+  }) async {
     await _db.purgeDeletedBefore(_clock().subtract(trashRetention));
     _categories = await _db.fetchCategories();
     _accounts = await _db.fetchAccounts();
     _budgets = await _db.fetchBudgets();
     _rules = await _db.fetchRecurringRules();
+    _notes = await _db.fetchNotes();
     final occurrences = await _db.fetchOccurrences();
     final loaded = await _db.fetchTransactions();
     final deleted = await _db.fetchDeletedTransactions();
@@ -235,9 +344,27 @@ class TransactionProvider extends ChangeNotifier {
       ..addAll(transfers)
       ..sort(_newestTransferFirst);
     _deletedTransfers.clear();
+    _deletedNotes.clear();
+    _reopenedNotes.clear();
     await _postAutomaticOccurrences();
+    await rescheduleReminders(appLockOn: appLockOn, locale: locale);
     _loaded = true;
     _changed();
+  }
+
+  /// Re-schedules every open note's reminder (NOTE-6). Settings calls this
+  /// after a change to app lock or the app's language, so notifications
+  /// already scheduled pick up the new [appLockOn] and [locale] instead of
+  /// waiting for the next launch (LOCK-2).
+  Future<void> rescheduleReminders({
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    _appLockOn = appLockOn;
+    _locale = locale;
+    for (final note in _notes) {
+      await _reminders.schedule(note, appLockOn: appLockOn, locale: locale);
+    }
   }
 
   /// Sets the first day of each month (PER-2) and shows the period that
@@ -297,6 +424,7 @@ class TransactionProvider extends ChangeNotifier {
     await _db.updateTransaction(deleted);
     _transactions.removeWhere((t) => t.id == id);
     _deleted.insert(0, deleted);
+    await _reopenNoteFor(id);
     _changed();
   }
 
@@ -315,6 +443,7 @@ class TransactionProvider extends ChangeNotifier {
     _transactions
       ..add(restored)
       ..sort(_newestFirst);
+    await _relinkNoteFor(id);
     _changed();
   }
 
@@ -546,6 +675,141 @@ class TransactionProvider extends ChangeNotifier {
           stamped[category.id] ?? category,
     ]..sort(_byTypeAndOrder);
     _changed();
+  }
+
+  // Notes (NOTE-1–NOTE-8).
+
+  /// Saves a new note (NOTE-1) and schedules its reminder, if any (NOTE-6).
+  Future<void> addNote(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    final now = _clock().toUtc();
+    final stamped = note.copyWith(createdAt: now, updatedAt: now);
+    await _db.insertNote(stamped);
+    _notes = [..._notes, stamped];
+    await _reminders.schedule(stamped, appLockOn: appLockOn, locale: locale);
+    _changed();
+  }
+
+  /// Saves an edited note and reschedules its reminder.
+  Future<void> updateNote(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    final stamped = note.copyWith(updatedAt: _clock().toUtc());
+    await _db.updateNote(stamped);
+    _notes = [
+      for (final existing in _notes)
+        if (existing.id == note.id) stamped else existing,
+    ];
+    await _reminders.schedule(stamped, appLockOn: appLockOn, locale: locale);
+    _changed();
+  }
+
+  /// Marks the note done, or open again.
+  Future<void> setNoteDone(
+    String id,
+    bool done, {
+    required bool appLockOn,
+    required Locale locale,
+  }) => updateNote(
+    noteById(id)!.copyWith(doneAt: done ? _clock().toUtc() : null),
+    appLockOn: appLockOn,
+    locale: locale,
+  );
+
+  /// Marks the note done and links it to the transaction recorded from it;
+  /// each shows the other (NOTE-4).
+  Future<void> recordNote(
+    String id,
+    String transactionId, {
+    required bool appLockOn,
+    required Locale locale,
+  }) => updateNote(
+    noteById(id)!
+        .copyWith(transactionId: transactionId, doneAt: _clock().toUtc()),
+    appLockOn: appLockOn,
+    locale: locale,
+  );
+
+  /// Moves the note to the trash and cancels its reminder (DEL-1, NOTE-7);
+  /// [restoreNote] undoes both.
+  Future<void> deleteNote(String id) async {
+    final index = _notes.indexWhere((n) => n.id == id);
+    if (index == -1) return;
+    final now = _clock().toUtc();
+    final deleted = _notes[index].copyWith(deletedAt: now, updatedAt: now);
+    await _db.updateNote(deleted);
+    await _reminders.cancel(deleted);
+    _notes.removeWhere((n) => n.id == id);
+    _deletedNotes.insert(0, deleted);
+    _changed();
+  }
+
+  Future<void> restoreNote(
+    String id, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    final index = _deletedNotes.indexWhere((n) => n.id == id);
+    if (index == -1) return;
+    final restored = _deletedNotes[index].copyWith(
+      deletedAt: null,
+      updatedAt: _clock().toUtc(),
+    );
+    await _db.updateNote(restored);
+    _deletedNotes.removeWhere((n) => n.id == id);
+    _notes = [..._notes, restored];
+    await _reminders.schedule(restored, appLockOn: appLockOn, locale: locale);
+    _changed();
+  }
+
+  /// Reopens the note recorded as [transactionId], if any, and re-arms its
+  /// reminder for a due date still ahead (NOTE-4). [_relinkNoteFor] puts both
+  /// back when the delete is undone.
+  Future<void> _reopenNoteFor(String transactionId) async {
+    final note = noteForTransaction(transactionId);
+    if (note == null) return;
+    final now = _clock().toUtc();
+    _reopenedNotes[transactionId] = (
+      noteId: note.id,
+      doneAt: note.doneAt ?? now,
+    );
+    final reopened = note.copyWith(
+      transactionId: null,
+      doneAt: null,
+      updatedAt: now,
+    );
+    await _db.updateNote(reopened);
+    _notes = [
+      for (final existing in _notes)
+        if (existing.id == note.id) reopened else existing,
+    ];
+    await _reminders.schedule(reopened, appLockOn: _appLockOn, locale: _locale);
+  }
+
+  /// Marks the note that deleting [transactionId] reopened done and linked
+  /// again, so undoing that delete undoes both halves (NOTE-4). Its reminder
+  /// goes back off, since the note is done. Any edit made in between stays.
+  Future<void> _relinkNoteFor(String transactionId) async {
+    final reopened = _reopenedNotes.remove(transactionId);
+    if (reopened == null) return;
+    final note = noteById(reopened.noteId);
+    if (note == null) return;
+    final relinked = note.copyWith(
+      transactionId: transactionId,
+      doneAt: reopened.doneAt,
+      updatedAt: _clock().toUtc(),
+    );
+    await _db.updateNote(relinked);
+    _notes = [
+      for (final existing in _notes)
+        if (existing.id == note.id) relinked else existing,
+    ];
+    await _reminders.cancel(relinked);
   }
 
   // Search (SRCH-1–SRCH-3).

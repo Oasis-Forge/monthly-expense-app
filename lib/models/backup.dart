@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'account.dart';
 import 'budget.dart';
 import 'category.dart';
+import 'note.dart';
 import 'recurring_rule.dart';
 import 'transaction.dart';
 import 'transfer.dart';
@@ -19,6 +20,7 @@ const backupTableNames = [
   'budgets',
   'recurring_rules',
   'recurring_occurrences',
+  'notes',
 ];
 
 enum BackupProblem {
@@ -158,6 +160,7 @@ BackupTables normalizeTables(BackupTables tables) {
         for (final row in rows('recurring_occurrences'))
           RecurringOccurrence.fromMap(row).toMap(),
       ],
+      'notes': [for (final row in rows('notes')) Note.fromMap(row).toMap()],
     };
     for (final MapEntry(key: table, value: rows) in normalized.entries) {
       final keys = {for (final row in rows) _recordKey(table, row)};

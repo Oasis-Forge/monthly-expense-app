@@ -14,6 +14,7 @@ import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
+import 'package:monthly_expense_app/screens/notes_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
@@ -192,6 +193,7 @@ void main() {
       ('Transfer', TransferScreen),
       ('Recurring', RecurringScreen),
       ('Budgets', BudgetsScreen),
+      ('Notes', NotesScreen),
       ('Backup & restore', BackupScreen),
       ('Settings', SettingsScreen),
     ]) {
@@ -295,6 +297,17 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(InsightsScreen), findsOneWidget);
+  });
+
+  testWidgets('notes due in the period show a notice (NOTE-5)', (tester) async {
+    fake.notes.add(testNote('n', 'Pay rent', dueDate: DateTime(2026, 9, 20)));
+    await provider.load();
+
+    await showHome(tester);
+    await tester.tap(find.text('1 note is due'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NotesScreen), findsOneWidget);
   });
 
   testWidgets('tapping a row opens it for editing', (tester) async {
