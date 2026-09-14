@@ -1006,4 +1006,67 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get noteReminderPermissionDenied =>
       'Not hatırlatmaları alabilmek için sistem ayarlarından bildirimleri açın.';
+
+  @override
+  String reportRange(String from, String to) {
+    return '$from - $to';
+  }
+
+  @override
+  String reportCreated(String when) {
+    return 'Oluşturulma: $when';
+  }
+
+  @override
+  String reportPageOf(int page, int pages) {
+    return 'Sayfa $page / $pages';
+  }
+
+  @override
+  String get reportNet => 'Net';
+
+  @override
+  String get reportOpeningBalance => 'Açılış bakiyesi';
+
+  @override
+  String get reportClosingBalance => 'Kapanış bakiyesi';
+
+  @override
+  String get reportSpendingHeader => 'Kategoriye göre harcama';
+
+  @override
+  String get reportEarningHeader => 'Kategoriye göre gelir';
+
+  @override
+  String get reportTrendHeader => 'Eğilim';
+
+  @override
+  String get reportEntriesHeader => 'İşlemler';
+
+  @override
+  String get reportUpcomingHeader => 'Yaklaşan';
+
+  @override
+  String get reportUpcomingNote =>
+      'İleri tarihli olduğundan yukarıdaki toplamlara dahil değil.';
+
+  @override
+  String get reportAmountColumn => 'Tutar';
+
+  @override
+  String get reportShareColumn => 'Pay';
+
+  @override
+  String get reportBudgetColumn => 'Bütçe';
+
+  @override
+  String reportBudgetOf(String used, String limit) {
+    return '$limit bütçesinin $used kadarı';
+  }
+
+  @override
+  String get reportDetailsColumn => 'Ayrıntılar';
+
+  @override
+  String get reportEmpty => 'Bu tarihler için raporlanacak bir şey yok.';
 }

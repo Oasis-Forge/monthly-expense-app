@@ -1005,4 +1005,67 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get noteReminderPermissionDenied =>
       'Turn on notifications in system settings to get reminders for notes.';
+
+  @override
+  String reportRange(String from, String to) {
+    return '$from to $to';
+  }
+
+  @override
+  String reportCreated(String when) {
+    return 'Created $when';
+  }
+
+  @override
+  String reportPageOf(int page, int pages) {
+    return 'Page $page of $pages';
+  }
+
+  @override
+  String get reportNet => 'Net';
+
+  @override
+  String get reportOpeningBalance => 'Opening balance';
+
+  @override
+  String get reportClosingBalance => 'Closing balance';
+
+  @override
+  String get reportSpendingHeader => 'Spending by category';
+
+  @override
+  String get reportEarningHeader => 'Income by category';
+
+  @override
+  String get reportTrendHeader => 'Trend';
+
+  @override
+  String get reportEntriesHeader => 'Transactions';
+
+  @override
+  String get reportUpcomingHeader => 'Upcoming';
+
+  @override
+  String get reportUpcomingNote =>
+      'Dated ahead, so not counted in the totals above.';
+
+  @override
+  String get reportAmountColumn => 'Amount';
+
+  @override
+  String get reportShareColumn => 'Share';
+
+  @override
+  String get reportBudgetColumn => 'Budget';
+
+  @override
+  String reportBudgetOf(String used, String limit) {
+    return '$used of $limit';
+  }
+
+  @override
+  String get reportDetailsColumn => 'Details';
+
+  @override
+  String get reportEmpty => 'Nothing to report for these dates.';
 }

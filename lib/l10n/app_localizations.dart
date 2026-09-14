@@ -1779,6 +1779,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on notifications in system settings to get reminders for notes.'**
   String get noteReminderPermissionDenied;
+
+  /// No description provided for @reportRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String reportRange(String from, String to);
+
+  /// No description provided for @reportCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Created {when}'**
+  String reportCreated(String when);
+
+  /// No description provided for @reportPageOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {page} of {pages}'**
+  String reportPageOf(int page, int pages);
+
+  /// No description provided for @reportNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Net'**
+  String get reportNet;
+
+  /// No description provided for @reportOpeningBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening balance'**
+  String get reportOpeningBalance;
+
+  /// No description provided for @reportClosingBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Closing balance'**
+  String get reportClosingBalance;
+
+  /// No description provided for @reportSpendingHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category'**
+  String get reportSpendingHeader;
+
+  /// No description provided for @reportEarningHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Income by category'**
+  String get reportEarningHeader;
+
+  /// No description provided for @reportTrendHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend'**
+  String get reportTrendHeader;
+
+  /// No description provided for @reportEntriesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Transactions'**
+  String get reportEntriesHeader;
+
+  /// No description provided for @reportUpcomingHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get reportUpcomingHeader;
+
+  /// No description provided for @reportUpcomingNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Dated ahead, so not counted in the totals above.'**
+  String get reportUpcomingNote;
+
+  /// No description provided for @reportAmountColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get reportAmountColumn;
+
+  /// No description provided for @reportShareColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get reportShareColumn;
+
+  /// No description provided for @reportBudgetColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Budget'**
+  String get reportBudgetColumn;
+
+  /// No description provided for @reportBudgetOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} of {limit}'**
+  String reportBudgetOf(String used, String limit);
+
+  /// No description provided for @reportDetailsColumn.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get reportDetailsColumn;
+
+  /// No description provided for @reportEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing to report for these dates.'**
+  String get reportEmpty;
 }
 
 class _AppLocalizationsDelegate

@@ -566,5 +566,60 @@
   "dayNotesDueHeader": "Notes due",
   "noteReminderTitle": "Note reminder",
   "noteReminderLockedTitle": "A note is due",
-  "noteReminderPermissionDenied": "Turn on notifications in system settings to get reminders for notes."
+  "noteReminderPermissionDenied": "Turn on notifications in system settings to get reminders for notes.",
+  "reportRange": "{from} to {to}",
+  "@reportRange": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "reportCreated": "Created {when}",
+  "@reportCreated": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "reportPageOf": "Page {page} of {pages}",
+  "@reportPageOf": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "pages": {
+        "type": "int"
+      }
+    }
+  },
+  "reportNet": "Net",
+  "reportOpeningBalance": "Opening balance",
+  "reportClosingBalance": "Closing balance",
+  "reportSpendingHeader": "Spending by category",
+  "reportEarningHeader": "Income by category",
+  "reportTrendHeader": "Trend",
+  "reportEntriesHeader": "Transactions",
+  "reportUpcomingHeader": "Upcoming",
+  "reportUpcomingNote": "Dated ahead, so not counted in the totals above.",
+  "reportAmountColumn": "Amount",
+  "reportShareColumn": "Share",
+  "reportBudgetColumn": "Budget",
+  "reportBudgetOf": "{used} of {limit}",
+  "@reportBudgetOf": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "reportDetailsColumn": "Details",
+  "reportEmpty": "Nothing to report for these dates."
 }

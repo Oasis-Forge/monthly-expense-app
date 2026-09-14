@@ -1023,4 +1023,67 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get noteReminderPermissionDenied =>
       'Aktiviere Benachrichtigungen in den Systemeinstellungen, um Erinnerungen für Notizen zu erhalten.';
+
+  @override
+  String reportRange(String from, String to) {
+    return '$from bis $to';
+  }
+
+  @override
+  String reportCreated(String when) {
+    return 'Erstellt am $when';
+  }
+
+  @override
+  String reportPageOf(int page, int pages) {
+    return 'Seite $page von $pages';
+  }
+
+  @override
+  String get reportNet => 'Netto';
+
+  @override
+  String get reportOpeningBalance => 'Anfangssaldo';
+
+  @override
+  String get reportClosingBalance => 'Endsaldo';
+
+  @override
+  String get reportSpendingHeader => 'Ausgaben nach Kategorie';
+
+  @override
+  String get reportEarningHeader => 'Einnahmen nach Kategorie';
+
+  @override
+  String get reportTrendHeader => 'Verlauf';
+
+  @override
+  String get reportEntriesHeader => 'Transaktionen';
+
+  @override
+  String get reportUpcomingHeader => 'Bevorstehend';
+
+  @override
+  String get reportUpcomingNote =>
+      'Später datiert und daher nicht in den Summen oben enthalten.';
+
+  @override
+  String get reportAmountColumn => 'Betrag';
+
+  @override
+  String get reportShareColumn => 'Anteil';
+
+  @override
+  String get reportBudgetColumn => 'Budget';
+
+  @override
+  String reportBudgetOf(String used, String limit) {
+    return '$used von $limit';
+  }
+
+  @override
+  String get reportDetailsColumn => 'Details';
+
+  @override
+  String get reportEmpty => 'Für diese Daten gibt es nichts zu berichten.';
 }

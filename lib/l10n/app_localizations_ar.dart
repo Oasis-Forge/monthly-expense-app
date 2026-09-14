@@ -1038,4 +1038,67 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get noteReminderPermissionDenied =>
       'فعّل الإشعارات من إعدادات النظام لتلقي تذكيرات الملاحظات.';
+
+  @override
+  String reportRange(String from, String to) {
+    return 'من $from إلى $to';
+  }
+
+  @override
+  String reportCreated(String when) {
+    return 'أُنشئ في $when';
+  }
+
+  @override
+  String reportPageOf(int page, int pages) {
+    return 'صفحة $page من $pages';
+  }
+
+  @override
+  String get reportNet => 'الصافي';
+
+  @override
+  String get reportOpeningBalance => 'الرصيد الافتتاحي';
+
+  @override
+  String get reportClosingBalance => 'الرصيد الختامي';
+
+  @override
+  String get reportSpendingHeader => 'الإنفاق حسب الفئة';
+
+  @override
+  String get reportEarningHeader => 'الدخل حسب الفئة';
+
+  @override
+  String get reportTrendHeader => 'الاتجاه';
+
+  @override
+  String get reportEntriesHeader => 'المعاملات';
+
+  @override
+  String get reportUpcomingHeader => 'القادمة';
+
+  @override
+  String get reportUpcomingNote =>
+      'مؤرخة لاحقًا، لذا لا تُحتسب ضمن الإجماليات أعلاه.';
+
+  @override
+  String get reportAmountColumn => 'المبلغ';
+
+  @override
+  String get reportShareColumn => 'النسبة';
+
+  @override
+  String get reportBudgetColumn => 'الميزانية';
+
+  @override
+  String reportBudgetOf(String used, String limit) {
+    return '$used من $limit';
+  }
+
+  @override
+  String get reportDetailsColumn => 'التفاصيل';
+
+  @override
+  String get reportEmpty => 'لا شيء لعرضه في هذه التواريخ.';
 }
