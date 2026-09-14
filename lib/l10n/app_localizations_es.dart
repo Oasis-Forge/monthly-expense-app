@@ -1170,4 +1170,188 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get reportRangeBackwards =>
       'La primera fecha debe ser anterior a la última.';
+
+  @override
+  String get importTitle => 'Importar un CSV';
+
+  @override
+  String get importSubtitle => 'Trae tus movimientos desde otra aplicación';
+
+  @override
+  String get importIntro =>
+      'Elige un archivo CSV y verás qué ha entendido la aplicación antes de añadir nada. La importación solo añade registros: nunca sustituye ni borra lo que ya tienes.';
+
+  @override
+  String get importChooseFile => 'Elegir un archivo';
+
+  @override
+  String get importChooseAnother => 'Elegir otro archivo';
+
+  @override
+  String get importReadFailed =>
+      'No se pudo leer ese archivo. Inténtalo de nuevo.';
+
+  @override
+  String get importRefusedEmpty => 'Ese archivo no contiene nada.';
+
+  @override
+  String get importRefusedNoDate =>
+      'Ninguna columna de ese archivo se pudo leer como fecha, así que no se puede importar.';
+
+  @override
+  String get importRefusedNoAmount =>
+      'Ninguna columna de ese archivo se pudo leer como importe, así que no se puede importar.';
+
+  @override
+  String get importRefusedNoRows =>
+      'No se pudo leer ninguna fila de ese archivo, así que no hay nada que importar.';
+
+  @override
+  String get importColumnsHeader => 'Columnas';
+
+  @override
+  String get importColumnsSubtitle =>
+      'Corrige todo lo que la aplicación haya leído mal.';
+
+  @override
+  String get importColumnNone => 'Sin usar';
+
+  @override
+  String get importFieldType => 'Tipo';
+
+  @override
+  String get importFieldToAccount => 'Cuenta destino';
+
+  @override
+  String get importFieldTitle => 'Título';
+
+  @override
+  String get importFieldNote => 'Nota';
+
+  @override
+  String get importDateOrderLabel => 'Una fecha como 03/04 significa';
+
+  @override
+  String get importDayFirst => 'Día primero';
+
+  @override
+  String get importMonthFirst => 'Mes primero';
+
+  @override
+  String get importCountsHeader => 'Qué va a pasar';
+
+  @override
+  String importWillImport(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Se importarán $count filas',
+      one: 'Se importará 1 fila',
+      zero: 'No se importará nada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedDate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filas tienen una fecha que la aplicación no puede leer',
+      one: '1 fila tiene una fecha que la aplicación no puede leer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filas tienen un importe que la aplicación no puede leer',
+      one: '1 fila tiene un importe que la aplicación no puede leer',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedZero(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filas no llevan ningún importe',
+      one: '1 fila no lleva ningún importe',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAlreadyThere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count filas ya están en la aplicación',
+      one: '1 fila ya está en la aplicación',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedTransfer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transferencias nombran solo una cuenta',
+      one: '1 transferencia nombra solo una cuenta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNamesHeader => 'Nombres que esta aplicación no tiene';
+
+  @override
+  String get importNamesSubtitle =>
+      'Elige en qué se convierte cada uno. La importación nunca crea categorías ni cuentas.';
+
+  @override
+  String get importRowsHeader => 'Las primeras filas, tal como se han leído';
+
+  @override
+  String importMoreRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'y $count más',
+      one: 'y 1 más',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Importar $count filas',
+      one: 'Importar 1 fila',
+      zero: 'Nada que importar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count registros importados',
+      one: '1 registro importado',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importFailed =>
+      'No se pudo importar ese archivo. No se ha añadido nada.';
 }

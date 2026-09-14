@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +16,7 @@ import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/form_fields.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
+import 'package:monthly_expense_app/screens/import_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
@@ -22,6 +25,7 @@ import 'package:monthly_expense_app/screens/report_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
+import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
 
@@ -64,15 +68,40 @@ void main() {
   }
 
   /// Shows [screen] in [language] on a phone at 1.3× text size.
-  Future<void> show(WidgetTester tester, String language, Widget screen) async {
+  Future<void> show(
+    WidgetTester tester,
+    String language,
+    Widget screen, {
+    BackupService? backup,
+  }) async {
     usePhoneScreen(tester);
     tester.platformDispatcher.textScaleFactorTestValue = 1.3;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     final settings = await testSettings({'language': language});
-    await tester.pumpWidget(testApp(await loadProvider(), settings, screen));
+    await tester.pumpWidget(
+      testApp(await loadProvider(), settings, screen, backup: backup),
+    );
     await tester.pump();
     await tester.pump();
   }
+
+  /// A file with something for every part of the import preview: two rows to
+  /// import, one skipped for each reason, and names this app hasn't got.
+  const importSample =
+      'date,amount,type,category,account,to account,title,note\n'
+      '2026-09-01,12.50,expense,Eating out,Savings,,Coffee and a pastry,'
+      'paid by card\n'
+      '2026-09-02,900,income,Salary,Savings,,Monthly pay,\n'
+      '2026-09-03,100,transfer,Savings,,,Moving money,\n'
+      'sometime,3,expense,Eating out,Savings,,Tea,\n'
+      '2026-09-05,nothing,expense,Eating out,Savings,,Cake,\n'
+      '2026-09-06,0,expense,Eating out,Savings,,Nothing at all,\n';
+
+  /// A backup service whose open dialog hands back [importSample].
+  BackupService withSampleCsv() => testBackupService(
+    FakeDB(),
+    files: FakeBackupFiles()..toOpen = utf8.encode(importSample),
+  );
 
   const screens = <String, Widget>{
     'Home': HomeScreen(),
@@ -87,6 +116,7 @@ void main() {
     'Export PDF': ReportScreen(),
     'Settings': SettingsScreen(),
     'Backup': BackupScreen(),
+    'Import': ImportScreen(),
   };
 
   group('screens fit in every language at 1.3× text (LANG-6)', () {
@@ -94,7 +124,18 @@ void main() {
       final l10n = lookupAppLocalizations(Locale(language));
       for (final MapEntry(key: name, value: screen) in screens.entries) {
         testWidgets('$language: $name', (tester) async {
-          await show(tester, language, screen);
+          await show(
+            tester,
+            language,
+            screen,
+            backup: screen is ImportScreen ? withSampleCsv() : null,
+          );
+          if (screen is ImportScreen) {
+            // The preview is the part with the long labels in it.
+            await tester.tap(find.text(l10n.importChooseFile));
+            await tester.pumpAndSettle();
+            expect(find.text(l10n.importColumnsHeader), findsOne);
+          }
           if (screen is AddTransactionScreen) {
             await tester.tap(find.text(l10n.amountLabel));
             await tester.pump();

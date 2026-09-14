@@ -1152,4 +1152,185 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reportRangeBackwards =>
       'The first date has to come before the last.';
+
+  @override
+  String get importTitle => 'Import a CSV';
+
+  @override
+  String get importSubtitle => 'Bring transactions in from another app';
+
+  @override
+  String get importIntro =>
+      'Pick a CSV file and you\'ll see what the app made of it before anything is added. Importing only adds records — it never replaces or deletes what you already have.';
+
+  @override
+  String get importChooseFile => 'Choose a file';
+
+  @override
+  String get importChooseAnother => 'Choose another file';
+
+  @override
+  String get importReadFailed => 'Couldn\'t read that file. Try again.';
+
+  @override
+  String get importRefusedEmpty => 'There is nothing in that file.';
+
+  @override
+  String get importRefusedNoDate =>
+      'No column in that file could be read as a date, so it can\'t be imported.';
+
+  @override
+  String get importRefusedNoAmount =>
+      'No column in that file could be read as an amount, so it can\'t be imported.';
+
+  @override
+  String get importRefusedNoRows =>
+      'None of the rows in that file could be read, so there is nothing to import.';
+
+  @override
+  String get importColumnsHeader => 'Columns';
+
+  @override
+  String get importColumnsSubtitle => 'Change anything the app read wrongly.';
+
+  @override
+  String get importColumnNone => 'Not used';
+
+  @override
+  String get importFieldType => 'Type';
+
+  @override
+  String get importFieldToAccount => 'To account';
+
+  @override
+  String get importFieldTitle => 'Title';
+
+  @override
+  String get importFieldNote => 'Note';
+
+  @override
+  String get importDateOrderLabel => 'Dates like 03/04 mean';
+
+  @override
+  String get importDayFirst => 'Day first';
+
+  @override
+  String get importMonthFirst => 'Month first';
+
+  @override
+  String get importCountsHeader => 'What will happen';
+
+  @override
+  String importWillImport(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows will be imported',
+      one: '1 row will be imported',
+      zero: 'Nothing will be imported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedDate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows have a date the app can\'t read',
+      one: '1 row has a date the app can\'t read',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows have an amount the app can\'t read',
+      one: '1 row has an amount the app can\'t read',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedZero(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows are for no money at all',
+      one: '1 row is for no money at all',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAlreadyThere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rows are already in the app',
+      one: '1 row is already in the app',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedTransfer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transfers name only one account',
+      one: '1 transfer names only one account',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNamesHeader => 'Names this app hasn\'t got';
+
+  @override
+  String get importNamesSubtitle =>
+      'Pick what each one becomes. Importing never creates a category or an account.';
+
+  @override
+  String get importRowsHeader => 'The first rows, as the app read them';
+
+  @override
+  String importMoreRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'and $count more',
+      one: 'and 1 more',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Import $count rows',
+      one: 'Import 1 row',
+      zero: 'Nothing to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count records imported',
+      one: '1 record imported',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importFailed => 'Couldn\'t import that file. Nothing was added.';
 }

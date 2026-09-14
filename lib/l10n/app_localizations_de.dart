@@ -1171,4 +1171,189 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get reportRangeBackwards =>
       'Das erste Datum muss vor dem letzten liegen.';
+
+  @override
+  String get importTitle => 'CSV importieren';
+
+  @override
+  String get importSubtitle => 'Buchungen aus einer anderen App übernehmen';
+
+  @override
+  String get importIntro =>
+      'Wähle eine CSV-Datei aus; bevor etwas hinzugefügt wird, siehst du, was die App darin erkannt hat. Ein Import fügt nur Einträge hinzu — er ersetzt oder löscht nie, was schon da ist.';
+
+  @override
+  String get importChooseFile => 'Datei auswählen';
+
+  @override
+  String get importChooseAnother => 'Andere Datei auswählen';
+
+  @override
+  String get importReadFailed =>
+      'Diese Datei konnte nicht gelesen werden. Versuche es erneut.';
+
+  @override
+  String get importRefusedEmpty => 'In dieser Datei steht nichts.';
+
+  @override
+  String get importRefusedNoDate =>
+      'Keine Spalte dieser Datei ließ sich als Datum lesen, sie kann nicht importiert werden.';
+
+  @override
+  String get importRefusedNoAmount =>
+      'Keine Spalte dieser Datei ließ sich als Betrag lesen, sie kann nicht importiert werden.';
+
+  @override
+  String get importRefusedNoRows =>
+      'Keine Zeile dieser Datei ließ sich lesen, es gibt nichts zu importieren.';
+
+  @override
+  String get importColumnsHeader => 'Spalten';
+
+  @override
+  String get importColumnsSubtitle =>
+      'Ändere alles, was die App falsch gelesen hat.';
+
+  @override
+  String get importColumnNone => 'Nicht verwendet';
+
+  @override
+  String get importFieldType => 'Art';
+
+  @override
+  String get importFieldToAccount => 'Zielkonto';
+
+  @override
+  String get importFieldTitle => 'Titel';
+
+  @override
+  String get importFieldNote => 'Notiz';
+
+  @override
+  String get importDateOrderLabel => 'Ein Datum wie 03/04 bedeutet';
+
+  @override
+  String get importDayFirst => 'Tag zuerst';
+
+  @override
+  String get importMonthFirst => 'Monat zuerst';
+
+  @override
+  String get importCountsHeader => 'Was passieren wird';
+
+  @override
+  String importWillImport(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen werden importiert',
+      one: '1 Zeile wird importiert',
+      zero: 'Es wird nichts importiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedDate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen haben ein Datum, das die App nicht lesen kann',
+      one: '1 Zeile hat ein Datum, das die App nicht lesen kann',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen haben einen Betrag, den die App nicht lesen kann',
+      one: '1 Zeile hat einen Betrag, den die App nicht lesen kann',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedZero(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen enthalten gar keinen Betrag',
+      one: '1 Zeile enthält gar keinen Betrag',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAlreadyThere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen sind bereits in der App',
+      one: '1 Zeile ist bereits in der App',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedTransfer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Umbuchungen nennen nur ein Konto',
+      one: '1 Umbuchung nennt nur ein Konto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importNamesHeader => 'Namen, die es in dieser App nicht gibt';
+
+  @override
+  String get importNamesSubtitle =>
+      'Wähle, was aus jedem wird. Ein Import legt nie eine Kategorie oder ein Konto an.';
+
+  @override
+  String get importRowsHeader =>
+      'Die ersten Zeilen, so wie die App sie gelesen hat';
+
+  @override
+  String importMoreRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'und $count weitere',
+      one: 'und 1 weitere',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Zeilen importieren',
+      one: '1 Zeile importieren',
+      zero: 'Nichts zu importieren',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Einträge importiert',
+      one: '1 Eintrag importiert',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importFailed =>
+      'Diese Datei konnte nicht importiert werden. Es wurde nichts hinzugefügt.';
 }
