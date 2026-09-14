@@ -30,6 +30,20 @@ void main() {
     settings = await testSettings();
   });
 
+  /// Pumps until [finder] matches, or gives up. The preview never settles in
+  /// a widget test — PdfPreview keeps a spinner going, because rasterising a
+  /// PDF needs the platform — so pumpAndSettle can't be used past it.
+  Future<void> pumpUntil(
+    WidgetTester tester,
+    Finder finder, {
+    int frames = 100,
+  }) async {
+    for (var i = 0; i < frames; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+      if (finder.evaluate().isNotEmpty) return;
+    }
+  }
+
   Future<void> showReport(
     WidgetTester tester, {
     TransactionFilter? filter,
@@ -142,5 +156,53 @@ void main() {
       find.text('The first date has to come before the last.'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('creating shows progress, then the preview (PDF-4, PDF-6)', (
+    tester,
+  ) async {
+    await showReport(tester);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Create the report'));
+    await tester.pump();
+
+    expect(find.text('Building the report'), findsOneWidget);
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+    // PDF-4: nothing to share or print until the report exists.
+    expect(find.byIcon(Icons.share), findsNothing);
+
+    await pumpUntil(tester, find.text('Report'));
+
+    expect(find.text('Building the report'), findsNothing);
+    expect(find.text('Report'), findsOneWidget);
+  });
+
+  testWidgets('cancelling leaves you on the options, with no report '
+      '(PDF-6)', (tester) async {
+    await showReport(tester);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Create the report'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Building the report'), findsNothing);
+    expect(find.text('Report'), findsNothing);
+    expect(find.text('Create the report'), findsOneWidget);
+  });
+
+  testWidgets('a report can still be created after one is cancelled', (
+    tester,
+  ) async {
+    await showReport(tester);
+    await tester.tap(find.widgetWithText(FilledButton, 'Create the report'));
+    await tester.pump();
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Create the report'));
+    await pumpUntil(tester, find.text('Report'));
+
+    expect(find.text('Report'), findsOneWidget);
   });
 }

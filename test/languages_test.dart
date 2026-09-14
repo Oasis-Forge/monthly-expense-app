@@ -15,7 +15,10 @@ import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/form_fields.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
+import 'package:monthly_expense_app/screens/note_form_screen.dart';
+import 'package:monthly_expense_app/screens/notes_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
+import 'package:monthly_expense_app/screens/report_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
@@ -79,6 +82,9 @@ void main() {
     'Insights': InsightsScreen(),
     'Budgets': BudgetsScreen(),
     'Recurring': RecurringScreen(),
+    'Notes': NotesScreen(),
+    'Note form': NoteFormScreen(),
+    'Export PDF': ReportScreen(),
     'Settings': SettingsScreen(),
     'Backup': BackupScreen(),
   };
@@ -97,6 +103,16 @@ void main() {
           if (screen is InsightsScreen) {
             for (final tab in [l10n.calendarTab, l10n.trendTab]) {
               await tester.tap(find.text(tab));
+              await tester.pumpAndSettle();
+            }
+          }
+          if (screen is ReportScreen) {
+            // The date fields and the year list only appear once chosen.
+            for (final range in [
+              l10n.reportRangeCustom,
+              l10n.reportRangeYear,
+            ]) {
+              await tester.tap(find.text(range));
               await tester.pumpAndSettle();
             }
           }
