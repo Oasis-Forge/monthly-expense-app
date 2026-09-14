@@ -65,6 +65,9 @@ Future<Uint8List> buildReportPdf({
   PdfPageFormat pageFormat = PdfPageFormat.a4,
   void Function(double progress)? onProgress,
   bool Function()? isCancelled,
+  // Tests turn compression off so they can read the text back out and check
+  // it is the right way round; the app always leaves it on.
+  bool compress = true,
 }) async {
   // The report dates itself in the app's language, so it needs the locale's
   // date symbols whether or not a widget delegate has already loaded them
@@ -84,7 +87,7 @@ Future<Uint8List> buildReportPdf({
     await Future<void>.delayed(Duration.zero);
   }
 
-  final document = pw.Document(theme: fonts.theme);
+  final document = pw.Document(theme: fonts.theme, compress: compress);
   final content = <pw.Widget>[
     _summary(data, labels),
     if (data.expenseCategories.isNotEmpty)
@@ -116,14 +119,14 @@ Future<Uint8List> buildReportPdf({
   if (data.upcoming.isNotEmpty) {
     content
       ..add(_heading(l10n.reportUpcomingHeader))
-      ..add(pw.Text(l10n.reportUpcomingNote, style: _muted))
+      ..add(_run(l10n.reportUpcomingNote, style: _muted))
       ..add(pw.SizedBox(height: 4))
       ..add(_dayTable(null, data.upcoming, options, labels));
     await step(data.upcoming.length);
   }
 
   if (data.isEmpty) {
-    content.add(pw.Text(l10n.reportEmpty, style: _muted));
+    content.add(_run(l10n.reportEmpty, style: _muted));
   }
 
   document.addPage(
@@ -137,7 +140,7 @@ Future<Uint8List> buildReportPdf({
       footer: (context) => pw.Container(
         alignment: pw.Alignment.centerRight,
         margin: const pw.EdgeInsets.only(top: 8),
-        child: pw.Text(
+        child: _run(
           l10n.reportPageOf(context.pageNumber, context.pagesCount),
           style: _muted,
         ),
@@ -150,15 +153,69 @@ Future<Uint8List> buildReportPdf({
   return document.save();
 }
 
+/// A run of text laid out in the direction its own content calls for.
+///
+/// An Arabic report is a right-to-left page, and the pdf package puts every
+/// span on such a page through a bidi pass that leaves Latin runs backwards —
+/// v1.3.0 printed the app's own name as "sesnepxE ylhtnoM". Anything with no
+/// right-to-left letter in it is drawn left to right instead, which skips
+/// that pass: the app name, the currency, an amount, and any category,
+/// account or title the user typed in Latin (PDF-5, LANG-5).
+pw.Widget _run(String text, {pw.TextStyle? style}) {
+  final plain = stripBidiMarks(text);
+  return pw.Directionality(
+    textDirection: _directionOf(plain),
+    child: pw.Text(plain, style: style),
+  );
+}
+
+/// Drops the invisible marks that steer bidirectional text.
+///
+/// Arabic number formats carry them, and a PDF font has no notion of an
+/// invisible character: it draws whatever glyph the mark maps to, leaving a
+/// speck in front of every amount. The direction of each run is set here
+/// anyway, so the marks have nothing left to say (LANG-3).
+String stripBidiMarks(String text) =>
+    String.fromCharCodes(text.runes.where((rune) => !_isBidiMark(rune)));
+
+bool _isBidiMark(int rune) =>
+    rune == 0x200E || // left-to-right mark
+    rune == 0x200F || // right-to-left mark
+    rune == 0x061C || // Arabic letter mark
+    (rune >= 0x202A && rune <= 0x202E) || // embeddings and overrides
+    (rune >= 0x2066 && rune <= 0x2069); // isolates
+
+pw.TextDirection _directionOf(String text) =>
+    text.runes.any(_isRtlRune) ? pw.TextDirection.rtl : pw.TextDirection.ltr;
+
+/// Hebrew, Arabic, Syriac and Thaana, and the Arabic presentation forms.
+bool _isRtlRune(int rune) =>
+    (rune >= 0x0590 && rune <= 0x08FF) ||
+    (rune >= 0xFB1D && rune <= 0xFDFF) ||
+    (rune >= 0xFE70 && rune <= 0xFEFF);
+
 const _muted = pw.TextStyle(fontSize: 9, color: PdfColors.grey700);
 const _headingStyle = pw.TextStyle(
   fontSize: 13,
   fontWeight: pw.FontWeight.bold,
 );
 
+// Cells are passed as widgets rather than strings so each picks its own
+// direction, which means they carry their own style too.
+const _tableCellStyle = pw.TextStyle(fontSize: 10);
+const _tableHeaderStyle = pw.TextStyle(
+  fontSize: 10,
+  fontWeight: pw.FontWeight.bold,
+);
+const _entryCellStyle = pw.TextStyle(fontSize: 9);
+const _entryHeaderStyle = pw.TextStyle(
+  fontSize: 9,
+  fontWeight: pw.FontWeight.bold,
+);
+
 pw.Widget _heading(String text) => pw.Container(
   margin: const pw.EdgeInsets.only(top: 16, bottom: 6),
-  child: pw.Text(text, style: _headingStyle),
+  child: _run(text, style: _headingStyle),
 );
 
 /// The app's name, what the report covers, the currency, and when it was
@@ -177,7 +234,7 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
     child: pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Text(
+        _run(
           l10n.appTitle,
           style: const pw.TextStyle(
             fontSize: 18,
@@ -185,15 +242,20 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
           ),
         ),
         pw.SizedBox(height: 2),
-        pw.Text(range, style: const pw.TextStyle(fontSize: 11)),
+        _run(range, style: const pw.TextStyle(fontSize: 11)),
         pw.SizedBox(height: 2),
-        pw.Text(
-          [
-            if (labels.accountFilterName != null) labels.accountFilterName!,
-            labels.currency.currencyName ?? '',
-            l10n.reportCreated(labels.dateTime(createdAt)),
-          ].where((part) => part.isNotEmpty).join('  ·  '),
-          style: _muted,
+        // Each part on its own, so a Latin currency name next to an Arabic
+        // date doesn't drag one of them the wrong way round.
+        pw.Wrap(
+          spacing: 8,
+          children: [
+            for (final part in [
+              if (labels.accountFilterName != null) labels.accountFilterName!,
+              labels.currency.currencyName ?? '',
+              l10n.reportCreated(labels.dateTime(createdAt)),
+            ].where((part) => part.isNotEmpty))
+              _run(part, style: _muted),
+          ],
         ),
       ],
     ),
@@ -208,19 +270,15 @@ pw.Widget _summary(ReportData data, ReportLabels labels) {
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Text(label, style: _muted),
+            _run(label, style: _muted),
             pw.SizedBox(height: 2),
-            // Amounts read left to right in every language (LANG-3).
-            pw.Directionality(
-              textDirection: pw.TextDirection.ltr,
-              child: pw.Text(
-                labels.money(amount),
-                style: pw.TextStyle(
-                  fontSize: 11,
-                  fontWeight: strong
-                      ? pw.FontWeight.bold
-                      : pw.FontWeight.normal,
-                ),
+            // Amounts read left to right in every language (LANG-3), which
+            // _run already gives them: they carry no right-to-left letter.
+            _run(
+              labels.money(amount),
+              style: pw.TextStyle(
+                fontSize: 11,
+                fontWeight: strong ? pw.FontWeight.bold : pw.FontWeight.normal,
               ),
             ),
           ],
@@ -262,11 +320,6 @@ List<pw.Widget> _categories(
   return [
     _heading(title),
     pw.TableHelper.fromTextArray(
-      cellStyle: const pw.TextStyle(fontSize: 10),
-      headerStyle: const pw.TextStyle(
-        fontSize: 10,
-        fontWeight: pw.FontWeight.bold,
-      ),
       headerDecoration: const pw.BoxDecoration(color: PdfColors.grey200),
       // PDF-5: the header repeats when a table runs onto the next page.
       headerCount: 1,
@@ -277,24 +330,30 @@ List<pw.Widget> _categories(
         3: pw.Alignment.centerRight,
       },
       headers: [
-        l10n.categoryLabel,
-        l10n.reportAmountColumn,
-        l10n.reportShareColumn,
-        if (showBudget) l10n.reportBudgetColumn,
+        for (final header in [
+          l10n.categoryLabel,
+          l10n.reportAmountColumn,
+          l10n.reportShareColumn,
+          if (showBudget) l10n.reportBudgetColumn,
+        ])
+          _run(header, style: _tableHeaderStyle),
       ],
       data: [
         for (final line in lines)
           [
-            labels.categoryName(line.categoryId),
-            labels.money(line.amount),
-            percent.format(line.share),
-            if (showBudget)
-              line.budget == null
-                  ? '—'
-                  : l10n.reportBudgetOf(
-                      percent.format(line.budgetUsed ?? 0),
-                      labels.money(line.budget!),
-                    ),
+            for (final cell in [
+              labels.categoryName(line.categoryId),
+              labels.money(line.amount),
+              percent.format(line.share),
+              if (showBudget)
+                line.budget == null
+                    ? '—'
+                    : l10n.reportBudgetOf(
+                        percent.format(line.budgetUsed ?? 0),
+                        labels.money(line.budget!),
+                      ),
+            ])
+              _run(cell, style: _tableCellStyle),
           ],
       ],
     ),
@@ -337,7 +396,7 @@ List<pw.Widget> _trend(ReportData data, ReportLabels labels) {
                   ],
                 ),
                 pw.SizedBox(height: 2),
-                pw.Text(
+                _run(
                   point.label == ReportTrendGrain.period
                       ? labels.month(point.start)
                       : '${point.start.day}',
@@ -363,7 +422,7 @@ pw.Widget _key(PdfColor colour, String label) => pw.Row(
   children: [
     pw.Container(width: 6, height: 6, color: colour),
     pw.SizedBox(width: 3),
-    pw.Text(label, style: _muted),
+    _run(label, style: _muted),
   ],
 );
 
@@ -386,7 +445,7 @@ pw.Widget _dayTable(
       if (day != null)
         pw.Container(
           margin: const pw.EdgeInsets.only(top: 8, bottom: 2),
-          child: pw.Text(
+          child: _run(
             labels.fullDay(day),
             style: const pw.TextStyle(
               fontSize: 10,
@@ -395,30 +454,31 @@ pw.Widget _dayTable(
           ),
         ),
       pw.TableHelper.fromTextArray(
-        cellStyle: const pw.TextStyle(fontSize: 9),
-        headerStyle: const pw.TextStyle(
-          fontSize: 9,
-          fontWeight: pw.FontWeight.bold,
-        ),
         headerDecoration: const pw.BoxDecoration(color: PdfColors.grey200),
         headerCount: 1,
         cellAlignment: pw.Alignment.centerLeft,
         cellAlignments: {3: pw.Alignment.centerRight},
         headers: [
-          if (day == null) l10n.dateLabel,
-          l10n.categoryLabel,
-          if (showDetails) l10n.reportDetailsColumn,
-          if (showAccount) l10n.accountLabel,
-          l10n.reportAmountColumn,
+          for (final header in [
+            if (day == null) l10n.dateLabel,
+            l10n.categoryLabel,
+            if (showDetails) l10n.reportDetailsColumn,
+            if (showAccount) l10n.accountLabel,
+            l10n.reportAmountColumn,
+          ])
+            _run(header, style: _entryHeaderStyle),
         ],
         data: [
           for (final entry in entries)
             [
-              if (day == null) labels.day(entry.date),
-              _categoryOf(entry, labels),
-              if (showDetails) _detailsOf(entry),
-              if (showAccount) _accountOf(entry, labels),
-              _amountOf(entry, labels),
+              for (final cell in [
+                if (day == null) labels.day(entry.date),
+                _categoryOf(entry, labels),
+                if (showDetails) _detailsOf(entry),
+                if (showAccount) _accountOf(entry, labels),
+                _amountOf(entry, labels),
+              ])
+                _run(cell, style: _entryCellStyle),
             ],
         ],
       ),
