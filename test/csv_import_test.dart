@@ -1,8 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/csv_export.dart';
 import 'package:monthly_expense_app/models/csv_import.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/transaction_provider.dart';
+
+import 'helpers.dart';
 
 void main() {
   group('splitting a CSV (IMP-3)', () {
@@ -425,6 +430,276 @@ void main() {
       expect(parseImportedDate('2026-13-01'), isNull);
       expect(parseImportedDate(''), isNull);
       expect(parseImportedDate('sometime'), isNull);
+    });
+  });
+
+  group('importing a plan (IMP-1, IMP-6, IMP-7)', () {
+    const cash = Account.cashId;
+    final today = DateTime(2026, 9, 15, 10);
+
+    Future<TransactionProvider> loaded(FakeDB db) async {
+      final provider = TransactionProvider(db: db, clock: () => today);
+      await provider.load();
+      return provider;
+    }
+
+    FakeDB twoAccounts() =>
+        FakeDB(accounts: [testAccount(cash), testAccount('acc-bank')]);
+
+    ImportPlan planOf(String csv, {Map<String, String> known = const {}}) =>
+        planImport(
+          table: parseCsv(csv),
+          categoryIdFor: (name) => known[name],
+          accountIdFor: (name) => known[name],
+        );
+
+    test('writes what the plan said, stamped like any other record', () async {
+      final db = FakeDB();
+      final provider = await loaded(db);
+
+      final written = await provider.applyImport(
+        planOf(
+          'date,amount,type,title,note\n'
+          '2026-09-01,12.50,expense,Coffee,black\n'
+          '2026-09-02,900,income,Pay,\n',
+        ),
+      );
+
+      expect(written, 2);
+      expect(db.rows, hasLength(2));
+      final coffee = provider.transactions.firstWhere(
+        (tx) => tx.title == 'Coffee',
+      );
+      expect(coffee.amount, const Money(12500));
+      expect(coffee.type, TransactionType.expense);
+      expect(coffee.date, DateTime(2026, 9, 1));
+      expect(coffee.note, 'black');
+      expect(coffee.createdAt, today.toUtc());
+      expect(coffee.updatedAt, today.toUtc());
+      expect(coffee.deletedAt, isNull);
+      expect({for (final tx in provider.transactions) tx.id}, hasLength(2));
+    });
+
+    test('a name the app has not got becomes Other and the default '
+        'account (IMP-7)', () async {
+      final provider = await loaded(FakeDB());
+
+      await provider.applyImport(
+        planOf(
+          'date,amount,type,category,account\n2026-09-01,5,expense,'
+          'Yachts,Offshore\n',
+        ),
+      );
+
+      final tx = provider.transactions.single;
+      expect(provider.categoryById(tx.categoryId)!.defaultKey, 'other');
+      expect(tx.accountId, cash);
+      expect(provider.categories.where((c) => c.name == 'Yachts'), isEmpty);
+      expect(provider.accounts.where((a) => a.name == 'Offshore'), isEmpty);
+    });
+
+    test('the names the user mapped on the preview are used', () async {
+      final db = twoAccounts();
+      final provider = await loaded(db);
+
+      await provider.applyImport(
+        planOf(
+          'date,amount,type,category,account\n2026-09-01,5,expense,'
+          'Eating out,Savings\n',
+        ),
+        categoryIds: {'Eating out': 'cat-food'},
+        accountIds: {'Savings': 'acc-bank'},
+      );
+
+      final tx = provider.transactions.single;
+      expect(tx.categoryId, 'cat-food');
+      expect(tx.accountId, 'acc-bank');
+    });
+
+    test('a category of the wrong type falls back to Other of the right '
+        'one', () async {
+      final provider = await loaded(FakeDB());
+
+      await provider.applyImport(
+        planOf('date,amount,type,category\n2026-09-01,900,income,Rent\n'),
+        categoryIds: {'Rent': 'cat-rent'},
+      );
+
+      final tx = provider.transactions.single;
+      expect(tx.type, TransactionType.income);
+      expect(tx.categoryId, 'cat-income-other');
+    });
+
+    test('a transfer row becomes a transfer between both accounts', () async {
+      final db = twoAccounts();
+      final provider = await loaded(db);
+
+      final written = await provider.applyImport(
+        planOf(
+          'date,amount,type,account,to account,title,note\n'
+          '2026-09-01,100,transfer,Wallet,Savings,Top up,by card\n',
+        ),
+        accountIds: {'Wallet': cash, 'Savings': 'acc-bank'},
+      );
+
+      expect(written, 1);
+      expect(provider.transactions, isEmpty);
+      final transfer = provider.transfers.single;
+      expect(transfer.fromAccountId, cash);
+      expect(transfer.toAccountId, 'acc-bank');
+      expect(transfer.amount, const Money(100000));
+      // A transfer has no title of its own, so both parts go in the note.
+      expect(transfer.note, 'Top up — by card');
+    });
+
+    test('a transfer with both sides on one account is not written', () async {
+      final provider = await loaded(FakeDB());
+
+      final written = await provider.applyImport(
+        planOf(
+          'date,amount,type,account,to account\n'
+          '2026-09-01,100,transfer,Wallet,Savings\n'
+          '2026-09-02,7,expense,Wallet,\n',
+        ),
+      );
+
+      expect(written, 1);
+      expect(provider.transfers, isEmpty);
+      expect(provider.transactions.single.amount, const Money(7000));
+    });
+
+    test('a failed write leaves nothing behind', () async {
+      final db = FakeDB()..failWrites = true;
+      final provider = await loaded(db);
+
+      await expectLater(
+        provider.applyImport(
+          planOf('date,amount,type\n2026-09-01,5,expense\n'),
+        ),
+        throwsStateError,
+      );
+      expect(provider.transactions, isEmpty);
+      expect(db.rows, isEmpty);
+    });
+
+    test('a plan with nothing to import writes nothing', () async {
+      final db = FakeDB();
+      final provider = await loaded(db);
+      var notified = 0;
+      provider.addListener(() => notified++);
+
+      final written = await provider.applyImport(
+        planOf('date,amount\nsometime,nothing\n'),
+      );
+
+      expect(written, 0);
+      expect(db.rows, isEmpty);
+      expect(notified, 0);
+    });
+
+    test('with no account at all, nothing can be imported', () async {
+      final provider = await loaded(FakeDB(accounts: []));
+
+      final written = await provider.applyImport(
+        planOf('date,amount,type\n2026-09-01,5,expense\n'),
+      );
+
+      expect(written, 0);
+      expect(provider.transactions, isEmpty);
+    });
+  });
+
+  group('what the app already has (IMP-8)', () {
+    final today = DateTime(2026, 9, 15, 10);
+
+    Future<TransactionProvider> loaded(FakeDB db) async {
+      final provider = TransactionProvider(db: db, clock: () => today);
+      await provider.load();
+      return provider;
+    }
+
+    test('identities cover transactions and transfers', () async {
+      final provider = await loaded(
+        FakeDB(
+          transactions: [
+            testTx(
+              'a',
+              TransactionType.expense,
+              12.5,
+              DateTime(2026, 9, 1),
+              title: 'Coffee',
+            ),
+          ],
+          transfers: [
+            testTransfer(
+              't',
+              Account.cashId,
+              'acc-bank',
+              100,
+              DateTime(2026, 9, 2),
+            ),
+          ],
+          accounts: [testAccount(Account.cashId), testAccount('acc-bank')],
+        ),
+      );
+
+      expect(provider.importIdentities, {
+        importIdentity(
+          date: DateTime(2026, 9, 1),
+          amount: const Money(12500),
+          type: ImportedType.expense,
+          title: 'Coffee',
+        ),
+        importIdentity(
+          date: DateTime(2026, 9, 2),
+          amount: const Money(100000),
+          type: ImportedType.transfer,
+          title: '',
+        ),
+      });
+    });
+
+    test('importing the same file twice adds it once', () async {
+      final db = FakeDB();
+      final provider = await loaded(db);
+      const csv =
+          'date,amount,type,title\n'
+          '2026-09-01,12.50,expense,Coffee\n'
+          '2026-09-02,900,income,Pay\n';
+
+      await provider.applyImport(
+        planImport(
+          table: parseCsv(csv),
+          existingIdentities: provider.importIdentities,
+        ),
+      );
+      final again = planImport(
+        table: parseCsv(csv),
+        existingIdentities: provider.importIdentities,
+      );
+
+      expect(again.importCount, 0);
+      expect(again.skipCounts[SkipReason.alreadyThere], 2);
+      expect(await provider.applyImport(again), 0);
+      expect(provider.transactions, hasLength(2));
+    });
+
+    test('a trashed row can be imported again', () async {
+      final db = FakeDB(
+        transactions: [
+          testTx(
+            'a',
+            TransactionType.expense,
+            5,
+            DateTime(2026, 9, 1),
+            title: 'Coffee',
+          ),
+        ],
+      );
+      final provider = await loaded(db);
+      await provider.deleteTransaction('a');
+
+      expect(provider.importIdentities, isEmpty);
     });
   });
 }

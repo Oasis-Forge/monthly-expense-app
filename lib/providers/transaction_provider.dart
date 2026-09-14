@@ -6,6 +6,7 @@ import '../db/db_helper.dart';
 import '../models/account.dart';
 import '../models/budget.dart';
 import '../models/category.dart';
+import '../models/csv_import.dart';
 import '../models/insights.dart';
 import '../models/money.dart';
 import '../models/note.dart';
@@ -506,6 +507,138 @@ class TransactionProvider extends ChangeNotifier {
     if (transfer.fromAccountId == transfer.toAccountId) {
       throw ArgumentError('A transfer needs two different accounts.');
     }
+  }
+
+  /// [importIdentity] for everything the app holds, so a file imported once
+  /// isn't imported again (IMP-8). Trashed records don't count: importing a
+  /// row again is one way to get a deleted one back.
+  Set<String> get importIdentities => {
+    for (final tx in _transactions)
+      importIdentity(
+        date: tx.date,
+        amount: tx.amount,
+        type: tx.type == TransactionType.income
+            ? ImportedType.income
+            : ImportedType.expense,
+        title: tx.title ?? '',
+      ),
+    for (final transfer in _transfers)
+      importIdentity(
+        date: transfer.date,
+        amount: transfer.amount,
+        type: ImportedType.transfer,
+        title: '',
+      ),
+  };
+
+  /// Writes everything [plan] said it would import, in one database
+  /// transaction, and adds it to the lists (IMP-1, IMP-6). Returns how many
+  /// records were written.
+  ///
+  /// [categoryIds] and [accountIds] give this app's ID for a name as the file
+  /// wrote it: what matched by name, plus whatever the user chose on the
+  /// preview (IMP-7). A name that isn't in them falls back to Other and the
+  /// default account, as does a category of the wrong type — nothing is
+  /// created. A transfer whose two names land on the same account isn't a
+  /// transfer, so it is left out and not counted.
+  Future<int> applyImport(
+    ImportPlan plan, {
+    Map<String, String> categoryIds = const {},
+    Map<String, String> accountIds = const {},
+  }) async {
+    final fallbackAccount = defaultAccountId();
+    if (fallbackAccount == null) return 0;
+    final now = _clock().toUtc();
+
+    String accountFor(String name) {
+      final id = accountIds[name];
+      return id != null && accountById(id) != null ? id : fallbackAccount;
+    }
+
+    String? categoryFor(String name, TransactionType type) {
+      final chosen = categoryById(categoryIds[name] ?? '');
+      if (chosen != null && chosen.type == type) return chosen.id;
+      return _otherCategoryId(type);
+    }
+
+    final transactions = <ExpenseTransaction>[];
+    final transfers = <Transfer>[];
+    for (final row in plan.importing) {
+      final date = row.date;
+      final amount = row.amount;
+      if (date == null || amount == null) continue;
+
+      if (row.type == ImportedType.transfer) {
+        final from = accountFor(row.accountName);
+        final to = accountFor(row.toAccountName);
+        if (from == to) continue;
+        transfers.add(
+          Transfer(
+            id: const Uuid().v4(),
+            fromAccountId: from,
+            toAccountId: to,
+            amount: amount,
+            date: date,
+            note: _importedNote([row.title, row.note]),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+        continue;
+      }
+
+      final type = row.type == ImportedType.income
+          ? TransactionType.income
+          : TransactionType.expense;
+      final categoryId = categoryFor(row.categoryName, type);
+      if (categoryId == null) continue;
+      transactions.add(
+        ExpenseTransaction(
+          id: const Uuid().v4(),
+          title: row.title.isEmpty ? null : row.title,
+          amount: amount,
+          categoryId: categoryId,
+          accountId: accountFor(row.accountName),
+          type: type,
+          date: date,
+          note: row.note.isEmpty ? null : row.note,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    }
+
+    if (transactions.isEmpty && transfers.isEmpty) return 0;
+    await _db.insertImported(transactions: transactions, transfers: transfers);
+    _transactions
+      ..addAll(transactions)
+      ..sort(_newestFirst);
+    _transfers
+      ..addAll(transfers)
+      ..sort(_newestTransferFirst);
+    _changed();
+    return transactions.length + transfers.length;
+  }
+
+  /// The catch-all category for [type] (IMP-7), or the first one there is.
+  String? _otherCategoryId(TransactionType type) {
+    for (final category in _categories) {
+      if (category.type == type && category.defaultKey == 'other') {
+        return category.id;
+      }
+    }
+    final options = categoriesFor(type);
+    return options.isEmpty ? null : options.first.id;
+  }
+
+  /// A transfer has no title of its own, so an imported one keeps both parts
+  /// in its note rather than dropping either.
+  static String? _importedNote(List<String> parts) {
+    final kept = [
+      for (final part in parts)
+        if (part.isNotEmpty) part,
+    ];
+    return kept.isEmpty ? null : kept.join(' — ');
   }
 
   /// Adds an account after the existing ones (ACC-1).
