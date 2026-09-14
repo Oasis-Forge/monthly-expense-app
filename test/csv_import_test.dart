@@ -597,6 +597,35 @@ void main() {
       expect(notified, 0);
     });
 
+    test('with no Other category, the first of its kind is used', () async {
+      final provider = await loaded(
+        FakeDB(
+          categories: [
+            for (final category in testCategories())
+              if (category.defaultKey != 'other') category,
+          ],
+        ),
+      );
+
+      await provider.applyImport(
+        planOf('date,amount,type,category\n2026-09-01,5,expense,Yachts\n'),
+      );
+
+      expect(provider.transactions.single.categoryId, 'cat-food');
+      expect(provider.otherCategoryId(TransactionType.income), 'cat-salary');
+    });
+
+    test('with no categories at all, nothing can be imported', () async {
+      final provider = await loaded(FakeDB(categories: []));
+
+      final written = await provider.applyImport(
+        planOf('date,amount,type\n2026-09-01,5,expense\n'),
+      );
+
+      expect(written, 0);
+      expect(provider.otherCategoryId(TransactionType.expense), isNull);
+    });
+
     test('with no account at all, nothing can be imported', () async {
       final provider = await loaded(FakeDB(accounts: []));
 

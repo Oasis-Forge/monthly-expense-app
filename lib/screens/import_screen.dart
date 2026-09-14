@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
-import '../models/category.dart';
 import '../models/csv_import.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart' show foldForSearch;
@@ -256,14 +255,14 @@ class _ImportScreenState extends State<ImportScreen> {
           Text(l10n.importNamesHeader, style: _sectionStyle(context)),
           Text(l10n.importNamesSubtitle, style: _mutedStyle(context)),
           const SizedBox(height: 12),
-          for (final name in plan.unknownCategories) ...[
+          for (final MapEntry(key: name, value: type) in _unknownCategories(
+            plan,
+          ).entries) ...[
             _NameChoice(
               name: name,
-              chosen:
-                  _categoryChoice[name] ??
-                  _fallbackCategoryId(plan, provider, name),
+              chosen: _categoryChoice[name] ?? provider.otherCategoryId(type),
               options: {
-                for (final category in _categoriesFor(plan, provider, name))
+                for (final category in provider.categoriesFor(type))
                   category.id: category.label(l10n),
               },
               onChanged: (id) => setState(() => _categoryChoice[name] = id),
@@ -351,36 +350,21 @@ class _ImportScreenState extends State<ImportScreen> {
     return column < cells.length ? cells[column] : '';
   }
 
-  /// The categories a name in the file can become: those of the type the
-  /// rows using it are (IMP-7).
-  List<Category> _categoriesFor(
-    ImportPlan plan,
-    TransactionProvider provider,
-    String name,
-  ) {
+  /// The category names the app hasn't got, in the order they first appear,
+  /// each against the kind of category it needs: the rows using a name say
+  /// whether it is spending or earning (IMP-7).
+  Map<String, TransactionType> _unknownCategories(ImportPlan plan) {
+    final unknown = <String, TransactionType>{};
     for (final row in plan.importing) {
-      if (row.categoryName != name) continue;
-      return provider.categoriesFor(
-        row.type == ImportedType.income
+      if (!plan.unknownCategories.contains(row.categoryName)) continue;
+      unknown.putIfAbsent(
+        row.categoryName,
+        () => row.type == ImportedType.income
             ? TransactionType.income
             : TransactionType.expense,
       );
     }
-    return provider.categoriesFor(TransactionType.expense);
-  }
-
-  /// What an unmapped name imports as until the user says otherwise: Other,
-  /// of the right type (IMP-7).
-  String? _fallbackCategoryId(
-    ImportPlan plan,
-    TransactionProvider provider,
-    String name,
-  ) {
-    final options = _categoriesFor(plan, provider, name);
-    for (final category in options) {
-      if (category.defaultKey == 'other') return category.id;
-    }
-    return options.isEmpty ? null : options.first.id;
+    return unknown;
   }
 
   String _skipLine(AppLocalizations l10n, SkipReason reason, int count) =>

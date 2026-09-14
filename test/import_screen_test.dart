@@ -110,6 +110,39 @@ void main() {
     expect(provider.transactions.single.note, isNull);
   });
 
+  testWidgets('a column can be turned off again (IMP-3)', (tester) async {
+    fileHolds('date,amount,type,note\n2026-09-01,5,expense,private\n');
+    await pickFile(tester);
+
+    await tester.tap(
+      find.widgetWithText(DropdownButtonFormField<int?>, 'Note'),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Not used').last);
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Import 1 row'));
+    await tester.pumpAndSettle();
+
+    expect(provider.transactions.single.note, isNull);
+  });
+
+  testWidgets('a long file shows the first rows and says how many more '
+      '(IMP-5)', (tester) async {
+    fileHolds(
+      [
+        'date,amount,type,title',
+        for (var day = 1; day <= 12; day++)
+          '2026-09-${day.toString().padLeft(2, '0')},$day,expense,Row $day',
+      ].join('\n'),
+    );
+    await pickFile(tester);
+
+    expect(find.textContaining('Row 8'), findsOne);
+    expect(find.textContaining('Row 9'), findsNothing);
+    expect(find.text('and 4 more'), findsOne);
+  });
+
   testWidgets('a file with no date column is refused, and can be fixed '
       '(IMP-4)', (tester) async {
     fileHolds('xyzzy,amount\n2026-09-01,12.50\n');

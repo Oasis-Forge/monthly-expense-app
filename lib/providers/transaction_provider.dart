@@ -558,7 +558,7 @@ class TransactionProvider extends ChangeNotifier {
     String? categoryFor(String name, TransactionType type) {
       final chosen = categoryById(categoryIds[name] ?? '');
       if (chosen != null && chosen.type == type) return chosen.id;
-      return _otherCategoryId(type);
+      return otherCategoryId(type);
     }
 
     final transactions = <ExpenseTransaction>[];
@@ -621,7 +621,8 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   /// The catch-all category for [type] (IMP-7), or the first one there is.
-  String? _otherCategoryId(TransactionType type) {
+  /// What an imported name the app hasn't got becomes.
+  String? otherCategoryId(TransactionType type) {
     for (final category in _categories) {
       if (category.type == type && category.defaultKey == 'other') {
         return category.id;

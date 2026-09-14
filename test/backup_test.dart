@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
@@ -402,6 +403,22 @@ void main() {
     expect(await service.openBackup(), isNull);
     files.toOpen = files.saved.values.single;
     expect((await service.openBackup())!.transactionCount, 0);
+  });
+
+  test('a picked file is read as text, whatever it was saved in '
+      '(IMP-1)', () async {
+    final files = FakeBackupFiles();
+    final service = testBackupService(helperAt('app.db'), files: files);
+
+    expect(await service.openText(), isNull);
+
+    files.toOpen = utf8.encode('date,café\n');
+    expect(await service.openText(), 'date,café\n');
+
+    // The same line from a spreadsheet saved in the Windows code page: not
+    // valid UTF-8, but everything that matters still reads.
+    files.toOpen = Uint8List.fromList(latin1.encode('date,café\n'));
+    expect(await service.openText(), 'date,café\n');
   });
 
   test('a CSV export is saved as UTF-8 with a byte order mark', () async {
