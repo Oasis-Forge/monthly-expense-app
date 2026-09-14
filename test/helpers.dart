@@ -294,6 +294,18 @@ class FakeDB extends DBHelper {
   }
 
   @override
+  Future<void> insertImported({
+    required List<ExpenseTransaction> transactions,
+    required List<Transfer> transfers,
+  }) async {
+    // One check, like the real one's single database transaction: either the
+    // lot lands or none of it does (IMP-1).
+    _checkWrite();
+    rows.addAll(transactions);
+    this.transfers.addAll(transfers);
+  }
+
+  @override
   Future<void> updateTransfer(Transfer transfer) async {
     _checkWrite();
     transfers[transfers.indexWhere((t) => t.id == transfer.id)] = transfer;

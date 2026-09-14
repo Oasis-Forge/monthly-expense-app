@@ -2049,6 +2049,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The first date has to come before the last.'**
   String get reportRangeBackwards;
+
+  /// No description provided for @importTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a CSV'**
+  String get importTitle;
+
+  /// No description provided for @importSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring transactions in from another app'**
+  String get importSubtitle;
+
+  /// No description provided for @importIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a CSV file and you\'ll see what the app made of it before anything is added. Importing only adds records — it never replaces or deletes what you already have.'**
+  String get importIntro;
+
+  /// No description provided for @importChooseFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a file'**
+  String get importChooseFile;
+
+  /// No description provided for @importChooseAnother.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another file'**
+  String get importChooseAnother;
+
+  /// No description provided for @importReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t read that file. Try again.'**
+  String get importReadFailed;
+
+  /// No description provided for @importRefusedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'There is nothing in that file.'**
+  String get importRefusedEmpty;
+
+  /// No description provided for @importRefusedNoDate.
+  ///
+  /// In en, this message translates to:
+  /// **'No column in that file could be read as a date, so it can\'t be imported.'**
+  String get importRefusedNoDate;
+
+  /// No description provided for @importRefusedNoAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'No column in that file could be read as an amount, so it can\'t be imported.'**
+  String get importRefusedNoAmount;
+
+  /// No description provided for @importRefusedNoRows.
+  ///
+  /// In en, this message translates to:
+  /// **'None of the rows in that file could be read, so there is nothing to import.'**
+  String get importRefusedNoRows;
+
+  /// No description provided for @importColumnsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Columns'**
+  String get importColumnsHeader;
+
+  /// No description provided for @importColumnsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change anything the app read wrongly.'**
+  String get importColumnsSubtitle;
+
+  /// No description provided for @importColumnNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used'**
+  String get importColumnNone;
+
+  /// No description provided for @importFieldType.
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get importFieldType;
+
+  /// No description provided for @importFieldToAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'To account'**
+  String get importFieldToAccount;
+
+  /// No description provided for @importFieldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get importFieldTitle;
+
+  /// No description provided for @importFieldNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get importFieldNote;
+
+  /// No description provided for @importDateOrderLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Dates like 03/04 mean'**
+  String get importDateOrderLabel;
+
+  /// No description provided for @importDayFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Day first'**
+  String get importDayFirst;
+
+  /// No description provided for @importMonthFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Month first'**
+  String get importMonthFirst;
+
+  /// No description provided for @importCountsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'What will happen'**
+  String get importCountsHeader;
+
+  /// No description provided for @importWillImport.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing will be imported} =1{1 row will be imported} other{{count} rows will be imported}}'**
+  String importWillImport(int count);
+
+  /// No description provided for @importSkippedDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row has a date the app can\'t read} other{{count} rows have a date the app can\'t read}}'**
+  String importSkippedDate(int count);
+
+  /// No description provided for @importSkippedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row has an amount the app can\'t read} other{{count} rows have an amount the app can\'t read}}'**
+  String importSkippedAmount(int count);
+
+  /// No description provided for @importSkippedZero.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row is for no money at all} other{{count} rows are for no money at all}}'**
+  String importSkippedZero(int count);
+
+  /// No description provided for @importSkippedAlreadyThere.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 row is already in the app} other{{count} rows are already in the app}}'**
+  String importSkippedAlreadyThere(int count);
+
+  /// No description provided for @importSkippedTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 transfer names only one account} other{{count} transfers name only one account}}'**
+  String importSkippedTransfer(int count);
+
+  /// No description provided for @importRowUnreadableDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date can\'t be read'**
+  String get importRowUnreadableDate;
+
+  /// No description provided for @importRowUnreadableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount can\'t be read'**
+  String get importRowUnreadableAmount;
+
+  /// No description provided for @importRowZero.
+  ///
+  /// In en, this message translates to:
+  /// **'No money at all'**
+  String get importRowZero;
+
+  /// No description provided for @importRowAlreadyThere.
+  ///
+  /// In en, this message translates to:
+  /// **'Already in the app'**
+  String get importRowAlreadyThere;
+
+  /// No description provided for @importRowIncompleteTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Only one account named'**
+  String get importRowIncompleteTransfer;
+
+  /// No description provided for @importNamesHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Names this app hasn\'t got'**
+  String get importNamesHeader;
+
+  /// No description provided for @importNamesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick what each one becomes. Importing never creates a category or an account.'**
+  String get importNamesSubtitle;
+
+  /// No description provided for @importRowsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'The first rows, as the app read them'**
+  String get importRowsHeader;
+
+  /// No description provided for @importMoreRows.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{and 1 more} other{and {count} more}}'**
+  String importMoreRows(int count);
+
+  /// No description provided for @importButton.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{Nothing to import} =1{Import 1 row} other{Import {count} rows}}'**
+  String importButton(int count);
+
+  /// No description provided for @importDone.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 record imported} other{{count} records imported}}'**
+  String importDone(int count);
+
+  /// No description provided for @importFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t import that file. Nothing was added.'**
+  String get importFailed;
 }
 
 class _AppLocalizationsDelegate

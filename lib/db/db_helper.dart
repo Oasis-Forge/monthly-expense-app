@@ -240,6 +240,26 @@ class DBHelper {
     await db.insert('transfers', transfer.toMap());
   }
 
+  /// Inserts everything an import produced in one database transaction, so a
+  /// failure part-way through leaves nothing behind rather than half a file
+  /// (IMP-1).
+  Future<void> insertImported({
+    required List<ExpenseTransaction> transactions,
+    required List<Transfer> transfers,
+  }) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      final batch = txn.batch();
+      for (final tx in transactions) {
+        batch.insert('transactions', tx.toMap());
+      }
+      for (final transfer in transfers) {
+        batch.insert('transfers', transfer.toMap());
+      }
+      await batch.commit(noResult: true);
+    });
+  }
+
   /// Saves every field of [transfer], including `deleted_at`.
   Future<void> updateTransfer(Transfer transfer) async {
     final db = await database;

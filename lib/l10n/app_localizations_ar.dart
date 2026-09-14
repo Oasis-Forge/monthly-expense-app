@@ -1184,4 +1184,227 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get reportRangeBackwards =>
       'يجب أن يسبق التاريخ الأول التاريخ الأخير.';
+
+  @override
+  String get importTitle => 'استيراد ملف CSV';
+
+  @override
+  String get importSubtitle => 'أحضر معاملاتك من تطبيق آخر';
+
+  @override
+  String get importIntro =>
+      'اختر ملف CSV وسترى ما فهمه التطبيق منه قبل إضافة أي شيء. الاستيراد يضيف السجلات فقط — ولا يستبدل أو يحذف ما لديك أبدًا.';
+
+  @override
+  String get importChooseFile => 'اختيار ملف';
+
+  @override
+  String get importChooseAnother => 'اختيار ملف آخر';
+
+  @override
+  String get importReadFailed => 'تعذّرت قراءة هذا الملف. حاول مرة أخرى.';
+
+  @override
+  String get importRefusedEmpty => 'لا يوجد شيء في هذا الملف.';
+
+  @override
+  String get importRefusedNoDate =>
+      'لم يُقرأ أي عمود في هذا الملف كتاريخ، لذا لا يمكن استيراده.';
+
+  @override
+  String get importRefusedNoAmount =>
+      'لم يُقرأ أي عمود في هذا الملف كمبلغ، لذا لا يمكن استيراده.';
+
+  @override
+  String get importRefusedNoRows =>
+      'لم تُقرأ أي صفوف في هذا الملف، لذا لا يوجد ما يُستورد.';
+
+  @override
+  String get importColumnsHeader => 'الأعمدة';
+
+  @override
+  String get importColumnsSubtitle => 'غيّر أي شيء قرأه التطبيق بشكل خاطئ.';
+
+  @override
+  String get importColumnNone => 'غير مستخدم';
+
+  @override
+  String get importFieldType => 'النوع';
+
+  @override
+  String get importFieldToAccount => 'الحساب الوجهة';
+
+  @override
+  String get importFieldTitle => 'العنوان';
+
+  @override
+  String get importFieldNote => 'ملاحظة';
+
+  @override
+  String get importDateOrderLabel => 'تواريخ مثل 03/04 تعني';
+
+  @override
+  String get importDayFirst => 'اليوم أولًا';
+
+  @override
+  String get importMonthFirst => 'الشهر أولًا';
+
+  @override
+  String get importCountsHeader => 'ما الذي سيحدث';
+
+  @override
+  String importWillImport(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيُستورد $count صف',
+      many: 'سيُستورد $count صفًا',
+      few: 'ستُستورد $count صفوف',
+      two: 'سيُستورد صفان',
+      one: 'سيُستورد صف واحد',
+      zero: 'لن يُستورد أي شيء',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedDate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف يحمل تاريخًا لا يستطيع التطبيق قراءته',
+      many: '$count صفًا تحمل تاريخًا لا يستطيع التطبيق قراءته',
+      few: '$count صفوف تحمل تاريخًا لا يستطيع التطبيق قراءته',
+      two: 'صفان يحملان تاريخًا لا يستطيع التطبيق قراءته',
+      one: 'صف واحد يحمل تاريخًا لا يستطيع التطبيق قراءته',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف يحمل مبلغًا لا يستطيع التطبيق قراءته',
+      many: '$count صفًا تحمل مبلغًا لا يستطيع التطبيق قراءته',
+      few: '$count صفوف تحمل مبلغًا لا يستطيع التطبيق قراءته',
+      two: 'صفان يحملان مبلغًا لا يستطيع التطبيق قراءته',
+      one: 'صف واحد يحمل مبلغًا لا يستطيع التطبيق قراءته',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedZero(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف بلا أي مبلغ',
+      many: '$count صفًا بلا أي مبلغ',
+      few: '$count صفوف بلا أي مبلغ',
+      two: 'صفان بلا أي مبلغ',
+      one: 'صف واحد بلا أي مبلغ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAlreadyThere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صف موجود في التطبيق بالفعل',
+      many: '$count صفًا موجودة في التطبيق بالفعل',
+      few: '$count صفوف موجودة في التطبيق بالفعل',
+      two: 'صفان موجودان في التطبيق بالفعل',
+      one: 'صف واحد موجود في التطبيق بالفعل',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedTransfer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تحويل يذكر حسابًا واحدًا فقط',
+      many: '$count تحويلًا تذكر حسابًا واحدًا فقط',
+      few: '$count تحويلات تذكر حسابًا واحدًا فقط',
+      two: 'تحويلان يذكران حسابًا واحدًا فقط',
+      one: 'تحويل واحد يذكر حسابًا واحدًا فقط',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importRowUnreadableDate => 'تعذّرت قراءة التاريخ';
+
+  @override
+  String get importRowUnreadableAmount => 'تعذّرت قراءة المبلغ';
+
+  @override
+  String get importRowZero => 'بلا أي مبلغ';
+
+  @override
+  String get importRowAlreadyThere => 'موجود في التطبيق بالفعل';
+
+  @override
+  String get importRowIncompleteTransfer => 'حساب واحد فقط مذكور';
+
+  @override
+  String get importNamesHeader => 'أسماء لا يملكها هذا التطبيق';
+
+  @override
+  String get importNamesSubtitle =>
+      'اختر ما يصبح عليه كل اسم. الاستيراد لا ينشئ فئة أو حسابًا أبدًا.';
+
+  @override
+  String get importRowsHeader => 'الصفوف الأولى، كما قرأها التطبيق';
+
+  @override
+  String importMoreRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'و$count أخرى',
+      many: 'و$count أخرى',
+      few: 'و$count أخرى',
+      two: 'واثنان آخران',
+      one: 'وواحد آخر',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'استيراد $count صف',
+      many: 'استيراد $count صفًا',
+      few: 'استيراد $count صفوف',
+      two: 'استيراد صفين',
+      one: 'استيراد صف واحد',
+      zero: 'لا شيء لاستيراده',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم استيراد $count سجل',
+      many: 'تم استيراد $count سجلًا',
+      few: 'تم استيراد $count سجلات',
+      two: 'تم استيراد سجلين',
+      one: 'تم استيراد سجل واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importFailed => 'تعذّر استيراد هذا الملف. لم تتم إضافة أي شيء.';
 }

@@ -77,6 +77,22 @@ class BackupService {
     return bytes == null ? null : read(bytes);
   }
 
+  /// Lets the user pick a file and reads it as text, for a CSV import
+  /// (IMP-1). Null when they cancel.
+  Future<String?> openText() async {
+    final bytes = await _files.open();
+    if (bytes == null) return null;
+    try {
+      return utf8.decode(bytes);
+    } on FormatException {
+      // A spreadsheet saved in the system's own code page. Latin-1 decodes
+      // anything, and keeps the separators, dates, and digits intact; at
+      // worst an accented name comes through wrong, which the user can see
+      // on the preview.
+      return latin1.decode(bytes);
+    }
+  }
+
   /// Reads a backup file and brings it to the current schema (BAK-4). Throws
   /// a [BackupException] when it isn't a valid backup or comes from a newer
   /// version of the app.

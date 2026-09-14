@@ -291,6 +291,42 @@ void main() {
       expect([for (final t in await helper.fetchTransfers()) t.id], ['u']);
     });
 
+    test('an import is written whole or not at all (IMP-1)', () async {
+      final helper = helperAt('app.db');
+
+      await helper.insertImported(
+        transactions: [
+          testTx('i1', expense, 12.5, DateTime(2026, 9, 1)),
+          testTx('i2', expense, 3, DateTime(2026, 9, 2)),
+        ],
+        transfers: [
+          testTransfer('i3', Account.cashId, 'bank', 5, DateTime(2026, 9, 3)),
+        ],
+      );
+
+      expect(
+        [for (final t in await helper.fetchTransactions()) t.id],
+        ['i2', 'i1'],
+      );
+      expect([for (final t in await helper.fetchTransfers()) t.id], ['i3']);
+
+      // The second row repeats i1's primary key, so the batch fails and the
+      // first row of it isn't left behind either.
+      await expectLater(
+        helper.insertImported(
+          transactions: [
+            testTx('i4', expense, 1, DateTime(2026, 9, 4)),
+            testTx('i1', expense, 1, DateTime(2026, 9, 5)),
+          ],
+          transfers: const [],
+        ),
+        throwsA(anything),
+      );
+      expect([
+        for (final t in await helper.fetchTransactions()) t.id,
+      ], isNot(contains('i4')));
+    });
+
     test('recurring rules are updated and skipped once deleted', () async {
       final helper = helperAt('app.db');
       final rule = testRule('rent', 900, DateTime(2026, 9));

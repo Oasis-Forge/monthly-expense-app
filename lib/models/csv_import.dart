@@ -1,0 +1,758 @@
+import 'money.dart';
+import 'transaction_filter.dart' show foldForSearch;
+
+/// Reading a CSV written by some other app (IMP-1–IMP-8).
+///
+/// Everything here is a pure function over text: splitting the file into
+/// rows, working out which column is which, and reading a date, an amount,
+/// and a type out of a row. Nothing decides to write anything — that is the
+/// provider's job, after the user has seen the preview (IMP-5).
+
+/// The one thing a CSV must have twice over to be worth reading (IMP-4).
+enum ImportField {
+  date,
+  amount,
+  type,
+  category,
+  account,
+  toAccount,
+  title,
+  note,
+}
+
+/// A CSV split into its header and its rows, all cells as written.
+class CsvTable {
+  const CsvTable({required this.header, required this.rows});
+
+  final List<String> header;
+  final List<List<String>> rows;
+
+  bool get isEmpty => header.isEmpty;
+}
+
+/// Splits [text] into a header row and the rows under it.
+///
+/// It copes with what spreadsheets actually produce: a byte order mark, CRLF
+/// line endings, quoted cells holding commas or newlines, doubled quotes
+/// inside them, and a semicolon or tab where a locale uses those instead of
+/// a comma. Ragged rows are kept as they are; the caller decides what a
+/// missing cell means.
+CsvTable parseCsv(String text) {
+  final body = text.startsWith('﻿') ? text.substring(1) : text;
+  if (body.trim().isEmpty) return const CsvTable(header: [], rows: []);
+
+  final rows = _split(body, _delimiterOf(body));
+  if (rows.isEmpty) return const CsvTable(header: [], rows: []);
+  return CsvTable(header: rows.first, rows: rows.skip(1).toList());
+}
+
+/// The separator the file uses: whichever of `,`, `;` or a tab appears most
+/// on the header line. Comma wins a tie, being the usual one.
+String _delimiterOf(String body) {
+  final firstLine = body.split(RegExp('\r\n|\r|\n')).first;
+  var best = ',';
+  var bestCount = _countOutsideQuotes(firstLine, ',');
+  for (final candidate in [';', '\t']) {
+    final count = _countOutsideQuotes(firstLine, candidate);
+    if (count > bestCount) {
+      best = candidate;
+      bestCount = count;
+    }
+  }
+  return best;
+}
+
+int _countOutsideQuotes(String line, String character) {
+  var count = 0;
+  var quoted = false;
+  for (var i = 0; i < line.length; i++) {
+    final char = line[i];
+    if (char == '"') {
+      quoted = !quoted;
+    } else if (!quoted && char == character) {
+      count++;
+    }
+  }
+  return count;
+}
+
+List<List<String>> _split(String body, String delimiter) {
+  final rows = <List<String>>[];
+  var row = <String>[];
+  final cell = StringBuffer();
+  var quoted = false;
+  var sawCell = false;
+
+  void endCell() {
+    row.add(cell.toString().trim());
+    cell.clear();
+    sawCell = true;
+  }
+
+  void endRow() {
+    endCell();
+    // A line of nothing but separators is not a row.
+    if (row.any((value) => value.isNotEmpty)) rows.add(row);
+    row = <String>[];
+    sawCell = false;
+  }
+
+  for (var i = 0; i < body.length; i++) {
+    final char = body[i];
+    if (quoted) {
+      if (char != '"') {
+        cell.write(char);
+      } else if (i + 1 < body.length && body[i + 1] == '"') {
+        cell.write('"');
+        i++;
+      } else {
+        quoted = false;
+      }
+      continue;
+    }
+    switch (char) {
+      case '"':
+        quoted = true;
+      case '\r':
+        // Swallow it; the \n that follows ends the row.
+        if (i + 1 >= body.length || body[i + 1] != '\n') endRow();
+      case '\n':
+        endRow();
+      default:
+        if (char == delimiter) {
+          endCell();
+        } else {
+          cell.write(char);
+        }
+    }
+  }
+  if (cell.isNotEmpty || sawCell) endRow();
+  return rows;
+}
+
+/// The header names each field answers to, folded for comparison. Our own
+/// export's names (BAK-5) come first in each list, then the usual English
+/// alternatives, then the same word in the app's other five languages —
+/// whoever is switching may well have been using their own language.
+const _aliases = <ImportField, List<String>>{
+  ImportField.date: [
+    'date',
+    'transaction date',
+    'day',
+    'datetime',
+    'date time',
+    'posted',
+    'posting date',
+    'value date',
+    'when',
+    'tarih',
+    'التاريخ',
+    'تاريخ',
+    'fecha',
+    'datum',
+  ],
+  ImportField.amount: [
+    'amount',
+    'value',
+    'sum',
+    'total',
+    'price',
+    'money',
+    'debit credit',
+    'amount value',
+    'tutar',
+    'miktar',
+    'المبلغ',
+    'مبلغ',
+    'montant',
+    'importe',
+    'cantidad',
+    'betrag',
+  ],
+  ImportField.type: [
+    'type',
+    'transaction type',
+    'kind',
+    'income expense',
+    'direction',
+    'in out',
+    'debit credit type',
+    'tur',
+    'tip',
+    'islem turu',
+    'النوع',
+    'نوع',
+    'tipo',
+    'typ',
+    'art',
+  ],
+  ImportField.category: [
+    'category',
+    'categories',
+    'group',
+    'tag',
+    'subject',
+    'kategori',
+    'الفئة',
+    'فئة',
+    'التصنيف',
+    'تصنيف',
+    'categorie',
+    'categoria',
+    'kategorie',
+  ],
+  ImportField.account: [
+    'account',
+    'from account',
+    'source',
+    'source account',
+    'wallet',
+    'payment method',
+    'paid with',
+    'hesap',
+    'الحساب',
+    'حساب',
+    'compte',
+    'cuenta',
+    'konto',
+  ],
+  ImportField.toAccount: [
+    'to account',
+    'destination',
+    'destination account',
+    'target account',
+    'transfer to',
+    'hedef hesap',
+    'الى الحساب',
+    'الحساب الوجهة',
+    'compte destinataire',
+    'cuenta destino',
+    'zielkonto',
+  ],
+  ImportField.title: [
+    'title',
+    'description',
+    'name',
+    'payee',
+    'merchant',
+    'details',
+    'reference',
+    'memo title',
+    'baslik',
+    'aciklama',
+    'العنوان',
+    'عنوان',
+    'الوصف',
+    'titre',
+    'titulo',
+    'descripcion',
+    'titel',
+    'beschreibung',
+  ],
+  ImportField.note: [
+    'note',
+    'notes',
+    'comment',
+    'comments',
+    'memo',
+    'remark',
+    'notlar',
+    'ملاحظة',
+    'ملاحظات',
+    'nota',
+    'notas',
+    'notiz',
+    'bemerkung',
+  ],
+};
+
+/// Which column holds which field, by header name (IMP-3).
+///
+/// Names are compared folded, so case, accents, and the punctuation between
+/// words don't matter ("To Account", "to_account" and "TO-ACCOUNT" all
+/// match). A field with no confident match is simply absent; nothing is
+/// guessed from the data.
+Map<ImportField, int> matchColumns(List<String> header) {
+  final folded = [for (final name in header) _foldHeader(name)];
+  final matched = <ImportField, int>{};
+  final taken = <int>{};
+
+  // Exact names first, so a file with both "account" and "to account" can't
+  // have the second one swallowed by a loose match on the first.
+  for (final exact in [true, false]) {
+    for (final entry in _aliases.entries) {
+      if (matched.containsKey(entry.key)) continue;
+      for (var column = 0; column < folded.length; column++) {
+        if (taken.contains(column) || folded[column].isEmpty) continue;
+        final name = folded[column];
+        final hit = entry.value.any(
+          (alias) => exact ? name == alias : name.contains(alias),
+        );
+        if (!hit) continue;
+        matched[entry.key] = column;
+        taken.add(column);
+        break;
+      }
+    }
+  }
+  return matched;
+}
+
+/// Folds a header for comparison and reduces whatever separates its words —
+/// spaces, underscores, hyphens, brackets — to single spaces. Only
+/// punctuation goes: letters in any script stay, or an Arabic header would
+/// fold away to nothing.
+String _foldHeader(String name) =>
+    foldForSearch(name)
+        .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
+        .trim();
+
+/// What a row said its type was, or null when the column can't be read that
+/// way. A file with no type column says so with a signed amount instead.
+enum ImportedType { income, expense, transfer }
+
+const _typeWords = <ImportedType, List<String>>{
+  ImportedType.income: [
+    'income',
+    'in',
+    'credit',
+    'cr',
+    'deposit',
+    'earning',
+    'revenue',
+    'received',
+    'gelir',
+    'دخل',
+    'revenu',
+    'ingreso',
+    'ingresos',
+    'einnahme',
+    'einnahmen',
+  ],
+  ImportedType.expense: [
+    'expense',
+    'out',
+    'debit',
+    'dr',
+    'spending',
+    'spent',
+    'withdrawal',
+    'payment',
+    'paid',
+    'gider',
+    'harcama',
+    'مصروف',
+    'مصروفات',
+    'depense',
+    'gasto',
+    'gastos',
+    'ausgabe',
+    'ausgaben',
+  ],
+  ImportedType.transfer: [
+    'transfer',
+    'transfers',
+    'movement',
+    'transferencia',
+    'transfert',
+    'umbuchung',
+    'تحويل',
+  ],
+};
+
+/// Reads a type out of [value], in any of the app's six languages or the
+/// usual English shorthands. Null when it says nothing recognisable.
+ImportedType? parseImportedType(String value) {
+  final folded = foldForSearch(value).trim();
+  if (folded.isEmpty) return null;
+  for (final entry in _typeWords.entries) {
+    if (entry.value.contains(folded)) return entry.key;
+  }
+  // "Expense (food)" and the like: fall back to a word inside the cell.
+  for (final entry in _typeWords.entries) {
+    for (final word in entry.value) {
+      if (RegExp('\\b${RegExp.escape(word)}\\b').hasMatch(folded)) {
+        return entry.key;
+      }
+    }
+  }
+  return null;
+}
+
+/// An amount read out of a cell, and whether it was written as a negative.
+///
+/// Apps disagree about the sign: some carry the direction in a type column
+/// and keep amounts positive, others write expenses as `-12.50` or
+/// `(12.50)`. [isNegative] lets the caller use the sign only when there is
+/// no type column to trust (IMP-3).
+typedef ImportedAmount = ({Money amount, bool isNegative});
+
+final _currencyJunk = RegExp(r'''[^0-9.,\-−()]''');
+
+/// Reads an amount out of [value], allowing for a currency symbol, spaces,
+/// and either `.` or `,` as the decimal mark. Null when what's left isn't a
+/// number. The amount comes back positive; the sign is reported separately.
+ImportedAmount? parseImportedAmount(String value) {
+  var text = value.replaceAll(_currencyJunk, '').trim();
+  if (text.isEmpty) return null;
+
+  // Accountants write a negative in brackets.
+  var negative = text.contains('(') && text.contains(')');
+  text = text.replaceAll(RegExp(r'[()]'), '');
+  if (text.startsWith('-') || text.startsWith('−')) {
+    negative = true;
+    text = text.substring(1);
+  }
+  text = text.replaceAll('-', '').replaceAll('−', '');
+  if (text.isEmpty) return null;
+
+  final normalised = _decimalPoint(text);
+  final amount = Money.tryParse(normalised);
+  if (amount == null) return null;
+  return (amount: amount, isNegative: negative);
+}
+
+/// Turns whatever grouping and decimal marks [text] uses into a plain
+/// `1234.56`. The last `.` or `,` is the decimal mark when it has one or two
+/// digits after it; anything else separates thousands.
+String _decimalPoint(String text) {
+  final lastDot = text.lastIndexOf('.');
+  final lastComma = text.lastIndexOf(',');
+  final decimalAt = lastDot > lastComma ? lastDot : lastComma;
+  if (decimalAt < 0) return text;
+
+  final after = text.length - decimalAt - 1;
+  // "1,234" and "1.234.567" are grouped, not fractional.
+  if (after == 0 || after > 2) return text.replaceAll(RegExp('[.,]'), '');
+  final whole = text.substring(0, decimalAt).replaceAll(RegExp('[.,]'), '');
+  return '$whole.${text.substring(decimalAt + 1)}';
+}
+
+final _isoLike = RegExp(r'^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})');
+final _dayFirst = RegExp(r'^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})');
+
+/// Reads a date out of [value] (IMP-6).
+///
+/// ISO comes first, since that is what this app writes and what most exports
+/// use. Otherwise the parts are read in [dayFirst] order — which the preview
+/// shows the user, because `03/04` is a real ambiguity no amount of guessing
+/// settles. A day that can't be a day settles it either way. Any time after
+/// the date is ignored: a transaction belongs to the date the user picked
+/// (DATE-1).
+DateTime? parseImportedDate(String value, {bool dayFirst = true}) {
+  final text = value.trim();
+  if (text.isEmpty) return null;
+
+  final iso = _isoLike.firstMatch(text);
+  if (iso != null) {
+    return _dateFrom(
+      int.parse(iso[1]!),
+      int.parse(iso[2]!),
+      int.parse(iso[3]!),
+    );
+  }
+
+  final parts = _dayFirst.firstMatch(text);
+  if (parts == null) return null;
+  final first = int.parse(parts[1]!);
+  final second = int.parse(parts[2]!);
+  final year = _fullYear(int.parse(parts[3]!));
+  // Whichever number can't be a month decides the order.
+  final readDayFirst = first > 12 || (second <= 12 && dayFirst);
+  return readDayFirst
+      ? _dateFrom(year, second, first)
+      : _dateFrom(year, first, second);
+}
+
+/// Why a row won't be imported. Every one of these is counted and shown on
+/// the preview, so nothing disappears silently (IMP-5).
+enum SkipReason {
+  /// Its date cell couldn't be read as a date (IMP-6).
+  unreadableDate,
+
+  /// Its amount cell couldn't be read as a number (IMP-6).
+  unreadableAmount,
+
+  /// An amount of nothing isn't a transaction (MONEY-2).
+  zeroAmount,
+
+  /// The app already has this one (IMP-8).
+  alreadyThere,
+
+  /// A transfer needs two accounts, and this row named fewer (ACC-3).
+  incompleteTransfer,
+}
+
+/// One line of the file as the app read it.
+class ImportRow {
+  const ImportRow({
+    required this.line,
+    required this.type,
+    this.date,
+    this.amount,
+    this.categoryName = '',
+    this.accountName = '',
+    this.toAccountName = '',
+    this.title = '',
+    this.note = '',
+    this.skipped,
+  });
+
+  /// The line in the file, counting the header as line 1, so the preview can
+  /// point at a row the user can find.
+  final int line;
+
+  final ImportedType type;
+  final DateTime? date;
+  final Money? amount;
+  final String categoryName;
+  final String accountName;
+  final String toAccountName;
+  final String title;
+  final String note;
+
+  /// Null when the row will import.
+  final SkipReason? skipped;
+
+  bool get imports => skipped == null;
+}
+
+/// Why a whole file can't be imported (IMP-4).
+enum ImportRefusal {
+  /// Nothing in it, or nothing but a header.
+  empty,
+
+  /// No column could be read as a date.
+  noDateColumn,
+
+  /// No column could be read as an amount.
+  noAmountColumn,
+
+  /// Both columns were found, but not one row had a usable pair.
+  noUsableRows,
+}
+
+/// What importing [table] would do, for the user to look over before any of
+/// it happens (IMP-5).
+class ImportPlan {
+  const ImportPlan({
+    required this.columns,
+    required this.rows,
+    required this.unknownCategories,
+    required this.unknownAccounts,
+    this.refusal,
+  });
+
+  /// Which column was read as which field, for the preview to show and the
+  /// user to correct (IMP-3).
+  final Map<ImportField, int> columns;
+
+  /// Every row of the file in order, those that will import and those that
+  /// won't.
+  final List<ImportRow> rows;
+
+  /// Category names in the file that this app doesn't have, in the order
+  /// they first appear. The user picks what each becomes (IMP-7).
+  final List<String> unknownCategories;
+
+  /// The same for account names.
+  final List<String> unknownAccounts;
+
+  /// Set when nothing can be imported and the app should say so (IMP-4).
+  final ImportRefusal? refusal;
+
+  bool get canImport => refusal == null;
+
+  Iterable<ImportRow> get importing => rows.where((row) => row.imports);
+
+  int get importCount => importing.length;
+
+  int get skipCount => rows.length - importCount;
+
+  /// How many rows each reason accounts for, for the preview's summary.
+  Map<SkipReason, int> get skipCounts {
+    final counts = <SkipReason, int>{};
+    for (final row in rows) {
+      final reason = row.skipped;
+      if (reason != null) counts[reason] = (counts[reason] ?? 0) + 1;
+    }
+    return counts;
+  }
+}
+
+/// The identity a row is compared by when looking for one already in the app
+/// (IMP-8). A foreign CSV has no IDs, so this stands in for BAK-3's merge.
+String importIdentity({
+  required DateTime date,
+  required Money amount,
+  required ImportedType type,
+  required String title,
+}) => [
+  date.year,
+  date.month,
+  date.day,
+  amount.thousandths,
+  type.name,
+  foldForSearch(title).trim(),
+].join('|');
+
+/// Reads [table] into a plan, without writing anything.
+///
+/// [columns] overrides the header matching, so the preview can correct it.
+/// [categoryIdFor] and [accountIdFor] answer with the app's own ID for a
+/// name, or null when it has none — those names come back in the plan for
+/// the user to map (IMP-7). [existingIdentities] holds [importIdentity] for
+/// what the app already has, so repeats are skipped (IMP-8).
+ImportPlan planImport({
+  required CsvTable table,
+  Map<ImportField, int>? columns,
+  bool dayFirst = true,
+  String? Function(String name)? categoryIdFor,
+  String? Function(String name)? accountIdFor,
+  Set<String> existingIdentities = const {},
+}) {
+  if (table.isEmpty || table.rows.isEmpty) {
+    return const ImportPlan(
+      columns: {},
+      rows: [],
+      unknownCategories: [],
+      unknownAccounts: [],
+      refusal: ImportRefusal.empty,
+    );
+  }
+
+  final mapping = columns ?? matchColumns(table.header);
+  ImportPlan refuse(ImportRefusal why) => ImportPlan(
+    columns: mapping,
+    rows: const [],
+    unknownCategories: const [],
+    unknownAccounts: const [],
+    refusal: why,
+  );
+  if (!mapping.containsKey(ImportField.date)) {
+    return refuse(ImportRefusal.noDateColumn);
+  }
+  if (!mapping.containsKey(ImportField.amount)) {
+    return refuse(ImportRefusal.noAmountColumn);
+  }
+
+  String cell(List<String> row, ImportField field) {
+    final column = mapping[field];
+    if (column == null || column >= row.length) return '';
+    return row[column];
+  }
+
+  final rows = <ImportRow>[];
+  final unknownCategories = <String>[];
+  final unknownAccounts = <String>[];
+  // Repeats within the file count too, not just against what's already
+  // stored, or importing a file that lists a row twice would still double it.
+  final seen = {...existingIdentities};
+
+  for (var i = 0; i < table.rows.length; i++) {
+    final row = table.rows[i];
+    final line = i + 2;
+    final date = parseImportedDate(
+      cell(row, ImportField.date),
+      dayFirst: dayFirst,
+    );
+    final read = parseImportedAmount(cell(row, ImportField.amount));
+    final title = cell(row, ImportField.title);
+    final note = cell(row, ImportField.note);
+    final category = cell(row, ImportField.category);
+    final account = cell(row, ImportField.account);
+    final toAccount = cell(row, ImportField.toAccount);
+
+    // A type column is believed; failing that, a minus sign means it went
+    // out, which is how an app with no type column writes an expense.
+    final named = parseImportedType(cell(row, ImportField.type));
+    final type =
+        named ??
+        (toAccount.isNotEmpty && account.isNotEmpty
+            ? ImportedType.transfer
+            : (read?.isNegative ?? false)
+            ? ImportedType.expense
+            : ImportedType.income);
+
+    ImportRow at(SkipReason? skipped, {Money? amount}) => ImportRow(
+      line: line,
+      type: type,
+      date: date,
+      amount: amount,
+      categoryName: category,
+      accountName: account,
+      toAccountName: toAccount,
+      title: title,
+      note: note,
+      skipped: skipped,
+    );
+
+    if (date == null) {
+      rows.add(at(SkipReason.unreadableDate));
+      continue;
+    }
+    if (read == null) {
+      rows.add(at(SkipReason.unreadableAmount));
+      continue;
+    }
+    if (read.amount == Money.zero) {
+      rows.add(at(SkipReason.zeroAmount, amount: read.amount));
+      continue;
+    }
+    if (type == ImportedType.transfer &&
+        (account.isEmpty || toAccount.isEmpty)) {
+      rows.add(at(SkipReason.incompleteTransfer, amount: read.amount));
+      continue;
+    }
+
+    final identity = importIdentity(
+      date: date,
+      amount: read.amount,
+      type: type,
+      title: title,
+    );
+    if (!seen.add(identity)) {
+      rows.add(at(SkipReason.alreadyThere, amount: read.amount));
+      continue;
+    }
+
+    rows.add(at(null, amount: read.amount));
+
+    if (category.isNotEmpty &&
+        categoryIdFor?.call(category) == null &&
+        !unknownCategories.contains(category)) {
+      unknownCategories.add(category);
+    }
+    for (final name in [account, toAccount]) {
+      if (name.isNotEmpty &&
+          accountIdFor?.call(name) == null &&
+          !unknownAccounts.contains(name)) {
+        unknownAccounts.add(name);
+      }
+    }
+  }
+
+  return ImportPlan(
+    columns: mapping,
+    rows: rows,
+    unknownCategories: unknownCategories,
+    unknownAccounts: unknownAccounts,
+    // Both columns were there, but not one row made sense of them. The rows
+    // stay on the plan even so: why each was skipped is exactly what the
+    // user needs to see to fix the file (IMP-4).
+    refusal: rows.every((row) => !row.imports)
+        ? ImportRefusal.noUsableRows
+        : null,
+  );
+}
+
+int _fullYear(int year) =>
+    year >= 100 ? year : (year >= 70 ? 1900 : 2000) + year;
+
+DateTime? _dateFrom(int year, int month, int day) {
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  final date = DateTime(year, month, day);
+  // DateTime rolls 31 February over into March; that wasn't a real date.
+  if (date.month != month || date.day != day) return null;
+  return date;
+}

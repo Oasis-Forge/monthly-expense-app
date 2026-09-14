@@ -7,6 +7,7 @@ import '../models/backup.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/backup_service.dart';
+import 'import_screen.dart';
 
 /// Saves backup files, restores them by merging or replacing, lists the
 /// automatic backups kept before each restore, and holds the backup
@@ -186,6 +187,14 @@ class _BackupScreenState extends State<BackupScreen> {
             subtitle: Text(l10n.restoreFromFileSubtitle),
             enabled: !_busy,
             onTap: _restoreFromFile,
+          ),
+          ListTile(
+            leading: const Icon(Icons.table_view_outlined),
+            title: Text(l10n.importTitle),
+            subtitle: Text(l10n.importSubtitle),
+            enabled: !_busy,
+            onTap: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => const ImportScreen())),
           ),
           SwitchListTile(
             secondary: const Icon(Icons.notifications_outlined),

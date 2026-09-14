@@ -648,5 +648,107 @@
   "reportCreateButton": "Create the report",
   "reportBuilding": "Building the report",
   "reportFailed": "Couldn't build the report. Try again.",
-  "reportRangeBackwards": "The first date has to come before the last."
+  "reportRangeBackwards": "The first date has to come before the last.",
+  "importTitle": "Import a CSV",
+  "importSubtitle": "Bring transactions in from another app",
+  "importIntro": "Pick a CSV file and you'll see what the app made of it before anything is added. Importing only adds records — it never replaces or deletes what you already have.",
+  "importChooseFile": "Choose a file",
+  "importChooseAnother": "Choose another file",
+  "importReadFailed": "Couldn't read that file. Try again.",
+  "importRefusedEmpty": "There is nothing in that file.",
+  "importRefusedNoDate": "No column in that file could be read as a date, so it can't be imported.",
+  "importRefusedNoAmount": "No column in that file could be read as an amount, so it can't be imported.",
+  "importRefusedNoRows": "None of the rows in that file could be read, so there is nothing to import.",
+  "importColumnsHeader": "Columns",
+  "importColumnsSubtitle": "Change anything the app read wrongly.",
+  "importColumnNone": "Not used",
+  "importFieldType": "Type",
+  "importFieldToAccount": "To account",
+  "importFieldTitle": "Title",
+  "importFieldNote": "Note",
+  "importDateOrderLabel": "Dates like 03/04 mean",
+  "importDayFirst": "Day first",
+  "importMonthFirst": "Month first",
+  "importCountsHeader": "What will happen",
+  "importWillImport": "{count, plural, =0{Nothing will be imported} =1{1 row will be imported} other{{count} rows will be imported}}",
+  "@importWillImport": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importSkippedDate": "{count, plural, =1{1 row has a date the app can't read} other{{count} rows have a date the app can't read}}",
+  "@importSkippedDate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importSkippedAmount": "{count, plural, =1{1 row has an amount the app can't read} other{{count} rows have an amount the app can't read}}",
+  "@importSkippedAmount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importSkippedZero": "{count, plural, =1{1 row is for no money at all} other{{count} rows are for no money at all}}",
+  "@importSkippedZero": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importSkippedAlreadyThere": "{count, plural, =1{1 row is already in the app} other{{count} rows are already in the app}}",
+  "@importSkippedAlreadyThere": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importSkippedTransfer": "{count, plural, =1{1 transfer names only one account} other{{count} transfers name only one account}}",
+  "@importSkippedTransfer": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importRowUnreadableDate": "Date can't be read",
+  "importRowUnreadableAmount": "Amount can't be read",
+  "importRowZero": "No money at all",
+  "importRowAlreadyThere": "Already in the app",
+  "importRowIncompleteTransfer": "Only one account named",
+  "importNamesHeader": "Names this app hasn't got",
+  "importNamesSubtitle": "Pick what each one becomes. Importing never creates a category or an account.",
+  "importRowsHeader": "The first rows, as the app read them",
+  "importMoreRows": "{count, plural, =1{and 1 more} other{and {count} more}}",
+  "@importMoreRows": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importButton": "{count, plural, =0{Nothing to import} =1{Import 1 row} other{Import {count} rows}}",
+  "@importButton": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importDone": "{count, plural, =1{1 record imported} other{{count} records imported}}",
+  "@importDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "importFailed": "Couldn't import that file. Nothing was added."
 }

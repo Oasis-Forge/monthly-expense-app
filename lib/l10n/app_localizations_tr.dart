@@ -1152,4 +1152,201 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get reportRangeBackwards => 'İlk tarih son tarihten önce olmalı.';
+
+  @override
+  String get importTitle => 'CSV içe aktar';
+
+  @override
+  String get importSubtitle => 'İşlemleri başka bir uygulamadan getirin';
+
+  @override
+  String get importIntro =>
+      'Bir CSV dosyası seçin; hiçbir şey eklenmeden önce uygulamanın dosyadan ne anladığını görürsünüz. İçe aktarma yalnızca kayıt ekler — mevcut verilerinizi asla değiştirmez veya silmez.';
+
+  @override
+  String get importChooseFile => 'Dosya seç';
+
+  @override
+  String get importChooseAnother => 'Başka bir dosya seç';
+
+  @override
+  String get importReadFailed => 'Bu dosya okunamadı. Tekrar deneyin.';
+
+  @override
+  String get importRefusedEmpty => 'Bu dosyada hiçbir şey yok.';
+
+  @override
+  String get importRefusedNoDate =>
+      'Bu dosyadaki hiçbir sütun tarih olarak okunamadı, bu yüzden içe aktarılamaz.';
+
+  @override
+  String get importRefusedNoAmount =>
+      'Bu dosyadaki hiçbir sütun tutar olarak okunamadı, bu yüzden içe aktarılamaz.';
+
+  @override
+  String get importRefusedNoRows =>
+      'Bu dosyadaki satırların hiçbiri okunamadı, bu yüzden içe aktarılacak bir şey yok.';
+
+  @override
+  String get importColumnsHeader => 'Sütunlar';
+
+  @override
+  String get importColumnsSubtitle =>
+      'Uygulamanın yanlış okuduğu her şeyi değiştirin.';
+
+  @override
+  String get importColumnNone => 'Kullanılmıyor';
+
+  @override
+  String get importFieldType => 'Tür';
+
+  @override
+  String get importFieldToAccount => 'Hedef hesap';
+
+  @override
+  String get importFieldTitle => 'Başlık';
+
+  @override
+  String get importFieldNote => 'Not';
+
+  @override
+  String get importDateOrderLabel => '03/04 gibi tarihlerin anlamı';
+
+  @override
+  String get importDayFirst => 'Önce gün';
+
+  @override
+  String get importMonthFirst => 'Önce ay';
+
+  @override
+  String get importCountsHeader => 'Ne olacak';
+
+  @override
+  String importWillImport(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count satır içe aktarılacak',
+      one: '1 satır içe aktarılacak',
+      zero: 'Hiçbir şey içe aktarılmayacak',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedDate(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count satırın tarihi uygulama tarafından okunamıyor',
+      one: '1 satırın tarihi uygulama tarafından okunamıyor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAmount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count satırın tutarı uygulama tarafından okunamıyor',
+      one: '1 satırın tutarı uygulama tarafından okunamıyor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedZero(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count satırda hiç tutar yok',
+      one: '1 satırda hiç tutar yok',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedAlreadyThere(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count satır zaten uygulamada var',
+      one: '1 satır zaten uygulamada var',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importSkippedTransfer(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count transfer yalnızca tek bir hesap belirtiyor',
+      one: '1 transfer yalnızca tek bir hesap belirtiyor',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importRowUnreadableDate => 'Tarih okunamıyor';
+
+  @override
+  String get importRowUnreadableAmount => 'Tutar okunamıyor';
+
+  @override
+  String get importRowZero => 'Hiç tutar yok';
+
+  @override
+  String get importRowAlreadyThere => 'Uygulamada zaten var';
+
+  @override
+  String get importRowIncompleteTransfer => 'Yalnızca tek hesap belirtilmiş';
+
+  @override
+  String get importNamesHeader => 'Bu uygulamada olmayan adlar';
+
+  @override
+  String get importNamesSubtitle =>
+      'Her birinin ne olacağını seçin. İçe aktarma asla kategori veya hesap oluşturmaz.';
+
+  @override
+  String get importRowsHeader => 'İlk satırlar, uygulamanın okuduğu şekliyle';
+
+  @override
+  String importMoreRows(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 've $count tane daha',
+      one: 've 1 tane daha',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importButton(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count satırı içe aktar',
+      one: '1 satırı içe aktar',
+      zero: 'İçe aktarılacak bir şey yok',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String importDone(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kayıt içe aktarıldı',
+      one: '1 kayıt içe aktarıldı',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get importFailed => 'Bu dosya içe aktarılamadı. Hiçbir şey eklenmedi.';
 }

@@ -4,6 +4,16 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-09-14
+
+### Added
+- Import a CSV, in Backup & restore: bring your history over from another tracker instead of starting empty. It only adds records, and never replaces or deletes what you already have.
+- Before anything is added you see what the app made of the file: which column it read as the date, the amount, the type, the category, the account, the title, and the note — and you can change any of them.
+- It says how many rows will be imported and how many were skipped, with a reason for each, and shows the first rows as it read them.
+- Column names are matched in all six languages, and dates and amounts are read in the usual formats. A file with no date or amount column is refused with a reason instead of being half-imported.
+- A category or account named in the file that the app hasn't got is chosen once on that page. Importing never creates categories or accounts.
+- A row you already have — same date, amount, type, and title — is skipped, so importing the same file twice doesn't double anything.
+
 ## [1.4.0] - 2026-09-14
 
 ### Added
