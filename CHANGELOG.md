@@ -4,6 +4,12 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-09-14
+
+### Fixed
+- In an Arabic report, anything written in Latin letters — the app's name, the currency, and any category, account, or title you typed that way — came out backwards. It reads forwards now.
+- Amounts in an Arabic report no longer show a stray speck in front of the number.
+
 ## [1.3.0] - 2026-09-14
 
 ### Added

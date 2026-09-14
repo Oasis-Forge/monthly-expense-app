@@ -94,6 +94,9 @@ void main() {
       expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
     });
 
+    // These only say a document came out; that it can be *read* is
+    // report_rtl_test.dart's job, which is what v1.3.0's reversed Arabic
+    // slipped past.
     test('every language builds, Arabic included (PDF-5, LANG-5)', () async {
       for (final code in appLanguages.keys) {
         final bytes = await build(dataWith(manyEntries(10)), code: code);
