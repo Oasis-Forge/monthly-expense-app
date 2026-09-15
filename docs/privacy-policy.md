@@ -69,4 +69,4 @@ Any changes will be posted on this page with a new "Last updated" date.
 
 ## Contact
 
-For questions about this policy, [open an issue on GitHub](https://github.com/haskalach/monthly-expense-app/issues). Issues are public, so please don't include personal or financial details.
+For questions about this policy, [open an issue on GitHub](https://github.com/Oasis-Forge/monthly-expense-app/issues). Issues are public, so please don't include personal or financial details.

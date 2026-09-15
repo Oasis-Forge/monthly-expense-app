@@ -23,9 +23,9 @@
     </ul>
   </description>
   <launchable type="desktop-id">io.github.monthly_expenses.MonthlyExpenses.desktop</launchable>
-  <url type="homepage">https://github.com/haskalach/monthly-expense-app</url>
-  <url type="bugtracker">https://github.com/haskalach/monthly-expense-app/issues</url>
-  <url type="help">https://haskalach.github.io/monthly-expense-app/privacy-policy</url>
+  <url type="homepage">https://github.com/Oasis-Forge/monthly-expense-app</url>
+  <url type="bugtracker">https://github.com/Oasis-Forge/monthly-expense-app/issues</url>
+  <url type="help">https://oasis-forge.github.io/monthly-expense-app/privacy-policy</url>
   <content_rating type="oars-1.1"/>
   <branding>
     <color type="primary" scheme_preference="light">#DAD4FF</color>

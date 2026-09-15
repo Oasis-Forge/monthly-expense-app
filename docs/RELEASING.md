@@ -103,7 +103,7 @@ Go to Settings → Rules → Rulesets → New branch ruleset, target `main`, and
 
 Both stores require a public privacy policy URL.
 1. In Settings → Pages, choose Deploy from a branch → `main` / `/docs`.
-2. The policy is then live at `https://haskalach.github.io/monthly-expense-app/privacy-policy`. Its contact is the GitHub Issues page, so no email address is published.
+2. The policy is then live at `https://oasis-forge.github.io/monthly-expense-app/privacy-policy`. Its contact is the GitHub Issues page, so no email address is published.
 
 Every file in `docs/` gets published, which is fine because the repo is public anyway.
 
@@ -142,7 +142,7 @@ Flathub checks that the publisher controls the app ID's domain. `io.github.month
 5. Submit the manifest by following Flathub's submission guide (a pull request to `flathub/flathub`). Once it's accepted, verify the app through the organization in Flathub's developer portal.
 6. For each later release, update `url` and `sha256` in the app's Flathub repository.
 
-Store listings link to this repository, whose URL shows the `haskalach` account. To avoid that, transfer the repository to the organization. GitHub redirects the repository, but not the GitHub Pages site, so update the privacy policy URL in the store listings afterwards.
+The repository lives in the `Oasis-Forge` organization, so store listings don't show a personal account. It moved there from a personal account; GitHub redirects the old repository URLs but not the GitHub Pages site, so the privacy policy URL for the store listings is `https://oasis-forge.github.io/monthly-expense-app/privacy-policy`.
 
 ## Mac App Store (Phase 4)
 
