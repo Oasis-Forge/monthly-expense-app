@@ -8,7 +8,7 @@ Goal: build the full v1 feature set first, then prepare and ship Monthly Expense
 - [x] CI (checks + Android and iOS builds) green on GitHub
 - [x] Repo public, with a `main` ruleset (PR + 3 required checks, no force pushes or deletion)
 - [x] `release-android.yml` manual run without secrets (debug artifacts, nothing published)
-- [x] GitHub Pages serving `docs/privacy-policy.md` at https://haskalach.github.io/monthly-expense-app/privacy-policy
+- [x] GitHub Pages serving `docs/privacy-policy.md` at https://oasis-forge.github.io/monthly-expense-app/privacy-policy
 - [x] Upgrade `fl_chart` 0.69 → 1.2 and `intl` → 0.20 (Dependabot PRs #2, #3)
 
 ## Phase 1 — Foundations (done)
@@ -45,7 +45,7 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 - [x] Display name "Monthly Expenses" on every platform: the Android label, the iOS and macOS bundle names, the Windows version info and window title, and the Linux window title.
 - [x] Launcher icons (`flutter_launcher_icons`) and splash screen (`flutter_native_splash`), drawn by `tool/render_app_icons_test.dart`.
 - [x] Store IDs, permanent after the first upload and free of personal names: `com.monthlyexpenses.app` on Google Play, the App Store, the Mac App Store, and the Microsoft Store; `io.github.monthly_expenses.MonthlyExpenses` on Flathub, verified through the `monthly-expenses` GitHub organization.
-- [x] Privacy policy published at https://haskalach.github.io/monthly-expense-app/privacy-policy.
+- [x] Privacy policy published at https://oasis-forge.github.io/monthly-expense-app/privacy-policy.
 - [x] Update the privacy policy for accounts, backup and restore, CSV export, and app lock.
 - [x] Android release build declares no `INTERNET` permission (RUN-2), so the Play data safety form can say no data is collected. `release-android.yml` fails if it ever does.
 - [x] Desktop packaging: macOS sandbox entitlements, a Windows MSIX, and a Flatpak for Flathub, built by `release-desktop.yml`, with app icons and names for each. Mac App Store signing moves to Phase 4.
@@ -59,6 +59,8 @@ Decided 13 September 2026: these ship in v1. Languages come first. After that, e
 - [x] **Import a CSV** (IMP-1–IMP-8): so someone arriving from another tracker can bring their history with them instead of starting empty. It reads our own export exactly, and for a foreign file it matches the columns by their headers and shows what it understood before writing anything; a file it can't make sense of is refused with a reason rather than half-imported. Unknown categories and accounts are mapped on that preview rather than created (IMP-7), and a row already in the app is skipped (IMP-8). Decided 14 September 2026, and it comes before the first-run page so "Import a CSV" can sit next to "Restore a backup" there.
   - Our competitor notes record the reference app exporting PDF/Excel and a local `.db`, not CSV, so **a real sample file is still wanted**: the generic matching is built and tested, but the reference app's own column names can only be added to the alias list once we've seen them. Until then a file of theirs is read on its merits like any other, and its columns can be corrected by hand on the preview.
 - [ ] **First-run setup and walkthrough:** a setup page for language and currency with "Restore a backup" and "Import a CSV" (IMP-1), then a skippable walkthrough of up to four pages that Settings can replay (RUN-1, RUN-3–RUN-5). It replaces today's first-run welcome, and comes last so the walkthrough shows finished features.
+- [ ] **Attach a per-architecture APK to the release instead of the universal one.** `flutter build apk --release` bundles `arm64-v8a`, `armeabi-v7a` and `x86_64` into one 71 MB file; measured on v1.5.0, each slice alone is 23–27 MB, and 95% of the file is native code built three times over. Play is unaffected — `release-android.yml` already ships an AAB and delivers only the matching slice — so this is only about the sideload build: attach `arm64-v8a` (25 MB) to the draft Release and build it in the `/release` skill, keeping the universal one only if a test device ever needs it. Under 30 MB it can also be sent straight to a phone.
+- [ ] **Drop `cupertino_icons`** from `pubspec.yaml`: 258 KB of font in every build, and nothing in `lib/` references `CupertinoIcons` (the app's only Cupertino use is `GlobalCupertinoLocalizations`, which comes from `flutter_localizations`). It is the leftover default from `flutter create`.
 - [x] Update the privacy policy for notes, the widget, and the PDF report.
 
 ## Phase 5 — Release

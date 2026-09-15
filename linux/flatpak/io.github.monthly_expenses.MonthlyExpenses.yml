@@ -24,5 +24,5 @@ modules:
       - cp -r share /app/
     sources:
       - type: archive
-        url: https://github.com/haskalach/monthly-expense-app/releases/download/v1.0.0/monthly-expenses-linux-x64.tar.gz
+        url: https://github.com/Oasis-Forge/monthly-expense-app/releases/download/v1.0.0/monthly-expenses-linux-x64.tar.gz
         sha256: 0000000000000000000000000000000000000000000000000000000000000000

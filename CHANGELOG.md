@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.5.1] - 2026-09-15
+
+### Fixed
+- The privacy policy, help, and bug tracker links point to the project's new home on GitHub; the old privacy policy address no longer opened.
+
 ## [1.5.0] - 2026-09-14
 
 ### Added

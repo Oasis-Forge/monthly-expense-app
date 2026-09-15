@@ -9,6 +9,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - `dart format lib test` — rarely needed: a hook formats every edited `.dart` file
 - `flutter` not on PATH? Use `D:\Desktop\projects\flutter_sdk\flutter\bin\flutter.bat` (`dart.bat` is next to it)
 - `/verify` runs format check + analyze + tests and reports failures only
+- `/coverage` lists untested lines in changed files; `/l10n-add` writes messages to all six ARB files; `/emulator` drives the phone as text; `/handoff` rewrites the resume note
 
 ## Architecture
 - `lib/main.dart`: `MaterialApp` + providers for `SettingsProvider`, `TransactionProvider`, `BackupService`, and `Authenticator`; `AppLock` wraps every route through `MaterialApp.builder`
@@ -29,12 +30,13 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Feature order: model → migration → provider → screen → test → analyze.
 - One branch per feature, PR to `main`; CI (`.github/workflows/ci.yml`) must pass.
 - Every merged PR is a release: bump the version on the branch with `/release [major|minor|patch]` (SemVer `x.y.z+N` plus a `CHANGELOG.md` entry; CI checks it), and the merge tags `vX.Y.Z` and attaches the APK to a draft GitHub Release. `/release` also builds the same version locally into `dist/monthly-expenses-X.Y.Z.apk` (gitignored); rebuild it after any app change on the branch.
-- Before a branch is merged: check coverage of the changed files (`flutter test --coverage`) and add tests for gaps, then run the app (`flutter run`) so the user can test it by hand.
+- Before a branch is merged: check coverage of the changed files (`/coverage`) and add tests for gaps, then run the app (`flutter run`, or `/emulator` to drive it) so the user can test it by hand.
 
 ## Token rules
 - Don't open `android/ ios/ linux/ macos/ windows/ web/` unless the task is platform-specific.
 - Grep with a `path`, then read line ranges. Never read `pubspec.lock` or `ios/Runner.xcodeproj/project.pbxproj` whole; grep them.
-- Don't spawn subagents for tasks touching fewer than ~5 files. Use the `build-doctor` agent for long Gradle/Xcode logs.
+- Don't spawn subagents for tasks touching fewer than ~5 files, except routine work (next rule). Use the `build-doctor` agent for long Gradle/Xcode logs.
+- Routine work goes to a Sonnet subagent (`Agent` with `model: sonnet`), whatever its size: link and URL fixes, doc, roadmap, and changelog edits, and releases (`/release`, version bump, local APK). Decide the change in the main session, then hand it over with the exact files, lines, and wording so the subagent doesn't re-read the project; check the result with `git diff --stat`, not by re-reading files. Features, bug fixes, tests, and emulator runs stay with the main model.
 - Don't summarize diffs back; state the result in 1–3 lines.
 
 ## Read on demand only
@@ -50,4 +52,4 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Store IDs are permanent after the first upload and carry no personal names: `com.monthlyexpenses.app` (Android, iOS, macOS, Windows) and `io.github.monthly_expenses.MonthlyExpenses` (Linux and Flathub). Run the app with `adb shell am start -n com.monthlyexpenses.app/.MainActivity`.
 - Icons and splash screens come from `tool/render_app_icons_test.dart`: run it with `flutter test`, then `dart run flutter_launcher_icons` and `dart run flutter_native_splash:create`, and commit the generated platform files.
 - App lock uses `local_auth`: Android's `MainActivity` is a `FlutterFragmentActivity` with an AppCompat launch theme, and iOS needs `NSFaceIDUsageDescription`. Backups on macOS need the user-selected files entitlement.
-- Six languages: every message added or changed in `app_en.arb` gets machine translations in `app_tr.arb`, `app_ar.arb`, `app_fr.arb`, `app_es.arb`, and `app_de.arb` in the same change (LANG-6), then run `flutter gen-l10n` and commit the generated `app_localizations*.dart`. `test/l10n_test.dart` fails on missing messages or placeholders; `test/languages_test.dart` on overflow at 1.3× text or right-to-left mistakes. Use directional padding and alignment (`EdgeInsetsDirectional`, `AlignmentDirectional`), and keep amounts left to right.
+- Six languages: every message added or changed in `app_en.arb` gets machine translations in `app_tr.arb`, `app_ar.arb`, `app_fr.arb`, `app_es.arb`, and `app_de.arb` in the same change (LANG-6), written with `/l10n-add` rather than by hand, then run `flutter gen-l10n` and commit the generated `app_localizations*.dart`. `test/l10n_test.dart` fails on missing messages or placeholders; `test/languages_test.dart` on overflow at 1.3× text or right-to-left mistakes. Use directional padding and alignment (`EdgeInsetsDirectional`, `AlignmentDirectional`), and keep amounts left to right.

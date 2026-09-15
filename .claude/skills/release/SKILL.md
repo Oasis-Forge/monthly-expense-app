@@ -6,6 +6,8 @@ argument-hint: "[major|minor|patch]"
 
 Version bump for this branch: $ARGUMENTS (default: choose from the changes).
 
+A release is routine work: in the main session, don't run these steps yourself. Hand them to a Sonnet subagent (`Agent` with `model: sonnet`) with the bump level, the branch, and a one-line summary of each commit for the changelog, and relay its result (see the token rules in `CLAUDE.md`).
+
 Every PR merged to `main` is a release: `release-android.yml` tags `vX.Y.Z` and attaches `monthly-expenses-X.Y.Z.apk` to a draft GitHub Release. CI fails a PR whose version isn't above the latest tag or has no changelog entry (see `docs/RELEASING.md`).
 
 1. Stop if on `main`. Run `git fetch --tags --quiet`; the latest release is the first line of `git tag --list "v*" --sort=-v:refname`. Read `version:` in `pubspec.yaml` (`x.y.z+N`). With no tag yet, keep the version and only write its changelog entry. If the branch is already above the tag, adjust the bump level if needed and update its entry.
