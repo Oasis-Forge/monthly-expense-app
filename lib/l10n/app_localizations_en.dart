@@ -1348,4 +1348,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get importFailed => 'Couldn\'t import that file. Nothing was added.';
+
+  @override
+  String get attachmentsLabel => 'Attachments';
+
+  @override
+  String get photoLabel => 'Photo';
+
+  @override
+  String get photoAdd => 'Add a photo';
+
+  @override
+  String get photoTake => 'Take a photo';
+
+  @override
+  String get photoChoose => 'Choose a photo';
+
+  @override
+  String get photoRemove => 'Remove photo';
+
+  @override
+  String get photoMissing => 'This photo is missing.';
+
+  @override
+  String get voiceNoteLabel => 'Voice note';
+
+  @override
+  String get voiceRecord => 'Record a voice note';
+
+  @override
+  String voiceRecording(int seconds) {
+    return 'Recording, ${seconds}s left';
+  }
+
+  @override
+  String get voiceStop => 'Stop';
+
+  @override
+  String get voicePlay => 'Play';
+
+  @override
+  String get voicePause => 'Pause';
+
+  @override
+  String get voiceRemove => 'Remove voice note';
+
+  @override
+  String get voiceMissing => 'This voice note is missing.';
+
+  @override
+  String get microphoneRefused => 'The microphone is off for this app.';
+
+  @override
+  String backupIncludesAttachments(String size) {
+    return 'Includes attachments, $size MB';
+  }
 }

@@ -9,6 +9,7 @@ import '../models/note.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'attachment_field.dart';
 import 'delete_snack_bar.dart';
 import 'form_fields.dart';
 import 'note_form_screen.dart';
@@ -44,6 +45,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
   final _titleController = TextEditingController();
   final _noteController = TextEditingController();
 
+  String? _photoFile;
+  String? _voiceFile;
+
   TransactionType _type = TransactionType.expense;
   String? _categoryId;
   String? _accountId;
@@ -65,6 +69,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       _type = source.type;
       _categoryId = source.categoryId;
       _accountId = source.accountId;
+      // A duplicate starts without the original's attachments: two records
+      // must never share one file (ADD-7, ATT-5).
+      _photoFile = widget.editing?.photoFile;
+      _voiceFile = widget.editing?.voiceFile;
     } else if (note != null) {
       // NOTE-4: the note's amount, category, and text as the title.
       _titleController.text = note.text;
@@ -132,6 +140,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
             type: _type,
             date: _date,
             note: note.isEmpty ? null : note,
+            photoFile: _photoFile,
+            voiceFile: _voiceFile,
           ),
         );
       } else {
@@ -144,6 +154,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
           type: _type,
           date: _date,
           note: note.isEmpty ? null : note,
+          photoFile: _photoFile,
+          voiceFile: _voiceFile,
         );
         await provider.addTransaction(tx);
         if (recordingNote != null) {
@@ -168,6 +180,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       amountController.clear();
       _titleController.clear();
       _noteController.clear();
+      setState(() {
+        _photoFile = null;
+        _voiceFile = null;
+      });
       amountFocus.requestFocus();
       messenger.showSnackBar(SnackBar(content: Text(l10n.transactionAdded)));
     } else {
@@ -369,6 +385,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
                 border: const OutlineInputBorder(),
               ),
               maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            AttachmentField(
+              photoFile: _photoFile,
+              voiceFile: _voiceFile,
+              onPhotoChanged: (name) => setState(() => _photoFile = name),
+              onVoiceChanged: (name) => setState(() => _voiceFile = name),
             ),
             if (linkedNote != null) ...[
               const SizedBox(height: 16),

@@ -1407,4 +1407,59 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get importFailed => 'تعذّر استيراد هذا الملف. لم تتم إضافة أي شيء.';
+
+  @override
+  String get attachmentsLabel => 'المرفقات';
+
+  @override
+  String get photoLabel => 'صورة';
+
+  @override
+  String get photoAdd => 'إضافة صورة';
+
+  @override
+  String get photoTake => 'التقاط صورة';
+
+  @override
+  String get photoChoose => 'اختيار صورة';
+
+  @override
+  String get photoRemove => 'إزالة الصورة';
+
+  @override
+  String get photoMissing => 'هذه الصورة غير موجودة.';
+
+  @override
+  String get voiceNoteLabel => 'ملاحظة صوتية';
+
+  @override
+  String get voiceRecord => 'تسجيل ملاحظة صوتية';
+
+  @override
+  String voiceRecording(int seconds) {
+    return 'جارٍ التسجيل، بقي $seconds ث';
+  }
+
+  @override
+  String get voiceStop => 'إيقاف';
+
+  @override
+  String get voicePlay => 'تشغيل';
+
+  @override
+  String get voicePause => 'إيقاف مؤقت';
+
+  @override
+  String get voiceRemove => 'إزالة الملاحظة الصوتية';
+
+  @override
+  String get voiceMissing => 'هذه الملاحظة الصوتية غير موجودة.';
+
+  @override
+  String get microphoneRefused => 'الميكروفون معطّل لهذا التطبيق.';
+
+  @override
+  String backupIncludesAttachments(String size) {
+    return 'يشمل المرفقات، $size ميجابايت';
+  }
 }

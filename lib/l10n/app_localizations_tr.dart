@@ -1349,4 +1349,59 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get importFailed => 'Bu dosya içe aktarılamadı. Hiçbir şey eklenmedi.';
+
+  @override
+  String get attachmentsLabel => 'Ekler';
+
+  @override
+  String get photoLabel => 'Fotoğraf';
+
+  @override
+  String get photoAdd => 'Fotoğraf ekle';
+
+  @override
+  String get photoTake => 'Fotoğraf çek';
+
+  @override
+  String get photoChoose => 'Fotoğraf seç';
+
+  @override
+  String get photoRemove => 'Fotoğrafı kaldır';
+
+  @override
+  String get photoMissing => 'Bu fotoğraf bulunamıyor.';
+
+  @override
+  String get voiceNoteLabel => 'Sesli not';
+
+  @override
+  String get voiceRecord => 'Sesli not kaydet';
+
+  @override
+  String voiceRecording(int seconds) {
+    return 'Kaydediliyor, $seconds sn kaldı';
+  }
+
+  @override
+  String get voiceStop => 'Durdur';
+
+  @override
+  String get voicePlay => 'Oynat';
+
+  @override
+  String get voicePause => 'Duraklat';
+
+  @override
+  String get voiceRemove => 'Sesli notu kaldır';
+
+  @override
+  String get voiceMissing => 'Bu sesli not bulunamıyor.';
+
+  @override
+  String get microphoneRefused => 'Mikrofon bu uygulama için kapalı.';
+
+  @override
+  String backupIncludesAttachments(String size) {
+    return 'Ekleri içerir, $size MB';
+  }
 }

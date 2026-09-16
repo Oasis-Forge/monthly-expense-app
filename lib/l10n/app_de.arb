@@ -362,5 +362,22 @@
   "importMoreRows": "{count, plural, =1{und 1 weitere} other{und {count} weitere}}",
   "importButton": "{count, plural, =0{Nichts zu importieren} =1{1 Zeile importieren} other{{count} Zeilen importieren}}",
   "importDone": "{count, plural, =1{1 Eintrag importiert} other{{count} Einträge importiert}}",
-  "importFailed": "Diese Datei konnte nicht importiert werden. Es wurde nichts hinzugefügt."
+  "importFailed": "Diese Datei konnte nicht importiert werden. Es wurde nichts hinzugefügt.",
+  "attachmentsLabel": "Anhänge",
+  "photoLabel": "Foto",
+  "photoAdd": "Foto hinzufügen",
+  "photoTake": "Foto aufnehmen",
+  "photoChoose": "Foto auswählen",
+  "photoRemove": "Foto entfernen",
+  "photoMissing": "Dieses Foto fehlt.",
+  "voiceNoteLabel": "Sprachnotiz",
+  "voiceRecord": "Sprachnotiz aufnehmen",
+  "voiceRecording": "Aufnahme, noch {seconds} s",
+  "voiceStop": "Stopp",
+  "voicePlay": "Abspielen",
+  "voicePause": "Pause",
+  "voiceRemove": "Sprachnotiz entfernen",
+  "voiceMissing": "Diese Sprachnotiz fehlt.",
+  "microphoneRefused": "Das Mikrofon ist für diese App deaktiviert.",
+  "backupIncludesAttachments": "Enthält Anhänge, {size} MB"
 }

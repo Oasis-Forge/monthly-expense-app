@@ -16,6 +16,10 @@ class ExpenseTransaction {
   /// The local date and time the user picked (DATE-1).
   final DateTime date;
   final String? note;
+
+  /// Names of files in the app's own storage (ATT-1, ATT-2), never paths.
+  final String? photoFile;
+  final String? voiceFile;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -32,6 +36,8 @@ class ExpenseTransaction {
     required this.type,
     required this.date,
     this.note,
+    this.photoFile,
+    this.voiceFile,
     DateTime? createdAt,
     DateTime? updatedAt,
     this.deletedAt,
@@ -48,6 +54,8 @@ class ExpenseTransaction {
       'type': type.name,
       'date': date.toIso8601String(),
       'note': note,
+      'photo_file': photoFile,
+      'voice_file': voiceFile,
       'created_at': createdAt.toUtc().toIso8601String(),
       'updated_at': updatedAt.toUtc().toIso8601String(),
       'deleted_at': deletedAt?.toUtc().toIso8601String(),
@@ -64,6 +72,8 @@ class ExpenseTransaction {
       type: TransactionType.values.byName(map['type']! as String),
       date: DateTime.parse(map['date']! as String),
       note: map['note'] as String?,
+      photoFile: map['photo_file'] as String?,
+      voiceFile: map['voice_file'] as String?,
       createdAt: DateTime.parse(map['created_at']! as String),
       updatedAt: DateTime.parse(map['updated_at']! as String),
       deletedAt: _optionalDate(map['deleted_at']),
@@ -72,8 +82,8 @@ class ExpenseTransaction {
 
   static const Object _unset = Object();
 
-  /// Pass `null` for [title], [note], or [deletedAt] to clear it; leave it out
-  /// to keep the current value.
+  /// Pass `null` for [title], [note], [photoFile], [voiceFile], or
+  /// [deletedAt] to clear it; leave it out to keep the current value.
   ExpenseTransaction copyWith({
     Object? title = _unset,
     Money? amount,
@@ -82,6 +92,8 @@ class ExpenseTransaction {
     TransactionType? type,
     DateTime? date,
     Object? note = _unset,
+    Object? photoFile = _unset,
+    Object? voiceFile = _unset,
     DateTime? createdAt,
     DateTime? updatedAt,
     Object? deletedAt = _unset,
@@ -95,6 +107,12 @@ class ExpenseTransaction {
       type: type ?? this.type,
       date: date ?? this.date,
       note: identical(note, _unset) ? this.note : note as String?,
+      photoFile: identical(photoFile, _unset)
+          ? this.photoFile
+          : photoFile as String?,
+      voiceFile: identical(voiceFile, _unset)
+          ? this.voiceFile
+          : voiceFile as String?,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       deletedAt: identical(deletedAt, _unset)

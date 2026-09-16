@@ -1,10 +1,13 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../db/db_helper.dart';
 import '../models/backup.dart';
 import '../providers/settings_provider.dart';
+import 'attachment_service.dart';
 import 'backup_files.dart';
 
 /// An automatic backup kept on the device, saved before a restore (BAK-2).
@@ -26,13 +29,20 @@ class BackupService {
     BackupFiles? files,
     DateTime Function()? clock,
     Future<String> Function()? appVersion,
+    AttachmentService? attachments,
   }) : _db = db ?? DBHelper.instance,
        _files = files ?? DeviceBackupFiles(),
        _clock = clock ?? DateTime.now,
-       _appVersion = appVersion ?? _packageVersion;
+       _appVersion = appVersion ?? _packageVersion,
+       _attachments = attachments ?? AttachmentService();
 
   /// How many automatic backups the device keeps (BAK-2).
   static const keepCount = 5;
+
+  /// What the JSON is called inside a zip backup, and the folder its
+  /// attachments sit in (ATT-6).
+  static const backupEntry = 'backup.json';
+  static const attachmentsEntry = 'attachments';
 
   static final _keptName = RegExp(r'^auto-(\d+)\.json$');
 
@@ -40,6 +50,7 @@ class BackupService {
   final BackupFiles _files;
   final DateTime Function() _clock;
   final Future<String> Function() _appVersion;
+  final AttachmentService _attachments;
 
   static Future<String> _packageVersion() async {
     final info = await PackageInfo.fromPlatform();
@@ -61,13 +72,42 @@ class BackupService {
   /// (BAK-7). False when the user cancels.
   Future<bool> saveBackup(SettingsProvider settings) async {
     final backup = await create(settings);
-    final saved = await _files.save(
-      'monthly-expenses-backup-${_fileDate(_clock())}.json',
-      utf8.encode(backup.toJson()),
-      mimeType: 'application/json',
-    );
+    final names = backup.attachmentNames;
+    final fileName = 'monthly-expenses-backup-${_fileDate(_clock())}';
+    // With attachments the backup is a zip; without them it stays the plain
+    // JSON file older versions also wrote (ATT-6, BAK-1).
+    final saved = names.isEmpty
+        ? await _files.save(
+            '$fileName.json',
+            utf8.encode(backup.toJson()),
+            mimeType: 'application/json',
+          )
+        : await _files.save(
+            '$fileName.zip',
+            await _zip(backup, names),
+            mimeType: 'application/zip',
+          );
     if (saved) await settings.recordBackup();
     return saved;
+  }
+
+  /// How much the attachments would add to a backup, in bytes (ATT-6).
+  Future<int> attachmentBytes() => _attachments.totalBytes();
+
+  Future<Uint8List> _zip(BackupData backup, Set<String> names) async {
+    final archive = Archive()
+      ..add(ArchiveFile.string(backupEntry, backup.toJson()));
+    for (final name in names) {
+      // A file that has gone missing is left out rather than refused (ATT-7).
+      if (!await _attachments.exists(name)) continue;
+      archive.add(
+        ArchiveFile.bytes(
+          '$attachmentsEntry/$name',
+          await _attachments.read(name),
+        ),
+      );
+    }
+    return ZipEncoder().encodeBytes(archive);
   }
 
   /// Lets the user pick a backup file and reads it. Null when they cancel;
@@ -98,8 +138,15 @@ class BackupService {
   /// version of the app.
   Future<BackupData> read(List<int> bytes) async {
     final String source;
+    var files = const <String, List<int>>{};
     try {
-      source = utf8.decode(bytes);
+      if (_isZip(bytes)) {
+        final unzipped = _unzip(bytes);
+        source = unzipped.json;
+        files = unzipped.files;
+      } else {
+        source = utf8.decode(bytes);
+      }
     } on FormatException {
       throw const BackupException(BackupProblem.invalid);
     }
@@ -110,10 +157,30 @@ class BackupService {
     final tables = backup.schemaVersion < _db.version
         ? await _db.upgradeBackupTables(backup.tables, backup.schemaVersion)
         : backup.tables;
-    return backup.withTables(
-      normalizeTables(tables),
-      schemaVersion: _db.version,
-    );
+    return backup
+        .withTables(normalizeTables(tables), schemaVersion: _db.version)
+        .withFiles(files);
+  }
+
+  static bool _isZip(List<int> bytes) =>
+      bytes.length > 4 && bytes[0] == 0x50 && bytes[1] == 0x4b;
+
+  /// The JSON and the attachment files inside a zip backup (ATT-6).
+  ({String json, Map<String, List<int>> files}) _unzip(List<int> bytes) {
+    final archive = ZipDecoder().decodeBytes(bytes);
+    final files = <String, List<int>>{};
+    String? json;
+    for (final file in archive.files) {
+      if (!file.isFile) continue;
+      final content = file.readBytes() ?? const <int>[];
+      if (file.name == backupEntry) {
+        json = utf8.decode(content);
+      } else if (file.name.startsWith('$attachmentsEntry/')) {
+        files[file.name.split('/').last] = content;
+      }
+    }
+    if (json == null) throw const BackupException(BackupProblem.invalid);
+    return (json: json, files: files);
   }
 
   /// Keeps an automatic backup of the current data, then restores [backup]
@@ -128,12 +195,23 @@ class BackupService {
     switch (mode) {
       case RestoreMode.replace:
         await _db.replaceAllData(backup.tables);
+        await _writeFiles(backup);
         await settings.restoreBackupValues(backup.settings);
         return RestoreResult.replaced(backup.transactionCount);
       case RestoreMode.merge:
         final plan = planMerge(await _db.exportTables(), backup.tables);
         await _db.applyMerge(plan);
+        await _writeFiles(backup);
         return RestoreResult.merged(plan);
+    }
+  }
+
+  /// Writes the attachments a zip backup carried (ATT-6). Files belonging to
+  /// data that Replace overwrote stay where they are: the automatic backup
+  /// taken first is JSON only, so deleting them would leave it unrestorable.
+  Future<void> _writeFiles(BackupData backup) async {
+    for (final MapEntry(key: name, value: bytes) in backup.files.entries) {
+      await _attachments.write(name, bytes);
     }
   }
 

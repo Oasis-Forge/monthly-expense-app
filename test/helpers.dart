@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -19,6 +21,7 @@ import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/services/attachment_service.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
 import 'package:monthly_expense_app/services/backup_files.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
@@ -223,10 +226,18 @@ class FakeDB extends DBHelper {
   ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
   @override
-  Future<void> purgeDeletedBefore(DateTime cutoff) async {
-    rows.removeWhere((row) => row.deletedAt?.isBefore(cutoff) ?? false);
-    transfers.removeWhere((t) => t.deletedAt?.isBefore(cutoff) ?? false);
-    notes.removeWhere((n) => n.deletedAt?.isBefore(cutoff) ?? false);
+  Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
+    bool old(DateTime? deletedAt) => deletedAt?.isBefore(cutoff) ?? false;
+    final going = [
+      for (final row in rows)
+        if (old(row.deletedAt)) row,
+    ];
+    rows.removeWhere((row) => old(row.deletedAt));
+    transfers.removeWhere((t) => old(t.deletedAt));
+    notes.removeWhere((n) => old(n.deletedAt));
+    return [
+      for (final row in going) ...[?row.photoFile, ?row.voiceFile],
+    ];
   }
 
   @override
@@ -578,11 +589,13 @@ BackupService testBackupService(
   DBHelper db, {
   BackupFiles? files,
   DateTime Function()? clock,
+  AttachmentService? attachments,
 }) {
   return BackupService(
     db: db,
     files: files ?? FakeBackupFiles(),
     clock: clock,
+    attachments: attachments ?? FakeAttachments(),
     appVersion: () async => '1.0.0+1',
   );
 }
@@ -610,6 +623,7 @@ Widget testApp(
   BackupService? backup,
   Authenticator? authenticator,
   ReminderService? reminders,
+  AttachmentService? attachments,
 }) {
   return MultiProvider(
     providers: [
@@ -623,6 +637,9 @@ Widget testApp(
       ),
       Provider<ReminderService>.value(
         value: reminders ?? FakeReminderService(),
+      ),
+      Provider<AttachmentService>.value(
+        value: attachments ?? FakeAttachments(),
       ),
     ],
     // Like the app, the language follows the settings (LANG-1).
@@ -656,4 +673,171 @@ Future<void> revealInForm(WidgetTester tester, Finder finder) async {
   await tester.pump();
   await tester.scrollUntilVisible(finder, 100, scrollable: scrollable);
   await tester.pumpAndSettle();
+}
+
+/// [AttachmentFiles] over a temporary folder, standing in for the photo
+/// picker and the microphone (ATT-2).
+class FakeAttachmentFiles implements AttachmentFiles {
+  FakeAttachmentFiles(this.dir);
+
+  final Directory dir;
+
+  /// The path the picker hands back; null means the user backed out.
+  String? toPick;
+
+  /// Whether the microphone is allowed.
+  bool micAllowed = true;
+
+  /// Where each photo was asked for, in order.
+  final List<PhotoSource> picked = [];
+
+  String? recordingTo;
+  bool cancelled = false;
+
+  @override
+  Future<String?> pickPhoto(PhotoSource source) async {
+    picked.add(source);
+    return toPick;
+  }
+
+  @override
+  Future<bool> startRecording(String path) async {
+    if (!micAllowed) return false;
+    recordingTo = path;
+    await File(path).writeAsBytes(const [1, 2, 3]);
+    return true;
+  }
+
+  @override
+  Future<String?> stopRecording() async => recordingTo;
+
+  @override
+  Future<void> play(String path) async {
+    played.add(path);
+    playingNow.add(true);
+  }
+
+  @override
+  Future<void> pausePlaying() async => playingNow.add(false);
+
+  @override
+  Stream<bool> get playing => playingNow.stream;
+
+  /// Paths played, in order.
+  final List<String> played = [];
+
+  final playingNow = StreamController<bool>.broadcast();
+
+  @override
+  Future<void> cancelRecording() async {
+    cancelled = true;
+  }
+
+  @override
+  Future<Directory> directory() async => dir.create(recursive: true);
+}
+
+/// An [AttachmentService] over [dir], with the fake picker and recorder it
+/// uses so a test can steer them. Names count up: file1.jpg, file2.m4a.
+({AttachmentService service, FakeAttachmentFiles files}) testAttachments(
+  Directory dir,
+) {
+  final files = FakeAttachmentFiles(dir);
+  var next = 0;
+  return (
+    service: AttachmentService(files: files, newName: () => 'file${++next}'),
+    files: files,
+  );
+}
+
+/// An [AttachmentService] that keeps its files in memory, for widget tests:
+/// a pumped test can't wait on real file I/O. [filePath] is what [path]
+/// hands back, so an [Image] in the tree has something real to load.
+class FakeAttachments implements AttachmentService {
+  FakeAttachments({this.filePath = 'no-such-photo.jpg'});
+
+  final String filePath;
+  final Map<String, List<int>> stored = {};
+
+  /// Where each photo was asked for, and each voice note played, in order.
+  final List<PhotoSource> picked = [];
+  final List<String> played = [];
+
+  /// Whether the picker has a photo, and the microphone is allowed.
+  bool hasPhoto = true;
+  bool micAllowed = true;
+
+  final _playing = StreamController<bool>.broadcast();
+  String? _recording;
+  int _next = 0;
+
+  String _name(String extension) => 'file${++_next}.$extension';
+
+  @override
+  Future<String?> addPhoto(PhotoSource source) async {
+    picked.add(source);
+    if (!hasPhoto) return null;
+    final name = _name('jpg');
+    stored[name] = const [1];
+    return name;
+  }
+
+  @override
+  Future<bool> startRecording() async {
+    if (!micAllowed) return false;
+    _recording = _name('m4a');
+    return true;
+  }
+
+  @override
+  Future<String?> stopRecording() async {
+    final name = _recording;
+    _recording = null;
+    if (name != null) stored[name] = const [2];
+    return name;
+  }
+
+  @override
+  Future<void> cancelRecording() async {
+    stored.remove(_recording);
+    _recording = null;
+  }
+
+  @override
+  Future<void> play(String name) async {
+    played.add(name);
+    _playing.add(true);
+  }
+
+  @override
+  Future<void> pausePlaying() async => _playing.add(false);
+
+  @override
+  Stream<bool> get playing => _playing.stream;
+
+  @override
+  Future<String> path(String name) async => filePath;
+
+  @override
+  Future<bool> exists(String name) async => stored.containsKey(name);
+
+  @override
+  Future<Uint8List> read(String name) async =>
+      Uint8List.fromList(stored[name]!);
+
+  @override
+  Future<void> write(String name, List<int> bytes) async =>
+      stored[name] = bytes;
+
+  @override
+  Future<void> delete(String? name) async => stored.remove(name);
+
+  @override
+  Future<void> deleteAll(Iterable<String?> names) async {
+    names.forEach(stored.remove);
+  }
+
+  @override
+  Future<int> totalBytes() async =>
+      stored.values.fold<int>(0, (total, bytes) => total + bytes.length);
 }

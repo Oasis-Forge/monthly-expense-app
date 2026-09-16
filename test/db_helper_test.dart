@@ -366,4 +366,71 @@ void main() {
       expect(await (await helper.database).query('notes'), isEmpty);
     });
   });
+
+  group('attachments (ATT-1, ATT-5)', () {
+    test('a photo and a voice note survive a round trip', () async {
+      final helper = helperAt('app.db');
+      final lunch = testTx(
+        'a',
+        expense,
+        12.5,
+        DateTime(2026, 9, 16),
+      ).copyWith(photoFile: 'a.jpg', voiceFile: 'a.m4a');
+
+      await helper.insertTransaction(lunch);
+
+      final stored = (await helper.fetchTransactions()).single;
+      expect(stored.photoFile, 'a.jpg');
+      expect(stored.voiceFile, 'a.m4a');
+    });
+
+    test('a database from before the step upgrades and keeps rows', () async {
+      final steps = DBHelper.schemaMigrations;
+      final before = helperAt(
+        'upgraded.db',
+        steps.sublist(0, steps.length - 1),
+      );
+      // The old schema has no attachment columns: write the row the way
+      // that version would have.
+      final old = await before.database;
+      await old.insert(
+        'transactions',
+        testTx('a', expense, 5, DateTime(2026, 9, 16)).toMap()
+          ..remove('photo_file')
+          ..remove('voice_file'),
+      );
+      await before.close();
+
+      final upgraded = helperAt('upgraded.db');
+      final stored = (await upgraded.fetchTransactions()).single;
+      expect(stored.photoFile, isNull);
+
+      await upgraded.updateTransaction(stored.copyWith(photoFile: 'a.jpg'));
+
+      expect((await upgraded.fetchTransactions()).single.photoFile, 'a.jpg');
+    });
+
+    test('purging old trash hands back only its own files', () async {
+      final helper = helperAt('app.db');
+      final day = DateTime(2026, 9, 16);
+      await helper.insertTransaction(
+        testTx('old', expense, 5, day)
+            .copyWith(photoFile: 'old.jpg', voiceFile: 'old.m4a')
+            .copyWith(deletedAt: DateTime.utc(2026, 8, 1)),
+      );
+      await helper.insertTransaction(
+        testTx('recent', expense, 6, day)
+            .copyWith(photoFile: 'recent.jpg')
+            .copyWith(deletedAt: DateTime.utc(2026, 9, 15)),
+      );
+      await helper.insertTransaction(
+        testTx('live', expense, 7, day).copyWith(photoFile: 'live.jpg'),
+      );
+
+      final left = await helper.purgeDeletedBefore(DateTime.utc(2026, 9, 1));
+
+      expect(left, ['old.jpg', 'old.m4a']);
+      expect((await helper.fetchTransactions()).single.id, 'live');
+    });
+  });
 }

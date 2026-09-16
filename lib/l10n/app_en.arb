@@ -750,5 +750,50 @@
       }
     }
   },
-  "importFailed": "Couldn't import that file. Nothing was added."
+  "importFailed": "Couldn't import that file. Nothing was added.",
+  "attachmentsLabel": "Attachments",
+  "@attachmentsLabel": {
+    "description": "Section header on the transaction form for the photo and voice note (ATT-1)."
+  },
+  "photoLabel": "Photo",
+  "photoAdd": "Add a photo",
+  "photoTake": "Take a photo",
+  "photoChoose": "Choose a photo",
+  "photoRemove": "Remove photo",
+  "photoMissing": "This photo is missing.",
+  "@photoMissing": {
+    "description": "Shown in place of a photo whose file is gone after a restore (ATT-7)."
+  },
+  "voiceNoteLabel": "Voice note",
+  "voiceRecord": "Record a voice note",
+  "voiceRecording": "Recording, {seconds}s left",
+  "@voiceRecording": {
+    "description": "Countdown while recording; a voice note stops at 60 seconds (ATT-4).",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceStop": "Stop",
+  "voicePlay": "Play",
+  "voicePause": "Pause",
+  "voiceRemove": "Remove voice note",
+  "voiceMissing": "This voice note is missing.",
+  "@voiceMissing": {
+    "description": "Shown in place of a voice note whose file is gone (ATT-7)."
+  },
+  "microphoneRefused": "The microphone is off for this app.",
+  "@microphoneRefused": {
+    "description": "Shown when recording is refused because the microphone permission is off (ATT-2)."
+  },
+  "backupIncludesAttachments": "Includes attachments, {size} MB",
+  "@backupIncludesAttachments": {
+    "description": "Under \"Back up now\": how much the photos and voice notes add to the file (ATT-6). {size} is a formatted number of megabytes.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }

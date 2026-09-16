@@ -1371,4 +1371,59 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get importFailed =>
       'Diese Datei konnte nicht importiert werden. Es wurde nichts hinzugefügt.';
+
+  @override
+  String get attachmentsLabel => 'Anhänge';
+
+  @override
+  String get photoLabel => 'Foto';
+
+  @override
+  String get photoAdd => 'Foto hinzufügen';
+
+  @override
+  String get photoTake => 'Foto aufnehmen';
+
+  @override
+  String get photoChoose => 'Foto auswählen';
+
+  @override
+  String get photoRemove => 'Foto entfernen';
+
+  @override
+  String get photoMissing => 'Dieses Foto fehlt.';
+
+  @override
+  String get voiceNoteLabel => 'Sprachnotiz';
+
+  @override
+  String get voiceRecord => 'Sprachnotiz aufnehmen';
+
+  @override
+  String voiceRecording(int seconds) {
+    return 'Aufnahme, noch $seconds s';
+  }
+
+  @override
+  String get voiceStop => 'Stopp';
+
+  @override
+  String get voicePlay => 'Abspielen';
+
+  @override
+  String get voicePause => 'Pause';
+
+  @override
+  String get voiceRemove => 'Sprachnotiz entfernen';
+
+  @override
+  String get voiceMissing => 'Diese Sprachnotiz fehlt.';
+
+  @override
+  String get microphoneRefused => 'Das Mikrofon ist für diese App deaktiviert.';
+
+  @override
+  String backupIncludesAttachments(String size) {
+    return 'Enthält Anhänge, $size MB';
+  }
 }

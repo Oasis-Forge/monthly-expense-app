@@ -262,3 +262,10 @@ Future<void> migrateToVersion8(DatabaseExecutor db) async {
     )
   ''');
 }
+
+/// Version 9: one photo and one voice note per transaction (ATT-1). Only the
+/// file names are stored; the files live in the app's own storage (ATT-2).
+Future<void> migrateToVersion9(DatabaseExecutor db) async {
+  await db.execute('ALTER TABLE transactions ADD COLUMN photo_file TEXT');
+  await db.execute('ALTER TABLE transactions ADD COLUMN voice_file TEXT');
+}

@@ -4,6 +4,14 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-09-16
+
+### Added
+- Attach a photo to a transaction, taken with the camera or chosen from your photos, and a voice note of up to a minute recorded in the app. Both stay on your device.
+
+### Changed
+- A backup that has attachments is now a zip holding the same data plus those files. Backups without attachments stay a plain JSON file, and both kinds restore.
+
 ## [1.5.1] - 2026-09-15
 
 ### Fixed

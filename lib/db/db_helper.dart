@@ -37,6 +37,7 @@ class DBHelper {
     migrateToVersion6,
     migrateToVersion7,
     migrateToVersion8,
+    migrateToVersion9,
   ];
 
   static const _fileName = 'monthly_expense_app.db';
@@ -152,16 +153,26 @@ class DBHelper {
   }
 
   /// Permanently removes transactions, transfers, and notes deleted before
-  /// [cutoff] (DEL-3, NOTE-7).
-  Future<void> purgeDeletedBefore(DateTime cutoff) async {
+  /// [cutoff] (DEL-3, NOTE-7), and returns the attachment files those
+  /// transactions leave behind, for the caller to delete (ATT-5).
+  Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
     final db = await database;
+    const where = 'deleted_at IS NOT NULL AND deleted_at < ?';
+    final args = [cutoff.toUtc().toIso8601String()];
+    final going = await db.query(
+      'transactions',
+      columns: ['photo_file', 'voice_file'],
+      where: where,
+      whereArgs: args,
+    );
     for (final table in ['transactions', 'transfers', 'notes']) {
-      await db.delete(
-        table,
-        where: 'deleted_at IS NOT NULL AND deleted_at < ?',
-        whereArgs: [cutoff.toUtc().toIso8601String()],
-      );
+      await db.delete(table, where: where, whereArgs: args);
     }
+    return [
+      for (final row in going)
+        for (final name in [row['photo_file'], row['voice_file']])
+          if (name != null) name as String,
+    ];
   }
 
   Future<List<Category>> fetchCategories() async {

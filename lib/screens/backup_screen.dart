@@ -23,16 +23,33 @@ class _BackupScreenState extends State<BackupScreen> {
   late Future<List<KeptBackup>> _kept;
   bool _busy = false;
 
+  /// What the attachments add to a backup, so their weight is known before
+  /// the file is written (ATT-6).
+  int _attachmentBytes = 0;
+
   @override
   void initState() {
     super.initState();
-    _kept = context.read<BackupService>().keptBackups();
+    final service = context.read<BackupService>();
+    _kept = service.keptBackups();
+    service.attachmentBytes().then((bytes) {
+      if (mounted) setState(() => _attachmentBytes = bytes);
+    });
   }
 
   void _refreshKept() {
     setState(() {
       _kept = context.read<BackupService>().keptBackups();
     });
+  }
+
+  /// The attachment total in megabytes, written the language's own way.
+  String _megabytes(AppLocalizations l10n) {
+    final megabytes = _attachmentBytes / (1024 * 1024);
+    return NumberFormat(
+      megabytes < 10 ? '0.0' : '#,##0',
+      l10n.localeName,
+    ).format(megabytes);
   }
 
   /// Shows a progress bar while [work] runs. Dialogs stay outside it.
@@ -169,14 +186,22 @@ class _BackupScreenState extends State<BackupScreen> {
           ListTile(
             leading: const Icon(Icons.backup_outlined),
             title: Text(l10n.backUpNowTitle),
-            subtitle: Text(
-              lastBackup == null
-                  ? l10n.neverBackedUp
-                  : l10n.lastBackupLine(
-                      DateFormat.yMMMd(l10n.localeName)
-                          .add_jm()
-                          .format(lastBackup.toLocal()),
-                    ),
+            isThreeLine: _attachmentBytes > 0,
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  lastBackup == null
+                      ? l10n.neverBackedUp
+                      : l10n.lastBackupLine(
+                          DateFormat.yMMMd(l10n.localeName)
+                              .add_jm()
+                              .format(lastBackup.toLocal()),
+                        ),
+                ),
+                if (_attachmentBytes > 0)
+                  Text(l10n.backupIncludesAttachments(_megabytes(l10n))),
+              ],
             ),
             enabled: !_busy,
             onTap: _backUp,

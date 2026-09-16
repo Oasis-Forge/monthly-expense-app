@@ -362,5 +362,22 @@
   "importMoreRows": "{count, plural, =1{ve 1 tane daha} other{ve {count} tane daha}}",
   "importButton": "{count, plural, =0{İçe aktarılacak bir şey yok} =1{1 satırı içe aktar} other{{count} satırı içe aktar}}",
   "importDone": "{count, plural, =1{1 kayıt içe aktarıldı} other{{count} kayıt içe aktarıldı}}",
-  "importFailed": "Bu dosya içe aktarılamadı. Hiçbir şey eklenmedi."
+  "importFailed": "Bu dosya içe aktarılamadı. Hiçbir şey eklenmedi.",
+  "attachmentsLabel": "Ekler",
+  "photoLabel": "Fotoğraf",
+  "photoAdd": "Fotoğraf ekle",
+  "photoTake": "Fotoğraf çek",
+  "photoChoose": "Fotoğraf seç",
+  "photoRemove": "Fotoğrafı kaldır",
+  "photoMissing": "Bu fotoğraf bulunamıyor.",
+  "voiceNoteLabel": "Sesli not",
+  "voiceRecord": "Sesli not kaydet",
+  "voiceRecording": "Kaydediliyor, {seconds} sn kaldı",
+  "voiceStop": "Durdur",
+  "voicePlay": "Oynat",
+  "voicePause": "Duraklat",
+  "voiceRemove": "Sesli notu kaldır",
+  "voiceMissing": "Bu sesli not bulunamıyor.",
+  "microphoneRefused": "Mikrofon bu uygulama için kapalı.",
+  "backupIncludesAttachments": "Ekleri içerir, {size} MB"
 }
