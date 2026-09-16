@@ -637,9 +637,7 @@ Widget testApp(
         value: reminders ?? FakeReminderService(),
       ),
       Provider<AttachmentService>.value(
-        value:
-            attachments ??
-            testAttachments(Directory('/attachment_tests')).service,
+        value: attachments ?? FakeAttachments(),
       ),
     ],
     // Like the app, the language follows the settings (LANG-1).
@@ -748,4 +746,96 @@ class FakeAttachmentFiles implements AttachmentFiles {
     service: AttachmentService(files: files, newName: () => 'file${++next}'),
     files: files,
   );
+}
+
+/// An [AttachmentService] that keeps its files in memory, for widget tests:
+/// a pumped test can't wait on real file I/O. [filePath] is what [path]
+/// hands back, so an [Image] in the tree has something real to load.
+class FakeAttachments implements AttachmentService {
+  FakeAttachments({this.filePath = 'no-such-photo.jpg'});
+
+  final String filePath;
+  final Map<String, List<int>> stored = {};
+
+  /// Where each photo was asked for, and each voice note played, in order.
+  final List<PhotoSource> picked = [];
+  final List<String> played = [];
+
+  /// Whether the picker has a photo, and the microphone is allowed.
+  bool hasPhoto = true;
+  bool micAllowed = true;
+
+  final _playing = StreamController<bool>.broadcast();
+  String? _recording;
+  int _next = 0;
+
+  String _name(String extension) => 'file${++_next}.$extension';
+
+  @override
+  Future<String?> addPhoto(PhotoSource source) async {
+    picked.add(source);
+    if (!hasPhoto) return null;
+    final name = _name('jpg');
+    stored[name] = const [1];
+    return name;
+  }
+
+  @override
+  Future<bool> startRecording() async {
+    if (!micAllowed) return false;
+    _recording = _name('m4a');
+    return true;
+  }
+
+  @override
+  Future<String?> stopRecording() async {
+    final name = _recording;
+    _recording = null;
+    if (name != null) stored[name] = const [2];
+    return name;
+  }
+
+  @override
+  Future<void> cancelRecording() async {
+    stored.remove(_recording);
+    _recording = null;
+  }
+
+  @override
+  Future<void> play(String name) async {
+    played.add(name);
+    _playing.add(true);
+  }
+
+  @override
+  Future<void> pausePlaying() async => _playing.add(false);
+
+  @override
+  Stream<bool> get playing => _playing.stream;
+
+  @override
+  Future<String> path(String name) async => filePath;
+
+  @override
+  Future<bool> exists(String name) async => stored.containsKey(name);
+
+  @override
+  Future<Uint8List> read(String name) async =>
+      Uint8List.fromList(stored[name]!);
+
+  @override
+  Future<void> write(String name, List<int> bytes) async =>
+      stored[name] = bytes;
+
+  @override
+  Future<void> delete(String? name) async => stored.remove(name);
+
+  @override
+  Future<void> deleteAll(Iterable<String?> names) async {
+    names.forEach(stored.remove);
+  }
+
+  @override
+  Future<int> totalBytes() async =>
+      stored.values.fold<int>(0, (total, bytes) => total + bytes.length);
 }
