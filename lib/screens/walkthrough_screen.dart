@@ -155,7 +155,8 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
   }
 }
 
-/// One walkthrough page. It scrolls, so large text still fits (LANG-6).
+/// One walkthrough page, its content in the middle of the page. It scrolls
+/// instead when large text needs the room (LANG-6).
 class _Page extends StatelessWidget {
   const _Page({required this.icon, required this.title, required this.body});
 
@@ -166,25 +167,27 @@ class _Page extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 88, color: theme.colorScheme.primary),
-          const SizedBox(height: 24),
-          Text(
-            title,
-            style: theme.textTheme.headlineSmall,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            body,
-            style: theme.textTheme.bodyLarge,
-            textAlign: TextAlign.center,
-          ),
-        ],
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 88, color: theme.colorScheme.primary),
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: theme.textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              body,
+              style: theme.textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
