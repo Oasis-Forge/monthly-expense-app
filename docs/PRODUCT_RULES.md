@@ -134,7 +134,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **Learn:** a raw database file breaks across schema versions. Defaults that send data off the device conflict with our principles.
 
-- **BAK-1** Backup is a JSON file recording the app version and schema version, saved or shared only when the user chooses to.
+- **BAK-1** Backup records the app version and schema version as JSON, saved or shared only when the user chooses to; when there are attachments it is a zip holding that JSON and the files (ATT-6).
 - **BAK-2** Restore offers Replace (the backup replaces all current data and settings) or Merge (BAK-3). Before either, the app saves an automatic backup of the current data. The device keeps the five most recent automatic backups, and any of them can be restored.
 - **BAK-3** Merge matches every record by ID (REC-2). Records only in the backup are added. When both sides have a record, the one with the later `updated_at` wins, including deletions (DEL-1). Transactions, categories, accounts, budgets, and recurring rules all merge this way. Records that differ only in their timestamps count as unchanged. An occurrence handled on both sides keeps this device's record, and the backup's transaction for it is left out, so a recurring transaction never posts twice (RCR-4). Budget versions from the same period start go by the one saved last. Merge keeps this device's settings. The app then shows how many records were added, updated, and unchanged.
 - **BAK-4** A backup from a newer schema is refused with a message to update the app. Older backups are migrated with the app's own schema steps before Replace or Merge.
@@ -251,6 +251,21 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **IMP-7** A category or account named in the file that this app doesn't have is chosen once on the preview screen, from those that exist, defaulting to Other and the default account. Importing never creates categories or accounts, so a file from an app with dozens of them can't flood a list this app keeps deliberately short (section 5).
 - **IMP-8** A row matching one already in the app on date, amount, type, and title is taken as already imported and skipped; the preview says how many. A foreign CSV has no IDs, so this stands in for BAK-3's merge, and it is the one place the import decides something for itself — the preview says so plainly.
 
+## 21. Attachments
+
+**They do:** not covered by the competitor study.
+
+**Learn:** a photo of the receipt and a few spoken words are what people reach for when typing at the till is too slow. They are also the heaviest thing this app will hold, so these rules are mostly about where the files live, what a backup does with them, and what happens when one goes missing.
+
+- **ATT-1** A transaction can carry one photo and one voice note, both optional. Transfers and notes carry neither.
+- **ATT-2** The photo is taken with the camera or picked with the system photo picker; the voice note is recorded in the app. Files are copied into the app's own storage, named after the record, and never written to a shared folder or the device gallery. Picking asks for no gallery permission; the camera asks for `CAMERA` and the recorder for `RECORD_AUDIO`, each only when first used, and refusing either leaves the rest of the form working.
+- **ATT-3** A photo is downscaled on import to at most 1600 px on its long side and saved as JPEG, which keeps a receipt readable at roughly 200 KB. The original in the gallery is untouched.
+- **ATT-4** A voice note stops at 60 seconds, with the time left shown while recording. It plays back in place, and recording again replaces it.
+- **ATT-5** Attachments live and die with their transaction (REC-1, REC-2, DEL-1): a transaction in the trash keeps its files, emptying the trash deletes them, and restoring brings them back. Replacing an attachment deletes the file it replaced.
+- **ATT-6** A backup with attachments is a zip holding the same JSON and the files (BAK-1); without them it stays a plain JSON file. Restore accepts either, so backups written before this feature still restore. Merge treats a file as part of its record: whichever side wins on `updated_at` brings its attachment (BAK-3). The app says how large a backup will be before writing it.
+- **ATT-7** A record whose file is missing after a restore says so on the entry, and stays editable. Never a broken image or a silent gap.
+- **ATT-8** Nothing about an attachment leaves the device (BAK-6, RUN-2): no upload, no transcription service, no gallery write, and no `INTERNET` permission. There is no speech-to-text. CSV export and the PDF report are unchanged and carry no files.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -265,6 +280,11 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 ## Decisions (14 September 2026)
 
 10. Importing a CSV ships in v1, before the first-run page (section 20, roadmap Phase 4). It reads this app's own export exactly and makes a best effort at a foreign one, showing what it understood first and refusing a file it can't read rather than importing part of it. Accepting *any* CSV layout is the aim, not a promise: what can't be mapped is declined with a reason. Unknown categories and accounts are mapped on the preview, never created (IMP-7), and a row already in the app is skipped (IMP-8).
+
+## Decisions (16 September 2026)
+
+11. Attachments ship in v1, before the first-run page (section 21, roadmap Phase 4). A transaction carries one photo and one voice note; transfers and notes carry none. Voice notes stop at 60 seconds. Backups become a zip that carries the files, and plain JSON backups still restore (ATT-6).
+12. The universal 71 MB release APK stays as it is. Play receives the AAB and builds each device's download from it, so only sideloading from the GitHub Release sees the size.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
