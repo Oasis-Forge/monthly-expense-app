@@ -16,6 +16,7 @@ import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../models/transfer.dart';
 import '../models/widget_summary.dart';
+import '../services/attachment_service.dart';
 import '../services/reminder_service.dart';
 
 /// Holds the app's data in memory, persists changes through [DBHelper], and
@@ -27,15 +28,19 @@ class TransactionProvider extends ChangeNotifier {
   /// "now"; tests pass a fixed time. [startDay] is the first day of each
   /// month (PER-2). [reminders] schedules note notifications; `main.dart`
   /// passes a [DeviceReminderService] and everyone else does nothing.
+  /// [attachments] holds the photo and voice files (ATT-2); the provider only
+  /// deletes the ones their transactions leave behind.
   TransactionProvider({
     DBHelper? db,
     DateTime Function()? clock,
     int startDay = 1,
     ReminderService? reminders,
+    AttachmentService? attachments,
   }) : _db = db ?? DBHelper.instance,
        _clock = clock ?? DateTime.now,
        _startDay = startDay,
        _reminders = reminders ?? const NoopReminderService(),
+       _attachments = attachments ?? AttachmentService(),
        _period = Period.containing(
          (clock ?? DateTime.now)(),
          startDay: startDay,
@@ -50,6 +55,7 @@ class TransactionProvider extends ChangeNotifier {
   final DBHelper _db;
   final DateTime Function() _clock;
   final ReminderService _reminders;
+  final AttachmentService _attachments;
   final List<ExpenseTransaction> _transactions = [];
   final List<ExpenseTransaction> _deleted = [];
   final List<Transfer> _transfers = [];
@@ -321,7 +327,9 @@ class TransactionProvider extends ChangeNotifier {
     bool appLockOn = false,
     Locale locale = const Locale('en'),
   }) async {
-    await _db.purgeDeletedBefore(_clock().subtract(trashRetention));
+    await _attachments.deleteAll(
+      await _db.purgeDeletedBefore(_clock().subtract(trashRetention)),
+    );
     _categories = await _db.fetchCategories();
     _accounts = await _db.fetchAccounts();
     _budgets = await _db.fetchBudgets();
@@ -407,8 +415,14 @@ class TransactionProvider extends ChangeNotifier {
     await _db.updateTransaction(stamped);
     final index = _transactions.indexWhere((t) => t.id == tx.id);
     if (index != -1) {
+      final old = _transactions[index];
       _transactions[index] = stamped;
       _transactions.sort(_newestFirst);
+      // A photo or voice note that was replaced leaves its file (ATT-5).
+      await _attachments.deleteAll([
+        if (old.photoFile != stamped.photoFile) old.photoFile,
+        if (old.voiceFile != stamped.voiceFile) old.voiceFile,
+      ]);
       _changed();
     }
   }

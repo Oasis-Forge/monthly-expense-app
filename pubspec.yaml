@@ -55,6 +55,10 @@ dependencies:
   flutter_timezone: ^5.1.0
   pdf: ^3.13.0
   printing: ^5.15.0
+  image_picker: ^1.2.3
+  record: ^7.1.1
+  audioplayers: ^6.8.1
+  archive: ^4.0.9
 dev_dependencies:
   flutter_test:
     sdk: flutter
