@@ -718,6 +718,69 @@ class AppLocalizationsFr extends AppLocalizations {
   String get addFirstTransactionButton => 'Ajouter votre première transaction';
 
   @override
+  String get setupIntro =>
+      'Choisissez votre langue et votre devise. Vous pourrez les changer plus tard dans les réglages.';
+
+  @override
+  String get setupContinueButton => 'Continuer';
+
+  @override
+  String get setupRestoreTitle => 'Restaurer une sauvegarde';
+
+  @override
+  String get setupRestoreSubtitle =>
+      'Récupérez vos données et vos réglages depuis un fichier de sauvegarde';
+
+  @override
+  String get walkthroughEntryTitle => 'Ajoutez en quelques secondes';
+
+  @override
+  String get walkthroughEntryBody =>
+      'Un pavé numérique qui calcule, une photo du reçu et une note vocale quand taper est trop lent.';
+
+  @override
+  String get walkthroughPlanTitle => 'Planifiez le mois';
+
+  @override
+  String get walkthroughPlanBody =>
+      'Des budgets par catégorie, des factures qui se répètent seules et des notes qui vous rappellent.';
+
+  @override
+  String get walkthroughInsightsTitle => 'Voyez où va votre argent';
+
+  @override
+  String get walkthroughInsightsBody =>
+      'Des graphiques, un calendrier et un rapport PDF ou CSV pour n\'importe quelle période.';
+
+  @override
+  String get walkthroughPrivacyTitle => 'Rien qu\'à vous';
+
+  @override
+  String get walkthroughPrivacyBody =>
+      'Pas de compte, pas de publicité, pas de suivi. Vos données restent ici, sauvegardées et verrouillées quand vous le voulez.';
+
+  @override
+  String get walkthroughNextButton => 'Suivant';
+
+  @override
+  String get walkthroughStartButton => 'Commencer';
+
+  @override
+  String get walkthroughDoneButton => 'Terminé';
+
+  @override
+  String walkthroughProgress(int current, int total) {
+    return 'Page $current sur $total';
+  }
+
+  @override
+  String get walkthroughReplayTitle => 'Revoir la présentation';
+
+  @override
+  String get walkthroughReplaySubtitle =>
+      'Les quatre pages affichées au premier lancement';
+
+  @override
   String get exportCsvMenu => 'Exporter en CSV';
 
   @override

@@ -145,7 +145,8 @@ class _ImportScreenState extends State<ImportScreen> {
       );
       if (!mounted) return;
       _show(l10n.importDone(written));
-      navigator.pop();
+      // The count, so the setup page knows an import brought data in (RUN-3).
+      navigator.pop(written);
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);

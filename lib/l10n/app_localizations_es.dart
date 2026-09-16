@@ -719,6 +719,69 @@ class AppLocalizationsEs extends AppLocalizations {
   String get addFirstTransactionButton => 'Añade tu primera transacción';
 
   @override
+  String get setupIntro =>
+      'Elige tu idioma y tu moneda. Puedes cambiarlos más tarde en Ajustes.';
+
+  @override
+  String get setupContinueButton => 'Continuar';
+
+  @override
+  String get setupRestoreTitle => 'Restaurar una copia';
+
+  @override
+  String get setupRestoreSubtitle =>
+      'Recupera tus datos y ajustes desde un archivo de copia';
+
+  @override
+  String get walkthroughEntryTitle => 'Añade en segundos';
+
+  @override
+  String get walkthroughEntryBody =>
+      'Un teclado que suma, una foto del recibo y una nota de voz cuando escribir es lento.';
+
+  @override
+  String get walkthroughPlanTitle => 'Planifica el mes';
+
+  @override
+  String get walkthroughPlanBody =>
+      'Presupuestos por categoría, recibos que se repiten solos y notas que te avisan.';
+
+  @override
+  String get walkthroughInsightsTitle => 'Mira a dónde va';
+
+  @override
+  String get walkthroughInsightsBody =>
+      'Gráficos, un calendario y un informe en PDF o CSV de cualquier periodo.';
+
+  @override
+  String get walkthroughPrivacyTitle => 'Solo tuyo';
+
+  @override
+  String get walkthroughPrivacyBody =>
+      'Sin cuenta, sin anuncios, sin rastreo. Tus datos se quedan aquí; tú decides cuándo copiarlos y bloquearlos.';
+
+  @override
+  String get walkthroughNextButton => 'Siguiente';
+
+  @override
+  String get walkthroughStartButton => 'Empezar';
+
+  @override
+  String get walkthroughDoneButton => 'Listo';
+
+  @override
+  String walkthroughProgress(int current, int total) {
+    return 'Página $current de $total';
+  }
+
+  @override
+  String get walkthroughReplayTitle => 'Ver de nuevo la introducción';
+
+  @override
+  String get walkthroughReplaySubtitle =>
+      'Las cuatro páginas del primer inicio';
+
+  @override
   String get exportCsvMenu => 'Exportar CSV';
 
   @override

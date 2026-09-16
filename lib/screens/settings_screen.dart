@@ -14,6 +14,7 @@ import 'accounts_screen.dart';
 import 'backup_screen.dart';
 import 'categories_screen.dart';
 import 'trash_screen.dart';
+import 'walkthrough_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -46,7 +47,7 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l10n.settingsTitle)),
       body: ListView(
         children: [
-          _ChoiceTile<String?>(
+          ChoiceTile<String?>(
             icon: Icons.language,
             title: l10n.languageLabel,
             value: settings.languageCode,
@@ -61,10 +62,10 @@ class SettingsScreen extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.payments_outlined),
             title: Text(l10n.currencyLabel),
-            subtitle: Text(_currencyLabel(settings.currencyCode)),
+            subtitle: Text(currencyName(settings.currencyCode)),
             onTap: () => _pickCurrency(context),
           ),
-          _ChoiceTile<ThemeMode>(
+          ChoiceTile<ThemeMode>(
             icon: Icons.brightness_6_outlined,
             title: l10n.themeLabel,
             value: settings.themeMode,
@@ -75,7 +76,7 @@ class SettingsScreen extends StatelessWidget {
             ],
             onChanged: settings.setThemeMode,
           ),
-          _ChoiceTile<int>(
+          ChoiceTile<int>(
             icon: Icons.event_outlined,
             title: l10n.monthStartLabel,
             value: settings.startDay,
@@ -85,7 +86,7 @@ class SettingsScreen extends StatelessWidget {
             ],
             onChanged: (day) => _setStartDay(context, day),
           ),
-          _ChoiceTile<int?>(
+          ChoiceTile<int?>(
             icon: Icons.view_week_outlined,
             title: l10n.weekStartLabel,
             value: settings.weekStartDay,
@@ -144,16 +145,17 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _open(context, const TrashScreen()),
           ),
+          ListTile(
+            leading: const Icon(Icons.slideshow_outlined),
+            title: Text(l10n.walkthroughReplayTitle),
+            subtitle: Text(l10n.walkthroughReplaySubtitle),
+            trailing: const Icon(Icons.chevron_right),
+            // RUN-4: the same four pages, closing back to Settings.
+            onTap: () => _open(context, const WalkthroughScreen(replay: true)),
+          ),
         ],
       ),
     );
-  }
-
-  static String _currencyLabel(String code) {
-    for (final (currency, name) in currencies) {
-      if (currency == code) return '$code · $name';
-    }
-    return code;
   }
 
   /// Saves the start day and moves the home screen to the matching period.
@@ -197,10 +199,20 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+/// The currency's code and English name, as the currency rows show it
+/// (CUR-1). Shared with the setup page (RUN-3).
+String currencyName(String code) {
+  for (final (currency, name) in currencies) {
+    if (currency == code) return '$code · $name';
+  }
+  return code;
+}
+
 /// A setting that shows its current choice and opens the options in a
 /// dialog, so long names in any language never squeeze the row (LANG-6).
-class _ChoiceTile<T> extends StatelessWidget {
-  const _ChoiceTile({
+class ChoiceTile<T> extends StatelessWidget {
+  const ChoiceTile({
+    super.key,
     required this.icon,
     required this.title,
     required this.value,

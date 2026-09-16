@@ -425,6 +425,65 @@
   "firstRunTitle": "Welcome to Monthly Expenses",
   "firstRunMessage": "Track what you spend and earn. Your data stays on this device.",
   "addFirstTransactionButton": "Add your first transaction",
+  "setupIntro": "Choose your language and currency. You can change them later in Settings.",
+  "@setupIntro": {
+    "description": "Under the title on the first-launch setup page (RUN-3)."
+  },
+  "setupContinueButton": "Continue",
+  "@setupContinueButton": {
+    "description": "Finishes the setup page and opens the walkthrough (RUN-3)."
+  },
+  "setupRestoreTitle": "Restore a backup",
+  "@setupRestoreTitle": {
+    "description": "Secondary action on the setup page: restore a backup file (RUN-3, BAK-2)."
+  },
+  "setupRestoreSubtitle": "Bring your data and settings back from a backup file",
+  "walkthroughEntryTitle": "Add in seconds",
+  "@walkthroughEntryTitle": {
+    "description": "Walkthrough page 1 of 4: quick entry (RUN-4)."
+  },
+  "walkthroughEntryBody": "A keypad that adds up, a photo of the receipt, and a voice note when typing is slow.",
+  "walkthroughPlanTitle": "Plan the month",
+  "@walkthroughPlanTitle": {
+    "description": "Walkthrough page 2 of 4: budgets, recurring bills, notes (RUN-4)."
+  },
+  "walkthroughPlanBody": "Budgets by category, bills that repeat by themselves, and notes that remind you.",
+  "walkthroughInsightsTitle": "See where it goes",
+  "@walkthroughInsightsTitle": {
+    "description": "Walkthrough page 3 of 4: insights and reports (RUN-4)."
+  },
+  "walkthroughInsightsBody": "Charts, a calendar, and a PDF or CSV report for any period.",
+  "walkthroughPrivacyTitle": "Yours alone",
+  "@walkthroughPrivacyTitle": {
+    "description": "Walkthrough page 4 of 4: privacy, backups, app lock (RUN-4)."
+  },
+  "walkthroughPrivacyBody": "No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.",
+  "walkthroughNextButton": "Next",
+  "walkthroughStartButton": "Get started",
+  "@walkthroughStartButton": {
+    "description": "Last page of the walkthrough on a first launch: opens Home (RUN-4)."
+  },
+  "walkthroughDoneButton": "Done",
+  "@walkthroughDoneButton": {
+    "description": "Last page of the walkthrough when it is replayed from Settings (RUN-4)."
+  },
+  "walkthroughProgress": "Page {current} of {total}",
+  "@walkthroughProgress": {
+    "description": "Read out for the walkthrough page dots. {current} is the page on screen, {total} how many there are.",
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "walkthroughReplayTitle": "Replay the walkthrough",
+  "@walkthroughReplayTitle": {
+    "description": "Settings tile that shows the walkthrough again (RUN-4)."
+  },
+  "walkthroughReplaySubtitle": "The four pages shown when the app was new",
   "exportCsvMenu": "Export CSV",
   "exportCsvTooltip": "Export CSV",
   "csvExported": "CSV saved",
