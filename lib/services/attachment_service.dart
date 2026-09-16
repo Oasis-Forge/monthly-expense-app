@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -27,6 +28,14 @@ abstract class AttachmentFiles {
   /// Throws the recording away.
   Future<void> cancelRecording();
 
+  /// Plays the file at [path], or resumes it.
+  Future<void> play(String path);
+
+  Future<void> pausePlaying();
+
+  /// True while a voice note is playing.
+  Stream<bool> get playing;
+
   /// The folder attachments are kept in, created if it isn't there.
   Future<Directory> directory();
 }
@@ -34,8 +43,11 @@ abstract class AttachmentFiles {
 /// [AttachmentFiles] with the system photo picker, the device microphone, and
 /// a folder inside the app's own storage.
 class DeviceAttachmentFiles implements AttachmentFiles {
-  final _picker = ImagePicker();
-  final _recorder = AudioRecorder();
+  // Made on first use: building one touches a platform channel, and the
+  // provider holds a service even where nothing is ever attached.
+  late final _picker = ImagePicker();
+  late final _recorder = AudioRecorder();
+  late final _player = AudioPlayer();
 
   @override
   Future<String?> pickPhoto(PhotoSource source) async {
@@ -69,6 +81,16 @@ class DeviceAttachmentFiles implements AttachmentFiles {
 
   @override
   Future<void> cancelRecording() => _recorder.cancel();
+
+  @override
+  Future<void> play(String path) => _player.play(DeviceFileSource(path));
+
+  @override
+  Future<void> pausePlaying() => _player.pause();
+
+  @override
+  Stream<bool> get playing =>
+      _player.onPlayerStateChanged.map((state) => state == PlayerState.playing);
 
   @override
   Future<Directory> directory() async {
@@ -135,6 +157,14 @@ class AttachmentService {
     await delete(_recording);
     _recording = null;
   }
+
+  /// Plays the voice note [name], or resumes it.
+  Future<void> play(String name) async => _files.play(await path(name));
+
+  Future<void> pausePlaying() => _files.pausePlaying();
+
+  /// True while a voice note is playing.
+  Stream<bool> get playing => _files.playing;
 
   /// The full path of [name] in the attachments folder.
   Future<String> path(String name) async =>

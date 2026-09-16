@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -620,6 +621,7 @@ Widget testApp(
   BackupService? backup,
   Authenticator? authenticator,
   ReminderService? reminders,
+  AttachmentService? attachments,
 }) {
   return MultiProvider(
     providers: [
@@ -633,6 +635,11 @@ Widget testApp(
       ),
       Provider<ReminderService>.value(
         value: reminders ?? FakeReminderService(),
+      ),
+      Provider<AttachmentService>.value(
+        value:
+            attachments ??
+            testAttachments(Directory('/attachment_tests')).service,
       ),
     ],
     // Like the app, the language follows the settings (LANG-1).
@@ -703,6 +710,23 @@ class FakeAttachmentFiles implements AttachmentFiles {
 
   @override
   Future<String?> stopRecording() async => recordingTo;
+
+  @override
+  Future<void> play(String path) async {
+    played.add(path);
+    playingNow.add(true);
+  }
+
+  @override
+  Future<void> pausePlaying() async => playingNow.add(false);
+
+  @override
+  Stream<bool> get playing => playingNow.stream;
+
+  /// Paths played, in order.
+  final List<String> played = [];
+
+  final playingNow = StreamController<bool>.broadcast();
 
   @override
   Future<void> cancelRecording() async {

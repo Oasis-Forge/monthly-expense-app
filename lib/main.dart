@@ -17,6 +17,7 @@ import 'screens/app_lock.dart';
 import 'screens/home_screen.dart';
 import 'screens/note_form_screen.dart';
 import 'screens/notes_screen.dart';
+import 'services/attachment_service.dart';
 import 'services/authenticator.dart';
 import 'services/backup_service.dart';
 import 'services/home_widget_service.dart';
@@ -64,6 +65,7 @@ class MonthlyExpenseApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reminderService = reminders ?? DeviceReminderService();
+    final attachmentService = AttachmentService();
     return MultiProvider(
       providers: [
         ChangeNotifierProvider.value(value: settings),
@@ -72,6 +74,7 @@ class MonthlyExpenseApp extends StatelessWidget {
               TransactionProvider(
                 startDay: settings.startDay,
                 reminders: reminderService,
+                attachments: attachmentService,
               )..load(
                 appLockOn: settings.appLock,
                 locale: effectiveAppLocale(settings.locale),
@@ -82,6 +85,7 @@ class MonthlyExpenseApp extends StatelessWidget {
           create: (_) => authenticator ?? DeviceAuthenticator(),
         ),
         Provider<ReminderService>(create: (_) => reminderService),
+        Provider<AttachmentService>.value(value: attachmentService),
       ],
       child: _HomeWidgetSync(
         service: homeWidget,

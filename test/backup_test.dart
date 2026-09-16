@@ -289,7 +289,12 @@ void main() {
     final migrated = await service.read(
       encode(
         at(6, {
-          'transactions': [tx('lunch').toMap()],
+          // A version 6 backup has no attachment columns (ATT-1).
+          'transactions': [
+            tx('lunch').toMap()
+              ..remove('photo_file')
+              ..remove('voice_file'),
+          ],
           'budgets': [foodBudget().toMap()],
         }),
       ),

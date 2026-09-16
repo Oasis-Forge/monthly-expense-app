@@ -2283,6 +2283,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t import that file. Nothing was added.'**
   String get importFailed;
+
+  /// Section header on the transaction form for the photo and voice note (ATT-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Attachments'**
+  String get attachmentsLabel;
+
+  /// No description provided for @photoLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get photoLabel;
+
+  /// No description provided for @photoAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a photo'**
+  String get photoAdd;
+
+  /// No description provided for @photoTake.
+  ///
+  /// In en, this message translates to:
+  /// **'Take a photo'**
+  String get photoTake;
+
+  /// No description provided for @photoChoose.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a photo'**
+  String get photoChoose;
+
+  /// No description provided for @photoRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get photoRemove;
+
+  /// Shown in place of a photo whose file is gone after a restore (ATT-7).
+  ///
+  /// In en, this message translates to:
+  /// **'This photo is missing.'**
+  String get photoMissing;
+
+  /// No description provided for @voiceNoteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Voice note'**
+  String get voiceNoteLabel;
+
+  /// No description provided for @voiceRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a voice note'**
+  String get voiceRecord;
+
+  /// Countdown while recording; a voice note stops at 60 seconds (ATT-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Recording, {seconds}s left'**
+  String voiceRecording(int seconds);
+
+  /// No description provided for @voiceStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Stop'**
+  String get voiceStop;
+
+  /// No description provided for @voicePlay.
+  ///
+  /// In en, this message translates to:
+  /// **'Play'**
+  String get voicePlay;
+
+  /// No description provided for @voicePause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get voicePause;
+
+  /// No description provided for @voiceRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove voice note'**
+  String get voiceRemove;
+
+  /// Shown in place of a voice note whose file is gone (ATT-7).
+  ///
+  /// In en, this message translates to:
+  /// **'This voice note is missing.'**
+  String get voiceMissing;
+
+  /// Shown when recording is refused because the microphone permission is off (ATT-2).
+  ///
+  /// In en, this message translates to:
+  /// **'The microphone is off for this app.'**
+  String get microphoneRefused;
 }
 
 class _AppLocalizationsDelegate

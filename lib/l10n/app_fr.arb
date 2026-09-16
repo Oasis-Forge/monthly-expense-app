@@ -362,5 +362,21 @@
   "importMoreRows": "{count, plural, =1{et 1 autre} other{et {count} autres}}",
   "importButton": "{count, plural, =0{Rien à importer} =1{Importer 1 ligne} other{Importer {count} lignes}}",
   "importDone": "{count, plural, =1{1 enregistrement importé} other{{count} enregistrements importés}}",
-  "importFailed": "Impossible d'importer ce fichier. Rien n'a été ajouté."
+  "importFailed": "Impossible d'importer ce fichier. Rien n'a été ajouté.",
+  "attachmentsLabel": "Pièces jointes",
+  "photoLabel": "Photo",
+  "photoAdd": "Ajouter une photo",
+  "photoTake": "Prendre une photo",
+  "photoChoose": "Choisir une photo",
+  "photoRemove": "Supprimer la photo",
+  "photoMissing": "Cette photo est introuvable.",
+  "voiceNoteLabel": "Note vocale",
+  "voiceRecord": "Enregistrer une note vocale",
+  "voiceRecording": "Enregistrement, {seconds} s restantes",
+  "voiceStop": "Arrêter",
+  "voicePlay": "Lire",
+  "voicePause": "Pause",
+  "voiceRemove": "Supprimer la note vocale",
+  "voiceMissing": "Cette note vocale est introuvable.",
+  "microphoneRefused": "Le microphone est désactivé pour cette application."
 }
