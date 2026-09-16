@@ -589,11 +589,13 @@ BackupService testBackupService(
   DBHelper db, {
   BackupFiles? files,
   DateTime Function()? clock,
+  AttachmentService? attachments,
 }) {
   return BackupService(
     db: db,
     files: files ?? FakeBackupFiles(),
     clock: clock,
+    attachments: attachments ?? FakeAttachments(),
     appVersion: () async => '1.0.0+1',
   );
 }

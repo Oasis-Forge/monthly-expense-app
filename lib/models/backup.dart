@@ -52,6 +52,7 @@ class BackupData {
     required this.tables,
     this.appVersion,
     this.settings = const {},
+    this.files = const {},
   });
 
   /// Identifies the file type, so other JSON files are refused.
@@ -63,10 +64,21 @@ class BackupData {
   final Map<String, Object?> settings;
   final BackupTables tables;
 
+  /// Attachment files by name, carried by a zip backup (ATT-6). They are not
+  /// part of the JSON.
+  final Map<String, List<int>> files;
+
   /// Transactions in the backup that aren't deleted.
   int get transactionCount => (tables['transactions'] ?? const [])
       .where((row) => row['deleted_at'] == null)
       .length;
+
+  /// The photo and voice files this backup's transactions point at (ATT-6).
+  Set<String> get attachmentNames => {
+    for (final row in tables['transactions'] ?? const [])
+      for (final column in ['photo_file', 'voice_file'])
+        if (row[column] != null) row[column]! as String,
+  };
 
   BackupData withTables(BackupTables tables, {required int schemaVersion}) {
     return BackupData(
@@ -75,8 +87,18 @@ class BackupData {
       tables: tables,
       appVersion: appVersion,
       settings: settings,
+      files: files,
     );
   }
+
+  BackupData withFiles(Map<String, List<int>> files) => BackupData(
+    schemaVersion: schemaVersion,
+    createdAt: createdAt,
+    tables: tables,
+    appVersion: appVersion,
+    settings: settings,
+    files: files,
+  );
 
   String toJson() => jsonEncode({
     'format': format,

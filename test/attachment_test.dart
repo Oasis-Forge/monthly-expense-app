@@ -2,9 +2,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/backup.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/services/attachment_service.dart';
+import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
 
@@ -164,6 +166,71 @@ void main() {
       await provider.updateTransaction(tx.copyWith(title: 'Lunch'));
 
       expect(await attachments.exists('file1.jpg'), isTrue);
+    });
+  });
+
+  group('backups carry the files (ATT-6)', () {
+    late FakeBackupFiles saved;
+
+    BackupService serviceFor(FakeDB db) {
+      saved = FakeBackupFiles();
+      return testBackupService(db, files: saved, attachments: attachments);
+    }
+
+    ExpenseTransaction withPhoto(String? name) =>
+        testTx('a', expense, 10, now).copyWith(photoFile: name);
+
+    test('a backup with an attachment is a zip that carries it', () async {
+      await attachments.write('file1.jpg', const [7, 7, 7]);
+      final service = serviceFor(
+        FakeDB(transactions: [withPhoto('file1.jpg')]),
+      );
+
+      expect(await service.saveBackup(await testSettings()), isTrue);
+
+      expect(saved.saved.keys.single, endsWith('.zip'));
+      final read = await service.read(saved.saved.values.single);
+      expect(read.files, {
+        'file1.jpg': [7, 7, 7],
+      });
+      expect(read.transactionCount, 1);
+    });
+
+    test('a backup without attachments stays a JSON file', () async {
+      final service = serviceFor(FakeDB(transactions: [withPhoto(null)]));
+
+      await service.saveBackup(await testSettings());
+
+      expect(saved.saved.keys.single, endsWith('.json'));
+      final read = await service.read(saved.saved.values.single);
+      expect(read.files, isEmpty);
+    });
+
+    test('a file that has gone is left out, not refused (ATT-7)', () async {
+      final service = serviceFor(FakeDB(transactions: [withPhoto('gone.jpg')]));
+
+      await service.saveBackup(await testSettings());
+
+      final read = await service.read(saved.saved.values.single);
+      expect(read.files, isEmpty);
+      expect(read.transactionCount, 1);
+    });
+
+    test('restoring a zip writes its files back', () async {
+      await attachments.write('file1.jpg', const [7, 7, 7]);
+      final service = serviceFor(
+        FakeDB(transactions: [withPhoto('file1.jpg')]),
+      );
+      await service.saveBackup(await testSettings());
+      await attachments.delete('file1.jpg');
+
+      await service.restore(
+        await service.read(saved.saved.values.single),
+        RestoreMode.replace,
+        await testSettings(),
+      );
+
+      expect(await attachments.read('file1.jpg'), [7, 7, 7]);
     });
   });
 }
