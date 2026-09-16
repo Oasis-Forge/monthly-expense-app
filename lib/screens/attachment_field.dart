@@ -195,15 +195,19 @@ class _AttachmentFieldState extends State<AttachmentField> {
           children: [
             InkWell(
               onTap: () => _openPhoto(path),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  File(path),
-                  width: 72,
-                  height: 72,
-                  fit: BoxFit.cover,
-                  // The file can be gone after a restore (ATT-7).
-                  errorBuilder: (context, _, _) => Text(l10n.photoMissing),
+              child: Semantics(
+                label: l10n.photoLabel,
+                image: true,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(path),
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
+                    // The file can be gone after a restore (ATT-7).
+                    errorBuilder: (context, _, _) => Text(l10n.photoMissing),
+                  ),
                 ),
               ),
             ),
