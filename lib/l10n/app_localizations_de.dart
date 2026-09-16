@@ -1421,4 +1421,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get microphoneRefused => 'Das Mikrofon ist für diese App deaktiviert.';
+
+  @override
+  String backupIncludesAttachments(String size) {
+    return 'Enthält Anhänge, $size MB';
+  }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -8,6 +9,7 @@ import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/services/attachment_service.dart';
 
 import 'helpers.dart';
@@ -263,6 +265,104 @@ void main() {
       await revealInForm(tester, find.text('This voice note is missing.'));
       expect(find.text('This voice note is missing.'), findsOneWidget);
       expect(find.byTooltip('Play'), findsNothing);
+    });
+  });
+
+  group('the backup screen (ATT-6)', () {
+    Future<void> openBackup(WidgetTester tester) async {
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          const BackupScreen(),
+          backup: testBackupService(fake, attachments: attachments),
+          attachments: attachments,
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('says what the attachments add to a backup', (tester) async {
+      attachments.stored['file1.jpg'] = List.filled(2 * 1024 * 1024, 0);
+
+      await openBackup(tester);
+
+      expect(find.text('Includes attachments, 2.0 MB'), findsOneWidget);
+    });
+
+    testWidgets('says nothing when there are none', (tester) async {
+      await openBackup(tester);
+
+      expect(find.textContaining('Includes attachments'), findsNothing);
+    });
+  });
+
+  group('the rest of the field', () {
+    testWidgets('the camera option takes a photo with it (ATT-2)', (
+      tester,
+    ) async {
+      await open(tester);
+
+      await tapInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Add a photo'),
+      );
+      await tester.tap(find.text('Take a photo'));
+      await tester.pumpAndSettle();
+
+      expect(attachments.picked, [PhotoSource.camera]);
+    });
+
+    testWidgets('away from a phone the picker opens straight away', (
+      tester,
+    ) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      await open(tester);
+
+      await tapInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Add a photo'),
+      );
+
+      expect(find.text('Take a photo'), findsNothing);
+      expect(attachments.picked, [PhotoSource.gallery]);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    testWidgets('the photo opens full screen when tapped', (tester) async {
+      await open(tester);
+      await addPhoto(tester);
+
+      await tapInForm(tester, find.byType(Image));
+
+      expect(find.byType(Dialog), findsOneWidget);
+      expect(find.byType(InteractiveViewer), findsOneWidget);
+    });
+
+    testWidgets('a voice note can be taken off again (ATT-5)', (tester) async {
+      await open(tester);
+      await record(tester);
+      await stopRecording(tester);
+
+      await tapInForm(tester, find.byTooltip('Remove voice note'));
+
+      expect(attachments.stored, isEmpty);
+      expect(
+        find.widgetWithText(OutlinedButton, 'Record a voice note'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a playing note pauses again', (tester) async {
+      await open(tester);
+      await record(tester);
+      await stopRecording(tester);
+      await tapInForm(tester, find.byTooltip('Play'));
+
+      await tapInForm(tester, find.byTooltip('Pause'));
+
+      expect(find.byTooltip('Play'), findsOneWidget);
     });
   });
 }

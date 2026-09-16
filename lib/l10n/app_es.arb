@@ -378,5 +378,6 @@
   "voicePause": "Pausa",
   "voiceRemove": "Quitar la nota de voz",
   "voiceMissing": "Esta nota de voz no se encuentra.",
-  "microphoneRefused": "El micrófono está desactivado para esta aplicación."
+  "microphoneRefused": "El micrófono está desactivado para esta aplicación.",
+  "backupIncludesAttachments": "Incluye los adjuntos, {size} MB"
 }

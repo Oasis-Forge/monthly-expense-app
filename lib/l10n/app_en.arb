@@ -786,5 +786,14 @@
   "microphoneRefused": "The microphone is off for this app.",
   "@microphoneRefused": {
     "description": "Shown when recording is refused because the microphone permission is off (ATT-2)."
+  },
+  "backupIncludesAttachments": "Includes attachments, {size} MB",
+  "@backupIncludesAttachments": {
+    "description": "Under \"Back up now\": how much the photos and voice notes add to the file (ATT-6). {size} is a formatted number of megabytes.",
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   }
 }

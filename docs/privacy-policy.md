@@ -36,6 +36,7 @@ None. The app has no accounts, analytics, advertising, tracking, or crash report
 - These files are not encrypted, so keep them somewhere you trust. Once a file leaves the app, the place you save or send it to is responsible for it.
 - To restore, the app reads only the file you pick.
 - Importing a CSV also reads only the file you pick. It is read on your device, shown to you before anything is added, and never sent anywhere.
+- A photo or voice note you attach to a transaction is copied into the app's own storage on your device, is never uploaded, read by any service, or added to your photo gallery, and leaves the device only inside a backup file you choose to save.
 - The app can remind you to back up. The reminder appears only on your device, and you can turn it off.
 
 ## Home-screen widget

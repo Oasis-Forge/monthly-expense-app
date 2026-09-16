@@ -1399,4 +1399,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get microphoneRefused => 'Mikrofon bu uygulama için kapalı.';
+
+  @override
+  String backupIncludesAttachments(String size) {
+    return 'Ekleri içerir, $size MB';
+  }
 }

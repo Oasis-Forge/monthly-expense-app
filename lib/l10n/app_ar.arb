@@ -378,5 +378,6 @@
   "voicePause": "إيقاف مؤقت",
   "voiceRemove": "إزالة الملاحظة الصوتية",
   "voiceMissing": "هذه الملاحظة الصوتية غير موجودة.",
-  "microphoneRefused": "الميكروفون معطّل لهذا التطبيق."
+  "microphoneRefused": "الميكروفون معطّل لهذا التطبيق.",
+  "backupIncludesAttachments": "يشمل المرفقات، {size} ميجابايت"
 }

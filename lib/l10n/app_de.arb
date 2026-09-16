@@ -378,5 +378,6 @@
   "voicePause": "Pause",
   "voiceRemove": "Sprachnotiz entfernen",
   "voiceMissing": "Diese Sprachnotiz fehlt.",
-  "microphoneRefused": "Das Mikrofon ist für diese App deaktiviert."
+  "microphoneRefused": "Das Mikrofon ist für diese App deaktiviert.",
+  "backupIncludesAttachments": "Enthält Anhänge, {size} MB"
 }

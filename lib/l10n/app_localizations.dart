@@ -2379,6 +2379,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The microphone is off for this app.'**
   String get microphoneRefused;
+
+  /// Under "Back up now": how much the photos and voice notes add to the file (ATT-6). {size} is a formatted number of megabytes.
+  ///
+  /// In en, this message translates to:
+  /// **'Includes attachments, {size} MB'**
+  String backupIncludesAttachments(String size);
 }
 
 class _AppLocalizationsDelegate

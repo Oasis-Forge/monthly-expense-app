@@ -233,4 +233,18 @@ void main() {
       expect(await attachments.read('file1.jpg'), [7, 7, 7]);
     });
   });
+
+  group('playback goes through to the player (ATT-4)', () {
+    test('play, then pause, and the stream says which', () async {
+      final heard = <bool>[];
+      attachments.playing.listen(heard.add);
+
+      await attachments.play('note.m4a');
+      await attachments.pausePlaying();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(files.played, [await attachments.path('note.m4a')]);
+      expect(heard, [true, false]);
+    });
+  });
 }

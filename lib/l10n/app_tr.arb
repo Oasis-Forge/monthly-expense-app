@@ -378,5 +378,6 @@
   "voicePause": "Duraklat",
   "voiceRemove": "Sesli notu kaldır",
   "voiceMissing": "Bu sesli not bulunamıyor.",
-  "microphoneRefused": "Mikrofon bu uygulama için kapalı."
+  "microphoneRefused": "Mikrofon bu uygulama için kapalı.",
+  "backupIncludesAttachments": "Ekleri içerir, {size} MB"
 }
