@@ -12,7 +12,7 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 |---|---|---|---|
 | Account / sign-in | None needed | None needed | Keep it that way |
 | Ads & tracking | Banner ad on most screens from first launch; AppLovin ad network; advertising ID and ad attribution; device IDs shared for ads/analytics | None | Two banner slots (Home, Insights), none before the walkthrough is done, and nothing about the user's money given to the network (section 22, decided 17 September 2026) |
-| Price | Free with ads; ad removal ≈ TRY 8/mo, 80/yr or 250 lifetime, or watch a video for 7 ad-free days | Free | Free with two banners; nothing sold to remove them in v1 (ADS-8) |
+| Price | Free with ads; ad removal ≈ TRY 8/mo, 80/yr or 250 lifetime, or watch a video for 7 ad-free days | Free | Free with two banners; one payment removes them for good (PAY-1), and a dearer Plus adds the bank connection when it exists (PAY-2). No subscription, no rewarded video |
 | Adding a transaction | Calculator keypad, recent categories, payment method, notes autocomplete, receipt photo, line items; form resets after Save for fast repeat entry; duplicate | Title, amount, category dropdown, date, note | Keypad, recent categories, "Save & add another", duplicate |
 | Date entry | Day arrows only moved forward (bug); calendar dialog works | Date picker | Arrows both ways + picker |
 | Categories | ~61 expense + 7 income with icons, custom categories, optional subcategories | 10 expense + 6 income, fixed | ~15 curated defaults + custom |
@@ -30,6 +30,7 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 | Personalization | Dark mode toggle, first day of week/month/year, carry-forward balance, dashboard widgets toggles | Follows system theme | Theme toggle, first day of month/week, carry-forward balance |
 | Languages | 20 besides English in its own strings, Portuguese only partly (its picker showed 16) | 6: English, Turkish, Arabic, French, Spanish, German | Match their set: 21 with English (LANG-1) |
 | Getting around | Bottom tabs (Home, Calendar, NoteBook), a drawer, and an overflow menu | A three-dot menu holding everything but Home | A grouped navigation drawer (NAV-1–NAV-5) |
+| Reading the bank | Nothing: every entry is typed | Nothing | Plus reads bank notifications on Android and proposes entries to confirm, all on the device (section 25); iOS has no such API |
 
 ## What they do well (worth matching)
 - **Fast repeat entry:** the form stays open after saving, keeps the last category, and opens a calculator keypad on the amount.

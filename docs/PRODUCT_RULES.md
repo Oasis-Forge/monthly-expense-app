@@ -280,7 +280,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ADS-5** Where the law asks for it (the EEA, the UK, and Switzerland), the ad network's consent form appears before the first request, and Settings keeps a "Privacy options" row to change the answer later. Refusing means non-personalised ads, never a nag screen or a feature withheld.
 - **ADS-6** What the ad SDK collects — the advertising ID, coarse device and app data, and the ad requests themselves — is declared in the Play data-safety form, the App Store privacy labels, and `docs/privacy-policy.md`, in the same plain words as the rest of the policy.
 - **ADS-7** The ad SDK is handed nothing from the app: no amounts, titles, notes, categories, accounts, attachments, or search terms, and no keywords derived from them. The user's records still leave the device only through an export or a backup they asked for (BAK-6).
-- **ADS-8** One switch hides every slot, so a build without ads, or a purchase that removes them later, needs no change to any screen. Nothing is sold in v1: there is no ad-removal purchase, and no feature sits behind one.
+- **ADS-8** One switch hides every slot, and "Remove ads" (PAY-1) is what flips it, so an ad-free build and a paid ad-free app are the same code path. No feature is ever withheld from someone who keeps the ads (PAY-4).
 - **ADS-9** No ad loads while the app is locked (LOCK-2), and none appears in a store screenshot.
 
 ## 23. Getting around
@@ -294,6 +294,37 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **NAV-3** The drawer opens from the leading edge: the left in left-to-right languages, the right in Arabic and Urdu (LANG-5). Choosing a destination closes it, and Back closes it before it leaves the screen.
 - **NAV-4** Home keeps its own quick paths — the period selector (INS-4), Search and Insights in the toolbar, and the add button — so the everyday round never goes through the drawer.
 - **NAV-5** The drawer is for going somewhere and nothing else: no settings toggles, no account area, no ads (ADS-1).
+
+## 24. Paying
+
+**They do:** ads are removed by subscription — about TRY 8 a month, 80 a year — or a lifetime purchase around 250, and a rewarded video buys seven ad-free days.
+
+**Learn:** a subscription to *not* see something is resented, and a rewarded video turns the app into a slot machine. One honest price, paid once, is easier to trust and easier to build. What is sold must already work.
+
+- **PAY-1** "Remove ads" is a one-time purchase. It hides every ad slot (ADS-8) and changes nothing else. It follows the store account, so a new phone or a reinstall restores it.
+- **PAY-2** Plus is a second, dearer one-time purchase. It includes everything "Remove ads" does and unlocks the bank connection (section 25). Where the stores support an upgrade, someone who already bought "Remove ads" pays the difference; where they don't, the app says so before the purchase rather than quietly charging twice.
+- **PAY-3** Until the bank connection actually works, Plus is shown as "coming soon", with no price and no way to buy it. Nothing is sold before it exists.
+- **PAY-4** Nothing that works today ever moves behind a payment. Every feature in v1 — entry, budgets, recurring, notes, insights, reports, backup, import, attachments, the widget, app lock — stays free for everyone, with or without ads. Paying removes ads and adds what is new.
+- **PAY-5** There is no account and no server of ours. The stores' own receipts on the device decide what is owned, "Restore purchases" sits beside the prices, and the app asks the store what the user owns at each launch, so a refund or a family-shared purchase takes effect without a reinstall.
+- **PAY-6** Prices come from the store, in the buyer's own currency. They are never hard-coded, and they have nothing to do with the app's currency setting (CUR-1).
+- **PAY-7** Selling is quiet: one row in Settings, and one small tap target on the ad slot itself. No interstitial upsell, no countdown, no trial that lapses into a charge, no repeated asking.
+- **PAY-8** A purchase that fails or is left pending never charges twice and never leaves the app half-paid: the slots stay as they were until the store confirms.
+
+## 25. The bank connection (Plus)
+
+**They do:** nothing of the sort. Their app is typed in by hand.
+
+**Learn:** most entries people forget are the ones their bank already told them about. A phone that shows a bank's notification has the amount on screen; reading it on the device turns the slowest part of the app into a confirmation. The danger is a wrong number entered silently, so nothing may reach the ledger unread.
+
+- **BANK-1** With Plus, and on Android only, the app reads notifications from apps the user picks — their banks — and proposes transactions from them. iOS has no way for one app to read another's notifications, so nothing on iOS changes until an open-banking route exists; Plus says so plainly there before anyone buys it.
+- **BANK-2** Turning it on goes through Android's own notification-access screen, and the app names exactly which apps it will read. One tap turns it off. Notifications from every other app are ignored and never stored.
+- **BANK-3** Everything is parsed on the device: no notification text, bank name, amount, or merchant leaves the phone, and no ad network or other service is told any of it (ADS-7, BAK-6).
+- **BANK-4** A read notification becomes a proposal, not a transaction. It waits in a review list with its amount, merchant, account, and time, and the user confirms, edits, or discards it. Nothing is written to the ledger unread (as with IMP-5 and RCR-2).
+- **BANK-5** A notification the app cannot read confidently is kept as its own text for the user to complete or throw away. The app never guesses an amount, a category, or an account.
+- **BANK-6** A proposal that matches something already recorded by amount, day, and account is marked as a possible duplicate rather than added beside it (IMP-8).
+- **BANK-7** Each bank's wording is a pattern. The app ships the ones it knows, and a correction teaches it the shape for that app on that phone; nothing about it is uploaded or shared between users.
+- **BANK-8** Turning the connection off, or losing the purchase, stops the reading at once. Everything already recorded stays, because it is the user's data (DEL-1).
+- **BANK-9** The Play listing declares notification access and what it is for, and `docs/privacy-policy.md` says in plain words what is read, what is kept, and that it stays on the phone.
 
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
@@ -322,6 +353,9 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 15. The app matches the competitor's languages: 21 in all, adding Bengali, Chinese (Simplified), Dutch, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Thai, Urdu, and Vietnamese to the six it has (LANG-1). Urdu makes right to left a two-language case (LANG-5), and the PDF report needs fonts covering the new scripts (PDF-5).
 16. The three-dot menu becomes a navigation drawer (section 23), because nothing in it was being found.
 17. Tapping the period label on Home opens the calendar for that period (INS-4).
+18. Ads can be bought away: "Remove ads" is a one-time purchase, not a subscription and not a rewarded video (PAY-1). Every feature stays free with or without it (PAY-4).
+19. Plus is a second one-time purchase that includes ad removal and, when it exists, the bank connection (PAY-2). Until then it is shown as "coming soon" with no price (PAY-3).
+20. The bank connection reads bank notifications on Android and parses them on the device, and what it reads becomes a proposal the user confirms (section 25). iOS cannot do this at all, so it waits for an open-banking route, which would need a server and a provider and is not in v1.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
