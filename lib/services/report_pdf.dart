@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../l10n/app_localizations.dart';
+import '../l10n/languages.dart';
 import '../models/money.dart';
 import '../models/report.dart';
 import '../models/transaction.dart';
@@ -74,7 +75,7 @@ Future<Uint8List> buildReportPdf({
   // (LANG-3).
   await initializeDateFormatting(labels.localeName);
 
-  final rtl = labels.locale.languageCode == 'ar';
+  final rtl = rightToLeftLanguages.contains(labels.locale.languageCode);
   final l10n = labels.l10n;
 
   var done = 0;

@@ -768,6 +768,14 @@
   "reportEmpty": "Nothing to report for these dates.",
   "exportPdfMenu": "Export PDF",
   "reportTitle": "Export PDF",
+  "reportNoFontTitle": "Not yet in this language",
+  "@reportNoFontTitle": {
+    "description": "Shown instead of the report form in a language whose script has no embedded font (PDF-7)."
+  },
+  "reportNoFontBody": "A report needs a font for its script, and the Chinese, Japanese and Korean faces are too large to carry in the app. A later version will offer to download one.",
+  "@reportNoFontBody": {
+    "description": "Why the report is unavailable in Chinese, Japanese and Korean (PDF-7)."
+  },
   "reportPreviewTitle": "Report",
   "reportCoversHeader": "What it covers",
   "reportRangePeriod": "This period",

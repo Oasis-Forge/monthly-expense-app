@@ -4,6 +4,17 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.11.0] - 2026-09-17
+
+### Added
+- Fifteen more languages: Bengali, Chinese (Simplified), Dutch, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Thai, Urdu and Vietnamese. With the six it already had, the app now speaks 21, and picks yours from the phone's own settings unless you choose one.
+- Urdu, like Arabic, reads right to left throughout — the drawer, lists, charts and the date arrows — while amounts and the keypad stay left to right.
+- Importing a CSV recognises column names, and the words for income, expense and transfer, in all 21 languages.
+
+### Changed
+- The PDF report carries fonts for Hindi, Bengali and Thai as well, and leads with the one your language needs, so a Latin account name in a Hindi report still prints.
+- In Chinese, Japanese and Korean the report isn't offered yet, and says why: the font for those scripts is 10 to 18 MB, which would more than double the app's download. A later version will offer it as a one-time download instead.
+
 ## [1.10.0] - 2026-09-17
 
 ### Added

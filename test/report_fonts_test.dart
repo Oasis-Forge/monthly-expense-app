@@ -9,36 +9,71 @@ import 'package:monthly_expense_app/services/report_fonts.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('report fonts (PDF-4, PDF-5)', () {
-    test('every app language loads a face that covers its script', () async {
-      for (final code in appLanguages.keys) {
+  /// The languages a report can be made in: all but Chinese, Japanese and
+  /// Korean, whose faces the app doesn't carry (PDF-7).
+  final supported = appLanguages.keys.where(
+    (code) => !ReportFonts.unsupportedLanguages.contains(code),
+  );
+
+  group('report fonts (PDF-4, PDF-5, PDF-7)', () {
+    test(
+      'every language with a face loads one, and the rest behind it',
+      () async {
+        for (final code in supported) {
+          final fonts = await ReportFonts.forLocale(Locale(code));
+          expect(fonts.base, isNotNull, reason: code);
+          expect(fonts.bold, isNotNull, reason: code);
+          // The four faces this one doesn't lead with, regular and bold.
+          expect(fonts.fallback, hasLength(8), reason: code);
+        }
+      },
+    );
+
+    test('each script leads with its own face', () async {
+      const leads = {
+        'ar': 'NotoSansArabic',
+        'ur': 'NotoSansArabic',
+        'hi': 'NotoSansDevanagari',
+        'bn': 'NotoSansBengali',
+        'th': 'NotoSansThai',
+      };
+
+      for (final code in supported) {
         final fonts = await ReportFonts.forLocale(Locale(code));
-        expect(fonts.base, isNotNull, reason: code);
-        expect(fonts.bold, isNotNull, reason: code);
-        expect(fonts.fallback, hasLength(2), reason: code);
+        expect(
+          fonts.base.fontName,
+          contains(leads[code] ?? 'Roboto'),
+          reason: code,
+        );
       }
     });
 
-    test('Arabic leads with Noto Sans Arabic, the rest with Roboto', () async {
-      final arabic = await ReportFonts.forLocale(const Locale('ar'));
-      expect(arabic.base.fontName, contains('NotoSansArabic'));
-
-      for (final code in appLanguages.keys.where((c) => c != 'ar')) {
-        final fonts = await ReportFonts.forLocale(Locale(code));
-        expect(fonts.base.fontName, contains('Roboto'), reason: code);
+    test('Chinese, Japanese and Korean are refused rather than printed '
+        'as boxes (PDF-7)', () {
+      for (final code in ['zh', 'ja', 'ko']) {
+        expect(ReportFonts.supports(Locale(code)), isFalse, reason: code);
+      }
+      for (final code in supported) {
+        expect(ReportFonts.supports(Locale(code)), isTrue, reason: code);
       }
     });
 
-    test('a page of each language builds a PDF with the text in it', () async {
-      // One line per language, each with a character the others' face lacks,
-      // so a missing glyph or a failed fallback would throw here (PDF-5).
+    test('a page of each script builds a PDF with the text in it', () async {
+      // One line per script, each with characters the other faces lack, so a
+      // missing glyph or a failed fallback would throw here (PDF-5).
       const samples = {
         'en': 'Groceries',
         'tr': 'Alışveriş fişi',
-        'ar': 'مصروفات الشهر',
-        'fr': 'Dépenses du mois',
-        'es': 'Gastos del mes',
         'de': 'Ausgaben für Straße',
+        'vi': 'Chi tiêu tháng này',
+        'pl': 'Wydatki miesiąca',
+        'el': 'Έξοδα του μήνα',
+        'ru': 'Расходы за месяц',
+        'ar': 'مصروفات الشهر',
+        'ur': 'ماہانہ اخراجات',
+        'hi': 'महीने का खर्च',
+        'bn': 'মাসের খরচ',
+        'th': 'ค่าใช้จ่ายรายเดือน',
       };
 
       for (final MapEntry(key: code, value: text) in samples.entries) {
@@ -47,7 +82,7 @@ void main() {
         document.addPage(
           pw.Page(
             pageFormat: PdfPageFormat.a4,
-            textDirection: code == 'ar'
+            textDirection: rightToLeftLanguages.contains(code)
                 ? pw.TextDirection.rtl
                 : pw.TextDirection.ltr,
             build: (context) => pw.Column(
@@ -57,6 +92,9 @@ void main() {
                   text,
                   style: const pw.TextStyle(fontWeight: pw.FontWeight.bold),
                 ),
+                // A Latin account name turns up in reports in every
+                // language, so the fallback carries it (PDF-5).
+                pw.Text('Cash'),
                 // Amounts stay left to right in every language (LANG-3).
                 pw.Directionality(
                   textDirection: pw.TextDirection.ltr,

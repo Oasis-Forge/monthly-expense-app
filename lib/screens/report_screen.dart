@@ -157,6 +157,16 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
+
+    // PDF-7: the app carries no face for this script, so a report would come
+    // out as empty boxes. Say so instead of building one.
+    if (!ReportFonts.supports(Localizations.localeOf(context))) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.reportTitle)),
+        body: const _NoFont(),
+      );
+    }
+
     final years = _yearsWithData(provider);
 
     return Scaffold(
@@ -371,6 +381,46 @@ class _ReportPreview extends StatelessWidget {
         allowSharing: true,
         canChangePageFormat: false,
         canChangeOrientation: false,
+      ),
+    );
+  }
+}
+
+/// Why there is no report in Chinese, Japanese or Korean yet (PDF-7).
+class _NoFont extends StatelessWidget {
+  const _NoFont();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.font_download_off_outlined,
+              size: 56,
+              color: theme.colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              l10n.reportNoFontTitle,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              l10n.reportNoFontBody,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.outline,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

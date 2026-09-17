@@ -1251,6 +1251,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get reportTitle => 'تصدير PDF';
 
   @override
+  String get reportNoFontTitle => 'غير متاح بهذه اللغة بعد';
+
+  @override
+  String get reportNoFontBody =>
+      'يحتاج التقرير إلى خط لنظام كتابته، وخطوط الصينية واليابانية والكورية أكبر من أن يحملها التطبيق. سيعرض إصدار لاحق تنزيلها.';
+
+  @override
   String get reportPreviewTitle => 'التقرير';
 
   @override

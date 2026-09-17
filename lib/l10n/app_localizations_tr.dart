@@ -1219,6 +1219,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get reportTitle => 'PDF dışa aktar';
 
   @override
+  String get reportNoFontTitle => 'Bu dilde henüz yok';
+
+  @override
+  String get reportNoFontBody =>
+      'Rapor, yazısına uygun bir yazı tipi ister; Çince, Japonca ve Korece olanlar uygulamada taşınamayacak kadar büyük. Sonraki bir sürüm indirmeyi önerecek.';
+
+  @override
   String get reportPreviewTitle => 'Rapor';
 
   @override
