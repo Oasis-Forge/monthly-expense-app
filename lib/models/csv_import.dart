@@ -423,9 +423,10 @@ Map<ImportField, int> matchColumns(List<String> header) {
 /// spaces, underscores, hyphens, brackets — to single spaces. Only
 /// punctuation goes: letters in any script stay, or an Arabic header would
 /// fold away to nothing.
-String _foldHeader(String name) => foldForSearch(
-  name,
-).replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ').trim();
+String _foldHeader(String name) =>
+    foldForSearch(name)
+        .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
+        .trim();
 
 /// What a row said its type was, or null when the column can't be read that
 /// way. A file with no type column says so with a signed amount instead.
