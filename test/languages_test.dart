@@ -141,11 +141,13 @@ void main() {
             expect(find.text(l10n.importColumnsHeader), findsOne);
           }
           if (screen is WalkthroughScreen) {
-            // Each page carries its own text, so every one is looked at.
-            for (var page = 1; page < 4; page++) {
+            // Each page carries its own text, so every one is looked at,
+            // including the one that brings data in (RUN-4).
+            for (var page = 1; page < 5; page++) {
               await tester.tap(find.text(l10n.walkthroughNextButton));
               await tester.pumpAndSettle();
             }
+            expect(find.text(l10n.walkthroughBringTitle), findsOne);
           }
           if (screen is AddTransactionScreen) {
             await tester.tap(find.text(l10n.amountLabel));
