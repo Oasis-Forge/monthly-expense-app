@@ -130,9 +130,8 @@ class _RemoveAdsLink extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsetsDirectional.only(end: 8, bottom: 4),
         child: InkWell(
-          onTap: () => Navigator.of(
-            context,
-          ).push(MaterialPageRoute(builder: (_) => const RemoveAdsScreen())),
+          onTap: () => Navigator.of(context)
+              .push(MaterialPageRoute(builder: (_) => const RemoveAdsScreen())),
           borderRadius: BorderRadius.circular(4),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
