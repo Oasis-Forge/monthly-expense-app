@@ -341,6 +341,21 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ALERT-6** The app is honest about the limit: this route sees only what the bank chooses to announce, so no notification means no entry. A bank that has said nothing for two weeks prompts a look at its alert settings rather than silence.
 - **ALERT-7** The Play listing declares notification access and what it is for, and `docs/privacy-policy.md` says in plain words what is read, what is kept, and that it stays on the phone.
 
+## 26. Looking at one entry
+
+**They do:** a tap on a row opens the entry in the form it was typed into, every field live; there is nothing between reading what you recorded and changing it.
+
+**Learn:** most taps on a row are to look, not to change — what was that $42 on Tuesday? A form answers that badly: the fields are small, the keypad is waiting, and a stray tap edits real data. So a tap opens a page that reads like a record, and editing is a button on it. The form stays exactly as it was; this is not the form with its fields locked, which would be the worst of both.
+
+- **DET-1** Tapping a transaction anywhere — Home, Search, the calendar, or a note's link — opens its details, laid out to be read: nothing on the page is a field, and nothing on it can be typed into.
+- **DET-2** The details lead with the amount in the colour of its kind and signed as the lists sign it, under the category's icon and over what it was for. A date still ahead is marked "Upcoming", because it is not in the period's totals yet (ADD-8, BAL-4).
+- **DET-3** The record follows as labelled lines: category, account, the full date, and the note when there is one. The pencil in the toolbar opens the same form as always (section 3), with Duplicate (ADD-7) and Delete (DEL-2) beside it.
+- **DET-4** A photo shows as a thumbnail that opens full screen, and a voice note plays and pauses from here (ATT-1, ATT-4). Replacing or removing either is the form's job, so those controls are not on this page, and a file that has gone says so (ATT-7).
+- **DET-5** The foot of the page says when the entry was added, and when it was last changed if that was a later day — saving sets both moments apart, so the same date twice would say nothing.
+- **DET-6** The page follows the record rather than a copy of it: an edit, an undo, or a change made elsewhere shows at once, and if the entry is deleted — here or anywhere else — the page closes itself.
+
+- **DET-7** Transfers keep opening their own form for now (ACC-3); if they get a details page it follows this section.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -372,6 +387,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 19. Plus is a subscription — yearly, with a monthly option — because what it buys costs us every month (PAY-2). It hides the ads while it runs, and it is shown as "coming soon" with no price until the connection works (PAY-3).
 20. What Plus sells is a real bank connection through a licensed open-banking provider, not notification scraping: transactions arrive whole, so nothing is missed (BANK-1, BANK-2). It brings a server, a provider contract, per-user fees, and the one place where the app's data leaves the device (BANK-5), all of which the privacy policy and the store listings must say plainly. Which market comes first is not decided: the first task is a coverage check of the banks that matter against what the providers actually reach and charge.
 21. Reading bank notifications stays, but free and outside Plus: it is the answer for banks and countries no provider reaches, Android only, parsed on the device, and honest about seeing only what the bank announces (ALERT-1–ALERT-7).
+22. A tap on a transaction opens it to read, not to edit (section 26). The form is one button away and unchanged; a read-only copy of the form was rejected as the worst of both. Transfers are unchanged for now (DET-7).
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

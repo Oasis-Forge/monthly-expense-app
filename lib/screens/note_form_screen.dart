@@ -14,6 +14,7 @@ import '../services/reminder_service.dart';
 import 'add_transaction_screen.dart';
 import 'delete_snack_bar.dart';
 import 'form_fields.dart';
+import 'transaction_detail_screen.dart';
 
 /// Adds or edits a note: text, and an optional due date, reminder, amount,
 /// and category (NOTE-1).
@@ -360,7 +361,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     if (tx == null) return;
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (_) => AddTransactionScreen(editing: tx),
+                        builder: (_) => TransactionDetailScreen(id: tx.id),
                       ),
                     );
                   },

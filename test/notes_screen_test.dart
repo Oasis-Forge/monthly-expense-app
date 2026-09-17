@@ -8,6 +8,7 @@ import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
+import 'package:monthly_expense_app/screens/transaction_detail_screen.dart';
 import 'package:monthly_expense_app/services/reminder_service.dart';
 
 import 'helpers.dart';
@@ -334,8 +335,8 @@ void main() {
     );
   });
 
-  testWidgets('a recorded note links to its transaction, which opens from '
-      'the form (NOTE-4)', (tester) async {
+  testWidgets('a recorded note links to its transaction, which opens to read '
+      '(NOTE-4, DET-1)', (tester) async {
     await provider.addNote(
       testNote('a', 'Buy milk'),
       appLockOn: false,
@@ -352,7 +353,7 @@ void main() {
       find.widgetWithText(ListTile, 'Recorded as a transaction'),
     );
 
-    expect(find.byType(AddTransactionScreen), findsOneWidget);
+    expect(find.byType(TransactionDetailScreen), findsOneWidget);
   });
 
   testWidgets('an amount and a category round-trip through the form '

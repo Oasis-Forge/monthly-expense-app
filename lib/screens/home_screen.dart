@@ -24,6 +24,7 @@ import 'recurring_screen.dart';
 import 'report_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
+import 'transaction_detail_screen.dart';
 import 'transfer_screen.dart';
 import 'trash_screen.dart';
 
@@ -624,7 +625,7 @@ class _TransactionTile extends StatelessWidget {
         ),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => AddTransactionScreen(editing: transaction),
+            builder: (_) => TransactionDetailScreen(id: transaction.id),
           ),
         ),
       ),

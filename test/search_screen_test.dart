@@ -147,7 +147,7 @@ void main() {
     expect(find.text('Salary'), findsOneWidget);
   });
 
-  testWidgets('no matches shows a message; a result opens for editing', (
+  testWidgets('no matches shows a message; a result opens to read (DET-1)', (
     tester,
   ) async {
     await showSearch(tester);
@@ -159,7 +159,7 @@ void main() {
     await tester.tap(find.text('Flat'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Edit Transaction'), findsOneWidget);
+    expect(find.text('Details'), findsOneWidget);
   });
 
   testWidgets('Export CSV saves exactly the matches (BAK-5)', (tester) async {

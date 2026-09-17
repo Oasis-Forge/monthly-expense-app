@@ -4,6 +4,14 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-09-17
+
+### Added
+- Tapping an expense or an income opens it to read rather than to edit: the amount and its kind, the category, account, date and note, any photo or voice note, and when it was added and last changed. A pencil opens the form you already know, with Duplicate and Delete beside it.
+
+### Changed
+- A tap on a row no longer drops you straight into the edit form, so nothing changes by accident while you are only looking. Transfers still open their own form.
+
 ## [1.9.0] - 2026-09-17
 
 ### Added

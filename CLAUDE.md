@@ -19,7 +19,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - `lib/services/`: `BackupService` (create, read, restore, CSV) over `BackupFiles` (file dialogs, automatic backups); `Authenticator` over `local_auth`
 - `lib/screens/form_fields.dart`: `AmountEntry` mixin + keypad and `DateField`, shared by the transaction and transfer forms; `period_selector.dart`, shared by Home and Insights
 - `lib/l10n/`: `app_en.arb` plus `app_{tr,ar,fr,es,de}.arb` → generated `AppLocalizations` (`flutter gen-l10n`, committed); `languages.dart` for the language list and English fallback; `labels.dart` for category and period labels
-- `lib/screens/`: `home_screen` (period selector, summary, notices, day list, swipe delete, first-run welcome), `add_transaction_screen` (add + edit), `insights_screen` (categories, calendar, trend), `backup_screen`, `app_lock`
+- `lib/screens/`: `home_screen` (period selector, summary, notices, day list, swipe delete, first-run welcome), `transaction_detail_screen` (one transaction, read-only, with edit, duplicate, and delete), `add_transaction_screen` (add + edit), `insights_screen` (categories, calendar, trend), `backup_screen`, `app_lock`
 - Flow: screen → `context.read/watch<TransactionProvider>()` → `DBHelper`
 
 ## Conventions

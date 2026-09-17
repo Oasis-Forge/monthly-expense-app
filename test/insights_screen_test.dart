@@ -182,7 +182,7 @@ void main() {
       expect(find.text('Paycheck'), findsOneWidget);
     });
 
-    testWidgets('tapping a day lists its entries, which open for editing', (
+    testWidgets('tapping a day lists its entries, which open to read (DET-1)', (
       tester,
     ) async {
       await showInsights(tester, month);
@@ -194,7 +194,7 @@ void main() {
 
       await tester.tap(find.text('Flat'));
       await tester.pumpAndSettle();
-      expect(find.text('Edit Transaction'), findsOneWidget);
+      expect(find.text('Details'), findsOneWidget);
     });
 
     testWidgets('empty days say so; transfers are listed', (tester) async {

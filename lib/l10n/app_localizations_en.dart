@@ -50,6 +50,19 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get upcomingLabel => 'Upcoming';
+
+  @override
+  String detailAdded(String date) {
+    return 'Added $date';
+  }
+
+  @override
+  String detailChanged(String date) {
+    return 'Last changed $date';
+  }
+
+  @override
   String recurringDueNotice(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -96,6 +109,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get editTransactionTitle => 'Edit Transaction';
 
   @override
+  String get transactionDetailTitle => 'Details';
+
+  @override
+  String get editTooltip => 'Edit';
+
+  @override
   String get deleteTooltip => 'Delete';
 
   @override
@@ -138,6 +157,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dateLabel => 'Date';
+
+  @override
+  String get noteLabel => 'Note';
 
   @override
   String get previousDayTooltip => 'Previous day';

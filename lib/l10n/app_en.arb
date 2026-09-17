@@ -27,6 +27,28 @@
       }
     }
   },
+  "upcomingLabel": "Upcoming",
+  "@upcomingLabel": {
+    "description": "Marks a transaction dated ahead on the details screen (DET-2)."
+  },
+  "detailAdded": "Added {date}",
+  "@detailAdded": {
+    "description": "When the transaction was first recorded (DET-5).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "detailChanged": "Last changed {date}",
+  "@detailChanged": {
+    "description": "When the transaction was last edited (DET-5).",
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "recurringDueNotice": "{count, plural, =1{1 recurring transaction is due} other{{count} recurring transactions are due}}",
   "@recurringDueNotice": {
     "placeholders": {
@@ -51,6 +73,14 @@
   "restoreFailed": "Couldn't restore the transaction. Try again.",
   "addTransactionTitle": "Add Transaction",
   "editTransactionTitle": "Edit Transaction",
+  "transactionDetailTitle": "Details",
+  "@transactionDetailTitle": {
+    "description": "Title of the screen that shows one transaction (DET-1)."
+  },
+  "editTooltip": "Edit",
+  "@editTooltip": {
+    "description": "Button that opens the form for the transaction shown (DET-3)."
+  },
   "deleteTooltip": "Delete",
   "duplicateTooltip": "Duplicate",
   "titleOptionalLabel": "Title (optional)",
@@ -73,6 +103,10 @@
   "accountLabel": "Account",
   "accountRequired": "Choose an account",
   "dateLabel": "Date",
+  "noteLabel": "Note",
+  "@noteLabel": {
+    "description": "Row label for a transaction's note on the details screen."
+  },
   "previousDayTooltip": "Previous day",
   "nextDayTooltip": "Next day",
   "noteOptionalLabel": "Note (optional)",

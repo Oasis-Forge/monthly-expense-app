@@ -25,6 +25,7 @@ import 'package:monthly_expense_app/screens/report_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/setup_screen.dart';
+import 'package:monthly_expense_app/screens/transaction_detail_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
 import 'package:monthly_expense_app/screens/walkthrough_screen.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
@@ -119,6 +120,7 @@ void main() {
     'Settings': SettingsScreen(),
     'Backup': BackupScreen(),
     'Import': ImportScreen(),
+    'Transaction details': TransactionDetailScreen(id: 'a'),
     'Setup': SetupScreen(),
     'Walkthrough': WalkthroughScreen(),
   };
