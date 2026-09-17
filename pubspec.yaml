@@ -91,6 +91,12 @@ flutter:
     - assets/fonts/Roboto-Bold.ttf
     - assets/fonts/NotoSansArabic-Regular.ttf
     - assets/fonts/NotoSansArabic-Bold.ttf
+    - assets/fonts/NotoSansDevanagari-Regular.ttf
+    - assets/fonts/NotoSansDevanagari-Bold.ttf
+    - assets/fonts/NotoSansBengali-Regular.ttf
+    - assets/fonts/NotoSansBengali-Bold.ttf
+    - assets/fonts/NotoSansThai-Regular.ttf
+    - assets/fonts/NotoSansThai-Bold.ttf
 
   # To add assets to your application, add an assets section, like this:
   # assets:

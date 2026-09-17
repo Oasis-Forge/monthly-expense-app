@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/report.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transaction_filter.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -54,6 +55,28 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('in a language with no face it explains instead of offering a '
+      'report (PDF-7)', (tester) async {
+    settings = await testSettings({'language': 'ja'});
+
+    await showReport(tester);
+
+    expect(find.text('この言語はまだ利用できません'), findsOneWidget);
+    // None of the choosing is there: there is nothing to choose.
+    expect(find.byType(SegmentedButton<ReportRange>), findsNothing);
+    expect(find.byType(SwitchListTile), findsNothing);
+  });
+
+  testWidgets('a language with a face still gets the form (PDF-7)', (
+    tester,
+  ) async {
+    settings = await testSettings({'language': 'hi'});
+
+    await showReport(tester);
+
+    expect(find.byType(SegmentedButton<ReportRange>), findsOneWidget);
+  });
 
   testWidgets('it opens on this period, with the other ranges offered '
       '(PDF-1)', (tester) async {

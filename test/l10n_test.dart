@@ -35,10 +35,10 @@ void main() {
       '(LANG-1)', () {
     expect(resolveAppLocale(const [Locale('tr', 'TR')]), const Locale('tr'));
     expect(
-      resolveAppLocale(const [Locale('ja'), Locale('de', 'AT')]),
+      resolveAppLocale(const [Locale('sv'), Locale('de', 'AT')]),
       const Locale('de'),
     );
-    expect(resolveAppLocale(const [Locale('ja')]), const Locale('en'));
+    expect(resolveAppLocale(const [Locale('sv')]), const Locale('en'));
     expect(resolveAppLocale(null), const Locale('en'));
   });
 

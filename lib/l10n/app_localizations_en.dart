@@ -1218,6 +1218,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reportTitle => 'Export PDF';
 
   @override
+  String get reportNoFontTitle => 'Not yet in this language';
+
+  @override
+  String get reportNoFontBody =>
+      'A report needs a font for its script, and the Chinese, Japanese and Korean faces are too large to carry in the app. A later version will offer to download one.';
+
+  @override
   String get reportPreviewTitle => 'Report';
 
   @override

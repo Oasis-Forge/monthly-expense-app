@@ -1235,6 +1235,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get reportTitle => 'PDF exportieren';
 
   @override
+  String get reportNoFontTitle => 'Noch nicht in dieser Sprache';
+
+  @override
+  String get reportNoFontBody =>
+      'Ein Bericht braucht eine Schrift für sein Schriftsystem, und die für Chinesisch, Japanisch und Koreanisch sind zu groß für die App. Eine spätere Version bietet den Download an.';
+
+  @override
   String get reportPreviewTitle => 'Bericht';
 
   @override

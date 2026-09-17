@@ -1,5 +1,5 @@
-// Adds, changes, or removes app messages in all six ARB files at once
-// (LANG-6), so nobody reads or edits six large files by hand.
+// Adds, changes, or removes app messages in all 21 ARB files at once
+// (LANG-6), so nobody reads or edits 21 large files by hand.
 //
 //   dart tool/add_messages.dart <messages.json>
 //
@@ -10,7 +10,10 @@
 //   {
 //     "importDone": {
 //       "en": "Imported {count} rows.",
-//       "tr": "...", "ar": "...", "fr": "...", "es": "...", "de": "...",
+//       "ar": "...", "bn": "...", "zh": "...", "nl": "...", "fr": "...",
+//       "de": "...", "el": "...", "hi": "...", "id": "...", "it": "...",
+//       "ja": "...", "ko": "...", "pl": "...", "pt": "...", "ru": "...",
+//       "es": "...", "th": "...", "tr": "...", "ur": "...", "vi": "...",
 //       "description": "Shown after an import.",
 //       "placeholders": {"count": {"type": "int"}},
 //       "after": "importButton"
@@ -23,7 +26,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-const languages = ['en', 'tr', 'ar', 'fr', 'es', 'de'];
+const languages = [
+  'en', 'ar', 'bn', 'zh', 'nl', 'fr', 'de', 'el', 'hi', 'id', 'it', //
+  'ja', 'ko', 'pl', 'pt', 'ru', 'es', 'th', 'tr', 'ur', 'vi', //
+];
 const metadataFields = {'description', 'placeholders'};
 
 void main(List<String> args) {

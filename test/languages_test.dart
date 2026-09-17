@@ -29,6 +29,7 @@ import 'package:monthly_expense_app/screens/transaction_detail_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
 import 'package:monthly_expense_app/screens/walkthrough_screen.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
+import 'package:monthly_expense_app/services/report_fonts.dart';
 
 import 'helpers.dart';
 
@@ -180,13 +181,19 @@ void main() {
             }
           }
           if (screen is ReportScreen) {
-            // The date fields and the year list only appear once chosen.
-            for (final range in [
-              l10n.reportRangeCustom,
-              l10n.reportRangeYear,
-            ]) {
-              await tester.tap(find.text(range));
-              await tester.pumpAndSettle();
+            if (ReportFonts.unsupportedLanguages.contains(language)) {
+              // No face for this script, so the screen says so instead of
+              // offering a report (PDF-7).
+              expect(find.text(l10n.reportNoFontTitle), findsOne);
+            } else {
+              // The date fields and the year list only appear once chosen.
+              for (final range in [
+                l10n.reportRangeCustom,
+                l10n.reportRangeYear,
+              ]) {
+                await tester.tap(find.text(range));
+                await tester.pumpAndSettle();
+              }
             }
           }
         });
@@ -294,6 +301,41 @@ void main() {
       expect(chart.barGroups.last.barRods.first.toY, 0);
       expect(chart.titlesData.rightTitles.sideTitles.showTitles, isTrue);
       expect(chart.titlesData.leftTitles.sideTitles.showTitles, isFalse);
+    });
+  });
+
+  group('Urdu runs right to left as well (LANG-5)', () {
+    final l10n = lookupAppLocalizations(const Locale('ur'));
+    double x(WidgetTester tester, Finder finder) => tester.getCenter(finder).dx;
+
+    test('it is listed as right to left, with Arabic', () {
+      expect(rightToLeftLanguages, unorderedEquals({'ar', 'ur'}));
+    });
+
+    testWidgets('the earlier-period arrow sits on the right', (tester) async {
+      await show(tester, 'ur', const HomeScreen());
+      expect(
+        x(tester, find.byTooltip(l10n.previousPeriodTooltip)),
+        greaterThan(x(tester, find.byTooltip(l10n.nextPeriodTooltip))),
+      );
+    });
+
+    testWidgets('the drawer opens from the right (NAV-3)', (tester) async {
+      await show(tester, 'ur', const HomeScreen());
+      tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+      await tester.pumpAndSettle();
+
+      // A phone is 360 wide here: the drawer is against the right edge.
+      expect(tester.getTopRight(find.byType(Drawer)).dx, 360);
+    });
+
+    testWidgets('the amount on a transaction stays left to right', (
+      tester,
+    ) async {
+      await show(tester, 'ur', const TransactionDetailScreen(id: 'a'));
+
+      final amount = tester.widget<Text>(find.textContaining('1,234.50'));
+      expect(amount.textDirection, TextDirection.ltr);
     });
   });
 }
