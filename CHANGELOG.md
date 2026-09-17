@@ -7,7 +7,7 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 ## [1.7.1] - 2026-09-17
 
 ### Changed
-- No change to the app itself. This release records decisions taken on 17 September 2026: banner ads in two places, fifteen more languages, a navigation drawer in place of the three-dot menu, tapping the month to open the calendar, and the walkthrough coming before the setup page.
+- No change to the app itself. This release records decisions taken on 17 September 2026: banner ads in two places, fifteen more languages, a navigation drawer in place of the three-dot menu, tapping the month to open the calendar, and moving "Restore a backup" and "Import a CSV" off the setup page onto a last walkthrough page.
 - Also recorded: removing the ads will be a one-time purchase, while Plus — shown as "coming soon" until it works — will be a yearly or monthly subscription that connects to your bank through an open-banking provider, with free notification reading on Android for banks no provider reaches. Either way, what arrives is a proposal you confirm.
 
 ## [1.7.0] - 2026-09-17
