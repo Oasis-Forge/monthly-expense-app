@@ -178,6 +178,24 @@ abstract class AppLocalizations {
   /// **'{category} · Upcoming'**
   String upcomingCategory(String category);
 
+  /// Marks a transaction dated ahead on the details screen (DET-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming'**
+  String get upcomingLabel;
+
+  /// When the transaction was first recorded (DET-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Added {date}'**
+  String detailAdded(String date);
+
+  /// When the transaction was last edited (DET-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Last changed {date}'**
+  String detailChanged(String date);
+
   /// No description provided for @recurringDueNotice.
   ///
   /// In en, this message translates to:
@@ -237,6 +255,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit Transaction'**
   String get editTransactionTitle;
+
+  /// Title of the screen that shows one transaction (DET-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get transactionDetailTitle;
+
+  /// Button that opens the form for the transaction shown (DET-3).
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get editTooltip;
 
   /// No description provided for @deleteTooltip.
   ///
@@ -321,6 +351,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Date'**
   String get dateLabel;
+
+  /// Row label for a transaction's note on the details screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get noteLabel;
 
   /// No description provided for @previousDayTooltip.
   ///

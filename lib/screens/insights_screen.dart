@@ -13,11 +13,11 @@ import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
-import 'add_transaction_screen.dart';
 import 'budgets_screen.dart';
 import 'note_form_screen.dart';
 import 'period_selector.dart';
 import 'report_screen.dart';
+import 'transaction_detail_screen.dart';
 import 'transfer_screen.dart';
 
 const List<Color> _chartColors = [
@@ -565,7 +565,7 @@ class _DayDetails extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                onTap: () => open(AddTransactionScreen(editing: tx)),
+                onTap: () => open(TransactionDetailScreen(id: tx.id)),
               );
             },
           ),

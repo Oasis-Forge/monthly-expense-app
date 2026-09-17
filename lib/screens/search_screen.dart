@@ -9,9 +9,9 @@ import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
-import 'add_transaction_screen.dart';
 import 'csv_export_action.dart';
 import 'report_screen.dart';
+import 'transaction_detail_screen.dart';
 
 /// Searches every transaction as you type, with filters for type, category,
 /// account, and dates (SRCH-1–SRCH-3).
@@ -236,7 +236,7 @@ class _ResultTile extends StatelessWidget {
       ),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => AddTransactionScreen(editing: transaction),
+          builder: (_) => TransactionDetailScreen(id: transaction.id),
         ),
       ),
     );

@@ -396,10 +396,17 @@ void main() {
     expect(find.byType(NotesScreen), findsOneWidget);
   });
 
-  testWidgets('tapping a row opens it for editing', (tester) async {
+  testWidgets('tapping a row opens it to read, and the pencil to edit '
+      '(DET-1, DET-3)', (tester) async {
     await showHome(tester);
 
     await tester.tap(find.text('Lunch'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Details'), findsOneWidget);
+    expect(find.text('Edit Transaction'), findsNothing);
+
+    await tester.tap(find.byTooltip('Edit'));
     await tester.pumpAndSettle();
 
     expect(find.text('Edit Transaction'), findsOneWidget);
