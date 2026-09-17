@@ -4,17 +4,23 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
-## [1.9.0] - 2026-09-17
+## [1.10.0] - 2026-09-17
 
 ### Added
 - Tapping an expense or an income opens it to read rather than to edit: the amount and its kind, the category, account, date and note, any photo or voice note, and when it was added and last changed. A pencil opens the form you already know, with Duplicate and Delete beside it.
+
+### Changed
+- A tap on a row no longer drops you straight into the edit form, so nothing changes by accident while you are only looking. Transfers still open their own form.
+
+## [1.9.0] - 2026-09-17
+
+### Added
 - The drawer now names every part of the app, in five groups: Add expense, Add income and Transfer; Budgets, Recurring and Notes; Spending by category, Calendar, Trend and Search; Accounts, Categories and Settings; both exports, Backup & restore and Trash. Accounts and Categories used to be reachable only through Settings, and the calendar and the trend only through Insights and then a tab.
 - Add expense and Add income open the form already set to that kind, so recording one is two taps from anywhere.
 - A settings button at the top right of the home screen.
 
 ### Changed
 - The insights button has left the home screen's toolbar to make room for that settings button: the drawer names its three views separately, and tapping the month still opens the calendar for it.
-- A tap on a row no longer drops you straight into the edit form, so nothing changes by accident while you are only looking. Transfers still open their own form.
 
 ## [1.8.1] - 2026-09-17
 
