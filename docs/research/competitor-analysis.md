@@ -11,8 +11,8 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 | Area | Income Expense | Monthly Expenses today | Our plan |
 |---|---|---|---|
 | Account / sign-in | None needed | None needed | Keep it that way |
-| Ads & tracking | Banner ad on most screens from first launch; AppLovin ad network; advertising ID and ad attribution; device IDs shared for ads/analytics | None | **Never** — a core differentiator |
-| Price | Free with ads; ad removal ≈ TRY 8/mo, 80/yr or 250 lifetime, or watch a video for 7 ad-free days | Free | Free; no ads to remove |
+| Ads & tracking | Banner ad on most screens from first launch; AppLovin ad network; advertising ID and ad attribution; device IDs shared for ads/analytics | None | Two banner slots (Home, Insights), none before the walkthrough is done, and nothing about the user's money given to the network (section 22, decided 17 September 2026) |
+| Price | Free with ads; ad removal ≈ TRY 8/mo, 80/yr or 250 lifetime, or watch a video for 7 ad-free days | Free | Free with two banners; one payment removes them for good (PAY-1), and a dearer Plus adds the bank connection when it exists (PAY-2). No subscription, no rewarded video |
 | Adding a transaction | Calculator keypad, recent categories, payment method, notes autocomplete, receipt photo, line items; form resets after Save for fast repeat entry; duplicate | Title, amount, category dropdown, date, note | Keypad, recent categories, "Save & add another", duplicate |
 | Date entry | Day arrows only moved forward (bug); calendar dialog works | Date picker | Arrows both ways + picker |
 | Categories | ~61 expense + 7 income with icons, custom categories, optional subcategories | 10 expense + 6 income, fixed | ~15 curated defaults + custom |
@@ -28,7 +28,9 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 | Security | PIN and fingerprint lock | None | Optional PIN/biometric |
 | Currency | Number format only; no currency symbol or multi-currency | Hard-coded `$` | Currency picker (**better**) |
 | Personalization | Dark mode toggle, first day of week/month/year, carry-forward balance, dashboard widgets toggles | Follows system theme | Theme toggle, first day of month/week, carry-forward balance |
-| Languages | 16 | English | English first, structured for translation |
+| Languages | 20 besides English in its own strings, Portuguese only partly (its picker showed 16) | 6: English, Turkish, Arabic, French, Spanish, German | Match their set: 21 with English (LANG-1) |
+| Getting around | Bottom tabs (Home, Calendar, NoteBook), a drawer, and an overflow menu | A three-dot menu holding everything but Home | A grouped navigation drawer (NAV-1–NAV-5) |
+| Reading the bank | Nothing: every entry is typed | Nothing | Plus connects to the bank through an open-banking provider, so nothing is missed (BANK-1); free notification reading on Android covers banks no provider reaches (ALERT-1). Both propose, and the user confirms |
 
 ## What they do well (worth matching)
 - **Fast repeat entry:** the form stays open after saving, keeps the last category, and opens a calculator keypad on the amount.
@@ -39,7 +41,7 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 - **Core features are free:** only ad removal is paid, which sets user expectations for this category.
 
 ## Weak spots (our opening)
-1. **Ads and tracking everywhere:** a persistent banner from the first screen, an ad network SDK, advertising-ID access, and device IDs shared with third parties. Its data-safety page offers no way to request data deletion.
+1. **Ads and tracking everywhere:** a persistent banner from the first screen, an ad network SDK, advertising-ID access, and device IDs shared with third parties. Its data-safety page offers no way to request data deletion. We take the ads and none of the rest: two slots, nothing before the walkthrough is finished, and the network told nothing about the user's money (ADS-1, ADS-4, ADS-7).
 2. **No real currency support:** money always shows as bare numbers.
 3. **Clutter:** about 68 default categories, two separate navigation drawers, and settings spread across menus.
 4. **Rough edges:**
@@ -50,7 +52,9 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 5. **Thin accounts:** an account has only a name, with no opening balance, type or currency.
 
 ## Positioning
-**"The expense tracker that respects you":** no ads, no tracking, no account, and data stays on the device unless the user exports it. It's open source, has the essentials done well, and a clean interface with fewer, better defaults.
+**"The expense tracker that respects you":** no account, nothing about your money leaving the device unless you export it, and the few ads it does show kept out of the way. It's open source, has the essentials done well, and a clean interface with fewer, better defaults.
+
+Ads were decided on 17 September 2026 (section 22 of `docs/PRODUCT_RULES.md`), so "no ads" is no longer the line. What is left of it, and what the listing should say, is how few and how quiet they are — two banner slots, none of them interrupting, none before the walkthrough is done — and that the ad network is handed nothing about the user's records.
 
 Every feature we add has to keep that promise, and the privacy policy is updated whenever one touches user data.
 

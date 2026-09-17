@@ -6,7 +6,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - Rule IDs (`MONEY-1`) are stable. Tests and PRs reference them.
 - "Not verified" marks competitor behavior we saw only partly.
-- Every rule keeps the product principles in `CLAUDE.md`: no ads, no tracking, no account, and data leaves the device only when the user exports it.
+- Every rule keeps the product principles in `CLAUDE.md`: no account, and the app's own data leaves the device only when the user exports it. Banner ads arrive with section 22; they bring the network with them, but never carry anything the user typed.
 
 ## 1. Data foundations
 
@@ -154,12 +154,12 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **They do:** open straight to Home with a Drive backup prompt and a banner ad; the default account uses the app's name.
 
-**Learn:** the first launch should settle what the device can't tell us for sure, the language and the currency, on one screen, and explain the app without delaying the first entry. Asking for an account, permissions, or cloud backup up front costs trust.
+**Learn:** the first launch settles what the device can't tell us for sure — the language and the currency — on one screen, and it has to come first, because the language chosen there is the language everything after it is read in. Then the app explains itself, without delaying the first entry. Asking for an account, permissions, or cloud backup up front costs trust.
 
 - **RUN-1** After setup (RUN-3) and the walkthrough (RUN-4), an empty Home shows one clear "Add your first transaction" action.
-- **RUN-2** The Android release build declares no `INTERNET` permission while the app has no feature that needs it, so the store listing can truthfully say "no data collected".
-- **RUN-3** The first launch opens one setup page with the language (LANG-1) and the currency (CUR-1), both preselected from the device locale, so most people only tap Continue. Picking a language switches the page at once. The page asks for nothing else: no account, no permissions, no cloud backup. A secondary "Restore a backup" action restores a backup file with Replace (BAK-2), which brings its settings, and skips the walkthrough. An "Import a CSV" action beside it reads a file from another app (IMP-1); it brings no settings, so the walkthrough still follows.
-- **RUN-4** A walkthrough of up to four pages follows: quick entry, planning (budgets, recurring, notes), insights and reports, and privacy (data stays on the device, backups, app lock). Every page has Skip, and the last one opens Home. It runs right to left in Arabic (LANG-5), respects the device's reduce-motion setting, and can be replayed from Settings.
+- **RUN-2** The Android release build asks for `INTERNET` only so the ad slots in section 22 can fill. No other feature touches the network, and the store listing declares what the ad network collects and nothing more (ADS-6).
+- **RUN-3** The first launch opens one setup page: the language (LANG-1) and the currency (CUR-1), both preselected from the device locale, so most people only tap Continue. Picking a language switches the page at once, and it is the language the walkthrough that follows is read in. The page asks for nothing else: no account, no permissions, no cloud backup, and nothing about files. Continue opens the walkthrough.
+- **RUN-4** The walkthrough follows setup, in the language just chosen: four pages on quick entry, planning (budgets, recurring, notes), insights and reports, and what stays on the device, then a fifth page for people arriving from somewhere else — "Restore a backup", which restores with Replace (BAK-2), and "Import a CSV" (IMP-1). They belong here, not on the setup page, which asks only what the app itself needs. A restored backup brings the language and currency it was saved with, overriding what setup just set, because it is the user's own earlier choice; the app says so before restoring. Every page has Skip, and the last one opens Home. The walkthrough runs right to left in Arabic and Urdu (LANG-5), respects the device's reduce-motion setting, and can be replayed from Settings — where the fifth page is left out, since Backup & restore is a tap away by then.
 - **RUN-5** Setup shows until it's finished. The walkthrough shows once, even when skipped. An app update on a device that already has data skips both and keeps the current settings.
 
 ## 14. Insights
@@ -171,6 +171,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **INS-1** The calendar shows the selected period as a month grid with each day's expense and income. Weeks start on the first day of the week (PER-4). Upcoming days show their amounts faintly, because they don't count yet (BAL-4). Tapping a day lists its transactions and transfers.
 - **INS-2** The trend shows income and expense for the last 6 or 12 periods, ending with the selected one. Only entries that count are included (BAL-4), and the averages leave out periods that haven't started.
 - **INS-3** The category chart works for any period and shows expense or income, with budget progress for expense (BUD-2).
+- **INS-4** Tapping the period label on Home opens Insights on the calendar for that period (INS-1). The arrows beside it still move between periods (PER-1), and inside Insights the label does nothing, since the calendar is already there.
 
 ## 15. App lock
 
@@ -184,16 +185,16 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 ## 16. Languages
 
-**They do:** 16 languages. Translation quality, right-to-left layout, and number formats in those languages: not verified.
+**They do:** their own strings carry 20 languages besides English — Arabic, Bengali, Chinese (Simplified), Dutch, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Spanish, Thai, Turkish, Urdu, and Vietnamese, with Portuguese only partly done — read from the app's own resources on 17 September 2026; the "16" noted earlier came from its picker. Translation quality, right-to-left layout, and number formats in those languages: not verified.
 
 **Learn:** a translated app only feels native when numbers, dates, plurals, search, and layout direction are right too. A cut-off label or a half-translated screen looks broken.
 
-- **LANG-1** The app is in English, Turkish, Arabic, French, Spanish, and German. It follows the device language and falls back to English. The setup page (RUN-3) and Settings list the six languages, each in its own language, and Settings also offers "System default". A change applies at once, without a restart.
+- **LANG-1** The app is in 21 languages, the set the competitor covers: English, Arabic, Bengali, Chinese (Simplified), Dutch, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Spanish, Thai, Turkish, Urdu, and Vietnamese. It follows the device language and falls back to English. Setup (RUN-3) and Settings list them all, each in its own language, and Settings also offers "System default". A change applies at once, without a restart.
 - **LANG-2** Every user-facing text comes from the ARB files: screens, notices, errors, default category and account names (CAT-1), the widget, and the PDF report. CI fails when a language is missing a message, or when its placeholders, plurals, or selects differ from English. Plurals and variable parts use ICU messages, never pieced-together strings.
 - **LANG-3** Dates, numbers, and amounts follow the chosen language's format (CUR-2), and the first day of the week keeps following PER-4. CSV exports and backups always use ISO dates and plain decimals with a `.`, whatever the language (BAK-5), so the files read the same everywhere.
 - **LANG-4** Search ignores case and accents in every language, including the Turkish dotted and dotless i: `istanbul` finds "İstanbul" and `cafe` finds "Café" (section 10).
-- **LANG-5** In Arabic the layout runs right to left: navigation, lists, swipe actions, charts, and the date arrows (ADD-6), whose "earlier" arrow points right. Amounts and keypad expressions (ADD-2) stay left to right inside Arabic text.
-- **LANG-6** Translations are machine-made: a change that adds or edits English messages adds the other five languages in the same PR, with no separate review step. Widget tests render the main screens, the add form, setup, and the walkthrough in all six languages, on a phone-size screen at 1.3× text size, and fail on overflow.
+- **LANG-5** In Arabic and Urdu the layout runs right to left: navigation, the drawer (NAV-3), lists, swipe actions, charts, and the date arrows (ADD-6), whose "earlier" arrow points right. Amounts and keypad expressions (ADD-2) stay left to right inside right-to-left text.
+- **LANG-6** Translations are machine-made: a change that adds or edits English messages adds every other language in the same PR, with no separate review step, and `/l10n-add` writes them in one go. Widget tests render the main screens, the add form, setup, and the walkthrough in every language, on a phone-size screen at 1.3× text size, and fail on overflow.
 
 ## 17. PDF report
 
@@ -266,6 +267,78 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ATT-7** A record whose file is missing after a restore says so on the entry, and stays editable. Never a broken image or a silent gap.
 - **ATT-8** Nothing about an attachment leaves the device (BAK-6, RUN-2): no upload, no transcription service, no gallery write, and no `INTERNET` permission. There is no speech-to-text. CSV export and the PDF report are unchanged and carry no files.
 
+## 22. Ads
+
+**They do:** a banner on most screens from the first launch, through AppLovin, with the advertising ID and ad attribution; removing the ads costs about TRY 8 a month, 80 a year, or 250 once, and a rewarded video buys seven ad-free days.
+
+**Learn:** ads pay for a free app, but a banner that covers a row, moves a button under a finger, or interrupts an entry is what makes a free app feel cheap, and the money only comes if people keep the app. Ads also change what the app collects, so the listing and the policy have to say so plainly.
+
+- **ADS-1** Banners only, in slots the layout reserves: the bottom of Home and the bottom of Insights. No interstitials, no pop-ups, no rewarded video, and nothing on the add and edit forms, the walkthrough, setup, dialogs, the home-screen widget, or the PDF report.
+- **ADS-2** A slot keeps its height whether or not an ad fills it, so nothing shifts under a finger, and an empty slot shows nothing at all: no frame, no placeholder.
+- **ADS-3** A slot sits outside the scrolling content, above the system navigation bar, and never overlaps the keypad, the add button, or a list row. Content ends above it; nothing hides behind it.
+- **ADS-4** No ad is requested until the walkthrough and setup are finished (RUN-3, RUN-4) and consent has been answered (ADS-5), so the first minutes of the app belong to the app.
+- **ADS-5** Where the law asks for it (the EEA, the UK, and Switzerland), the ad network's consent form appears before the first request, and Settings keeps a "Privacy options" row to change the answer later. Refusing means non-personalised ads, never a nag screen or a feature withheld.
+- **ADS-6** What the ad SDK collects — the advertising ID, coarse device and app data, and the ad requests themselves — is declared in the Play data-safety form, the App Store privacy labels, and `docs/privacy-policy.md`, in the same plain words as the rest of the policy.
+- **ADS-7** The ad SDK is handed nothing from the app: no amounts, titles, notes, categories, accounts, attachments, or search terms, and no keywords derived from them. The user's records still leave the device only through an export or a backup they asked for (BAK-6).
+- **ADS-8** One switch hides every slot, and "Remove ads" (PAY-1) is what flips it, so an ad-free build and a paid ad-free app are the same code path. No feature is ever withheld from someone who keeps the ads (PAY-4).
+- **ADS-9** No ad loads while the app is locked (LOCK-2), and none appears in a store screenshot.
+
+## 23. Getting around
+
+**They do:** a bottom tab bar (Home, Calendar, NoteBook), a drawer behind the toolbar's menu button, an overflow menu, and Add income, Add expense and Transfer as buttons on Home.
+
+**Learn:** our three-dot menu is where everything that isn't Home ended up — Transfer, Budgets, Recurring, Notes, the exports, Backup, Settings, Trash. It is one small target that says nothing about what is behind it, and people don't open it. A named list they can see beats a menu they have to guess at.
+
+- **NAV-1** Every destination that isn't Home lives in a navigation drawer, opened from the toolbar's menu button or an edge swipe: Transfer, Budgets, Recurring, Notes, Insights, Search, Export CSV, Export PDF, Backup & restore, Settings, and Trash. The three-dot overflow goes.
+- **NAV-2** The drawer is grouped under headings: adding (Transfer), planning (Budgets, Recurring, Notes), looking back (Insights, Search, Export CSV, Export PDF), and the rest (Backup & restore, Settings, Trash). Every row has an icon and a translated label (LANG-2).
+- **NAV-3** The drawer opens from the leading edge: the left in left-to-right languages, the right in Arabic and Urdu (LANG-5). Choosing a destination closes it, and Back closes it before it leaves the screen.
+- **NAV-4** Home keeps its own quick paths — the period selector (INS-4), Search and Insights in the toolbar, and the add button — so the everyday round never goes through the drawer.
+- **NAV-5** The drawer is for going somewhere and nothing else: no settings toggles, no account area, no ads (ADS-1).
+
+## 24. Paying
+
+**They do:** ads are removed by subscription — about TRY 8 a month, 80 a year — or a lifetime purchase around 250, and a rewarded video buys seven ad-free days.
+
+**Learn:** a subscription to *not* see something is resented, and a rewarded video turns the app into a slot machine, so ads are bought away once and for all. A bank connection is the opposite case: it costs us every month that someone uses it, so it has to be paid for every month too. What is sold must already work, and must work for the buyer's own bank.
+
+- **PAY-1** "Remove ads" is a one-time purchase. It hides every ad slot (ADS-8) and changes nothing else. It follows the store account, so a new phone or a reinstall restores it.
+- **PAY-2** Plus is a subscription, yearly with a monthly option, because the bank connection it buys (section 25) costs us for every month it runs. It hides the ads while it is active, and when it lapses the connection stops and the ads come back — unless "Remove ads" was bought, which is kept forever either way (PAY-1). Nothing else changes, and nothing recorded is ever taken away (BANK-8).
+- **PAY-3** Until the bank connection actually works, Plus is shown as "coming soon", with no price and no way to buy it. Nothing is sold before it exists.
+- **PAY-4** Nothing that works today ever moves behind a payment. Every feature in v1 — entry, budgets, recurring, notes, insights, reports, backup, import, attachments, the widget, app lock — stays free for everyone, with or without ads. Paying removes ads and adds what is new.
+- **PAY-5** "Remove ads" needs no account and no server: the store's own receipt on the device decides it, "Restore purchases" sits beside the price, and the app asks the store what is owned at each launch, so a refund or a family-shared purchase takes effect without a reinstall. Plus is checked on the server the bank connection needs anyway, so a lapsed or refunded subscription actually stops the connection instead of being taken on trust.
+- **PAY-6** Prices come from the store, in the buyer's own currency. They are never hard-coded, and they have nothing to do with the app's currency setting (CUR-1).
+- **PAY-7** Selling is quiet: one row in Settings, and one small tap target on the ad slot itself. No interstitial upsell, no countdown, no trial that lapses into a charge, no repeated asking.
+- **PAY-8** A purchase that fails or is left pending never charges twice and never leaves the app half-paid: the slots stay as they were until the store confirms.
+- **PAY-9** Plus is only offered where it can work. The screen asks which bank first, and when no provider reaches it, the app says so and sells nothing — it points at the free notification route (ALERT-1) and the CSV import (IMP-1) instead.
+- **PAY-10** A subscription is cancelled in the store, never by asking us, and the app says where that is. It never dark-patterns: no "are you sure" chain, no offer wall on the way out, and the last day paid for is honoured.
+
+## 25. Automatic entry
+
+**They do:** nothing of the sort; every entry is typed in by hand.
+
+**Learn:** the entries people miss are the ones their bank already knows about. A real connection catches all of them, including the ones no notification ever mentions, but it exists only where a provider reaches that bank, and it costs money every month. Reading the phone's own notifications is free and reaches banks no provider does, but it sees only what the bank chooses to announce. Both are worth having, as long as neither writes to the ledger unread.
+
+### The bank connection (Plus)
+
+- **BANK-1** Plus connects to the bank through a licensed open-banking provider. The user signs in on the provider's or the bank's own screen: the app never sees a bank password, and neither do we.
+- **BANK-2** Transactions arrive whole — date, amount, merchant, account — and the user matches each bank account to an account in the app once, when the connection is made (ACC-1).
+- **BANK-3** An arriving transaction is still a proposal. It waits in a review list where the user confirms it, changes its category, or discards it, and nothing reaches the ledger unread (as with IMP-5 and RCR-2). Once a merchant has been filed the same way a few times, the app may suggest the category by itself, but never the amount, the date, or the account.
+- **BANK-4** A proposal that matches something already entered by hand, by amount, day, and account, is offered as a merge rather than added beside it (IMP-8).
+- **BANK-5** This is the one place the app's data leaves the device. The screen that starts a connection says in plain words what the provider receives and keeps, the privacy policy says the same, and none of it is ever shown to an ad network (ADS-7). Without Plus, the app still sends nothing anywhere.
+- **BANK-6** Disconnecting stops the flow at once, asks the provider to revoke its access, and deletes what our side holds for that connection. Everything already recorded stays, because it is the user's data (DEL-1).
+- **BANK-7** A connection that breaks — a consent that expired, a bank that changed its sign-in, a provider outage — says so on Home and offers to reconnect. It never fails quietly, and it never invents entries for the days it missed.
+- **BANK-8** When Plus lapses, the connection stops and the review list is cleared, but every transaction already recorded stays and stays editable.
+
+### Reading notifications (free, Android)
+
+- **ALERT-1** Where no provider reaches the bank, the app can read notifications from apps the user picks — the bank's own app, or the messaging app when the bank texts instead. It is free, needs no purchase, and is Android only: on iOS no app may read another's notifications.
+- **ALERT-2** It goes through Android's own notification-access screen, names exactly which apps will be read, and is one tap to turn off. Notifications from every other app are ignored and never stored.
+- **ALERT-3** Everything is parsed on the device. No notification text, bank name, amount, or merchant leaves the phone (BAK-6, ADS-7).
+- **ALERT-4** Every reading is a proposal, reviewed exactly like a connected bank's (BANK-3), with the same duplicate check (BANK-4).
+- **ALERT-5** A wording the app can't read confidently is kept as its own text, for the user to complete or throw away; nothing is guessed. A correction teaches the shape for that app on that phone, and is never uploaded or shared between users.
+- **ALERT-6** The app is honest about the limit: this route sees only what the bank chooses to announce, so no notification means no entry. A bank that has said nothing for two weeks prompts a look at its alert settings rather than silence.
+- **ALERT-7** The Play listing declares notification access and what it is for, and `docs/privacy-policy.md` says in plain words what is read, what is kept, and that it stays on the phone.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -285,6 +358,18 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 11. Attachments ship in v1, before the first-run page (section 21, roadmap Phase 4). A transaction carries one photo and one voice note; transfers and notes carry none. Voice notes stop at 60 seconds. Backups become a zip that carries the files, and plain JSON backups still restore (ATT-6).
 12. The universal 71 MB release APK stays as it is. Play receives the AAB and builds each device's download from it, so only sideloading from the GitHub Release sees the size.
+
+## Decisions (17 September 2026)
+
+13. Setup stays the first screen, because the language picked there is the language the walkthrough is read in — considered turning the order around on 17 September 2026 and decided against it the same day. What does move is the pair of actions for people arriving from elsewhere: "Restore a backup" and "Import a CSV" leave the setup page for a fifth walkthrough page, so setup asks only what the app itself needs (RUN-3, RUN-4).
+14. Banner ads ship in v1, with a real ad network, which ends "no ads, ever" (section 22). They bring the `INTERNET` permission with them (RUN-2), so the Play data-safety form, the App Store labels, the privacy policy, the walkthrough's privacy page, and the store listing all change in the same release. Nothing the user typed is ever handed to the network (ADS-7).
+15. The app matches the competitor's languages: 21 in all, adding Bengali, Chinese (Simplified), Dutch, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Thai, Urdu, and Vietnamese to the six it has (LANG-1). Urdu makes right to left a two-language case (LANG-5), and the PDF report needs fonts covering the new scripts (PDF-5).
+16. The three-dot menu becomes a navigation drawer (section 23), because nothing in it was being found.
+17. Tapping the period label on Home opens the calendar for that period (INS-4).
+18. Ads can be bought away: "Remove ads" is a one-time purchase, not a subscription and not a rewarded video (PAY-1). Every feature stays free with or without it (PAY-4).
+19. Plus is a subscription — yearly, with a monthly option — because what it buys costs us every month (PAY-2). It hides the ads while it runs, and it is shown as "coming soon" with no price until the connection works (PAY-3).
+20. What Plus sells is a real bank connection through a licensed open-banking provider, not notification scraping: transactions arrive whole, so nothing is missed (BANK-1, BANK-2). It brings a server, a provider contract, per-user fees, and the one place where the app's data leaves the device (BANK-5), all of which the privacy policy and the store listings must say plainly. Which market comes first is not decided: the first task is a coverage check of the banks that matter against what the providers actually reach and charge.
+21. Reading bank notifications stays, but free and outside Plus: it is the answer for banks and countries no provider reaches, Android only, parsed on the device, and honest about seeing only what the bank announces (ALERT-1–ALERT-7).
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

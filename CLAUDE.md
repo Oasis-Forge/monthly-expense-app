@@ -23,7 +23,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Flow: screen → `context.read/watch<TransactionProvider>()` → `DBHelper`
 
 ## Conventions
-- Product principles: no ads, no analytics/tracking SDKs or advertising ID, no account required; data leaves the device only through user-initiated export/backup.
+- Product principles: no account required; the user's own records (amounts, titles, notes, attachments) leave the device only through user-initiated export/backup, and the ad SDK is never given them (ADS-7). Banner ads and the `INTERNET` permission arrive with Phase 4's ads item; until then the app makes no network calls at all, and there is still no analytics or crash reporting.
 - State lives in providers; screens stay presentational. Don't add another state library.
 - Schema change = append a step to `DBHelper.schemaMigrations` (the version follows) and test it in `test/db_helper_test.dart`; never edit a merged step or `_createVersion1`.
 - Every model/provider change gets a test. DB tests use `sqflite_common_ffi` (copy the setup in `test/widget_test.dart`); widget and write-failure tests use `FakeDB`, `testApp`, and `testTx` from `test/helpers.dart`, with `FakeBackupFiles` and `FakeAuthenticator` standing in for file dialogs and `local_auth`.
