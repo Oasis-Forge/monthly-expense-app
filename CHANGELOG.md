@@ -4,6 +4,16 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-09-17
+
+### Added
+- The drawer now names every part of the app, in five groups: Add expense, Add income and Transfer; Budgets, Recurring and Notes; Spending by category, Calendar, Trend and Search; Accounts, Categories and Settings; both exports, Backup & restore and Trash. Accounts and Categories used to be reachable only through Settings, and the calendar and the trend only through Insights and then a tab.
+- Add expense and Add income open the form already set to that kind, so recording one is two taps from anywhere.
+- A settings button at the top right of the home screen.
+
+### Changed
+- The insights button has left the home screen's toolbar to make room for that settings button: the drawer names its three views separately, and tapping the month still opens the calendar for it.
+
 ## [1.8.1] - 2026-09-17
 
 ### Fixed
