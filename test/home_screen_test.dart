@@ -10,8 +10,10 @@ import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/accounts_screen.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
+import 'package:monthly_expense_app/screens/categories_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
@@ -199,21 +201,29 @@ void main() {
       () => tester.tap(find.byTooltip('Search')),
       SearchScreen,
     );
+    // NAV-6: the gear replaced the Insights action, which the drawer names
+    // three times over.
     await openAndReturn(
-      () => tester.tap(find.byTooltip('Insights')),
-      InsightsScreen,
+      () => tester.tap(find.byTooltip('Settings')),
+      SettingsScreen,
     );
     // Every destination the drawer names opens from it (NAV-1).
     for (final (label, screen) in [
+      ('Add expense', AddTransactionScreen),
+      ('Add income', AddTransactionScreen),
       ('Transfer', TransferScreen),
       ('Budgets', BudgetsScreen),
       ('Recurring', RecurringScreen),
       ('Notes', NotesScreen),
-      ('Insights', InsightsScreen),
+      ('Spending by category', InsightsScreen),
+      ('Calendar', InsightsScreen),
+      ('Trend', InsightsScreen),
       ('Search', SearchScreen),
+      ('Accounts', AccountsScreen),
+      ('Categories', CategoriesScreen),
+      ('Settings', SettingsScreen),
       ('Export PDF', ReportScreen),
       ('Backup & restore', BackupScreen),
-      ('Settings', SettingsScreen),
       ('Trash', TrashScreen),
     ]) {
       await openAndReturn(() => openMenu(tester, label), screen);
@@ -254,6 +264,48 @@ void main() {
     expect(tabs.index, 1);
     // The period came with it, rather than resetting (PER-1).
     expect(find.text('September 2026'), findsOneWidget);
+  });
+
+  testWidgets('the drawer opens each view of Insights directly (NAV-1)', (
+    tester,
+  ) async {
+    await showHome(tester);
+
+    for (final (label, tab) in [
+      ('Spending by category', 0),
+      ('Calendar', 1),
+      ('Trend', 2),
+    ]) {
+      await openMenu(tester, label);
+
+      expect(find.byType(InsightsScreen), findsOneWidget);
+      final tabs = DefaultTabController.of(tester.element(find.byType(TabBar)));
+      expect(tabs.index, tab, reason: label);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+    }
+  });
+
+  testWidgets('the drawer adds an expense or an income directly (NAV-1)', (
+    tester,
+  ) async {
+    await showHome(tester);
+
+    for (final (label, type) in [
+      ('Add expense', TransactionType.expense),
+      ('Add income', TransactionType.income),
+    ]) {
+      await openMenu(tester, label);
+
+      final segments = tester.widget<SegmentedButton<TransactionType>>(
+        find.byType(SegmentedButton<TransactionType>),
+      );
+      expect(segments.selected, {type}, reason: label);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+    }
   });
 
   testWidgets('Export CSV saves the selected period (BAK-5)', (tester) async {

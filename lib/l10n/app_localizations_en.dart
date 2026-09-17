@@ -188,13 +188,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerAddHeader => 'Add';
 
   @override
+  String get drawerAddExpense => 'Add expense';
+
+  @override
+  String get drawerAddIncome => 'Add income';
+
+  @override
   String get drawerPlanHeader => 'Plan';
 
   @override
   String get drawerReviewHeader => 'Look back';
 
   @override
+  String get drawerSpending => 'Spending by category';
+
+  @override
   String get drawerManageHeader => 'Manage';
+
+  @override
+  String get drawerDataHeader => 'Data';
 
   @override
   String get currencyLabel => 'Currency';

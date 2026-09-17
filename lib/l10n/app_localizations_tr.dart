@@ -188,13 +188,25 @@ class AppLocalizationsTr extends AppLocalizations {
   String get drawerAddHeader => 'Ekle';
 
   @override
+  String get drawerAddExpense => 'Gider ekle';
+
+  @override
+  String get drawerAddIncome => 'Gelir ekle';
+
+  @override
   String get drawerPlanHeader => 'Planla';
 
   @override
   String get drawerReviewHeader => 'Geriye bak';
 
   @override
+  String get drawerSpending => 'Kategoriye göre harcama';
+
+  @override
   String get drawerManageHeader => 'Yönet';
+
+  @override
+  String get drawerDataHeader => 'Veriler';
 
   @override
   String get currencyLabel => 'Para birimi';

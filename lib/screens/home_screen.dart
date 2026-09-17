@@ -10,9 +10,11 @@ import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'accounts_screen.dart';
 import 'add_transaction_screen.dart';
 import 'backup_screen.dart';
 import 'budgets_screen.dart';
+import 'categories_screen.dart';
 import 'csv_export_action.dart';
 import 'delete_snack_bar.dart';
 import 'insights_screen.dart';
@@ -75,10 +77,12 @@ class HomeScreen extends StatelessWidget {
             tooltip: l10n.searchTooltip,
             onPressed: () => _open(context, const SearchScreen()),
           ),
+          // NAV-6: the toolbar keeps two actions so the name still fits at
+          // large text; Insights has three named rows in the drawer instead.
           IconButton(
-            icon: const Icon(Icons.insights_outlined),
-            tooltip: l10n.insightsTooltip,
-            onPressed: () => _open(context, const InsightsScreen()),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: l10n.settingsTitle,
+            onPressed: () => _open(context, const SettingsScreen()),
           ),
         ],
       ),
@@ -215,6 +219,20 @@ class _HomeDrawer extends StatelessWidget {
             ),
             header(l10n.drawerAddHeader),
             row(
+              Icons.arrow_upward,
+              l10n.drawerAddExpense,
+              () => open(
+                const AddTransactionScreen(startAs: TransactionType.expense),
+              ),
+            ),
+            row(
+              Icons.arrow_downward,
+              l10n.drawerAddIncome,
+              () => open(
+                const AddTransactionScreen(startAs: TransactionType.income),
+              ),
+            ),
+            row(
               Icons.swap_horiz,
               l10n.transferTitle,
               () => open(const TransferScreen()),
@@ -236,16 +254,45 @@ class _HomeDrawer extends StatelessWidget {
               () => open(const NotesScreen()),
             ),
             header(l10n.drawerReviewHeader),
+            // Each view of Insights is its own row, so the one being looked
+            // for is reached in one tap rather than a tap and a tab (NAV-1).
+            row(
+              Icons.pie_chart_outline,
+              l10n.drawerSpending,
+              () => open(const InsightsScreen()),
+            ),
+            row(
+              Icons.calendar_month_outlined,
+              l10n.calendarTab,
+              () => open(const InsightsScreen(initialTab: 1)),
+            ),
             row(
               Icons.insights_outlined,
-              l10n.insightsTitle,
-              () => open(const InsightsScreen()),
+              l10n.trendTab,
+              () => open(const InsightsScreen(initialTab: 2)),
             ),
             row(
               Icons.search,
               l10n.searchTooltip,
               () => open(const SearchScreen()),
             ),
+            header(l10n.drawerManageHeader),
+            row(
+              Icons.account_balance_wallet_outlined,
+              l10n.accountsTitle,
+              () => open(const AccountsScreen()),
+            ),
+            row(
+              Icons.category_outlined,
+              l10n.categoriesTitle,
+              () => open(const CategoriesScreen()),
+            ),
+            row(
+              Icons.settings_outlined,
+              l10n.settingsTitle,
+              () => open(const SettingsScreen()),
+            ),
+            header(l10n.drawerDataHeader),
             row(
               Icons.table_view_outlined,
               l10n.exportCsvMenu,
@@ -256,16 +303,10 @@ class _HomeDrawer extends StatelessWidget {
               l10n.exportPdfMenu,
               () => open(const ReportScreen()),
             ),
-            header(l10n.drawerManageHeader),
             row(
               Icons.backup_outlined,
               l10n.backupTitle,
               () => open(const BackupScreen()),
-            ),
-            row(
-              Icons.settings_outlined,
-              l10n.settingsTitle,
-              () => open(const SettingsScreen()),
             ),
             row(
               Icons.delete_outline,

@@ -134,6 +134,23 @@ void main() {
             screen,
             backup: screen is ImportScreen ? withSampleCsv() : null,
           );
+          if (screen is HomeScreen) {
+            // Every drawer row is text of its own, and the list is longer
+            // than a phone, so it is scrolled through (NAV-1, NAV-2).
+            tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+            await tester.pumpAndSettle();
+            await tester.scrollUntilVisible(
+              find.text(l10n.trashTitle),
+              120,
+              scrollable: find
+                  .descendant(
+                    of: find.byType(Drawer),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first,
+            );
+            await tester.pumpAndSettle();
+          }
           if (screen is ImportScreen) {
             // The preview is the part with the long labels in it.
             await tester.tap(find.text(l10n.importChooseFile));
@@ -185,6 +202,16 @@ void main() {
         x(tester, find.byTooltip(l10n.previousPeriodTooltip)),
         greaterThan(x(tester, find.byTooltip(l10n.nextPeriodTooltip))),
       );
+    });
+
+    testWidgets('the drawer opens from the right (NAV-3)', (tester) async {
+      await show(tester, 'ar', const HomeScreen());
+      tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+      await tester.pumpAndSettle();
+
+      // A phone is 360 wide here: the drawer is against the right edge.
+      expect(tester.getTopRight(find.byType(Drawer)).dx, 360);
+      expect(tester.getTopLeft(find.byType(Drawer)).dx, greaterThan(0));
     });
 
     testWidgets('the walkthrough skips on the left and runs right to left', (

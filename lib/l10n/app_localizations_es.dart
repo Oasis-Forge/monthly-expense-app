@@ -191,13 +191,25 @@ class AppLocalizationsEs extends AppLocalizations {
   String get drawerAddHeader => 'Añadir';
 
   @override
+  String get drawerAddExpense => 'Añadir gasto';
+
+  @override
+  String get drawerAddIncome => 'Añadir ingreso';
+
+  @override
   String get drawerPlanHeader => 'Planificar';
 
   @override
   String get drawerReviewHeader => 'Revisar';
 
   @override
+  String get drawerSpending => 'Gastos por categoría';
+
+  @override
   String get drawerManageHeader => 'Gestionar';
+
+  @override
+  String get drawerDataHeader => 'Datos';
 
   @override
   String get currencyLabel => 'Moneda';

@@ -287,13 +287,15 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **They do:** a bottom tab bar for home, calendar and notes, a drawer behind the toolbar's menu button, an overflow menu, and Add income, Add expense and Transfer as buttons on Home.
 
-**Learn:** our three-dot menu is where everything that isn't Home ended up — Transfer, Budgets, Recurring, Notes, the exports, Backup, Settings, Trash. It is one small target that says nothing about what is behind it, and people don't open it. A named list they can see beats a menu they have to guess at.
+**Learn:** our three-dot menu is where everything that isn't Home ended up — Transfer, Budgets, Recurring, Notes, the exports, Backup, Settings, Trash. It is one small target that says nothing about what is behind it, and people don't open it. A named list they can see beats a menu they have to guess at. A drawer that only names half the app has the same fault one layer down, so every destination is in it, and the ones people reach for most — adding, and each view of the insights — are rows of their own rather than a screen to land on and then navigate.
 
-- **NAV-1** Every destination that isn't Home lives in a navigation drawer, opened from the toolbar's menu button or an edge swipe: Transfer, Budgets, Recurring, Notes, Insights, Search, Export CSV, Export PDF, Backup & restore, Settings, and Trash. The three-dot overflow goes.
-- **NAV-2** The drawer is grouped under headings: adding (Transfer), planning (Budgets, Recurring, Notes), looking back (Insights, Search, Export CSV, Export PDF), and the rest (Backup & restore, Settings, Trash). Every row has an icon and a translated label (LANG-2).
+- **NAV-1** Every destination that isn't Home lives in a navigation drawer, opened from the toolbar's menu button or an edge swipe: Add expense, Add income, Transfer, Budgets, Recurring, Notes, Spending by category, Calendar, Trend, Search, Accounts, Categories, Settings, Export CSV, Export PDF, Backup & restore, and Trash. A row goes where it says: the three views of Insights are named one by one and each opens on its own (INS-1–INS-3), and Add expense and Add income open the form already on that type. The three-dot overflow goes.
+- **NAV-2** The drawer is grouped under headings: adding (Add expense, Add income, Transfer), planning (Budgets, Recurring, Notes), looking back (Spending by category, Calendar, Trend, Search), managing (Accounts, Categories, Settings), and data (Export CSV, Export PDF, Backup & restore, Trash). Every row has an icon and a translated label (LANG-2), and the list scrolls on a phone.
 - **NAV-3** The drawer opens from the leading edge: the left in left-to-right languages, the right in Arabic and Urdu (LANG-5). Choosing a destination closes it, and Back closes it before it leaves the screen.
-- **NAV-4** Home keeps its own quick paths — the period selector (INS-4), Search and Insights in the toolbar, and the add button — so the everyday round never goes through the drawer.
+- **NAV-4** Home keeps its own quick paths — the period selector (INS-4), Search and Settings in the toolbar, and the add button — so the everyday round never goes through the drawer.
 - **NAV-5** The drawer is for going somewhere and nothing else: no settings toggles, no account area, no ads (ADS-1).
+- **NAV-6** The toolbar carries two actions, Search and Settings, with Settings at the trailing edge. A third would squeeze the app's name, which is the same untranslated words in every language (LANG-6); Insights lost its toolbar icon to the gear and is named three times in the drawer instead.
+- **NAV-7** Nothing is more than two taps from Home: open the drawer, choose the row. Accounts and Categories are among those rows as well as in Settings, and adding one is the button on the list itself.
 
 ## 24. Paying
 
