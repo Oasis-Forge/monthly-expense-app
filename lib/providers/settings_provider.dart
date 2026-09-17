@@ -37,6 +37,20 @@ class SettingsProvider extends ChangeNotifier {
     if (firstOpened == null) {
       unawaited(_prefs.setString(_firstOpenedKey, _stamp(_firstOpenedAt)));
     }
+    // RUN-5: only a first-ever launch has neither `first_opened_at` nor these
+    // two, so an update onto a device that has used the app before shows
+    // neither the setup page nor the walkthrough, and keeps its settings.
+    final usedBefore = firstOpened != null;
+    _setupDone = _prefs.getBool(_setupDoneKey) ?? usedBefore;
+    _walkthroughSeen = _prefs.getBool(_walkthroughSeenKey) ?? usedBefore;
+    // Saved as they stand, so a first launch closed halfway through setup
+    // opens it again next time instead of looking like an update (RUN-5).
+    if (!_prefs.containsKey(_setupDoneKey)) {
+      unawaited(_prefs.setBool(_setupDoneKey, _setupDone));
+    }
+    if (!_prefs.containsKey(_walkthroughSeenKey)) {
+      unawaited(_prefs.setBool(_walkthroughSeenKey, _walkthroughSeen));
+    }
   }
 
   static const _languageKey = 'language';
@@ -51,6 +65,8 @@ class SettingsProvider extends ChangeNotifier {
   static const _firstOpenedKey = 'first_opened_at';
   static const _appLockKey = 'app_lock';
   static const _showWidgetAmountsKey = 'show_widget_amounts';
+  static const _setupDoneKey = 'setup_done';
+  static const _walkthroughSeenKey = 'walkthrough_seen';
 
   /// Transactions needed before the first backup reminder (BAK-7).
   static const backupReminderThreshold = 20;
@@ -72,6 +88,8 @@ class SettingsProvider extends ChangeNotifier {
   late final DateTime _firstOpenedAt;
   bool _appLock;
   bool _showWidgetAmounts;
+  late bool _setupDone;
+  late bool _walkthroughSeen;
 
   /// The chosen language code, or null to follow the device (LANG-1).
   String? get languageCode => _languageCode;
@@ -110,6 +128,14 @@ class SettingsProvider extends ChangeNotifier {
   /// (WID-4). Off by default, so turning app lock on takes them off the home
   /// screen too.
   bool get showWidgetAmounts => _showWidgetAmounts;
+
+  /// Whether the setup page is behind us (RUN-3). It shows until it is
+  /// finished, so an app closed halfway through opens it again (RUN-5).
+  bool get setupDone => _setupDone;
+
+  /// Whether the walkthrough has run, seen through or skipped (RUN-4). It
+  /// shows once; Settings replays it without changing this (RUN-5).
+  bool get walkthroughSeen => _walkthroughSeen;
 
   /// The currency [locale] uses, or USD when intl doesn't know the locale.
   static String defaultCurrencyFor(String? locale) {
@@ -242,6 +268,23 @@ class SettingsProvider extends ChangeNotifier {
     if (show == _showWidgetAmounts) return;
     await _prefs.setBool(_showWidgetAmountsKey, show);
     _showWidgetAmounts = show;
+    notifyListeners();
+  }
+
+  /// Records that setup is finished (RUN-3, RUN-5).
+  Future<void> completeSetup() async {
+    if (_setupDone) return;
+    await _prefs.setBool(_setupDoneKey, true);
+    _setupDone = true;
+    notifyListeners();
+  }
+
+  /// Records that the walkthrough has had its turn, whether it was read or
+  /// skipped (RUN-4, RUN-5).
+  Future<void> completeWalkthrough() async {
+    if (_walkthroughSeen) return;
+    await _prefs.setBool(_walkthroughSeenKey, true);
+    _walkthroughSeen = true;
     notifyListeners();
   }
 

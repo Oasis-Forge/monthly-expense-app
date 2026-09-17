@@ -1276,6 +1276,114 @@ abstract class AppLocalizations {
   /// **'Add your first transaction'**
   String get addFirstTransactionButton;
 
+  /// Under the title on the first-launch setup page (RUN-3).
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language and currency. You can change them later in Settings.'**
+  String get setupIntro;
+
+  /// Finishes the setup page and opens the walkthrough (RUN-3).
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get setupContinueButton;
+
+  /// Secondary action on the setup page: restore a backup file (RUN-3, BAK-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Restore a backup'**
+  String get setupRestoreTitle;
+
+  /// No description provided for @setupRestoreSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring your data and settings back from a backup file'**
+  String get setupRestoreSubtitle;
+
+  /// Walkthrough page 1 of 4: quick entry (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Add in seconds'**
+  String get walkthroughEntryTitle;
+
+  /// No description provided for @walkthroughEntryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A keypad that adds up, a photo of the receipt, and a voice note when typing is slow.'**
+  String get walkthroughEntryBody;
+
+  /// Walkthrough page 2 of 4: budgets, recurring bills, notes (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Plan the month'**
+  String get walkthroughPlanTitle;
+
+  /// No description provided for @walkthroughPlanBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Budgets by category, bills that repeat by themselves, and notes that remind you.'**
+  String get walkthroughPlanBody;
+
+  /// Walkthrough page 3 of 4: insights and reports (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'See where it goes'**
+  String get walkthroughInsightsTitle;
+
+  /// No description provided for @walkthroughInsightsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Charts, a calendar, and a PDF or CSV report for any period.'**
+  String get walkthroughInsightsBody;
+
+  /// Walkthrough page 4 of 4: privacy, backups, app lock (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Yours alone'**
+  String get walkthroughPrivacyTitle;
+
+  /// No description provided for @walkthroughPrivacyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.'**
+  String get walkthroughPrivacyBody;
+
+  /// No description provided for @walkthroughNextButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get walkthroughNextButton;
+
+  /// Last page of the walkthrough on a first launch: opens Home (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get walkthroughStartButton;
+
+  /// Last page of the walkthrough when it is replayed from Settings (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get walkthroughDoneButton;
+
+  /// Read out for the walkthrough page dots. {current} is the page on screen, {total} how many there are.
+  ///
+  /// In en, this message translates to:
+  /// **'Page {current} of {total}'**
+  String walkthroughProgress(int current, int total);
+
+  /// Settings tile that shows the walkthrough again (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Replay the walkthrough'**
+  String get walkthroughReplayTitle;
+
+  /// No description provided for @walkthroughReplaySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'The four pages shown when the app was new'**
+  String get walkthroughReplaySubtitle;
+
   /// No description provided for @exportCsvMenu.
   ///
   /// In en, this message translates to:

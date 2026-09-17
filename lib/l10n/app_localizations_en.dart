@@ -710,6 +710,69 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addFirstTransactionButton => 'Add your first transaction';
 
   @override
+  String get setupIntro =>
+      'Choose your language and currency. You can change them later in Settings.';
+
+  @override
+  String get setupContinueButton => 'Continue';
+
+  @override
+  String get setupRestoreTitle => 'Restore a backup';
+
+  @override
+  String get setupRestoreSubtitle =>
+      'Bring your data and settings back from a backup file';
+
+  @override
+  String get walkthroughEntryTitle => 'Add in seconds';
+
+  @override
+  String get walkthroughEntryBody =>
+      'A keypad that adds up, a photo of the receipt, and a voice note when typing is slow.';
+
+  @override
+  String get walkthroughPlanTitle => 'Plan the month';
+
+  @override
+  String get walkthroughPlanBody =>
+      'Budgets by category, bills that repeat by themselves, and notes that remind you.';
+
+  @override
+  String get walkthroughInsightsTitle => 'See where it goes';
+
+  @override
+  String get walkthroughInsightsBody =>
+      'Charts, a calendar, and a PDF or CSV report for any period.';
+
+  @override
+  String get walkthroughPrivacyTitle => 'Yours alone';
+
+  @override
+  String get walkthroughPrivacyBody =>
+      'No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.';
+
+  @override
+  String get walkthroughNextButton => 'Next';
+
+  @override
+  String get walkthroughStartButton => 'Get started';
+
+  @override
+  String get walkthroughDoneButton => 'Done';
+
+  @override
+  String walkthroughProgress(int current, int total) {
+    return 'Page $current of $total';
+  }
+
+  @override
+  String get walkthroughReplayTitle => 'Replay the walkthrough';
+
+  @override
+  String get walkthroughReplaySubtitle =>
+      'The four pages shown when the app was new';
+
+  @override
   String get exportCsvMenu => 'Export CSV';
 
   @override

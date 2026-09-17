@@ -720,6 +720,68 @@ class AppLocalizationsDe extends AppLocalizations {
   String get addFirstTransactionButton => 'Erste Buchung hinzufügen';
 
   @override
+  String get setupIntro =>
+      'Wähle deine Sprache und Währung. Du kannst sie später in den Einstellungen ändern.';
+
+  @override
+  String get setupContinueButton => 'Weiter';
+
+  @override
+  String get setupRestoreTitle => 'Backup wiederherstellen';
+
+  @override
+  String get setupRestoreSubtitle =>
+      'Daten und Einstellungen aus einer Backup-Datei zurückholen';
+
+  @override
+  String get walkthroughEntryTitle => 'In Sekunden erfasst';
+
+  @override
+  String get walkthroughEntryBody =>
+      'Ein Ziffernfeld, das rechnet, ein Foto vom Beleg und eine Sprachnotiz, wenn Tippen zu lange dauert.';
+
+  @override
+  String get walkthroughPlanTitle => 'Den Monat planen';
+
+  @override
+  String get walkthroughPlanBody =>
+      'Budgets je Kategorie, Rechnungen, die sich selbst wiederholen, und Notizen, die dich erinnern.';
+
+  @override
+  String get walkthroughInsightsTitle => 'Sieh, wohin es fließt';
+
+  @override
+  String get walkthroughInsightsBody =>
+      'Diagramme, ein Kalender und ein PDF- oder CSV-Bericht für jeden Zeitraum.';
+
+  @override
+  String get walkthroughPrivacyTitle => 'Nur deins';
+
+  @override
+  String get walkthroughPrivacyBody =>
+      'Kein Konto, keine Werbung, kein Tracking. Deine Daten bleiben hier, gesichert und gesperrt, wenn du es willst.';
+
+  @override
+  String get walkthroughNextButton => 'Weiter';
+
+  @override
+  String get walkthroughStartButton => 'Los geht\'s';
+
+  @override
+  String get walkthroughDoneButton => 'Fertig';
+
+  @override
+  String walkthroughProgress(int current, int total) {
+    return 'Seite $current von $total';
+  }
+
+  @override
+  String get walkthroughReplayTitle => 'Rundgang erneut ansehen';
+
+  @override
+  String get walkthroughReplaySubtitle => 'Die vier Seiten vom ersten Start';
+
+  @override
   String get exportCsvMenu => 'CSV exportieren';
 
   @override

@@ -15,20 +15,36 @@ void main() {
     databaseFactory = databaseFactoryFfi;
   });
 
-  testWidgets('App starts and shows the home screen', (
-    WidgetTester tester,
-  ) async {
-    final settings = await testSettings();
-    // Deliberately not the device one: no test should reach the platform.
+  /// Starts the whole app over [values]. Deliberately not the device's
+  /// services: no test should reach the platform.
+  Future<void> startApp(
+    WidgetTester tester, [
+    Map<String, Object> values = const {},
+  ]) async {
     await tester.pumpWidget(
       MonthlyExpenseApp(
-        settings: settings,
+        settings: await testSettings(values),
         homeWidget: const NoopHomeWidgetService(),
       ),
     );
     await tester.pump();
+  }
+
+  testWidgets('App starts and shows the home screen', (
+    WidgetTester tester,
+  ) async {
+    await startApp(tester, {'setup_done': true, 'walkthrough_seen': true});
 
     expect(find.text('Monthly Expenses'), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
+  });
+
+  testWidgets('A first launch starts at setup instead (RUN-3)', (
+    WidgetTester tester,
+  ) async {
+    await startApp(tester);
+
+    expect(find.text('Continue'), findsOneWidget);
+    expect(find.text('Language'), findsOneWidget);
   });
 }

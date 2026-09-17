@@ -14,7 +14,7 @@ import 'providers/settings_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'screens/add_transaction_screen.dart';
 import 'screens/app_lock.dart';
-import 'screens/home_screen.dart';
+import 'screens/first_run_gate.dart';
 import 'screens/note_form_screen.dart';
 import 'screens/notes_screen.dart';
 import 'services/attachment_service.dart';
@@ -116,7 +116,7 @@ class MonthlyExpenseApp extends StatelessWidget {
             builder: (context, child) => AppLock(
               child: _NoteReminderTaps(child: _WidgetTaps(child: child!)),
             ),
-            home: const HomeScreen(),
+            home: const FirstRunGate(),
           ),
         ),
       ),

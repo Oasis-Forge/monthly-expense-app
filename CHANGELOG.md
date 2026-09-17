@@ -4,6 +4,15 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-09-17
+
+### Added
+- A first launch now opens a setup page for your language and currency, with "Restore a backup" and "Import a CSV" as the way in from another phone or another app.
+- A four-page walkthrough after setup: quick entry, planning, insights and privacy. Every page can be skipped, and Settings can play it again.
+
+### Changed
+- Restoring a backup during setup brings its settings and goes straight to your data, skipping the walkthrough.
+
 ## [1.6.0] - 2026-09-16
 
 ### Added

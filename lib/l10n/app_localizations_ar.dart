@@ -735,6 +735,69 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addFirstTransactionButton => 'أضف معاملتك الأولى';
 
   @override
+  String get setupIntro =>
+      'اختر لغتك وعملتك. يمكنك تغييرهما لاحقًا من الإعدادات.';
+
+  @override
+  String get setupContinueButton => 'متابعة';
+
+  @override
+  String get setupRestoreTitle => 'استعادة نسخة احتياطية';
+
+  @override
+  String get setupRestoreSubtitle =>
+      'أعد بياناتك وإعداداتك من ملف نسخة احتياطية';
+
+  @override
+  String get walkthroughEntryTitle => 'أضف في ثوانٍ';
+
+  @override
+  String get walkthroughEntryBody =>
+      'لوحة أرقام تحسب المجموع، وصورة للإيصال، وملاحظة صوتية حين تكون الكتابة بطيئة.';
+
+  @override
+  String get walkthroughPlanTitle => 'خطّط للشهر';
+
+  @override
+  String get walkthroughPlanBody =>
+      'ميزانيات لكل فئة، وفواتير تتكرر من تلقاء نفسها، وملاحظات تذكّرك.';
+
+  @override
+  String get walkthroughInsightsTitle => 'اعرف أين تذهب نقودك';
+
+  @override
+  String get walkthroughInsightsBody =>
+      'رسوم بيانية وتقويم وتقرير PDF أو CSV لأي فترة.';
+
+  @override
+  String get walkthroughPrivacyTitle => 'لك وحدك';
+
+  @override
+  String get walkthroughPrivacyBody =>
+      'بلا حساب ولا إعلانات ولا تتبّع. تبقى بياناتك هنا، وأنت من يقرر نسخها وقفلها.';
+
+  @override
+  String get walkthroughNextButton => 'التالي';
+
+  @override
+  String get walkthroughStartButton => 'لنبدأ';
+
+  @override
+  String get walkthroughDoneButton => 'تم';
+
+  @override
+  String walkthroughProgress(int current, int total) {
+    return 'الصفحة $current من $total';
+  }
+
+  @override
+  String get walkthroughReplayTitle => 'إعادة عرض الجولة';
+
+  @override
+  String get walkthroughReplaySubtitle =>
+      'الصفحات الأربع التي ظهرت عند تثبيت التطبيق';
+
+  @override
   String get exportCsvMenu => 'تصدير CSV';
 
   @override

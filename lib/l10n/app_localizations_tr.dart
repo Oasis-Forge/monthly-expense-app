@@ -710,6 +710,69 @@ class AppLocalizationsTr extends AppLocalizations {
   String get addFirstTransactionButton => 'İlk işleminizi ekleyin';
 
   @override
+  String get setupIntro =>
+      'Dilinizi ve para biriminizi seçin. Bunları sonra Ayarlar\'dan değiştirebilirsiniz.';
+
+  @override
+  String get setupContinueButton => 'Devam';
+
+  @override
+  String get setupRestoreTitle => 'Yedeği geri yükle';
+
+  @override
+  String get setupRestoreSubtitle =>
+      'Verilerinizi ve ayarlarınızı bir yedek dosyasından geri getirin';
+
+  @override
+  String get walkthroughEntryTitle => 'Saniyeler içinde ekleyin';
+
+  @override
+  String get walkthroughEntryBody =>
+      'Toplama yapan bir tuş takımı, fişin fotoğrafı ve yazmak yavaş geldiğinde bir ses notu.';
+
+  @override
+  String get walkthroughPlanTitle => 'Ayı planlayın';
+
+  @override
+  String get walkthroughPlanBody =>
+      'Kategoriye göre bütçeler, kendi kendine tekrarlayan faturalar ve size hatırlatan notlar.';
+
+  @override
+  String get walkthroughInsightsTitle => 'Nereye gittiğini görün';
+
+  @override
+  String get walkthroughInsightsBody =>
+      'Grafikler, bir takvim ve istediğiniz dönem için PDF veya CSV raporu.';
+
+  @override
+  String get walkthroughPrivacyTitle => 'Yalnızca size ait';
+
+  @override
+  String get walkthroughPrivacyBody =>
+      'Hesap yok, reklam yok, takip yok. Verileriniz burada kalır; yedeklemeye ve kilitlemeye siz karar verirsiniz.';
+
+  @override
+  String get walkthroughNextButton => 'İleri';
+
+  @override
+  String get walkthroughStartButton => 'Başlayın';
+
+  @override
+  String get walkthroughDoneButton => 'Bitti';
+
+  @override
+  String walkthroughProgress(int current, int total) {
+    return 'Sayfa $current / $total';
+  }
+
+  @override
+  String get walkthroughReplayTitle => 'Tanıtımı yeniden izleyin';
+
+  @override
+  String get walkthroughReplaySubtitle =>
+      'Uygulama yeniyken gösterilen dört sayfa';
+
+  @override
   String get exportCsvMenu => 'CSV dışa aktar';
 
   @override

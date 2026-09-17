@@ -24,7 +24,9 @@ import 'package:monthly_expense_app/screens/recurring_screen.dart';
 import 'package:monthly_expense_app/screens/report_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
+import 'package:monthly_expense_app/screens/setup_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
+import 'package:monthly_expense_app/screens/walkthrough_screen.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
@@ -117,6 +119,8 @@ void main() {
     'Settings': SettingsScreen(),
     'Backup': BackupScreen(),
     'Import': ImportScreen(),
+    'Setup': SetupScreen(),
+    'Walkthrough': WalkthroughScreen(),
   };
 
   group('screens fit in every language at 1.3× text (LANG-6)', () {
@@ -135,6 +139,13 @@ void main() {
             await tester.tap(find.text(l10n.importChooseFile));
             await tester.pumpAndSettle();
             expect(find.text(l10n.importColumnsHeader), findsOne);
+          }
+          if (screen is WalkthroughScreen) {
+            // Each page carries its own text, so every one is looked at.
+            for (var page = 1; page < 4; page++) {
+              await tester.tap(find.text(l10n.walkthroughNextButton));
+              await tester.pumpAndSettle();
+            }
           }
           if (screen is AddTransactionScreen) {
             await tester.tap(find.text(l10n.amountLabel));
@@ -171,6 +182,31 @@ void main() {
       expect(
         x(tester, find.byTooltip(l10n.previousPeriodTooltip)),
         greaterThan(x(tester, find.byTooltip(l10n.nextPeriodTooltip))),
+      );
+    });
+
+    testWidgets('the walkthrough skips on the left and runs right to left', (
+      tester,
+    ) async {
+      await show(tester, 'ar', const WalkthroughScreen());
+      // A phone is 360 wide here, so the end of the row is its left half.
+      expect(x(tester, find.text(l10n.skipButton)), lessThan(180));
+
+      final first = x(tester, find.text(l10n.walkthroughEntryTitle));
+      await tester.tap(find.text(l10n.walkthroughNextButton));
+      // One frame starts the slide, the next takes it partway.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // The page being left moves right as the next one comes in from the
+      // left (RUN-4, LANG-5).
+      expect(
+        x(tester, find.text(l10n.walkthroughEntryTitle)),
+        greaterThan(first),
+      );
+      expect(
+        x(tester, find.text(l10n.walkthroughPlanTitle)),
+        lessThan(x(tester, find.text(l10n.walkthroughEntryTitle))),
       );
     });
 

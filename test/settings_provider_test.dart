@@ -205,6 +205,29 @@ void main() {
     expect(target.weekStartDay, isNull);
   });
 
+  test('setup and the walkthrough wait for a first launch, not an update '
+      '(RUN-5)', () async {
+    final fresh = await prefsWith({});
+    final first = SettingsProvider(fresh);
+    expect((first.setupDone, first.walkthroughSeen), (false, false));
+
+    // Closed on the setup page: the next launch is not an update.
+    await Future<void>.delayed(Duration.zero);
+    final again = SettingsProvider(fresh);
+    expect((again.setupDone, again.walkthroughSeen), (false, false));
+
+    await again.completeSetup();
+    await again.completeWalkthrough();
+    final settled = SettingsProvider(fresh);
+    expect((settled.setupDone, settled.walkthroughSeen), (true, true));
+
+    // A phone that used an older version has a first-opened date already.
+    final old = SettingsProvider(
+      await prefsWith({'first_opened_at': '2026-01-04T08:00:00.000Z'}),
+    );
+    expect((old.setupDone, old.walkthroughSeen), (true, true));
+  });
+
   test('language follows the device until one is chosen (LANG-1)', () async {
     final prefs = await prefsWith({'language': 'xx'});
     final settings = SettingsProvider(prefs);
