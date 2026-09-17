@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-09-17
+
+### Changed
+- No change to the app itself. This release records decisions taken on 17 September 2026: banner ads in two places, fifteen more languages, a navigation drawer in place of the three-dot menu, tapping the month to open the calendar, and the walkthrough coming before the setup page.
+
 ## [1.7.0] - 2026-09-17
 
 ### Added

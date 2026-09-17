@@ -6,7 +6,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - Rule IDs (`MONEY-1`) are stable. Tests and PRs reference them.
 - "Not verified" marks competitor behavior we saw only partly.
-- Every rule keeps the product principles in `CLAUDE.md`: no ads, no tracking, no account, and data leaves the device only when the user exports it.
+- Every rule keeps the product principles in `CLAUDE.md`: no account, and the app's own data leaves the device only when the user exports it. Banner ads arrive with section 22; they bring the network with them, but never carry anything the user typed.
 
 ## 1. Data foundations
 
@@ -154,13 +154,13 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **They do:** open straight to Home with a Drive backup prompt and a banner ad; the default account uses the app's name.
 
-**Learn:** the first launch should settle what the device can't tell us for sure, the language and the currency, on one screen, and explain the app without delaying the first entry. Asking for an account, permissions, or cloud backup up front costs trust.
+**Learn:** the first launch should explain the app before it asks anything, then settle what the device can't tell us for sure — the language and the currency — on one screen. Asking for an account, permissions, or cloud backup up front costs trust.
 
-- **RUN-1** After setup (RUN-3) and the walkthrough (RUN-4), an empty Home shows one clear "Add your first transaction" action.
-- **RUN-2** The Android release build declares no `INTERNET` permission while the app has no feature that needs it, so the store listing can truthfully say "no data collected".
-- **RUN-3** The first launch opens one setup page with the language (LANG-1) and the currency (CUR-1), both preselected from the device locale, so most people only tap Continue. Picking a language switches the page at once. The page asks for nothing else: no account, no permissions, no cloud backup. A secondary "Restore a backup" action restores a backup file with Replace (BAK-2), which brings its settings, and skips the walkthrough. An "Import a CSV" action beside it reads a file from another app (IMP-1); it brings no settings, so the walkthrough still follows.
-- **RUN-4** A walkthrough of up to four pages follows: quick entry, planning (budgets, recurring, notes), insights and reports, and privacy (data stays on the device, backups, app lock). Every page has Skip, and the last one opens Home. It runs right to left in Arabic (LANG-5), respects the device's reduce-motion setting, and can be replayed from Settings.
-- **RUN-5** Setup shows until it's finished. The walkthrough shows once, even when skipped. An app update on a device that already has data skips both and keeps the current settings.
+- **RUN-1** After the walkthrough (RUN-4) and setup (RUN-3), an empty Home shows one clear "Add your first transaction" action.
+- **RUN-2** The Android release build asks for `INTERNET` only so the ad slots in section 22 can fill. No other feature touches the network, and the store listing declares what the ad network collects and nothing more (ADS-6).
+- **RUN-3** Setup is one page, and it comes after the walkthrough: the language (LANG-1) and the currency (CUR-1), both preselected from the device locale, so most people only tap Continue. Picking a language switches the page at once. It asks for nothing else: no account, no permissions, no cloud backup. Continue opens Home.
+- **RUN-4** The first launch opens the walkthrough: four pages on quick entry, planning (budgets, recurring, notes), insights and reports, and what stays on the device, then a fifth page for people arriving from somewhere else — "Restore a backup", which restores with Replace (BAK-2), and "Import a CSV" (IMP-1). A backup carries its own language and currency, so it goes straight to Home; an import carries neither, so setup follows. Every page has Skip, which goes to setup, and so does the last page. The walkthrough runs right to left in Arabic and Urdu (LANG-5), respects the device's reduce-motion setting, and can be replayed from Settings.
+- **RUN-5** The walkthrough shows once, even when skipped. Setup shows until it's finished. An app update on a device that already has data skips both and keeps the current settings.
 
 ## 14. Insights
 
@@ -171,6 +171,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **INS-1** The calendar shows the selected period as a month grid with each day's expense and income. Weeks start on the first day of the week (PER-4). Upcoming days show their amounts faintly, because they don't count yet (BAL-4). Tapping a day lists its transactions and transfers.
 - **INS-2** The trend shows income and expense for the last 6 or 12 periods, ending with the selected one. Only entries that count are included (BAL-4), and the averages leave out periods that haven't started.
 - **INS-3** The category chart works for any period and shows expense or income, with budget progress for expense (BUD-2).
+- **INS-4** Tapping the period label on Home opens Insights on the calendar for that period (INS-1). The arrows beside it still move between periods (PER-1), and inside Insights the label does nothing, since the calendar is already there.
 
 ## 15. App lock
 
@@ -184,16 +185,16 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 ## 16. Languages
 
-**They do:** 16 languages. Translation quality, right-to-left layout, and number formats in those languages: not verified.
+**They do:** their own strings carry 20 languages besides English — Arabic, Bengali, Chinese (Simplified), Dutch, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Spanish, Thai, Turkish, Urdu, and Vietnamese, with Portuguese only partly done — read from the app's own resources on 17 September 2026; the "16" noted earlier came from its picker. Translation quality, right-to-left layout, and number formats in those languages: not verified.
 
 **Learn:** a translated app only feels native when numbers, dates, plurals, search, and layout direction are right too. A cut-off label or a half-translated screen looks broken.
 
-- **LANG-1** The app is in English, Turkish, Arabic, French, Spanish, and German. It follows the device language and falls back to English. The setup page (RUN-3) and Settings list the six languages, each in its own language, and Settings also offers "System default". A change applies at once, without a restart.
+- **LANG-1** The app is in 21 languages, the set the competitor covers: English, Arabic, Bengali, Chinese (Simplified), Dutch, French, German, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Spanish, Thai, Turkish, Urdu, and Vietnamese. It follows the device language and falls back to English. Setup (RUN-3) and Settings list them all, each in its own language, and Settings also offers "System default". A change applies at once, without a restart.
 - **LANG-2** Every user-facing text comes from the ARB files: screens, notices, errors, default category and account names (CAT-1), the widget, and the PDF report. CI fails when a language is missing a message, or when its placeholders, plurals, or selects differ from English. Plurals and variable parts use ICU messages, never pieced-together strings.
 - **LANG-3** Dates, numbers, and amounts follow the chosen language's format (CUR-2), and the first day of the week keeps following PER-4. CSV exports and backups always use ISO dates and plain decimals with a `.`, whatever the language (BAK-5), so the files read the same everywhere.
 - **LANG-4** Search ignores case and accents in every language, including the Turkish dotted and dotless i: `istanbul` finds "İstanbul" and `cafe` finds "Café" (section 10).
-- **LANG-5** In Arabic the layout runs right to left: navigation, lists, swipe actions, charts, and the date arrows (ADD-6), whose "earlier" arrow points right. Amounts and keypad expressions (ADD-2) stay left to right inside Arabic text.
-- **LANG-6** Translations are machine-made: a change that adds or edits English messages adds the other five languages in the same PR, with no separate review step. Widget tests render the main screens, the add form, setup, and the walkthrough in all six languages, on a phone-size screen at 1.3× text size, and fail on overflow.
+- **LANG-5** In Arabic and Urdu the layout runs right to left: navigation, the drawer (NAV-3), lists, swipe actions, charts, and the date arrows (ADD-6), whose "earlier" arrow points right. Amounts and keypad expressions (ADD-2) stay left to right inside right-to-left text.
+- **LANG-6** Translations are machine-made: a change that adds or edits English messages adds every other language in the same PR, with no separate review step, and `/l10n-add` writes them in one go. Widget tests render the main screens, the add form, setup, and the walkthrough in every language, on a phone-size screen at 1.3× text size, and fail on overflow.
 
 ## 17. PDF report
 
@@ -266,6 +267,34 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ATT-7** A record whose file is missing after a restore says so on the entry, and stays editable. Never a broken image or a silent gap.
 - **ATT-8** Nothing about an attachment leaves the device (BAK-6, RUN-2): no upload, no transcription service, no gallery write, and no `INTERNET` permission. There is no speech-to-text. CSV export and the PDF report are unchanged and carry no files.
 
+## 22. Ads
+
+**They do:** a banner on most screens from the first launch, through AppLovin, with the advertising ID and ad attribution; removing the ads costs about TRY 8 a month, 80 a year, or 250 once, and a rewarded video buys seven ad-free days.
+
+**Learn:** ads pay for a free app, but a banner that covers a row, moves a button under a finger, or interrupts an entry is what makes a free app feel cheap, and the money only comes if people keep the app. Ads also change what the app collects, so the listing and the policy have to say so plainly.
+
+- **ADS-1** Banners only, in slots the layout reserves: the bottom of Home and the bottom of Insights. No interstitials, no pop-ups, no rewarded video, and nothing on the add and edit forms, the walkthrough, setup, dialogs, the home-screen widget, or the PDF report.
+- **ADS-2** A slot keeps its height whether or not an ad fills it, so nothing shifts under a finger, and an empty slot shows nothing at all: no frame, no placeholder.
+- **ADS-3** A slot sits outside the scrolling content, above the system navigation bar, and never overlaps the keypad, the add button, or a list row. Content ends above it; nothing hides behind it.
+- **ADS-4** No ad is requested until the walkthrough and setup are finished (RUN-3, RUN-4) and consent has been answered (ADS-5), so the first minutes of the app belong to the app.
+- **ADS-5** Where the law asks for it (the EEA, the UK, and Switzerland), the ad network's consent form appears before the first request, and Settings keeps a "Privacy options" row to change the answer later. Refusing means non-personalised ads, never a nag screen or a feature withheld.
+- **ADS-6** What the ad SDK collects — the advertising ID, coarse device and app data, and the ad requests themselves — is declared in the Play data-safety form, the App Store privacy labels, and `docs/privacy-policy.md`, in the same plain words as the rest of the policy.
+- **ADS-7** The ad SDK is handed nothing from the app: no amounts, titles, notes, categories, accounts, attachments, or search terms, and no keywords derived from them. The user's records still leave the device only through an export or a backup they asked for (BAK-6).
+- **ADS-8** One switch hides every slot, so a build without ads, or a purchase that removes them later, needs no change to any screen. Nothing is sold in v1: there is no ad-removal purchase, and no feature sits behind one.
+- **ADS-9** No ad loads while the app is locked (LOCK-2), and none appears in a store screenshot.
+
+## 23. Getting around
+
+**They do:** a bottom tab bar (Home, Calendar, NoteBook), a drawer behind the toolbar's menu button, an overflow menu, and Add income, Add expense and Transfer as buttons on Home.
+
+**Learn:** our three-dot menu is where everything that isn't Home ended up — Transfer, Budgets, Recurring, Notes, the exports, Backup, Settings, Trash. It is one small target that says nothing about what is behind it, and people don't open it. A named list they can see beats a menu they have to guess at.
+
+- **NAV-1** Every destination that isn't Home lives in a navigation drawer, opened from the toolbar's menu button or an edge swipe: Transfer, Budgets, Recurring, Notes, Insights, Search, Export CSV, Export PDF, Backup & restore, Settings, and Trash. The three-dot overflow goes.
+- **NAV-2** The drawer is grouped under headings: adding (Transfer), planning (Budgets, Recurring, Notes), looking back (Insights, Search, Export CSV, Export PDF), and the rest (Backup & restore, Settings, Trash). Every row has an icon and a translated label (LANG-2).
+- **NAV-3** The drawer opens from the leading edge: the left in left-to-right languages, the right in Arabic and Urdu (LANG-5). Choosing a destination closes it, and Back closes it before it leaves the screen.
+- **NAV-4** Home keeps its own quick paths — the period selector (INS-4), Search and Insights in the toolbar, and the add button — so the everyday round never goes through the drawer.
+- **NAV-5** The drawer is for going somewhere and nothing else: no settings toggles, no account area, no ads (ADS-1).
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -285,6 +314,14 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 11. Attachments ship in v1, before the first-run page (section 21, roadmap Phase 4). A transaction carries one photo and one voice note; transfers and notes carry none. Voice notes stop at 60 seconds. Backups become a zip that carries the files, and plain JSON backups still restore (ATT-6).
 12. The universal 71 MB release APK stays as it is. Play receives the AAB and builds each device's download from it, so only sideloading from the GitHub Release sees the size.
+
+## Decisions (17 September 2026)
+
+13. The first run turns around: the walkthrough comes first and setup follows it. "Restore a backup" and "Import a CSV" leave the setup page for a fifth walkthrough page, since someone arriving from another app should meet them while the app is explaining itself, not while it is asking for a language (RUN-3, RUN-4). v1.7.0 shipped the other order.
+14. Banner ads ship in v1, with a real ad network, which ends "no ads, ever" (section 22). They bring the `INTERNET` permission with them (RUN-2), so the Play data-safety form, the App Store labels, the privacy policy, the walkthrough's privacy page, and the store listing all change in the same release. Nothing the user typed is ever handed to the network (ADS-7).
+15. The app matches the competitor's languages: 21 in all, adding Bengali, Chinese (Simplified), Dutch, Greek, Hindi, Indonesian, Italian, Japanese, Korean, Polish, Portuguese, Russian, Thai, Urdu, and Vietnamese to the six it has (LANG-1). Urdu makes right to left a two-language case (LANG-5), and the PDF report needs fonts covering the new scripts (PDF-5).
+16. The three-dot menu becomes a navigation drawer (section 23), because nothing in it was being found.
+17. Tapping the period label on Home opens the calendar for that period (INS-4).
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
