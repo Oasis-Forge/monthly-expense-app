@@ -785,7 +785,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      '계정도, 광고도, 추적도 없어요. 데이터는 여기 남아 있고, 원할 때 백업하고 잠글 수 있어요.';
+      '계정이 필요 없습니다. 기록한 내용은 이 휴대폰에만 남고, 앱을 지원하는 광고에는 전달되지 않습니다.';
 
   @override
   String get walkthroughBringTitle => '쓰던 데이터 그대로';
@@ -819,6 +819,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get walkthroughReplaySubtitle => '처음 앱을 켰을 때 보여준 네 페이지예요';
+
+  @override
+  String get removeAdsTitle => '광고 제거';
 
   @override
   String get exportCsvMenu => 'CSV 내보내기';
@@ -1503,4 +1506,47 @@ class AppLocalizationsKo extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return '첨부 파일 포함, ${size}MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      '한 번 결제하면 모든 광고가 사라집니다. 스토어 계정에 연결되어 있어 기기를 바꾸거나 재설치해도 유지됩니다.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return '$price에 광고 제거';
+  }
+
+  @override
+  String get removeAdsOwned => '광고가 꺼졌습니다. 감사합니다.';
+
+  @override
+  String get removeAdsPending => '스토어 응답을 기다리는 중…';
+
+  @override
+  String get removeAdsUnavailable => '현재 구매할 수 있는 상품이 없습니다. 나중에 다시 시도해 주세요.';
+
+  @override
+  String get removeAdsFailed => '결제가 완료되지 않았고, 요금도 청구되지 않았습니다.';
+
+  @override
+  String get restorePurchasesButton => '구매 복원';
+
+  @override
+  String get payNothingWithheld => '광고 유무와 상관없이 모든 기능은 무료로 이용할 수 있습니다.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => '출시 예정';
+
+  @override
+  String get plusBody =>
+      '은행 계좌를 연결해 거래 내역을 가져와 확인할 수 있는 기능입니다. 아직 완성되지 않아 구매할 수 없습니다.';
+
+  @override
+  String get privacyOptionsTitle => '개인정보 보호 옵션';
+
+  @override
+  String get privacyOptionsSubtitle => '맞춤 광고 설정 변경';
 }

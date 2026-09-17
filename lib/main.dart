@@ -10,6 +10,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/languages.dart';
 import 'models/transaction.dart';
+import 'providers/ads_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/transaction_provider.dart';
 import 'screens/add_transaction_screen.dart';
@@ -17,11 +18,14 @@ import 'screens/app_lock.dart';
 import 'screens/first_run_gate.dart';
 import 'screens/note_form_screen.dart';
 import 'screens/notes_screen.dart';
+import 'services/ad_service.dart';
+import 'services/ads_config.dart';
 import 'services/attachment_service.dart';
 import 'services/authenticator.dart';
 import 'services/backup_service.dart';
 import 'services/home_widget_service.dart';
 import 'services/home_widget_updater.dart';
+import 'services/purchase_service.dart';
 import 'services/reminder_service.dart';
 
 Future<void> main() async {
@@ -41,8 +45,8 @@ Future<void> main() async {
 }
 
 class MonthlyExpenseApp extends StatelessWidget {
-  /// [backup], [authenticator], [reminders], and [homeWidget] default to the
-  /// device implementations; tests pass their own.
+  /// [backup], [authenticator], [reminders], [homeWidget], [ads], and
+  /// [purchases] default to the device implementations; tests pass their own.
   const MonthlyExpenseApp({
     super.key,
     required this.settings,
@@ -50,6 +54,8 @@ class MonthlyExpenseApp extends StatelessWidget {
     this.authenticator,
     this.reminders,
     this.homeWidget,
+    this.ads,
+    this.purchases,
   });
 
   final SettingsProvider settings;
@@ -57,6 +63,8 @@ class MonthlyExpenseApp extends StatelessWidget {
   final Authenticator? authenticator;
   final ReminderService? reminders;
   final HomeWidgetService? homeWidget;
+  final AdService? ads;
+  final PurchaseService? purchases;
 
   /// So a tapped reminder notification can open its note (NOTE-6, LOCK-2),
   /// from outside the widget tree that the notification callback runs in.
@@ -86,6 +94,20 @@ class MonthlyExpenseApp extends StatelessWidget {
         ),
         Provider<ReminderService>(create: (_) => reminderService),
         Provider<AttachmentService>.value(value: attachmentService),
+        // The slots and the one purchase, in one place (ADS-8). `start`
+        // waits for setup and the walkthrough by itself (ADS-4).
+        ChangeNotifierProvider(
+          create: (_) => AdsProvider(
+            settings,
+            // Windows and Linux have neither SDK, and asking them for
+            // anything would throw.
+            ads: ads ?? (AdsConfig.supportsAds ? DeviceAdService() : null),
+            purchases:
+                purchases ??
+                (AdsConfig.supportsAds ? DevicePurchaseService() : null),
+            locked: appIsLocked,
+          )..start(),
+        ),
       ],
       child: _HomeWidgetSync(
         service: homeWidget,

@@ -797,7 +797,7 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'نہ اکاؤنٹ، نہ اشتہارات، نہ ٹریکنگ۔ آپ کا ڈیٹا یہیں محفوظ رہتا ہے، جسے آپ اپنی مرضی سے بیک اپ اور لاک کر سکتے ہیں۔';
+      'کوئی اکاؤنٹ نہیں۔ آپ کا ریکارڈ اسی فون میں محفوظ رہتا ہے؛ ایپ کو چلانے والے اشتہارات اسے کبھی نہیں دیکھتے۔';
 
   @override
   String get walkthroughBringTitle => 'جو آپ کے پاس ہے وہ لائیں';
@@ -833,6 +833,9 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'وہ چار صفحات جو ایپ نئی ہونے پر دکھائے گئے تھے';
+
+  @override
+  String get removeAdsTitle => 'اشتہارات ہٹائیں';
 
   @override
   String get exportCsvMenu => 'CSV ایکسپورٹ کریں';
@@ -1534,4 +1537,51 @@ class AppLocalizationsUr extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'اٹیچمنٹس شامل ہیں، $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'ایک ادائیگی میں تمام اشتہارات چھپا دیتا ہے۔ یہ آپ کے اسٹور اکاؤنٹ سے جڑا ہوتا ہے، اس لیے نیا فون لینے یا دوبارہ انسٹال کرنے پر بھی برقرار رہتا ہے۔';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return '$price میں اشتہارات ہٹائیں';
+  }
+
+  @override
+  String get removeAdsOwned => 'اشتہارات بند ہیں۔ شکریہ۔';
+
+  @override
+  String get removeAdsPending => 'اسٹور کے جواب کا انتظار ہے…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'اسٹور پر ابھی کچھ خریدنے کے لیے موجود نہیں۔ براہ کرم بعد میں دوبارہ کوشش کریں۔';
+
+  @override
+  String get removeAdsFailed =>
+      'یہ کارروائی مکمل نہیں ہوئی، اور آپ سے کوئی رقم نہیں لی گئی۔';
+
+  @override
+  String get restorePurchasesButton => 'خریداریاں بحال کریں';
+
+  @override
+  String get payNothingWithheld =>
+      'اشتہارات ہوں یا نہ ہوں، تمام خصوصیات مفت رہتی ہیں۔';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'جلد آ رہا ہے';
+
+  @override
+  String get plusBody =>
+      'ایک بینک کنکشن جو آپ کے لین دین لا کر تصدیق کے لیے دکھاتا ہے۔ یہ ابھی مکمل نہیں، اس لیے خریدنے کو کچھ نہیں۔';
+
+  @override
+  String get privacyOptionsTitle => 'رازداری کے اختیارات';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'ذاتی نوعیت کے اشتہارات کے بارے میں اپنی پسند تبدیل کریں';
 }

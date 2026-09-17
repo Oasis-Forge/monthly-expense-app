@@ -1,4 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The one network permission the app has, and it is the ad slots that
+         need it (RUN-2, ADS-6). Nothing the user records is ever sent
+         anywhere: entry, budgets, notes, reports, attachments and backups are
+         all local, and the ad SDK is handed none of it (ADS-7). -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="Monthly Expenses"
         android:name="${applicationName}"
@@ -47,6 +52,14 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_medium_info" />
         </receiver>
+        <!-- The AdMob account this app belongs to. The SDK reads it before
+             Dart runs, so it cannot come from `AdsConfig`; keep the two in
+             step. This one is Google's sample ID, which serves nothing:
+             replace it with the app ID from the AdMob console at the same
+             time as the live unit IDs in `lib/services/ads_config.dart`. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

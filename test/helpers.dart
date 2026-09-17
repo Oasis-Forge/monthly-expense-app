@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -19,12 +20,16 @@ import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/services/ad_service.dart';
+import 'package:monthly_expense_app/services/ads_config.dart';
 import 'package:monthly_expense_app/services/attachment_service.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
 import 'package:monthly_expense_app/services/backup_files.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
+import 'package:monthly_expense_app/services/purchase_service.dart';
 import 'package:monthly_expense_app/services/reminder_service.dart';
 
 final _created = DateTime.utc(2026);
@@ -614,6 +619,124 @@ Future<SettingsProvider> testSettings([
   );
 }
 
+/// Stands in for the ad network. Nothing fills unless [fills] is set, and
+/// nothing is ever asked for unless [canStart] is true, so a test that says
+/// nothing about ads sees none.
+class FakeAdService implements AdService {
+  FakeAdService({
+    this.canStart = false,
+    this.fills = false,
+    this.height = 50,
+    this.privacyOptionsRequired = false,
+  });
+
+  /// What `start` answers: whether ads may be requested at all (ADS-4).
+  bool canStart;
+
+  /// Whether a request comes back with a banner, or empty (ADS-2).
+  bool fills;
+  double height;
+
+  @override
+  bool privacyOptionsRequired;
+
+  /// Every placement asked for, in order, and how many are on screen now.
+  final requested = <AdPlacement>[];
+  int live = 0;
+  int privacyOptionsShown = 0;
+  bool started = false;
+
+  @override
+  Future<bool> start() async {
+    started = true;
+    return canStart;
+  }
+
+  @override
+  Future<void> showPrivacyOptions() async => privacyOptionsShown++;
+
+  @override
+  Future<double?> bannerHeight(double width) async => canStart ? height : null;
+
+  /// Set to make a request hang until [deliver] is called, which is how the
+  /// races are tested: a screen closed, or resized, while an ad is in flight.
+  bool holdLoads = false;
+  final _waiting = <Completer<LoadedBanner?>>[];
+
+  /// Answers every held request.
+  void deliver() {
+    for (final request in _waiting) {
+      request.complete(fills ? _banner() : null);
+    }
+    _waiting.clear();
+  }
+
+  LoadedBanner _banner({AdPlacement placement = AdPlacement.home}) {
+    live++;
+    return LoadedBanner(
+      // A real banner is a platform view, which a widget test can't host, so
+      // this stands in for one at the same height.
+      view: SizedBox(key: ValueKey('ad-${placement.name}'), height: height),
+      height: height,
+      dispose: () async => live--,
+    );
+  }
+
+  @override
+  Future<LoadedBanner?> loadBanner(AdPlacement placement, double width) async {
+    requested.add(placement);
+    if (holdLoads) {
+      final request = Completer<LoadedBanner?>();
+      _waiting.add(request);
+      return request.future;
+    }
+    if (!fills) return null;
+    return _banner(placement: placement);
+  }
+}
+
+/// Stands in for the store (PAY-1, PAY-8). Starts with nothing to sell, the
+/// way a device with no product configured answers.
+class FakePurchases extends PurchaseService {
+  FakePurchases({
+    this.stage = PurchaseStage.unavailable,
+    this.price,
+    this.error,
+  });
+
+  @override
+  PurchaseStage stage;
+
+  @override
+  String? price;
+
+  /// What [lastError] answers.
+  String? error;
+
+  int buys = 0;
+  int restores = 0;
+  bool started = false;
+
+  @override
+  String? get lastError => error;
+
+  /// Moves the store on, as the purchase stream would.
+  void settle(PurchaseStage next, {String? error}) {
+    stage = next;
+    this.error = error;
+    notifyListeners();
+  }
+
+  @override
+  Future<void> start() async => started = true;
+
+  @override
+  Future<void> buy() async => buys++;
+
+  @override
+  Future<void> restore() async => restores++;
+}
+
 /// [home] inside a localized [MaterialApp] with the app's providers above
 /// it. [backup] and [authenticator] default to fakes.
 Widget testApp(
@@ -624,11 +747,22 @@ Widget testApp(
   Authenticator? authenticator,
   ReminderService? reminders,
   AttachmentService? attachments,
+  AdService? ads,
+  PurchaseService? purchases,
+  ValueListenable<bool>? locked,
 }) {
   return MultiProvider(
     providers: [
       ChangeNotifierProvider.value(value: settings),
       ChangeNotifierProvider.value(value: provider),
+      ChangeNotifierProvider(
+        create: (_) => AdsProvider(
+          settings,
+          ads: ads ?? FakeAdService(),
+          purchases: purchases ?? FakePurchases(),
+          locked: locked,
+        )..start(),
+      ),
       Provider<BackupService>.value(
         value: backup ?? testBackupService(FakeDB()),
       ),

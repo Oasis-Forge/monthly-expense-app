@@ -266,7 +266,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ATT-5** Attachments live and die with their transaction (REC-1, REC-2, DEL-1): a transaction in the trash keeps its files, emptying the trash deletes them, and restoring brings them back. Replacing an attachment deletes the file it replaced.
 - **ATT-6** A backup with attachments is a zip holding the same JSON and the files (BAK-1); without them it stays a plain JSON file. Restore accepts either, so backups written before this feature still restore. Merge treats a file as part of its record: whichever side wins on `updated_at` brings its attachment (BAK-3). The app says how large a backup will be before writing it.
 - **ATT-7** A record whose file is missing after a restore says so on the entry, and stays editable. Never a broken image or a silent gap.
-- **ATT-8** Nothing about an attachment leaves the device (BAK-6, RUN-2): no upload, no transcription service, no gallery write, and no `INTERNET` permission. There is no speech-to-text. CSV export and the PDF report are unchanged and carry no files.
+- **ATT-8** Nothing about an attachment leaves the device (BAK-6, RUN-2): no upload, no transcription service, no gallery write, and nothing handed to the ad network that brought the `INTERNET` permission (ADS-7). There is no speech-to-text. CSV export and the PDF report are unchanged and carry no files.
 
 ## 22. Ads
 
@@ -283,6 +283,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ADS-7** The ad SDK is handed nothing from the app: no amounts, titles, notes, categories, accounts, attachments, or search terms, and no keywords derived from them. The user's records still leave the device only through an export or a backup they asked for (BAK-6).
 - **ADS-8** One switch hides every slot, and "Remove ads" (PAY-1) is what flips it, so an ad-free build and a paid ad-free app are the same code path. No feature is ever withheld from someone who keeps the ads (PAY-4).
 - **ADS-9** No ad loads while the app is locked (LOCK-2), and none appears in a store screenshot.
+- **ADS-10** Only a release build asks with the real ad units; every other build asks with Google's test units. AdMob forbids impressions and clicks on your own live ads, and a development build that served them would put the account at risk, so this is not a convenience but the condition of having an account at all. The app ID and the unit IDs are not secrets — they ship inside the binary — so they live in the repository, in `lib/services/ads_config.dart` and, because the SDK reads it before Dart runs, in the Android manifest and `Info.plist` as well. A release built before the real IDs are filled in requests nothing rather than asking with a placeholder.
 
 ## 23. Getting around
 
@@ -390,6 +391,9 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 21. Reading bank notifications stays, but free and outside Plus: it is the answer for banks and countries no provider reaches, Android only, parsed on the device, and honest about seeing only what the bank announces (ALERT-1–ALERT-7).
 22. A tap on a transaction opens it to read, not to edit (section 26). The form is one button away and unchanged; a read-only copy of the form was rejected as the worst of both. Transfers are unchanged for now (DET-7).
 23. The report ships fonts for 18 of the 21 languages; Chinese, Japanese and Korean wait for a face that can be downloaded (PDF-7). Measured against the alternative: Noto Sans SC is 17.8 MB, JP 9.6 MB and KR 10.4 MB, where Devanagari, Bengali and Thai together are 0.86 MB.
+24. The slots go in the `Scaffold`'s bottom bar rather than at the end of the body, which is what makes ADS-3 true by construction: the list scrolls above them, the add button lifts over them, and the system navigation bar is below. The height is the anchored adaptive one, asked for before any ad is requested and the same for a given width, so an arriving ad can never shift what is under a finger (ADS-2).
+25. Development builds serve Google's test units, release builds the real ones (ADS-10). Decided 17 September 2026 after the accounts were ready: the choice was never between test and live IDs but between risking the AdMob account and not, since AdMob suspends accounts over self-clicks. One constant, `AdsConfig.liveAdsEverywhere`, turns it off for a deliberate check of a real fill.
+26. The Android release check turns around rather than going away. It used to fail if the APK asked for `INTERNET`; it now fails if the APK does *not* ask for it, and also if any of the permissions that would let the app read the user's life — location, contacts, calendar, messages, call history, sensors, all-files, package queries — has crept in through a plugin update (ADS-7, RUN-2).
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

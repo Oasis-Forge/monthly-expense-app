@@ -5,6 +5,13 @@ import '../l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 import '../services/authenticator.dart';
 
+/// Whether the lock screen is covering the app (LOCK-2).
+///
+/// The app underneath keeps its state, so a screen that loads things by
+/// itself would carry on behind the lock. The ad slots watch this and stop,
+/// because no ad may load while the app is locked (ADS-9).
+final appIsLocked = ValueNotifier<bool>(false);
+
 /// Covers the app until the device owner authenticates, when app lock is on
 /// (LOCK-1–LOCK-3). The app underneath keeps its state.
 class AppLock extends StatefulWidget {
@@ -29,11 +36,18 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
 
   DateTime _now() => (widget.clock ?? DateTime.now)();
 
+  /// Keeps [appIsLocked] with `_locked`, so the ad slots see it (ADS-9).
+  void _setLocked(bool locked) {
+    setState(() => _locked = locked);
+    appIsLocked.value = locked;
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _locked = context.read<SettingsProvider>().appLock;
+    appIsLocked.value = _locked;
     if (_locked) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _unlock());
     }
@@ -59,7 +73,7 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
         if (hiddenAt != null &&
             context.read<SettingsProvider>().appLock &&
             _now().difference(hiddenAt) >= AppLock.timeout) {
-          setState(() => _locked = true);
+          _setLocked(true);
           _unlock();
         }
       case AppLifecycleState.inactive:
@@ -79,10 +93,8 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
     // owner, so app lock turns off rather than lock the data away.
     if (result == AuthResult.unavailable) await settings.setAppLock(false);
     if (!mounted) return;
-    setState(() {
-      _authenticating = false;
-      if (result != AuthResult.failed) _locked = false;
-    });
+    setState(() => _authenticating = false);
+    if (result != AuthResult.failed) _setLocked(false);
   }
 
   @override

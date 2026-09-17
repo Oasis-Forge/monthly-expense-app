@@ -147,3 +147,55 @@ The repository lives in the `Oasis-Forge` organization, so store listings don't 
 ## Mac App Store (Phase 4)
 
 The macOS app is sandboxed and can read or write only the files people pick. Signing and a release workflow come with the desktop releases. They need macOS enabled for the App ID `com.monthlyexpenses.app`, Mac App Distribution and Mac Installer Distribution certificates, and a Mac App Store provisioning profile.
+
+## Ads and the one purchase
+
+### Filling in the live AdMob IDs
+
+The app ships with Google's sample IDs, which serve nothing. Replace them in **three** places at once — the SDK reads the app ID from the platform files before Dart runs, so all three have to agree, and `test/ads_config_test.dart` fails if they drift apart:
+
+1. `lib/services/ads_config.dart` — `liveAppIdAndroid`, `liveAppIdIos`, and the four banner unit IDs (`liveBannerHomeAndroid`, `liveBannerInsightsAndroid`, `liveBannerHomeIos`, `liveBannerInsightsIos`). Either fill in every one for a platform or none: the test fails on a half-filled set, because a release would otherwise ask for an ad with an empty unit ID.
+2. `android/app/src/main/AndroidManifest.xml` — the `com.google.android.gms.ads.APPLICATION_ID` meta-data.
+3. `ios/Runner/Info.plist` — `GADApplicationIdentifier`.
+
+None of these is a secret: they ship inside every binary, so they belong in the repository rather than in a GitHub secret.
+
+**Only release builds serve them** (ADS-10). Debug and profile builds use the test units, because AdMob suspends accounts for impressions and clicks on their own live ads. To check a real fill once, set `AdsConfig.liveAdsEverywhere` to `true`, look, and set it back — and don't tap the ad.
+
+### Before the iOS release
+
+Add Google's **`SKAdNetworkItems`** to `ios/Runner/Info.plist`, from [AdMob's iOS guide](https://developers.google.com/admob/ios/ios14#skadnetwork). It is a long list of network identifiers that Google keeps up to date; without it, iOS ad attribution under SKAdNetwork doesn't work and the ads earn less. It affects nothing on Android, which is why it isn't in yet.
+
+### The "Remove ads" product
+
+`PurchaseService.removeAdsId` is the product ID, and **changing it after the first release orphans what people have already bought**. Create it as a **non-consumable / one-time** in-app product with that exact ID in both consoles:
+
+- Play Console → Monetise → In-app products. Then add testers to a licence-test list, or use the internal testing track; a purchase can't be tested from a locally built APK.
+- App Store Connect → the app → In-App Purchases → Non-Consumable. Test with a Sandbox Apple Account.
+
+Until the product exists in a console, the screen says there is nothing to sell and offers no button (PAY-3) — which is also what a device with no store answers, so that path is worth leaving in place.
+
+### What to tell the stores
+
+Both forms have to match `docs/privacy-policy.md`, which is the wording to copy from (ADS-6).
+
+**Play Console → Data safety.** Data is *collected* (by the ad SDK) and *shared* (with Google), it is **not** encrypted in transit by us because we send nothing ourselves, and there is no way to request deletion of something we never hold:
+
+| Category | Answer |
+| --- | --- |
+| Device or other IDs | Collected and shared, for **advertising or marketing** and **fraud prevention**. Not optional (buying "Remove ads" stops it, which the form has no way to express). |
+| Approximate location | Collected and shared, for advertising — derived from the IP address by the ad network, never requested from the device. |
+| App info and performance | Diagnostics, collected and shared, for advertising and fraud prevention. |
+| Financial info | **Not collected.** Everything the user records stays on the device (ADS-7). |
+| Personal info, messages, photos, contacts, calendar, files | **Not collected.** |
+
+Also declare the ads themselves under **Ads** in the store listing, and answer the **Families policy** questions: the app is not directed at children.
+
+**App Store Connect → App Privacy.** Declare, all under "Data Used to Track You" as well as "Data Linked to You" only if Google's own guidance says so for your configuration:
+
+- **Identifiers → Device ID** — Third-Party Advertising, Developer's Advertising or Marketing.
+- **Usage Data → Advertising Data** — Third-Party Advertising.
+- **Diagnostics → Crash/Performance Data** — only if you enable anything of the sort; today the app has none of its own.
+- Everything the user records: **not collected**.
+
+Because the app shows ads and may ask for tracking, `NSUserTrackingUsageDescription` is in `Info.plist`; keep its wording honest about what refusing does (nothing, except less-relevant ads).

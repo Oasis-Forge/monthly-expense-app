@@ -806,7 +806,7 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Χωρίς λογαριασμό, χωρίς διαφημίσεις, χωρίς παρακολούθηση. Τα δεδομένα σας μένουν εδώ, με αντίγραφα ασφαλείας και κλείδωμα όποτε θέλετε.';
+      'Χωρίς λογαριασμό. Ό,τι καταγράφεις παραμένει σε αυτό το τηλέφωνο· οι διαφημίσεις που χρηματοδοτούν την εφαρμογή δεν το βλέπουν ποτέ.';
 
   @override
   String get walkthroughBringTitle => 'Φέρτε ό,τι έχετε';
@@ -842,6 +842,9 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'Οι τέσσερις σελίδες που εμφανίστηκαν όταν η εφαρμογή ήταν καινούργια';
+
+  @override
+  String get removeAdsTitle => 'Κατάργηση διαφημίσεων';
 
   @override
   String get exportCsvMenu => 'Εξαγωγή CSV';
@@ -1561,4 +1564,51 @@ class AppLocalizationsEl extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Περιλαμβάνει συνημμένα, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Αποκρύπτει όλες τις διαφημίσεις με μία πληρωμή. Συνδέεται με τον λογαριασμό σου στο κατάστημα, οπότε επιστρέφει σε νέο τηλέφωνο ή επανεγκατάσταση.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Κατάργηση διαφημίσεων για $price';
+  }
+
+  @override
+  String get removeAdsOwned =>
+      'Οι διαφημίσεις είναι απενεργοποιημένες. Ευχαριστούμε.';
+
+  @override
+  String get removeAdsPending => 'Αναμονή για το κατάστημα…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'Το κατάστημα δεν έχει ακόμη κάτι διαθέσιμο εδώ. Δοκίμασε ξανά αργότερα.';
+
+  @override
+  String get removeAdsFailed => 'Δεν ολοκληρώθηκε και δεν έγινε καμία χρέωση.';
+
+  @override
+  String get restorePurchasesButton => 'Επαναφορά αγορών';
+
+  @override
+  String get payNothingWithheld =>
+      'Όλες οι λειτουργίες παραμένουν δωρεάν, με ή χωρίς διαφημίσεις.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Σύντομα διαθέσιμο';
+
+  @override
+  String get plusBody =>
+      'Μια τραπεζική σύνδεση που φέρνει τις συναλλαγές σου για επιβεβαίωση. Δεν έχει ολοκληρωθεί ακόμη, οπότε δεν υπάρχει κάτι προς αγορά.';
+
+  @override
+  String get privacyOptionsTitle => 'Επιλογές απορρήτου';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Άλλαξε την επιλογή σου για εξατομικευμένες διαφημίσεις';
 }

@@ -6,9 +6,11 @@ import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/accounts_screen.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/screens/categories_screen.dart';
+import 'package:monthly_expense_app/screens/remove_ads_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/trash_screen.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
+import 'package:monthly_expense_app/services/purchase_service.dart';
 
 import 'helpers.dart';
 
@@ -28,6 +30,8 @@ void main() {
   Future<void> showSettings(
     WidgetTester tester, {
     Authenticator? authenticator,
+    FakeAdService? ads,
+    FakePurchases? purchases,
   }) async {
     await tester.pumpWidget(
       testApp(
@@ -35,6 +39,8 @@ void main() {
         settings,
         const SettingsScreen(),
         authenticator: authenticator,
+        ads: ads,
+        purchases: purchases,
       ),
     );
     await tester.pump();
@@ -262,5 +268,61 @@ void main() {
     expect(settings.languageCode, 'de');
     expect(find.text('Einstellungen'), findsOneWidget);
     expect(find.text('Sprache'), findsOneWidget);
+  });
+
+  group('the ads rows (PAY-7, ADS-5)', () {
+    /// Both rows are at the very bottom of a list longer than the screen.
+    Future<void> scrollTo(WidgetTester tester, String label) async {
+      await tester.scrollUntilVisible(find.text(label), 200);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Remove ads is one quiet row, and it opens the screen', (
+      tester,
+    ) async {
+      await showSettings(tester);
+
+      await scrollTo(tester, 'Remove ads');
+      // PAY-7: one row, with no price shouted from the list.
+      expect(find.text('Remove ads'), findsOneWidget);
+      await tester.tap(find.text('Remove ads'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RemoveAdsScreen), findsOneWidget);
+    });
+
+    testWidgets('once bought, the row says so (PAY-1)', (tester) async {
+      await showSettings(
+        tester,
+        purchases: FakePurchases(stage: PurchaseStage.owned),
+      );
+
+      await scrollTo(tester, 'Remove ads');
+
+      expect(find.text('Ads are off. Thank you.'), findsOneWidget);
+    });
+
+    testWidgets('no Privacy options row unless the law asks (ADS-5)', (
+      tester,
+    ) async {
+      await showSettings(tester, ads: FakeAdService(canStart: true));
+
+      await scrollTo(tester, 'Remove ads');
+
+      expect(find.text('Privacy options'), findsNothing);
+    });
+
+    testWidgets('where it is asked for, it reopens the consent form (ADS-5)', (
+      tester,
+    ) async {
+      final ads = FakeAdService(canStart: true, privacyOptionsRequired: true);
+
+      await showSettings(tester, ads: ads);
+      await scrollTo(tester, 'Privacy options');
+      await tester.tap(find.text('Privacy options'));
+      await tester.pumpAndSettle();
+
+      expect(ads.privacyOptionsShown, 1);
+    });
   });
 }

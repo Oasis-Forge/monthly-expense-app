@@ -6,13 +6,17 @@ title: Privacy Policy – Monthly Expenses
 
 # Privacy Policy
 
-_Last updated: 13 September 2026_
+_Last updated: 17 September 2026_
 
 This policy explains how the **Monthly Expenses** app ("the app") handles your information. It covers the app on Android, iOS, macOS, Windows, and Linux.
 
 ## Summary
 
-The app does not collect, send, or share any personal data. Everything you enter stays on your device, unless you choose to save a backup or export file.
+**Nothing you record leaves your device.** Your transactions, titles, notes, categories, accounts, budgets and attachments are stored only on your device, and only you can send them anywhere — by saving a backup or an export.
+
+The app shows **banner ads** on two of its screens, through Google AdMob. Ads are the only reason the app uses the internet at all. AdMob receives technical information about your device in order to choose and count an ad — never anything you have recorded. You can buy "Remove ads" once, and then the ad software is never started at all.
+
+On Windows, Linux and macOS there are no ads, and the app makes no network connections whatsoever.
 
 ## Information stored on your device
 
@@ -26,7 +30,35 @@ The developer has no access to any of it.
 
 ## Information we collect
 
-None. The app has no accounts, analytics, advertising, tracking, or crash reporting. It does not connect to the internet, and the Android app does not request internet access.
+**We collect nothing.** There is no account, no sign-in, no analytics and no crash reporting, and there is no server of ours for anything to be sent to. The developer cannot see your data or your usage.
+
+## Advertising
+
+The free app shows a banner at the bottom of the Home screen and the bottom of the Insights screen. They are served by **Google AdMob** (Google Ireland Limited / Google LLC), and they are why the Android app asks for internet access.
+
+**What the app never gives the advertiser.** AdMob is handed nothing you have recorded: no amounts, titles, notes, categories, accounts, attachments or search terms, and no keywords derived from any of them. The request the app makes carries no information about you at all.
+
+**What Google receives anyway**, because it is what serving an ad over the internet involves:
+
+- your device's advertising identifier (the Android advertising ID, or, on iOS, the identifier for advertisers if you have allowed it);
+- your IP address, from which an approximate location such as a country or region can be worked out;
+- technical details of your device and the app, such as the model, operating system, app version and language;
+- whether an ad was shown, and whether it was tapped.
+
+Google uses these to choose an ad, count it, and detect fraud. Google's own explanation is at [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites).
+
+**Your choice.** In the EEA, the UK and Switzerland the app shows Google's consent form before it requests its first ad, and you can change your answer at any time from **Settings → Privacy options**. Saying no means the ads you see are not personalised; it never means fewer features or a nagging reminder.
+
+**No ads before you have looked round.** No ad is requested, and no consent form appears, until the setup page and the walkthrough are finished. No ad loads while the app is locked, and there are no ads on the entry forms, the walkthrough, the home-screen widget or the PDF report — only the two banner slots.
+
+**Children.** The app is a general-purpose tool and is not directed at children, and we do not knowingly collect anything from them. Where a store's family policy applies, the ads must be suitable for it.
+
+## Paying to remove ads
+
+- **"Remove ads"** is a single purchase that hides every ad. Once it is bought, the ad software is not started at all, so nothing in the section above happens any more.
+- The payment is handled entirely by **Google Play** or the **App Store**. The app never sees or stores your card, your address or your name; it asks the store only whether this purchase is owned by the account signed in on the device. There is no server of ours involved, and no account to create.
+- Because the store keeps the receipt, "Restore purchases" brings it back on a new phone or after a reinstall.
+- Nothing that already worked has been moved behind a payment: every feature is free, with or without ads.
 
 ## Backups, CSV exports, and PDF reports
 
@@ -53,8 +85,14 @@ App lock is optional and off by default. When it is on, the app asks your device
 
 ## Permissions
 
+- **Internet** (Android `INTERNET`): used only so the two banner slots can load an ad. No other part of the app connects to the network: entry, budgets, recurring, notes, insights, reports, import, backup and attachments all work with the network off.
+- **Advertising ID** (Android `com.google.android.gms.permission.AD_ID`): used by AdMob as described above. Android lets you delete or reset this identifier in your device settings, and the app has no other way to recognise you.
+- **Network state** (Android `ACCESS_NETWORK_STATE`) and Android's own advertising services (`ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION`, `ACCESS_ADSERVICES_TOPICS`): declared by Google's ad library, not by us. The last of these is Android's **Topics** system, by which the operating system — not this app — may give an advertiser a broad interest category worked out from the apps you use. It is governed by your consent answer and by your Android settings, and it is never told anything you have recorded here. Buying "Remove ads" means the library is never started, so none of it runs.
+- **Camera** and **microphone:** used only when you choose to attach a photo or record a voice note. Both stay on your device.
 - **Biometrics** (Android `USE_BIOMETRIC`, Face ID on iOS): used only for app lock.
 - **Files:** the app has no general access to your files. It reads or writes only the files you choose in the system file dialog.
+
+The app does not ask for your location, contacts, calendar, messages, call history or health data, and a release build is checked on every release to make sure none of those has crept in.
 
 ## Deleting your information
 
@@ -62,7 +100,7 @@ Delete items in the app, or uninstall the app to remove all of its data, includi
 
 ## Children
 
-The app does not collect information from anyone, including children.
+The app is not directed at children and we do not knowingly collect information from them. We collect nothing from anyone; what the ad network receives is described under **Advertising** above, and buying "Remove ads" stops even that.
 
 ## Changes to this policy
 

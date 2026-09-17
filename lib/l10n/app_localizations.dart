@@ -1456,10 +1456,10 @@ abstract class AppLocalizations {
   /// **'Yours alone'**
   String get walkthroughPrivacyTitle;
 
-  /// No description provided for @walkthroughPrivacyBody.
+  /// Fourth walkthrough page. Replaces the old "no ads" wording, because the app now carries ads (ADS-6, RUN-4).
   ///
   /// In en, this message translates to:
-  /// **'No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.'**
+  /// **'No account. What you record stays on this phone; the ads that pay for the app never see it.'**
   String get walkthroughPrivacyBody;
 
   /// Title of the last walkthrough page, for people arriving from another app or phone (RUN-4).
@@ -1521,6 +1521,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The four pages shown when the app was new'**
   String get walkthroughReplaySubtitle;
+
+  /// Title of the screen that sells the one-time purchase, the row in Settings, and the small link on an ad slot (PAY-1, PAY-7).
+  ///
+  /// In en, this message translates to:
+  /// **'Remove ads'**
+  String get removeAdsTitle;
 
   /// No description provided for @exportCsvMenu.
   ///
@@ -2643,6 +2649,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Includes attachments, {size} MB'**
   String backupIncludesAttachments(String size);
+
+  /// What the Remove ads purchase does (PAY-1, PAY-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Hides every ad, for one payment. It follows your store account, so a new phone or a reinstall brings it back.'**
+  String get removeAdsBody;
+
+  /// The buy button. {price} comes from the store, already formatted in the buyer's own currency (PAY-6).
+  ///
+  /// In en, this message translates to:
+  /// **'Remove ads for {price}'**
+  String removeAdsBuyButton(String price);
+
+  /// Shown instead of a price once the purchase is owned (PAY-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Ads are off. Thank you.'**
+  String get removeAdsOwned;
+
+  /// A purchase that has been sent but not settled; nothing changes yet (PAY-8).
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the store…'**
+  String get removeAdsPending;
+
+  /// The store can't be reached or has no such product, so no button is offered (PAY-3).
+  ///
+  /// In en, this message translates to:
+  /// **'The store has nothing to sell here yet. Please try again later.'**
+  String get removeAdsUnavailable;
+
+  /// A failed purchase or restore (PAY-8).
+  ///
+  /// In en, this message translates to:
+  /// **'That didn\'t go through, and you haven\'t been charged.'**
+  String get removeAdsFailed;
+
+  /// Sits beside the price; asks the store what this account already owns (PAY-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get restorePurchasesButton;
+
+  /// Footer of the Remove ads screen (PAY-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Every feature stays free, with or without ads.'**
+  String get payNothingWithheld;
+
+  /// The name of the paid tier that is not finished. A product name: leave it as Plus in every language (PAY-3).
+  ///
+  /// In en, this message translates to:
+  /// **'Plus'**
+  String get plusTitle;
+
+  /// Badge beside Plus, where a price would be (PAY-3).
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon'**
+  String get plusComingSoon;
+
+  /// What Plus will be, with no price and no button (PAY-3).
+  ///
+  /// In en, this message translates to:
+  /// **'A bank connection that brings your transactions in for you to confirm. It isn\'t finished, so there is nothing to buy yet.'**
+  String get plusBody;
+
+  /// Settings row that reopens the ad network's consent form (ADS-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy options'**
+  String get privacyOptionsTitle;
+
+  /// Subtitle of the Privacy options row (ADS-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Change your choice about personalised ads'**
+  String get privacyOptionsSubtitle;
 }
 
 class _AppLocalizationsDelegate

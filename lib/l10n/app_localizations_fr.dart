@@ -803,7 +803,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Pas de compte, pas de publicité, pas de suivi. Vos données restent ici, sauvegardées et verrouillées quand vous le voulez.';
+      'Aucun compte requis. Ce que vous enregistrez reste sur ce téléphone ; les publicités qui financent l\'appli ne le voient jamais.';
 
   @override
   String get walkthroughBringTitle => 'Reprenez vos données';
@@ -839,6 +839,9 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'Les quatre pages affichées au premier lancement';
+
+  @override
+  String get removeAdsTitle => 'Supprimer les publicités';
 
   @override
   String get exportCsvMenu => 'Exporter en CSV';
@@ -1547,4 +1550,51 @@ class AppLocalizationsFr extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Inclut les pièces jointes, $size Mo';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Masque toutes les publicités avec un seul paiement. Lié à votre compte du store, il revient même sur un nouveau téléphone ou après une réinstallation.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Supprimer les publicités pour $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Les publicités sont désactivées. Merci.';
+
+  @override
+  String get removeAdsPending => 'En attente du store…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'Le store n\'a encore rien à vendre ici. Réessayez plus tard.';
+
+  @override
+  String get removeAdsFailed =>
+      'Ça n\'a pas abouti, et vous n\'avez pas été débité.';
+
+  @override
+  String get restorePurchasesButton => 'Restaurer les achats';
+
+  @override
+  String get payNothingWithheld =>
+      'Toutes les fonctionnalités restent gratuites, avec ou sans publicités.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Bientôt disponible';
+
+  @override
+  String get plusBody =>
+      'Une connexion bancaire qui importe vos transactions pour confirmation. Ce n\'est pas encore terminé, donc rien à acheter pour l\'instant.';
+
+  @override
+  String get privacyOptionsTitle => 'Options de confidentialité';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Modifiez votre choix concernant les publicités personnalisées';
 }

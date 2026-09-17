@@ -805,7 +805,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Kein Konto, keine Werbung, kein Tracking. Deine Daten bleiben hier, gesichert und gesperrt, wenn du es willst.';
+      'Kein Konto nötig. Was du einträgst, bleibt auf diesem Handy; die Werbung, die die App finanziert, sieht es nie.';
 
   @override
   String get walkthroughBringTitle => 'Bring mit, was du hast';
@@ -840,6 +840,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get walkthroughReplaySubtitle => 'Die vier Seiten vom ersten Start';
+
+  @override
+  String get removeAdsTitle => 'Werbung entfernen';
 
   @override
   String get exportCsvMenu => 'CSV exportieren';
@@ -1555,4 +1558,51 @@ class AppLocalizationsDe extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Enthält Anhänge, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Blendet mit einer einmaligen Zahlung alle Werbung aus. Der Kauf ist an dein Store-Konto gebunden und kehrt bei einem neuen Handy oder einer Neuinstallation zurück.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Werbung entfernen für $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Werbung ist aus. Danke.';
+
+  @override
+  String get removeAdsPending => 'Warten auf den Store…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'Der Store hat hier noch nichts zu verkaufen. Bitte versuche es später erneut.';
+
+  @override
+  String get removeAdsFailed =>
+      'Das hat nicht geklappt, es wurde nichts abgebucht.';
+
+  @override
+  String get restorePurchasesButton => 'Käufe wiederherstellen';
+
+  @override
+  String get payNothingWithheld =>
+      'Alle Funktionen bleiben kostenlos, mit oder ohne Werbung.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Demnächst verfügbar';
+
+  @override
+  String get plusBody =>
+      'Eine Bankverbindung, die deine Buchungen zur Bestätigung einliest. Noch nicht fertig, also gibt es noch nichts zu kaufen.';
+
+  @override
+  String get privacyOptionsTitle => 'Datenschutzoptionen';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Ändere deine Wahl zu personalisierter Werbung';
 }

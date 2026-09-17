@@ -819,7 +819,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Bez konta, bez reklam, bez śledzenia. Dane zostają tutaj, zabezpieczone kopią zapasową i blokadą, jeśli chcesz.';
+      'Bez konta. To, co zapisujesz, zostaje na tym telefonie — reklamy, które finansują aplikację, nigdy tego nie widzą.';
 
   @override
   String get walkthroughBringTitle => 'Przenieś to, co już masz';
@@ -855,6 +855,9 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'Cztery strony pokazywane przy pierwszym uruchomieniu';
+
+  @override
+  String get removeAdsTitle => 'Usuń reklamy';
 
   @override
   String get exportCsvMenu => 'Eksportuj CSV';
@@ -1593,4 +1596,51 @@ class AppLocalizationsPl extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Zawiera załączniki, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Ukrywa wszystkie reklamy za jedną opłatą. Jest powiązany z kontem sklepu, więc wraca po zmianie telefonu lub reinstalacji.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Usuń reklamy za $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Reklamy są wyłączone. Dziękujemy.';
+
+  @override
+  String get removeAdsPending => 'Oczekiwanie na sklep…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'Sklep nie ma jeszcze nic do sprzedania. Spróbuj ponownie później.';
+
+  @override
+  String get removeAdsFailed =>
+      'To się nie powiodło i nie zostałeś obciążony opłatą.';
+
+  @override
+  String get restorePurchasesButton => 'Przywróć zakupy';
+
+  @override
+  String get payNothingWithheld =>
+      'Wszystkie funkcje pozostają darmowe, z reklamami czy bez.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Wkrótce';
+
+  @override
+  String get plusBody =>
+      'Połączenie z bankiem, które pobiera Twoje transakcje do potwierdzenia. Nie jest gotowe, więc nie ma jeszcze czego kupować.';
+
+  @override
+  String get privacyOptionsTitle => 'Opcje prywatności';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Zmień ustawienia reklam spersonalizowanych';
 }

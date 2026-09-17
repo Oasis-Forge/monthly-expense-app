@@ -818,7 +818,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Без аккаунта, рекламы и слежки. Данные остаются здесь — с резервным копированием и блокировкой по вашему выбору.';
+      'Без аккаунта. То, что вы записываете, остаётся на этом телефоне — реклама, которая оплачивает приложение, этого не видит.';
 
   @override
   String get walkthroughBringTitle => 'Перенесите то, что уже есть';
@@ -854,6 +854,9 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'Четыре экрана, показанные при первом запуске';
+
+  @override
+  String get removeAdsTitle => 'Отключить рекламу';
 
   @override
   String get exportCsvMenu => 'Экспорт в CSV';
@@ -1589,4 +1592,51 @@ class AppLocalizationsRu extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Включает вложения, $size МБ';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Скрывает всю рекламу за один платёж. Привязано к аккаунту в магазине, поэтому вернётся при смене телефона или переустановке.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Отключить рекламу за $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Реклама отключена. Спасибо.';
+
+  @override
+  String get removeAdsPending => 'Ожидание ответа магазина…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'В магазине пока нечего купить. Повторите попытку позже.';
+
+  @override
+  String get removeAdsFailed =>
+      'Операция не выполнена, деньги с вас не списаны.';
+
+  @override
+  String get restorePurchasesButton => 'Восстановить покупки';
+
+  @override
+  String get payNothingWithheld =>
+      'Все функции остаются бесплатными, с рекламой или без неё.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Скоро';
+
+  @override
+  String get plusBody =>
+      'Подключение к банку, которое само добавляет операции для подтверждения. Пока не готово, покупать нечего.';
+
+  @override
+  String get privacyOptionsTitle => 'Настройки конфиденциальности';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Изменить настройки персонализированной рекламы';
 }
