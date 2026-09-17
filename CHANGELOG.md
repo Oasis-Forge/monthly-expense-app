@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-09-17
+
+### Fixed
+- The Linux build works again. A library the voice-note playback needs was missing from the build machine, so every Linux build since voice notes arrived had failed. Nothing in the app itself changed.
+
 ## [1.8.0] - 2026-09-17
 
 ### Added
