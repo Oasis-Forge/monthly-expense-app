@@ -118,6 +118,14 @@
   "@drawerAddHeader": {
     "description": "Heading for the first group of the navigation drawer, the things that record money (NAV-2)."
   },
+  "drawerAddExpense": "Add expense",
+  "@drawerAddExpense": {
+    "description": "Drawer row that opens the add form on expense (NAV-1)."
+  },
+  "drawerAddIncome": "Add income",
+  "@drawerAddIncome": {
+    "description": "Drawer row that opens the add form on income (NAV-1)."
+  },
   "drawerPlanHeader": "Plan",
   "@drawerPlanHeader": {
     "description": "Heading for the drawer group with budgets, recurring and notes (NAV-2)."
@@ -126,9 +134,17 @@
   "@drawerReviewHeader": {
     "description": "Heading for the drawer group with insights, search and the exports (NAV-2)."
   },
+  "drawerSpending": "Spending by category",
+  "@drawerSpending": {
+    "description": "Drawer row that opens Insights on its category chart (NAV-1)."
+  },
   "drawerManageHeader": "Manage",
   "@drawerManageHeader": {
     "description": "Heading for the last drawer group: backup, settings, trash (NAV-2)."
+  },
+  "drawerDataHeader": "Data",
+  "@drawerDataHeader": {
+    "description": "Drawer heading over the exports, backup, and trash (NAV-2)."
   },
   "currencyLabel": "Currency",
   "currencySearchHint": "Search currencies",

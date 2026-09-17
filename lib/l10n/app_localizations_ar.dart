@@ -194,13 +194,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get drawerAddHeader => 'إضافة';
 
   @override
+  String get drawerAddExpense => 'إضافة مصروف';
+
+  @override
+  String get drawerAddIncome => 'إضافة دخل';
+
+  @override
   String get drawerPlanHeader => 'تخطيط';
 
   @override
   String get drawerReviewHeader => 'مراجعة';
 
   @override
+  String get drawerSpending => 'الإنفاق حسب الفئة';
+
+  @override
   String get drawerManageHeader => 'إدارة';
+
+  @override
+  String get drawerDataHeader => 'البيانات';
 
   @override
   String get currencyLabel => 'العملة';

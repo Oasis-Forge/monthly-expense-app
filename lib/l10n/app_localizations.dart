@@ -406,6 +406,18 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get drawerAddHeader;
 
+  /// Drawer row that opens the add form on expense (NAV-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Add expense'**
+  String get drawerAddExpense;
+
+  /// Drawer row that opens the add form on income (NAV-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Add income'**
+  String get drawerAddIncome;
+
   /// Heading for the drawer group with budgets, recurring and notes (NAV-2).
   ///
   /// In en, this message translates to:
@@ -418,11 +430,23 @@ abstract class AppLocalizations {
   /// **'Look back'**
   String get drawerReviewHeader;
 
+  /// Drawer row that opens Insights on its category chart (NAV-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Spending by category'**
+  String get drawerSpending;
+
   /// Heading for the last drawer group: backup, settings, trash (NAV-2).
   ///
   /// In en, this message translates to:
   /// **'Manage'**
   String get drawerManageHeader;
+
+  /// Drawer heading over the exports, backup, and trash (NAV-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Data'**
+  String get drawerDataHeader;
 
   /// No description provided for @currencyLabel.
   ///
