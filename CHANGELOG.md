@@ -4,6 +4,19 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-09-17
+
+### Added
+- Banner ads at the bottom of Home and Insights. They are the only reason the app uses the internet, and they never see anything you record — no amounts, titles, notes, categories, accounts or attachments.
+- **Remove ads:** one payment hides every ad for good, on every device signed in to the same store account, with "Restore purchases" beside it. Nothing else changes, and every feature stays free with or without it.
+- A Plus page that says what is coming — a bank connection that brings transactions in for you to confirm — with no price and no way to buy it until it works.
+- **Settings → Privacy options**, where the law asks for it, to change your answer about personalised ads at any time.
+
+### Changed
+- The privacy policy now describes the ads in full: what Google receives in order to choose one, what it never receives, and that buying "Remove ads" stops the ad software from starting at all.
+- The first-run walkthrough no longer says "no ads". It says what is true: no account, what you record stays on the phone, and the ads that pay for the app never see it.
+- A slot reserves its height before it asks for an ad, sits outside the scrolling list and below the add button, shows nothing at all when empty, and loads nothing while the app is locked.
+
 ## [1.11.0] - 2026-09-17
 
 ### Added
