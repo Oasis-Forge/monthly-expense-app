@@ -1,18 +1,18 @@
-# Competitor analysis: "Income Expense" (Android)
+# Competitor analysis: a widely installed free tracker (Android)
 
-_Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
+_Researched 13 September 2026, with a later look in the same month. The app is a free income-and-expense tracker with millions of installs; it is not named here._
 
-**How:** we installed the app from Google Play on an emulator and used it with made-up data. We also read its manifest metadata and its Play data-safety page. Everything below is described in our own words; nothing from the app (assets, text, code) was copied. Prices were shown in Turkish lira because of the Play region.
+**How:** we installed it from Google Play on an emulator and used it with made-up data, and we read its manifest metadata and its Play data-safety page. Everything below is described in our own words; nothing from it (assets, text, code) was copied, and it is not named or linked to anywhere in this repository.
 
 **Not explored:** Google Drive backup, generating PDF/Excel files, the passcode/fingerprint lock, saving a recurring rule, subcategories in depth, purchases.
 
 ## At a glance
 
-| Area | Income Expense | Monthly Expenses today | Our plan |
+| Area | The other app | Monthly Expenses today | Our plan |
 |---|---|---|---|
 | Account / sign-in | None needed | None needed | Keep it that way |
-| Ads & tracking | Banner ad on most screens from first launch; AppLovin ad network; advertising ID and ad attribution; device IDs shared for ads/analytics | None | Two banner slots (Home, Insights), none before the walkthrough is done, and nothing about the user's money given to the network (section 22, decided 17 September 2026) |
-| Price | Free with ads; ad removal ≈ TRY 8/mo, 80/yr or 250 lifetime, or watch a video for 7 ad-free days | Free | Free with two banners; one payment removes them for good (PAY-1), and a dearer Plus adds the bank connection when it exists (PAY-2). No subscription, no rewarded video |
+| Ads & tracking | Banner ad on most screens from first launch; a third-party ad network; advertising ID and ad attribution; device IDs shared for ads/analytics | None | Two banner slots (Home, Insights), none before the walkthrough is done, and nothing about the user's money given to the network (section 22, decided 17 September 2026) |
+| Price | Free with ads; ads removed by a monthly or yearly subscription, or a one-off lifetime price, and a rewarded video buys a week without them | Free | Free with two banners; one payment removes them for good (PAY-1), and a dearer Plus adds the bank connection when it exists (PAY-2). No subscription, no rewarded video |
 | Adding a transaction | Calculator keypad, recent categories, payment method, notes autocomplete, receipt photo, line items; form resets after Save for fast repeat entry; duplicate | Title, amount, category dropdown, date, note | Keypad, recent categories, "Save & add another", duplicate |
 | Date entry | Day arrows only moved forward (bug); calendar dialog works | Date picker | Arrows both ways + picker |
 | Categories | ~61 expense + 7 income with icons, custom categories, optional subcategories | 10 expense + 6 income, fixed | ~15 curated defaults + custom |
@@ -21,7 +21,7 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 | Reports | Donut chart by category (with %), income/expense trend lines, payment-method chart, custom periods | Monthly pie chart | Trend chart, custom periods |
 | Calendar view | Month grid with daily income/expense totals | None | Yes |
 | Recurring & reminders | Repeat daily–yearly, end never/after N/on date, pause; upcoming list | None | Same, plus notifications later |
-| Notes (checked on version 295) | NoteBook tab: a dated to-do list (text, date, time, done checkbox) with period and status filters, search, counts, and a PDF of the list. No reminders or links to transactions; delete is permanent. Counts went stale and search ignored the status filter | A note field on each transaction | Notes with due dates, reminders, and "Record as transaction" (NOTE-1–NOTE-8) |
+| Notes (checked on a later build) | A notes tab holding a dated to-do list (text, date, time, done checkbox) with period and status filters, search, counts, and a PDF of the list. No reminders or links to transactions; delete is permanent. Counts went stale and search ignored the status filter | A note field on each transaction | Notes with due dates, reminders, and "Record as transaction" (NOTE-1–NOTE-8) |
 | Search & filters | Keyword search (unreliable in testing), filters by category/type/payment method, sort | None | Reliable text search + filters |
 | Export & backup | PDF/Excel reports, local `.db` backup, Google Drive, scheduled email statements | None | CSV + JSON backup first, PDF later |
 | Deleted items | Trash for deleted transactions | Swipe delete, no undo | Undo now, trash later |
@@ -29,7 +29,7 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 | Currency | Number format only; no currency symbol or multi-currency | Hard-coded `$` | Currency picker (**better**) |
 | Personalization | Dark mode toggle, first day of week/month/year, carry-forward balance, dashboard widgets toggles | Follows system theme | Theme toggle, first day of month/week, carry-forward balance |
 | Languages | 20 besides English in its own strings, Portuguese only partly (its picker showed 16) | 6: English, Turkish, Arabic, French, Spanish, German | Match their set: 21 with English (LANG-1) |
-| Getting around | Bottom tabs (Home, Calendar, NoteBook), a drawer, and an overflow menu | A three-dot menu holding everything but Home | A grouped navigation drawer (NAV-1–NAV-5) |
+| Getting around | Bottom tabs for home, calendar and notes, a drawer, and an overflow menu | A three-dot menu holding everything but Home | A grouped navigation drawer (NAV-1–NAV-5) |
 | Reading the bank | Nothing: every entry is typed | Nothing | Plus connects to the bank through an open-banking provider, so nothing is missed (BANK-1); free notification reading on Android covers banks no provider reaches (ALERT-1). Both propose, and the user confirms |
 
 ## What they do well (worth matching)
