@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
+import 'package:monthly_expense_app/models/backup.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
@@ -182,96 +184,15 @@ void main() {
       expect(find.text('Add in seconds'), findsOne);
     });
 
-    testWidgets('a restored backup brings its settings and skips the '
-        'walkthrough (BAK-2)', (tester) async {
-      files.toOpen = await otherPhoneBackup();
-      final settings = await testSettings({}, () => today);
-      await start(tester, settings);
-
-      await tester.tap(find.text('Restore a backup'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Dinner'), findsOne);
-      expect(settings.currencyCode, 'EUR');
-      expect(settings.setupDone, isTrue);
-      expect(settings.walkthroughSeen, isTrue);
-    });
-
-    testWidgets('a backup that will not open says so, and setup stays', (
+    testWidgets('the page asks for nothing but a language and a currency', (
       tester,
     ) async {
-      files.fail = true;
-      final settings = await testSettings({}, () => today);
-      await start(tester, settings);
+      await start(tester, await testSettings({}, () => today));
 
-      await tester.tap(find.text('Restore a backup'));
-      await tester.pumpAndSettle();
-
-      expect(find.text("Couldn't open the file. Try again."), findsOne);
-      expect(find.text('Continue'), findsOne);
-      expect(settings.setupDone, isFalse);
-    });
-
-    testWidgets('a file that is not a backup says so (BAK-2)', (tester) async {
-      files.toOpen = utf8.encode('a shopping list, not a backup');
-      final settings = await testSettings({}, () => today);
-      await start(tester, settings);
-
-      await tester.tap(find.text('Restore a backup'));
-      await tester.pumpAndSettle();
-
-      expect(find.text("This file isn't a Monthly Expenses backup."), findsOne);
-      expect(settings.setupDone, isFalse);
-    });
-
-    testWidgets('a restore that fails leaves setup as it was', (tester) async {
-      files.toOpen = await otherPhoneBackup();
-      db.failWrites = true;
-      final settings = await testSettings({}, () => today);
-      await start(tester, settings);
-
-      await tester.tap(find.text('Restore a backup'));
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text("Couldn't restore the backup. Your data wasn't changed."),
-        findsOne,
-      );
-      expect(settings.setupDone, isFalse);
-      expect(find.text('Continue'), findsOne);
-    });
-
-    testWidgets('an imported CSV finishes setup, and the walkthrough still '
-        'follows (IMP-1)', (tester) async {
-      files.toOpen = utf8.encode(
-        'date,amount,type,title\n2026-09-14,12.50,expense,Coffee\n',
-      );
-      final settings = await testSettings({}, () => today);
-      await start(tester, settings);
-
-      await tester.tap(find.text('Import a CSV'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Choose a file'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Import 1 row'));
-      await tester.pumpAndSettle();
-
-      expect(provider.transactions, hasLength(1));
-      expect(settings.setupDone, isTrue);
-      expect(find.text('Add in seconds'), findsOne);
-    });
-
-    testWidgets('leaving the import empty-handed keeps setup', (tester) async {
-      final settings = await testSettings({}, () => today);
-      await start(tester, settings);
-
-      await tester.tap(find.text('Import a CSV'));
-      await tester.pumpAndSettle();
-      await tester.pageBack();
-      await tester.pumpAndSettle();
-
-      expect(settings.setupDone, isFalse);
-      expect(find.text('Continue'), findsOne);
+      // Files belong to the walkthrough's last page now, not here (RUN-3).
+      expect(find.text('Restore a backup'), findsNothing);
+      expect(find.text('Import a CSV'), findsNothing);
+      expect(find.byType(ListTile), findsNWidgets(2));
     });
   });
 
@@ -280,7 +201,16 @@ void main() {
     Future<SettingsProvider> afterSetup() =>
         testSettings({'setup_done': true}, () => today);
 
-    testWidgets('four pages, and the last one opens Home', (tester) async {
+    /// Walks to the last page, the one for bringing data in (RUN-4).
+    Future<void> toBringPage(WidgetTester tester) async {
+      for (var page = 1; page < 5; page++) {
+        await tester.tap(find.text('Next'));
+        await tester.pumpAndSettle();
+      }
+      expect(find.text('Bring what you have'), findsOne);
+    }
+
+    testWidgets('five pages, and the last one opens Home', (tester) async {
       final settings = await afterSetup();
       await start(tester, settings);
 
@@ -288,12 +218,13 @@ void main() {
         'Add in seconds',
         'Plan the month',
         'See where it goes',
+        'Yours alone',
       ]) {
         expect(find.text(title), findsOne);
         await tester.tap(find.text('Next'));
         await tester.pumpAndSettle();
       }
-      expect(find.text('Yours alone'), findsOne);
+      expect(find.text('Bring what you have'), findsOne);
 
       await tester.tap(find.text('Get started'));
       await tester.pumpAndSettle();
@@ -306,12 +237,161 @@ void main() {
       final semantics = tester.ensureSemantics();
       await start(tester, await afterSetup());
 
-      expect(find.bySemanticsLabel('Page 1 of 4'), findsOne);
+      expect(find.bySemanticsLabel('Page 1 of 5'), findsOne);
       await tester.tap(find.text('Next'));
       await tester.pumpAndSettle();
-      expect(find.bySemanticsLabel('Page 2 of 4'), findsOne);
+      expect(find.bySemanticsLabel('Page 2 of 5'), findsOne);
 
       semantics.dispose();
+    });
+
+    testWidgets('the last page restores a backup, which brings its settings '
+        'and opens Home (BAK-2)', (tester) async {
+      files.toOpen = await otherPhoneBackup();
+      final settings = await afterSetup();
+      await start(tester, settings);
+      await toBringPage(tester);
+
+      await tester.tap(find.text('Restore a backup'));
+      await tester.pumpAndSettle();
+      // It says what the backup will bring back before it does it (RUN-4).
+      expect(
+        find.text(
+          'It replaces everything in the app, and brings back the language '
+          'and currency it was saved with.',
+        ),
+        findsOne,
+      );
+      await tester.tap(find.text('Restore'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Dinner'), findsOne);
+      expect(settings.currencyCode, 'EUR');
+      expect(settings.walkthroughSeen, isTrue);
+    });
+
+    testWidgets('a restore that is waved off changes nothing', (tester) async {
+      files.toOpen = await otherPhoneBackup();
+      final settings = await afterSetup();
+      await start(tester, settings);
+      await toBringPage(tester);
+
+      await tester.tap(find.text('Restore a backup'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(provider.transactions, isEmpty);
+      expect(settings.currencyCode, 'USD');
+      expect(settings.walkthroughSeen, isFalse);
+      expect(find.text('Bring what you have'), findsOne);
+    });
+
+    testWidgets('a backup that will not open says so, and the page stays', (
+      tester,
+    ) async {
+      files.fail = true;
+      final settings = await afterSetup();
+      await start(tester, settings);
+      await toBringPage(tester);
+
+      await tester.tap(find.text('Restore a backup'));
+      await tester.pumpAndSettle();
+
+      expect(find.text("Couldn't open the file. Try again."), findsOne);
+      expect(settings.walkthroughSeen, isFalse);
+    });
+
+    testWidgets('a file that is not a backup says so (BAK-2)', (tester) async {
+      files.toOpen = utf8.encode('a shopping list, not a backup');
+      final settings = await afterSetup();
+      await start(tester, settings);
+      await toBringPage(tester);
+
+      await tester.tap(find.text('Restore a backup'));
+      await tester.pumpAndSettle();
+
+      expect(find.text("This file isn't a Monthly Expenses backup."), findsOne);
+      expect(settings.walkthroughSeen, isFalse);
+    });
+
+    testWidgets('a backup from a newer version says so (BAK-4)', (
+      tester,
+    ) async {
+      files.toOpen = utf8.encode(
+        BackupData(
+          schemaVersion: DBHelper().version + 1,
+          createdAt: DateTime.utc(2026, 9),
+          tables: const {},
+        ).toJson(),
+      );
+      final settings = await afterSetup();
+      await start(tester, settings);
+      await toBringPage(tester);
+
+      await tester.tap(find.text('Restore a backup'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'This backup is from a newer version of the app. Update the app, '
+          'then try again.',
+        ),
+        findsOne,
+      );
+      expect(settings.walkthroughSeen, isFalse);
+    });
+
+    testWidgets('a restore that fails leaves the walkthrough as it was', (
+      tester,
+    ) async {
+      files.toOpen = await otherPhoneBackup();
+      db.failWrites = true;
+      final settings = await afterSetup();
+      await start(tester, settings);
+      await toBringPage(tester);
+
+      await tester.tap(find.text('Restore a backup'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Restore'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("Couldn't restore the backup. Your data wasn't changed."),
+        findsOne,
+      );
+      expect(settings.walkthroughSeen, isFalse);
+      expect(find.text('Bring what you have'), findsOne);
+    });
+
+    testWidgets('a CSV can be imported from the last page (IMP-1)', (
+      tester,
+    ) async {
+      files.toOpen = utf8.encode(
+        'date,amount,type,title\n2026-09-14,12.50,expense,Coffee\n',
+      );
+      final settings = await afterSetup();
+      await start(tester, settings);
+      await toBringPage(tester);
+
+      await tester.tap(find.text('Import a CSV'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Choose a file'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Import 1 row'));
+      await tester.pumpAndSettle();
+
+      expect(provider.transactions, hasLength(1));
+      // An import brings no settings, so the walkthrough still ends here.
+      expect(find.text('Bring what you have'), findsOne);
+      expect(settings.walkthroughSeen, isFalse);
+
+      // Let the import's snack bar go; it covers the button.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Get started'));
+      await tester.pumpAndSettle();
+      expect(settings.walkthroughSeen, isTrue);
     });
 
     testWidgets('a phone asking for less movement gets no animation', (
@@ -359,11 +439,14 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Add in seconds'), findsOne);
 
-      // The last page finishes rather than starting anything.
+      // A replay is the four pages about the app: bringing data in belongs
+      // to a first launch, and Backup & restore is a tap away here (RUN-4).
       for (var page = 1; page < 4; page++) {
         await tester.tap(find.text('Next'));
         await tester.pumpAndSettle();
       }
+      expect(find.text('Yours alone'), findsOne);
+      expect(find.text('Restore a backup'), findsNothing);
       expect(find.text('Get started'), findsNothing);
       expect(find.text('Done'), findsNWidgets(2));
 

@@ -114,6 +114,22 @@
     }
   },
   "settingsTitle": "Settings",
+  "drawerAddHeader": "Add",
+  "@drawerAddHeader": {
+    "description": "Heading for the first group of the navigation drawer, the things that record money (NAV-2)."
+  },
+  "drawerPlanHeader": "Plan",
+  "@drawerPlanHeader": {
+    "description": "Heading for the drawer group with budgets, recurring and notes (NAV-2)."
+  },
+  "drawerReviewHeader": "Look back",
+  "@drawerReviewHeader": {
+    "description": "Heading for the drawer group with insights, search and the exports (NAV-2)."
+  },
+  "drawerManageHeader": "Manage",
+  "@drawerManageHeader": {
+    "description": "Heading for the last drawer group: backup, settings, trash (NAV-2)."
+  },
   "currencyLabel": "Currency",
   "currencySearchHint": "Search currencies",
   "changeCurrencyTitle": "Change currency to {code}?",
@@ -458,6 +474,19 @@
     "description": "Walkthrough page 4 of 4: privacy, backups, app lock (RUN-4)."
   },
   "walkthroughPrivacyBody": "No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.",
+  "walkthroughBringTitle": "Bring what you have",
+  "@walkthroughBringTitle": {
+    "description": "Title of the last walkthrough page, for people arriving from another app or phone (RUN-4)."
+  },
+  "walkthroughBringBody": "Coming from another app or another phone? Start from a backup or a CSV instead of an empty app.",
+  "firstRunRestoreTitle": "Restore this backup?",
+  "@firstRunRestoreTitle": {
+    "description": "Dialog title before restoring a backup from the walkthrough (RUN-4, BAK-2)."
+  },
+  "firstRunRestoreMessage": "It replaces everything in the app, and brings back the language and currency it was saved with.",
+  "@firstRunRestoreMessage": {
+    "description": "Dialog body: a restore brings back the settings saved in the backup, replacing the ones just chosen (RUN-4)."
+  },
   "walkthroughNextButton": "Next",
   "walkthroughStartButton": "Get started",
   "@walkthroughStartButton": {

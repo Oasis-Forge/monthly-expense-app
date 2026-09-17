@@ -191,6 +191,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsTitle => 'الإعدادات';
 
   @override
+  String get drawerAddHeader => 'إضافة';
+
+  @override
+  String get drawerPlanHeader => 'تخطيط';
+
+  @override
+  String get drawerReviewHeader => 'مراجعة';
+
+  @override
+  String get drawerManageHeader => 'إدارة';
+
+  @override
   String get currencyLabel => 'العملة';
 
   @override
@@ -775,6 +787,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get walkthroughPrivacyBody =>
       'بلا حساب ولا إعلانات ولا تتبّع. تبقى بياناتك هنا، وأنت من يقرر نسخها وقفلها.';
+
+  @override
+  String get walkthroughBringTitle => 'أحضر ما لديك';
+
+  @override
+  String get walkthroughBringBody =>
+      'أتنتقل من تطبيق آخر أو هاتف آخر؟ ابدأ من نسخة احتياطية أو ملف CSV بدل تطبيق فارغ.';
+
+  @override
+  String get firstRunRestoreTitle => 'أتريد استعادة هذه النسخة الاحتياطية؟';
+
+  @override
+  String get firstRunRestoreMessage =>
+      'ستحل محل كل ما في التطبيق، وتعيد اللغة والعملة المحفوظتين فيها.';
 
   @override
   String get walkthroughNextButton => 'التالي';

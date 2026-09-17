@@ -16,9 +16,11 @@ import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
+import 'package:monthly_expense_app/screens/report_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
+import 'package:monthly_expense_app/screens/trash_screen.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
@@ -60,8 +62,21 @@ void main() {
     await tester.pump();
   }
 
+  /// Opens the navigation drawer and taps one of its rows (NAV-1). The list
+  /// is longer than a phone, so the row may need scrolling to.
   Future<void> openMenu(WidgetTester tester, String item) async {
-    await tester.tap(find.byTooltip('Show menu'));
+    await tester.tap(find.byTooltip('Open navigation menu'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text(item),
+      120,
+      scrollable: find
+          .descendant(
+            of: find.byType(Drawer),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text(item));
     await tester.pumpAndSettle();
@@ -165,9 +180,8 @@ void main() {
     expect(find.text('Aug 25 – Sep 24'), findsOneWidget);
   });
 
-  testWidgets('the app bar, menu, and add button open their screens', (
-    tester,
-  ) async {
+  testWidgets('the app bar, the drawer, and the add button open their '
+      'screens (NAV-1, NAV-4)', (tester) async {
     await showHome(tester);
 
     Future<void> openAndReturn(
@@ -189,13 +203,18 @@ void main() {
       () => tester.tap(find.byTooltip('Insights')),
       InsightsScreen,
     );
+    // Every destination the drawer names opens from it (NAV-1).
     for (final (label, screen) in [
       ('Transfer', TransferScreen),
-      ('Recurring', RecurringScreen),
       ('Budgets', BudgetsScreen),
+      ('Recurring', RecurringScreen),
       ('Notes', NotesScreen),
+      ('Insights', InsightsScreen),
+      ('Search', SearchScreen),
+      ('Export PDF', ReportScreen),
       ('Backup & restore', BackupScreen),
       ('Settings', SettingsScreen),
+      ('Trash', TrashScreen),
     ]) {
       await openAndReturn(() => openMenu(tester, label), screen);
     }
@@ -220,6 +239,21 @@ void main() {
     await tester.tap(find.text('Add your first transaction'));
     await tester.pumpAndSettle();
     expect(find.byType(AddTransactionScreen), findsOneWidget);
+  });
+
+  testWidgets('tapping the period opens the calendar for it (INS-4)', (
+    tester,
+  ) async {
+    await showHome(tester);
+
+    await tester.tap(find.text('September 2026'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InsightsScreen), findsOneWidget);
+    final tabs = DefaultTabController.of(tester.element(find.byType(TabBar)));
+    expect(tabs.index, 1);
+    // The period came with it, rather than resetting (PER-1).
+    expect(find.text('September 2026'), findsOneWidget);
   });
 
   testWidgets('Export CSV saves the selected period (BAK-5)', (tester) async {

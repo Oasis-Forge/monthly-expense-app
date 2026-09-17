@@ -185,6 +185,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
+  String get drawerAddHeader => 'Add';
+
+  @override
+  String get drawerPlanHeader => 'Plan';
+
+  @override
+  String get drawerReviewHeader => 'Look back';
+
+  @override
+  String get drawerManageHeader => 'Manage';
+
+  @override
   String get currencyLabel => 'Currency';
 
   @override
@@ -750,6 +762,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get walkthroughPrivacyBody =>
       'No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.';
+
+  @override
+  String get walkthroughBringTitle => 'Bring what you have';
+
+  @override
+  String get walkthroughBringBody =>
+      'Coming from another app or another phone? Start from a backup or a CSV instead of an empty app.';
+
+  @override
+  String get firstRunRestoreTitle => 'Restore this backup?';
+
+  @override
+  String get firstRunRestoreMessage =>
+      'It replaces everything in the app, and brings back the language and currency it was saved with.';
 
   @override
   String get walkthroughNextButton => 'Next';
