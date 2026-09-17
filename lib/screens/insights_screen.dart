@@ -37,13 +37,18 @@ const List<Color> _chartColors = [
 /// budgets, a calendar of daily totals, and the trend over recent periods
 /// (INS-1–INS-3).
 class InsightsScreen extends StatelessWidget {
-  const InsightsScreen({super.key});
+  const InsightsScreen({super.key, this.initialTab = 0});
+
+  /// Which tab opens first: 0 categories, 1 calendar, 2 trend. Home's period
+  /// label opens the calendar (INS-4).
+  final int initialTab;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DefaultTabController(
       length: 3,
+      initialIndex: initialTab,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.insightsTitle),

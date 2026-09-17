@@ -8,7 +8,11 @@ import '../providers/transaction_provider.dart';
 /// Arrows around the selected period's label (PER-3), shared by Home and
 /// Insights.
 class PeriodSelector extends StatelessWidget {
-  const PeriodSelector({super.key});
+  const PeriodSelector({super.key, this.onLabelTap});
+
+  /// What tapping the label does. Home opens the calendar with it (INS-4);
+  /// Insights leaves it null, since the calendar is already there.
+  final VoidCallback? onLabelTap;
 
   @override
   Widget build(BuildContext context) {
@@ -26,11 +30,17 @@ class PeriodSelector extends StatelessWidget {
           ),
           // Long labels shrink to fit narrow screens.
           Expanded(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                periodLabel(provider.period, l10n),
-                style: Theme.of(context).textTheme.titleLarge,
+            child: InkWell(
+              onTap: onLabelTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    periodLabel(provider.period, l10n),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
               ),
             ),
           ),

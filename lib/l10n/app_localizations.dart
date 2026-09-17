@@ -400,6 +400,30 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
+  /// Heading for the first group of the navigation drawer, the things that record money (NAV-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get drawerAddHeader;
+
+  /// Heading for the drawer group with budgets, recurring and notes (NAV-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get drawerPlanHeader;
+
+  /// Heading for the drawer group with insights, search and the exports (NAV-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Look back'**
+  String get drawerReviewHeader;
+
+  /// Heading for the last drawer group: backup, settings, trash (NAV-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get drawerManageHeader;
+
   /// No description provided for @currencyLabel.
   ///
   /// In en, this message translates to:
@@ -1347,6 +1371,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.'**
   String get walkthroughPrivacyBody;
+
+  /// Title of the last walkthrough page, for people arriving from another app or phone (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'Bring what you have'**
+  String get walkthroughBringTitle;
+
+  /// No description provided for @walkthroughBringBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming from another app or another phone? Start from a backup or a CSV instead of an empty app.'**
+  String get walkthroughBringBody;
+
+  /// Dialog title before restoring a backup from the walkthrough (RUN-4, BAK-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Restore this backup?'**
+  String get firstRunRestoreTitle;
+
+  /// Dialog body: a restore brings back the settings saved in the backup, replacing the ones just chosen (RUN-4).
+  ///
+  /// In en, this message translates to:
+  /// **'It replaces everything in the app, and brings back the language and currency it was saved with.'**
+  String get firstRunRestoreMessage;
 
   /// No description provided for @walkthroughNextButton.
   ///

@@ -23,17 +23,7 @@ import 'report_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'transfer_screen.dart';
-
-enum _MenuItem {
-  transfer,
-  recurring,
-  budgets,
-  notes,
-  exportCsv,
-  exportPdf,
-  backup,
-  settings,
-}
+import 'trash_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -90,43 +80,18 @@ class HomeScreen extends StatelessWidget {
             tooltip: l10n.insightsTooltip,
             onPressed: () => _open(context, const InsightsScreen()),
           ),
-          PopupMenuButton<_MenuItem>(
-            onSelected: (item) {
-              final screen = switch (item) {
-                _MenuItem.transfer => const TransferScreen(),
-                _MenuItem.recurring => const RecurringScreen(),
-                _MenuItem.budgets => const BudgetsScreen(),
-                _MenuItem.notes => const NotesScreen(),
-                _MenuItem.exportPdf => const ReportScreen(),
-                _MenuItem.backup => const BackupScreen(),
-                _MenuItem.settings => const SettingsScreen(),
-                _MenuItem.exportCsv => null,
-              };
-              if (screen == null) {
-                _exportPeriod(context, provider);
-              } else {
-                _open(context, screen);
-              }
-            },
-            itemBuilder: (_) => [
-              for (final (item, label) in [
-                (_MenuItem.transfer, l10n.transferTitle),
-                (_MenuItem.recurring, l10n.recurringTitle),
-                (_MenuItem.budgets, l10n.budgetsTitle),
-                (_MenuItem.notes, l10n.notesTitle),
-                (_MenuItem.exportCsv, l10n.exportCsvMenu),
-                (_MenuItem.exportPdf, l10n.exportPdfMenu),
-                (_MenuItem.backup, l10n.backupTitle),
-                (_MenuItem.settings, l10n.settingsTitle),
-              ])
-                PopupMenuItem(value: item, child: Text(label)),
-            ],
-          ),
         ],
       ),
+      // Everything that isn't Home lives here, named and grouped, instead of
+      // behind a three-dot menu nobody opened (NAV-1, NAV-2).
+      drawer: const _HomeDrawer(),
       body: Column(
         children: [
-          const PeriodSelector(),
+          // INS-4: the label opens the calendar for the period it names.
+          PeriodSelector(
+            onLabelTap: () =>
+                _open(context, const InsightsScreen(initialTab: 1)),
+          ),
           _SummaryCard(
             income: provider.periodIncome,
             expense: provider.periodExpense,
@@ -200,6 +165,116 @@ class HomeScreen extends StatelessWidget {
               icon: const Icon(Icons.add),
               label: Text(l10n.addButton),
             ),
+    );
+  }
+}
+
+/// Every destination that isn't Home, grouped under headings and reached
+/// from the toolbar's menu button or an edge swipe (NAV-1–NAV-3, NAV-5).
+class _HomeDrawer extends StatelessWidget {
+  const _HomeDrawer();
+
+  /// Closes the drawer, then runs [go], so the drawer isn't left open behind
+  /// the screen it opened (NAV-3).
+  void _leave(BuildContext context, VoidCallback go) {
+    Navigator.of(context).pop();
+    go();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final provider = context.read<TransactionProvider>();
+
+    Widget header(String text) => Padding(
+      padding: const EdgeInsetsDirectional.fromSTEB(28, 16, 16, 8),
+      child: Text(
+        text,
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: theme.colorScheme.primary,
+        ),
+      ),
+    );
+
+    Widget row(IconData icon, String label, VoidCallback go) => ListTile(
+      leading: Icon(icon),
+      title: Text(label),
+      onTap: () => _leave(context, go),
+    );
+
+    void open(Widget screen) => HomeScreen._open(context, screen);
+
+    return Drawer(
+      child: SafeArea(
+        child: ListView(
+          children: [
+            Padding(
+              padding: const EdgeInsetsDirectional.fromSTEB(28, 24, 16, 8),
+              child: Text(l10n.appTitle, style: theme.textTheme.titleLarge),
+            ),
+            header(l10n.drawerAddHeader),
+            row(
+              Icons.swap_horiz,
+              l10n.transferTitle,
+              () => open(const TransferScreen()),
+            ),
+            header(l10n.drawerPlanHeader),
+            row(
+              Icons.savings_outlined,
+              l10n.budgetsTitle,
+              () => open(const BudgetsScreen()),
+            ),
+            row(
+              Icons.event_repeat,
+              l10n.recurringTitle,
+              () => open(const RecurringScreen()),
+            ),
+            row(
+              Icons.sticky_note_2_outlined,
+              l10n.notesTitle,
+              () => open(const NotesScreen()),
+            ),
+            header(l10n.drawerReviewHeader),
+            row(
+              Icons.insights_outlined,
+              l10n.insightsTitle,
+              () => open(const InsightsScreen()),
+            ),
+            row(
+              Icons.search,
+              l10n.searchTooltip,
+              () => open(const SearchScreen()),
+            ),
+            row(
+              Icons.table_view_outlined,
+              l10n.exportCsvMenu,
+              () => HomeScreen._exportPeriod(context, provider),
+            ),
+            row(
+              Icons.picture_as_pdf_outlined,
+              l10n.exportPdfMenu,
+              () => open(const ReportScreen()),
+            ),
+            header(l10n.drawerManageHeader),
+            row(
+              Icons.backup_outlined,
+              l10n.backupTitle,
+              () => open(const BackupScreen()),
+            ),
+            row(
+              Icons.settings_outlined,
+              l10n.settingsTitle,
+              () => open(const SettingsScreen()),
+            ),
+            row(
+              Icons.delete_outline,
+              l10n.trashTitle,
+              () => open(const TrashScreen()),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

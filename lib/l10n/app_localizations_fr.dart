@@ -188,6 +188,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settingsTitle => 'Paramètres';
 
   @override
+  String get drawerAddHeader => 'Ajouter';
+
+  @override
+  String get drawerPlanHeader => 'Planifier';
+
+  @override
+  String get drawerReviewHeader => 'Revoir';
+
+  @override
+  String get drawerManageHeader => 'Gérer';
+
+  @override
   String get currencyLabel => 'Devise';
 
   @override
@@ -758,6 +770,20 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get walkthroughPrivacyBody =>
       'Pas de compte, pas de publicité, pas de suivi. Vos données restent ici, sauvegardées et verrouillées quand vous le voulez.';
+
+  @override
+  String get walkthroughBringTitle => 'Reprenez vos données';
+
+  @override
+  String get walkthroughBringBody =>
+      'Vous venez d\'une autre application ou d\'un autre téléphone ? Commencez par une sauvegarde ou un CSV plutôt que par une application vide.';
+
+  @override
+  String get firstRunRestoreTitle => 'Restaurer cette sauvegarde ?';
+
+  @override
+  String get firstRunRestoreMessage =>
+      'Elle remplace tout ce qui se trouve dans l\'application et rétablit la langue et la devise enregistrées avec elle.';
 
   @override
   String get walkthroughNextButton => 'Suivant';

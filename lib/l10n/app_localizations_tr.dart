@@ -185,6 +185,18 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsTitle => 'Ayarlar';
 
   @override
+  String get drawerAddHeader => 'Ekle';
+
+  @override
+  String get drawerPlanHeader => 'Planla';
+
+  @override
+  String get drawerReviewHeader => 'Geriye bak';
+
+  @override
+  String get drawerManageHeader => 'Yönet';
+
+  @override
   String get currencyLabel => 'Para birimi';
 
   @override
@@ -750,6 +762,20 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get walkthroughPrivacyBody =>
       'Hesap yok, reklam yok, takip yok. Verileriniz burada kalır; yedeklemeye ve kilitlemeye siz karar verirsiniz.';
+
+  @override
+  String get walkthroughBringTitle => 'Verilerinizi getirin';
+
+  @override
+  String get walkthroughBringBody =>
+      'Başka bir uygulamadan veya telefondan mı geliyorsunuz? Boş bir uygulama yerine bir yedekten veya CSV dosyasından başlayın.';
+
+  @override
+  String get firstRunRestoreTitle => 'Bu yedek geri yüklensin mi?';
+
+  @override
+  String get firstRunRestoreMessage =>
+      'Uygulamadaki her şeyin yerini alır ve kaydedildiği dil ile para birimini geri getirir.';
 
   @override
   String get walkthroughNextButton => 'İleri';
