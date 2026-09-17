@@ -299,32 +299,45 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **They do:** ads are removed by subscription — about TRY 8 a month, 80 a year — or a lifetime purchase around 250, and a rewarded video buys seven ad-free days.
 
-**Learn:** a subscription to *not* see something is resented, and a rewarded video turns the app into a slot machine. One honest price, paid once, is easier to trust and easier to build. What is sold must already work.
+**Learn:** a subscription to *not* see something is resented, and a rewarded video turns the app into a slot machine, so ads are bought away once and for all. A bank connection is the opposite case: it costs us every month that someone uses it, so it has to be paid for every month too. What is sold must already work, and must work for the buyer's own bank.
 
 - **PAY-1** "Remove ads" is a one-time purchase. It hides every ad slot (ADS-8) and changes nothing else. It follows the store account, so a new phone or a reinstall restores it.
-- **PAY-2** Plus is a second, dearer one-time purchase. It includes everything "Remove ads" does and unlocks the bank connection (section 25). Where the stores support an upgrade, someone who already bought "Remove ads" pays the difference; where they don't, the app says so before the purchase rather than quietly charging twice.
+- **PAY-2** Plus is a subscription, yearly with a monthly option, because the bank connection it buys (section 25) costs us for every month it runs. It hides the ads while it is active, and when it lapses the connection stops and the ads come back — unless "Remove ads" was bought, which is kept forever either way (PAY-1). Nothing else changes, and nothing recorded is ever taken away (BANK-8).
 - **PAY-3** Until the bank connection actually works, Plus is shown as "coming soon", with no price and no way to buy it. Nothing is sold before it exists.
 - **PAY-4** Nothing that works today ever moves behind a payment. Every feature in v1 — entry, budgets, recurring, notes, insights, reports, backup, import, attachments, the widget, app lock — stays free for everyone, with or without ads. Paying removes ads and adds what is new.
-- **PAY-5** There is no account and no server of ours. The stores' own receipts on the device decide what is owned, "Restore purchases" sits beside the prices, and the app asks the store what the user owns at each launch, so a refund or a family-shared purchase takes effect without a reinstall.
+- **PAY-5** "Remove ads" needs no account and no server: the store's own receipt on the device decides it, "Restore purchases" sits beside the price, and the app asks the store what is owned at each launch, so a refund or a family-shared purchase takes effect without a reinstall. Plus is checked on the server the bank connection needs anyway, so a lapsed or refunded subscription actually stops the connection instead of being taken on trust.
 - **PAY-6** Prices come from the store, in the buyer's own currency. They are never hard-coded, and they have nothing to do with the app's currency setting (CUR-1).
 - **PAY-7** Selling is quiet: one row in Settings, and one small tap target on the ad slot itself. No interstitial upsell, no countdown, no trial that lapses into a charge, no repeated asking.
 - **PAY-8** A purchase that fails or is left pending never charges twice and never leaves the app half-paid: the slots stay as they were until the store confirms.
+- **PAY-9** Plus is only offered where it can work. The screen asks which bank first, and when no provider reaches it, the app says so and sells nothing — it points at the free notification route (ALERT-1) and the CSV import (IMP-1) instead.
+- **PAY-10** A subscription is cancelled in the store, never by asking us, and the app says where that is. It never dark-patterns: no "are you sure" chain, no offer wall on the way out, and the last day paid for is honoured.
 
-## 25. The bank connection (Plus)
+## 25. Automatic entry
 
-**They do:** nothing of the sort. Their app is typed in by hand.
+**They do:** nothing of the sort; every entry is typed in by hand.
 
-**Learn:** most entries people forget are the ones their bank already told them about. A phone that shows a bank's notification has the amount on screen; reading it on the device turns the slowest part of the app into a confirmation. The danger is a wrong number entered silently, so nothing may reach the ledger unread.
+**Learn:** the entries people miss are the ones their bank already knows about. A real connection catches all of them, including the ones no notification ever mentions, but it exists only where a provider reaches that bank, and it costs money every month. Reading the phone's own notifications is free and reaches banks no provider does, but it sees only what the bank chooses to announce. Both are worth having, as long as neither writes to the ledger unread.
 
-- **BANK-1** With Plus, and on Android only, the app reads notifications from apps the user picks — their banks — and proposes transactions from them. iOS has no way for one app to read another's notifications, so nothing on iOS changes until an open-banking route exists; Plus says so plainly there before anyone buys it.
-- **BANK-2** Turning it on goes through Android's own notification-access screen, and the app names exactly which apps it will read. One tap turns it off. Notifications from every other app are ignored and never stored.
-- **BANK-3** Everything is parsed on the device: no notification text, bank name, amount, or merchant leaves the phone, and no ad network or other service is told any of it (ADS-7, BAK-6).
-- **BANK-4** A read notification becomes a proposal, not a transaction. It waits in a review list with its amount, merchant, account, and time, and the user confirms, edits, or discards it. Nothing is written to the ledger unread (as with IMP-5 and RCR-2).
-- **BANK-5** A notification the app cannot read confidently is kept as its own text for the user to complete or throw away. The app never guesses an amount, a category, or an account.
-- **BANK-6** A proposal that matches something already recorded by amount, day, and account is marked as a possible duplicate rather than added beside it (IMP-8).
-- **BANK-7** Each bank's wording is a pattern. The app ships the ones it knows, and a correction teaches it the shape for that app on that phone; nothing about it is uploaded or shared between users.
-- **BANK-8** Turning the connection off, or losing the purchase, stops the reading at once. Everything already recorded stays, because it is the user's data (DEL-1).
-- **BANK-9** The Play listing declares notification access and what it is for, and `docs/privacy-policy.md` says in plain words what is read, what is kept, and that it stays on the phone.
+### The bank connection (Plus)
+
+- **BANK-1** Plus connects to the bank through a licensed open-banking provider. The user signs in on the provider's or the bank's own screen: the app never sees a bank password, and neither do we.
+- **BANK-2** Transactions arrive whole — date, amount, merchant, account — and the user matches each bank account to an account in the app once, when the connection is made (ACC-1).
+- **BANK-3** An arriving transaction is still a proposal. It waits in a review list where the user confirms it, changes its category, or discards it, and nothing reaches the ledger unread (as with IMP-5 and RCR-2). Once a merchant has been filed the same way a few times, the app may suggest the category by itself, but never the amount, the date, or the account.
+- **BANK-4** A proposal that matches something already entered by hand, by amount, day, and account, is offered as a merge rather than added beside it (IMP-8).
+- **BANK-5** This is the one place the app's data leaves the device. The screen that starts a connection says in plain words what the provider receives and keeps, the privacy policy says the same, and none of it is ever shown to an ad network (ADS-7). Without Plus, the app still sends nothing anywhere.
+- **BANK-6** Disconnecting stops the flow at once, asks the provider to revoke its access, and deletes what our side holds for that connection. Everything already recorded stays, because it is the user's data (DEL-1).
+- **BANK-7** A connection that breaks — a consent that expired, a bank that changed its sign-in, a provider outage — says so on Home and offers to reconnect. It never fails quietly, and it never invents entries for the days it missed.
+- **BANK-8** When Plus lapses, the connection stops and the review list is cleared, but every transaction already recorded stays and stays editable.
+
+### Reading notifications (free, Android)
+
+- **ALERT-1** Where no provider reaches the bank, the app can read notifications from apps the user picks — the bank's own app, or the messaging app when the bank texts instead. It is free, needs no purchase, and is Android only: on iOS no app may read another's notifications.
+- **ALERT-2** It goes through Android's own notification-access screen, names exactly which apps will be read, and is one tap to turn off. Notifications from every other app are ignored and never stored.
+- **ALERT-3** Everything is parsed on the device. No notification text, bank name, amount, or merchant leaves the phone (BAK-6, ADS-7).
+- **ALERT-4** Every reading is a proposal, reviewed exactly like a connected bank's (BANK-3), with the same duplicate check (BANK-4).
+- **ALERT-5** A wording the app can't read confidently is kept as its own text, for the user to complete or throw away; nothing is guessed. A correction teaches the shape for that app on that phone, and is never uploaded or shared between users.
+- **ALERT-6** The app is honest about the limit: this route sees only what the bank chooses to announce, so no notification means no entry. A bank that has said nothing for two weeks prompts a look at its alert settings rather than silence.
+- **ALERT-7** The Play listing declares notification access and what it is for, and `docs/privacy-policy.md` says in plain words what is read, what is kept, and that it stays on the phone.
 
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
@@ -354,8 +367,9 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 16. The three-dot menu becomes a navigation drawer (section 23), because nothing in it was being found.
 17. Tapping the period label on Home opens the calendar for that period (INS-4).
 18. Ads can be bought away: "Remove ads" is a one-time purchase, not a subscription and not a rewarded video (PAY-1). Every feature stays free with or without it (PAY-4).
-19. Plus is a second one-time purchase that includes ad removal and, when it exists, the bank connection (PAY-2). Until then it is shown as "coming soon" with no price (PAY-3).
-20. The bank connection reads bank notifications on Android and parses them on the device, and what it reads becomes a proposal the user confirms (section 25). iOS cannot do this at all, so it waits for an open-banking route, which would need a server and a provider and is not in v1.
+19. Plus is a subscription — yearly, with a monthly option — because what it buys costs us every month (PAY-2). It hides the ads while it runs, and it is shown as "coming soon" with no price until the connection works (PAY-3).
+20. What Plus sells is a real bank connection through a licensed open-banking provider, not notification scraping: transactions arrive whole, so nothing is missed (BANK-1, BANK-2). It brings a server, a provider contract, per-user fees, and the one place where the app's data leaves the device (BANK-5), all of which the privacy policy and the store listings must say plainly. Which market comes first is not decided: the first task is a coverage check of the banks that matter against what the providers actually reach and charge.
+21. Reading bank notifications stays, but free and outside Plus: it is the answer for banks and countries no provider reaches, Android only, parsed on the device, and honest about seeing only what the bank announces (ALERT-1–ALERT-7).
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

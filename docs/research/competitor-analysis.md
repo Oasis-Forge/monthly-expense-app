@@ -30,7 +30,7 @@ _Researched 13 September 2026. App: `incomeexpense.incomeexpense`, version 285._
 | Personalization | Dark mode toggle, first day of week/month/year, carry-forward balance, dashboard widgets toggles | Follows system theme | Theme toggle, first day of month/week, carry-forward balance |
 | Languages | 20 besides English in its own strings, Portuguese only partly (its picker showed 16) | 6: English, Turkish, Arabic, French, Spanish, German | Match their set: 21 with English (LANG-1) |
 | Getting around | Bottom tabs (Home, Calendar, NoteBook), a drawer, and an overflow menu | A three-dot menu holding everything but Home | A grouped navigation drawer (NAV-1–NAV-5) |
-| Reading the bank | Nothing: every entry is typed | Nothing | Plus reads bank notifications on Android and proposes entries to confirm, all on the device (section 25); iOS has no such API |
+| Reading the bank | Nothing: every entry is typed | Nothing | Plus connects to the bank through an open-banking provider, so nothing is missed (BANK-1); free notification reading on Android covers banks no provider reaches (ALERT-1). Both propose, and the user confirms |
 
 ## What they do well (worth matching)
 - **Fast repeat entry:** the form stays open after saving, keeps the last category, and opens a calculator keypad on the amount.
