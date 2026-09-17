@@ -1,7 +1,7 @@
 # Monthly Expense App
 
-A simple Flutter app to track your monthly income and expenses — inspired by
-apps like [Income Expense Manager](https://play.google.com/store/apps/details?id=incomeexpense.incomeexpense&hl=en).
+A simple Flutter app to track your monthly income and expenses, built around
+what popular free trackers get right and what they get wrong.
 
 ## Features
 

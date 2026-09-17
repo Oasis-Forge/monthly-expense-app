@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-09-17
+
+### Changed
+- The public documentation no longer names or links to the other app that was studied before this one was designed. The research and the reasoning stay; the name, the store link and its prices are gone.
+
 ## [1.7.1] - 2026-09-17
 
 ### Changed

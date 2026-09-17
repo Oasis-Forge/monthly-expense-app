@@ -224,7 +224,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 ## 19. Notes
 
-**They do:** a NoteBook tab that works as a dated to-do list. Each note is text with a date, a time, and a done checkbox. The tab has period filters, search, Completed and Pending filters, counts, and a PDF of the list. Notes don't link to transactions and have no reminders, and a confirmed delete removes them for good. In testing on version 295, the counts went stale, search ignored the Pending filter, and the PDF quietly kept an earlier search. Whether backups include notes: not verified.
+**They do:** a notes tab that works as a dated to-do list. Each note is text with a date, a time, and a done checkbox. The tab has period filters, search, Completed and Pending filters, counts, and a PDF of the list. Notes don't link to transactions and have no reminders, and a confirmed delete removes them for good. In testing on version 295, the counts went stale, search ignored the Pending filter, and the PDF quietly kept an earlier search. Whether backups include notes: not verified.
 
 **Learn:** people use notes for money to-dos, like "pay the water bill on the 5th". Their value is the due date and turning the note into a transaction once it's paid. A list whose counts and filters disagree with the screen can't be trusted.
 
@@ -269,7 +269,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 ## 22. Ads
 
-**They do:** a banner on most screens from the first launch, through AppLovin, with the advertising ID and ad attribution; removing the ads costs about TRY 8 a month, 80 a year, or 250 once, and a rewarded video buys seven ad-free days.
+**They do:** a banner on most screens from the first launch, through a third-party ad network, with the advertising ID and ad attribution; the ads are removed by a subscription or a one-off lifetime price, and a rewarded video buys seven ad-free days.
 
 **Learn:** ads pay for a free app, but a banner that covers a row, moves a button under a finger, or interrupts an entry is what makes a free app feel cheap, and the money only comes if people keep the app. Ads also change what the app collects, so the listing and the policy have to say so plainly.
 
@@ -285,7 +285,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 ## 23. Getting around
 
-**They do:** a bottom tab bar (Home, Calendar, NoteBook), a drawer behind the toolbar's menu button, an overflow menu, and Add income, Add expense and Transfer as buttons on Home.
+**They do:** a bottom tab bar for home, calendar and notes, a drawer behind the toolbar's menu button, an overflow menu, and Add income, Add expense and Transfer as buttons on Home.
 
 **Learn:** our three-dot menu is where everything that isn't Home ended up — Transfer, Budgets, Recurring, Notes, the exports, Backup, Settings, Trash. It is one small target that says nothing about what is behind it, and people don't open it. A named list they can see beats a menu they have to guess at.
 
@@ -297,7 +297,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 ## 24. Paying
 
-**They do:** ads are removed by subscription — about TRY 8 a month, 80 a year — or a lifetime purchase around 250, and a rewarded video buys seven ad-free days.
+**They do:** ads are removed by a monthly or yearly subscription, or by a one-off lifetime purchase, and a rewarded video buys seven ad-free days.
 
 **Learn:** a subscription to *not* see something is resented, and a rewarded video turns the app into a slot machine, so ads are bought away once and for all. A bank connection is the opposite case: it costs us every month that someone uses it, so it has to be paid for every month too. What is sold must already work, and must work for the buyer's own bank.
 
