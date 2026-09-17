@@ -4,6 +4,16 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-09-17
+
+### Added
+- A navigation drawer holds everything that isn't Home — transfers, budgets, recurring, notes, insights, search, the exports, backup, settings and trash — grouped and named, in place of the three-dot menu.
+- Tapping the month on the home screen opens the calendar for it.
+
+### Changed
+- "Restore a backup" and "Import a CSV" moved from the first setup page to the last page of the walkthrough, so setup only asks for your language and currency. Restoring says first that it brings back the language and currency saved in the backup.
+- The app is a little smaller: an icon font nothing used has gone.
+
 ## [1.7.1] - 2026-09-17
 
 ### Changed
