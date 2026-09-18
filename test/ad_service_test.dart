@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart' show DebugGeography;
 
@@ -94,5 +95,25 @@ void main() {
     test('no privacy options row until the SDK has said so (ADS-5)', () {
       expect(DeviceAdService().privacyOptionsRequired, isFalse);
     });
+
+    test(
+      'the slot is a standard banner tall, not the large one (ADS-3)',
+      () async {
+        // Standing in for the plugin's side of its channel.
+        const channel = MethodChannel('plugins.flutter.io/google_mobile_ads');
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        final asked = <String>[];
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          asked.add(call.method);
+          return 57;
+        });
+        addTearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+        expect(await DeviceAdService().bannerHeight(360), 57);
+        // The large size leaves a blank band above and below most ads.
+        expect(asked, ['AdSize#getAnchoredAdaptiveBannerAdSize']);
+      },
+    );
   });
 }

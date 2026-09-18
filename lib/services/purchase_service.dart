@@ -129,9 +129,15 @@ class DevicePurchaseService extends PurchaseService {
     _lastError = null;
     _settle(PurchaseStage.pending);
     try {
-      await _store.buyNonConsumable(
+      final launched = await _store.buyNonConsumable(
         purchaseParam: PurchaseParam(productDetails: product),
       );
+      // A sheet that never opened sends nothing back, so waiting for the
+      // store would never end.
+      if (!launched) {
+        _lastError = 'The store did not open the purchase.';
+        _settle(PurchaseStage.offered);
+      }
     } catch (error) {
       _lastError = '$error';
       _settle(PurchaseStage.offered);
@@ -151,12 +157,21 @@ class DevicePurchaseService extends PurchaseService {
 
   Future<void> _onUpdates(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
+      // Android reports a sheet that closed with no purchase in it — backed
+      // out of, declined, or already owned — with no product ID at all. Only
+      // one thing is sold, so it is about ours.
+      if (purchase.productID.isEmpty) {
+        await _onSheetClosed(purchase);
+        continue;
+      }
       if (purchase.productID != PurchaseService.removeAdsId) continue;
       switch (purchase.status) {
         case PurchaseStatus.pending:
           _settle(PurchaseStage.pending);
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
+          // Whatever went wrong on the way, it ended owned.
+          _lastError = null;
           _settle(PurchaseStage.owned);
         case PurchaseStatus.error:
           _lastError = purchase.error?.message;
@@ -178,6 +193,26 @@ class DevicePurchaseService extends PurchaseService {
       if (purchase.pendingCompletePurchase) {
         await _store.completePurchase(purchase);
       }
+    }
+  }
+
+  /// A purchase sheet that closed without naming a product. It proves nothing
+  /// is owned, so it only ever puts the price back (PAY-8); the store is then
+  /// asked what this account owns, which is how "already owned" or a
+  /// purchase reported without its details still ends with the ads off.
+  Future<void> _onSheetClosed(PurchaseDetails result) async {
+    if (_stage != PurchaseStage.pending) return;
+    _lastError = result.status == PurchaseStatus.error
+        ? result.error?.message
+        : null;
+    _settle(
+      _product == null ? PurchaseStage.unavailable : PurchaseStage.offered,
+    );
+    if (result.status == PurchaseStatus.canceled) return;
+    try {
+      await _store.restorePurchases();
+    } catch (_) {
+      // The price is back and Restore purchases sits beside it.
     }
   }
 

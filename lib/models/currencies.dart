@@ -63,3 +63,21 @@ const List<(String, String)> currencies = [
   ('VND', 'Vietnamese Dong'),
   ('ZAR', 'South African Rand'),
 ];
+
+/// How Arabic writes the Arab currencies, from CLDR. intl's short symbols for
+/// them are Latin ("Riyal", "E£", "KD"), which reads oddly in Arabic text.
+const arabicCurrencySymbols = {
+  'AED': 'د.إ.',
+  'BHD': 'د.ب.',
+  'DZD': 'د.ج.',
+  'EGP': 'ج.م.',
+  'IQD': 'د.ع.',
+  'JOD': 'د.أ.',
+  'KWD': 'د.ك.',
+  'LBP': 'ل.ل.',
+  'MAD': 'د.م.',
+  'OMR': 'ر.ع.',
+  'QAR': 'ر.ق.',
+  'SAR': 'ر.س.',
+  'TND': 'د.ت.',
+};

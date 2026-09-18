@@ -179,8 +179,16 @@ class DeviceAdService implements AdService {
   /// Anchored adaptive: the height follows the device and the orientation,
   /// and the SDK promises the same height for any given width, so a slot can
   /// reserve it before asking for an ad and nothing moves later (ADS-2).
+  ///
+  /// The standard size, not the large one the plugin now points to. The large
+  /// slot is up to 15% of the screen, and the ordinary banners that fill it
+  /// sit in its middle with blank space above and below, taken from the
+  /// user's screen for nothing (ADS-3). Revisit if a plugin upgrade drops it.
   Future<AnchoredAdaptiveBannerAdSize?> _sizeFor(double width) =>
-      AdSize.getLargeAnchoredAdaptiveBannerAdSize(width.truncate());
+      // ignore: deprecated_member_use
+      AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
+        width.truncate(),
+      );
 
   @override
   Future<LoadedBanner?> loadBanner(AdPlacement placement, double width) async {

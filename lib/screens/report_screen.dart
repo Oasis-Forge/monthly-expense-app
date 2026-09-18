@@ -117,7 +117,7 @@ class _ReportScreenState extends State<ReportScreen> {
         labels: ReportLabels(
           l10n: l10n,
           locale: locale,
-          currency: settings.currencyFormat(l10n.localeName),
+          currency: settings.currencyFormat(l10n.localeName, isolated: false),
           categoryName: (id) => provider.categoryById(id)?.label(l10n) ?? '',
           accountName: (id) => provider.accountById(id)?.label(l10n) ?? '',
           accountFilterName: _accountId == null
