@@ -1092,10 +1092,6 @@ class TransactionProvider extends ChangeNotifier {
     ];
   }
 
-  /// How many budgets are at or over their limit in the selected period.
-  int get budgetsOver =>
-      budgetStatuses.where((status) => status.level == BudgetLevel.over).length;
-
   // Recurring transactions (RCR-1–RCR-7).
 
   /// Occurrences of rules that wait for a tap, dated today or earlier and not

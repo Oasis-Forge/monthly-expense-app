@@ -16,7 +16,6 @@
   "detailAdded": "أُضيف في {date}",
   "detailChanged": "آخر تعديل في {date}",
   "recurringDueNotice": "{count, plural, =1{معاملة متكررة واحدة مستحقة} =2{معاملتان متكررتان مستحقتان} few{{count} معاملات متكررة مستحقة} many{{count} معاملة متكررة مستحقة} other{{count} معاملة متكررة مستحقة}}",
-  "budgetsOverNotice": "{count, plural, =1{ميزانية واحدة تجاوزت حدها} =2{ميزانيتان تجاوزتا حدهما} few{{count} ميزانيات تجاوزت حدودها} many{{count} ميزانية تجاوزت حدودها} other{{count} ميزانية تجاوزت حدودها}}",
   "budgetsCardSummary": "{over, plural, =0{استُخدم {percent}} =1{استُخدم {percent} · ميزانية متجاوزة} =2{استُخدم {percent} · ميزانيتان متجاوزتان} few{استُخدم {percent} · {over} ميزانيات متجاوزة} many{استُخدم {percent} · {over} ميزانية متجاوزة} other{استُخدم {percent} · {over} ميزانية متجاوزة}}",
   "budgetsCardPlanned": "{count, plural, =1{ميزانية واحدة محددة} =2{ميزانيتان محددتان} few{{count} ميزانيات محددة} many{{count} ميزانية محددة} other{{count} ميزانية محددة}}",
   "deleteFailed": "تعذّر حذف المعاملة. حاول مرة أخرى.",

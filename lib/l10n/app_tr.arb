@@ -16,7 +16,6 @@
   "detailAdded": "{date} tarihinde eklendi",
   "detailChanged": "Son değişiklik {date}",
   "recurringDueNotice": "{count, plural, =1{1 tekrarlanan işlemin zamanı geldi} other{{count} tekrarlanan işlemin zamanı geldi}}",
-  "budgetsOverNotice": "{count, plural, =1{1 bütçe limitini aştı} other{{count} bütçe limitini aştı}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} kullanıldı} =1{{percent} kullanıldı · 1 aşıldı} other{{percent} kullanıldı · {over} aşıldı}}",
   "budgetsCardPlanned": "{count, plural, =1{1 bütçe belirlendi} other{{count} bütçe belirlendi}}",
   "deleteFailed": "İşlem silinemedi. Tekrar deneyin.",

@@ -74,17 +74,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String budgetsOverNotice(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '有$count个预算已超支',
-      one: '有1个预算已超支',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String budgetsCardSummary(String percent, int over) {
     String _temp0 = intl.Intl.pluralLogic(
       over,

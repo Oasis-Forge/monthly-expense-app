@@ -16,7 +16,6 @@
   "detailAdded": "Hinzugefügt am {date}",
   "detailChanged": "Zuletzt geändert am {date}",
   "recurringDueNotice": "{count, plural, =1{1 wiederkehrende Buchung ist fällig} other{{count} wiederkehrende Buchungen sind fällig}}",
-  "budgetsOverNotice": "{count, plural, =1{1 Budget ist überschritten} other{{count} Budgets sind überschritten}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} verbraucht} =1{{percent} verbraucht · 1 überschritten} other{{percent} verbraucht · {over} überschritten}}",
   "budgetsCardPlanned": "{count, plural, =1{1 Budget festgelegt} other{{count} Budgets festgelegt}}",
   "deleteFailed": "Die Buchung konnte nicht gelöscht werden. Versuche es erneut.",

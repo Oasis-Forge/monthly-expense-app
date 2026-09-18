@@ -16,7 +16,6 @@
   "detailAdded": "Добавлено {date}",
   "detailChanged": "Изменено {date}",
   "recurringDueNotice": "{count, plural, =1{Пора провести 1 повторяющуюся операцию} few{Пора провести {count} повторяющиеся операции} many{Пора провести {count} повторяющихся операций} other{Пора провести {count} повторяющихся операций}}",
-  "budgetsOverNotice": "{count, plural, =1{1 бюджет превысил лимит} few{{count} бюджета превысили лимит} many{{count} бюджетов превысили лимит} other{{count} бюджетов превысили лимит}}",
   "budgetsCardSummary": "{over, plural, =0{Потрачено {percent}} =1{Потрачено {percent} · 1 превышен} few{Потрачено {percent} · {over} превышено} many{Потрачено {percent} · {over} превышено} other{Потрачено {percent} · {over} превышено}}",
   "budgetsCardPlanned": "{count, plural, =1{1 бюджет задан} few{{count} бюджета задано} many{{count} бюджетов задано} other{{count} бюджетов задано}}",
   "deleteFailed": "Не удалось удалить операцию. Попробуйте ещё раз.",

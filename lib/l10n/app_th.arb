@@ -16,7 +16,6 @@
   "detailAdded": "เพิ่มเมื่อ {date}",
   "detailChanged": "แก้ไขล่าสุดเมื่อ {date}",
   "recurringDueNotice": "{count, plural, =1{มีรายการประจำครบกำหนด 1 รายการ} other{มีรายการประจำครบกำหนด {count} รายการ}}",
-  "budgetsOverNotice": "{count, plural, =1{งบประมาณเกินวงเงิน 1 รายการ} other{งบประมาณเกินวงเงิน {count} รายการ}}",
   "budgetsCardSummary": "{over, plural, =0{ใช้ไป {percent}} =1{ใช้ไป {percent} · เกิน 1 รายการ} other{ใช้ไป {percent} · เกิน {over} รายการ}}",
   "budgetsCardPlanned": "{count, plural, =1{ตั้งงบประมาณ 1 รายการ} other{ตั้งงบประมาณ {count} รายการ}}",
   "deleteFailed": "ลบรายการไม่สำเร็จ ลองอีกครั้ง",

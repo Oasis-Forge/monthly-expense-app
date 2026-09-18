@@ -77,20 +77,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String budgetsOverNotice(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count ميزانية تجاوزت حدودها',
-      many: '$count ميزانية تجاوزت حدودها',
-      few: '$count ميزانيات تجاوزت حدودها',
-      two: 'ميزانيتان تجاوزتا حدهما',
-      one: 'ميزانية واحدة تجاوزت حدها',
-    );
-    return '$_temp0';
-  }
-
-  @override
   String budgetsCardSummary(String percent, int over) {
     String _temp0 = intl.Intl.pluralLogic(
       over,

@@ -64,7 +64,6 @@ class HomeScreen extends StatelessWidget {
       ...provider.transfersByDay.keys,
     }.toList()..sort((a, b) => b.compareTo(a));
     final dueCount = provider.dueOccurrences.length;
-    final overCount = provider.budgetsOver;
     final budgetStatuses = provider.budgetStatuses;
     final budgetSummary = BudgetSummary.of(budgetStatuses);
     final dueNotesCount = provider.notesDueInPeriod.length;
@@ -122,13 +121,6 @@ class HomeScreen extends StatelessWidget {
               color: Theme.of(context).colorScheme.primary,
               text: l10n.recurringDueNotice(dueCount),
               onTap: () => _open(context, const RecurringScreen()),
-            ),
-          if (overCount > 0)
-            _Notice(
-              icon: Icons.warning_amber_rounded,
-              color: Theme.of(context).colorScheme.error,
-              text: l10n.budgetsOverNotice(overCount),
-              onTap: () => _open(context, const InsightsScreen()),
             ),
           if (dueNotesCount > 0)
             _Notice(

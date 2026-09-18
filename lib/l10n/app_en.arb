@@ -57,14 +57,6 @@
       }
     }
   },
-  "budgetsOverNotice": "{count, plural, =1{1 budget is over its limit} other{{count} budgets are over their limit}}",
-  "@budgetsOverNotice": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
   "budgetsCardSummary": "{over, plural, =0{{percent} used} =1{{percent} used · 1 over} other{{percent} used · {over} over}}",
   "@budgetsCardSummary": {
     "description": "The budgets card's line on Home before it's opened (BUD-7): how much of the budget is used, and how many budgets are over their limit.",

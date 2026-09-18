@@ -16,7 +16,6 @@
   "detailAdded": "Dodano {date}",
   "detailChanged": "Ostatnia zmiana {date}",
   "recurringDueNotice": "{count, plural, =1{1 transakcja cykliczna czeka na zaksięgowanie} few{{count} transakcje cykliczne czekają na zaksięgowanie} many{{count} transakcji cyklicznych czeka na zaksięgowanie} other{{count} transakcji cyklicznych czeka na zaksięgowanie}}",
-  "budgetsOverNotice": "{count, plural, =1{1 budżet przekroczył limit} few{{count} budżety przekroczyły limit} many{{count} budżetów przekroczyło limit} other{{count} budżetów przekroczyło limit}}",
   "budgetsCardSummary": "{over, plural, =0{Wykorzystano {percent}} =1{Wykorzystano {percent} · 1 przekroczony} few{Wykorzystano {percent} · {over} przekroczone} many{Wykorzystano {percent} · {over} przekroczonych} other{Wykorzystano {percent} · {over} przekroczonych}}",
   "budgetsCardPlanned": "{count, plural, =1{1 budżet ustalony} few{{count} budżety ustalone} many{{count} budżetów ustalonych} other{{count} budżetów ustalonych}}",
   "deleteFailed": "Nie udało się usunąć transakcji. Spróbuj ponownie.",

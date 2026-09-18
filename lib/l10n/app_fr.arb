@@ -16,7 +16,6 @@
   "detailAdded": "Ajouté le {date}",
   "detailChanged": "Modifié le {date}",
   "recurringDueNotice": "{count, plural, =1{1 transaction récurrente est due} other{{count} transactions récurrentes sont dues}}",
-  "budgetsOverNotice": "{count, plural, =1{1 budget a dépassé sa limite} other{{count} budgets ont dépassé leur limite}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} utilisé} =1{{percent} utilisé · 1 dépassé} other{{percent} utilisé · {over} dépassés}}",
   "budgetsCardPlanned": "{count, plural, =1{1 budget prévu} other{{count} budgets prévus}}",
   "deleteFailed": "Impossible de supprimer la transaction. Réessayez.",

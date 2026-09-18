@@ -40,9 +40,9 @@ void main() {
   const income = TransactionType.income;
   final today = DateTime(2026, 9, 15, 10);
 
-  /// Data that fills every screen: both notices on Home, an overall and a
-  /// category budget, a due recurring rule, two accounts, and a trend with
-  /// income in September.
+  /// Data that fills every screen: the recurring notice on Home, an overall
+  /// and a category budget, a due recurring rule, two accounts, and a trend
+  /// with income in September.
   Future<TransactionProvider> loadProvider() async {
     final provider = TransactionProvider(
       db: FakeDB(

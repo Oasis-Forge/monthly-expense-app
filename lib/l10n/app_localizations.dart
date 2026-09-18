@@ -232,12 +232,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 recurring transaction is due} other{{count} recurring transactions are due}}'**
   String recurringDueNotice(int count);
 
-  /// No description provided for @budgetsOverNotice.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 budget is over its limit} other{{count} budgets are over their limit}}'**
-  String budgetsOverNotice(int count);
-
   /// The budgets card's line on Home before it's opened (BUD-7): how much of the budget is used, and how many budgets are over their limit.
   ///
   /// In en, this message translates to:

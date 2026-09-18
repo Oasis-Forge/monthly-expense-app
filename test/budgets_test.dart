@@ -253,7 +253,6 @@ void main() {
           (overall.spent, overall.level, overall.perDayAllowance),
           (const Money(1150000), BudgetLevel.over, null),
         );
-        expect(provider.budgetsOver, 1);
         expect(BudgetSummary.of(statuses)!.over, 1);
       },
     );

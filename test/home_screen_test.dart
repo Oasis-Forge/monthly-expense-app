@@ -366,26 +366,6 @@ void main() {
     expect(find.byType(RecurringScreen), findsOneWidget);
   });
 
-  testWidgets('budgets over their limit show a notice (BUD-4)', (tester) async {
-    fake.budgets.add(
-      Budget(
-        id: 'food',
-        categoryId: 'cat-food',
-        limit: const Money(10000),
-        effectiveFrom: DateTime(2026, 9),
-        createdAt: DateTime.utc(2026),
-        updatedAt: DateTime.utc(2026),
-      ),
-    );
-    await provider.load();
-
-    await showHome(tester);
-    await tester.tap(find.text('1 budget is over its limit'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(InsightsScreen), findsOneWidget);
-  });
-
   group('the budgets card (BUD-7, BUD-8)', () {
     Budget limit(String id, String? categoryId, int amount) => Budget(
       id: id,
@@ -414,8 +394,8 @@ void main() {
       // concert on the 18th doesn't count yet (BAL-4).
       expect(find.text('10% used · 1 over'), findsOneWidget);
       expect(find.byType(BudgetProgress), findsNothing);
-      // The notice stays, so an overspend shows while the card is closed.
-      expect(find.text('1 budget is over its limit'), findsOneWidget);
+      // The line says it in red; there's no separate notice for it.
+      expect(find.text('1 budget is over its limit'), findsNothing);
 
       await tester.tap(find.text('Budgets'));
       await tester.pumpAndSettle();
