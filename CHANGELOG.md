@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-09-18
+
+### Added
+- The ads are live: a banner at the bottom of Home and of Insights, served from the app's own ad account rather than Google's placeholder ads. "Remove ads" still takes every one of them away for good.
+
 ## [1.13.0] - 2026-09-18
 
 ### Fixed
