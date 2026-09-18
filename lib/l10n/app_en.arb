@@ -87,10 +87,6 @@
       }
     }
   },
-  "editBudgetsButton": "Edit budgets",
-  "@editBudgetsButton": {
-    "description": "Opens the Budgets screen from the budgets card on Home (BUD-8)."
-  },
   "deleteFailed": "Couldn't delete the transaction. Try again.",
   "transactionDeleted": "Transaction deleted",
   "transferDeleted": "Transfer deleted",

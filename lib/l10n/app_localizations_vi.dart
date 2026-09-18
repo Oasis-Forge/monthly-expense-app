@@ -108,9 +108,6 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'Sửa ngân sách';
-
-  @override
   String get deleteFailed => 'Không thể xóa giao dịch. Vui lòng thử lại.';
 
   @override

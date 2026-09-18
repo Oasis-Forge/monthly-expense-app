@@ -108,9 +108,6 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'Επεξεργασία προϋπολογισμών';
-
-  @override
   String get deleteFailed =>
       'Δεν ήταν δυνατή η διαγραφή της συναλλαγής. Δοκιμάστε ξανά.';
 

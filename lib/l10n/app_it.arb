@@ -19,7 +19,6 @@
   "budgetsOverNotice": "{count, plural, =1{1 budget ha superato il limite} other{{count} budget hanno superato il limite}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} usato} =1{{percent} usato · 1 superato} other{{percent} usato · {over} superati}}",
   "budgetsCardPlanned": "{count, plural, =1{1 budget impostato} other{{count} budget impostati}}",
-  "editBudgetsButton": "Modifica budget",
   "deleteFailed": "Impossibile eliminare la transazione. Riprova.",
   "transactionDeleted": "Transazione eliminata",
   "transferDeleted": "Trasferimento eliminato",

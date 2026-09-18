@@ -19,7 +19,6 @@
   "budgetsOverNotice": "{count, plural, =1{1 bütçe limitini aştı} other{{count} bütçe limitini aştı}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} kullanıldı} =1{{percent} kullanıldı · 1 aşıldı} other{{percent} kullanıldı · {over} aşıldı}}",
   "budgetsCardPlanned": "{count, plural, =1{1 bütçe belirlendi} other{{count} bütçe belirlendi}}",
-  "editBudgetsButton": "Bütçeleri düzenle",
   "deleteFailed": "İşlem silinemedi. Tekrar deneyin.",
   "transactionDeleted": "İşlem silindi",
   "transferDeleted": "Transfer silindi",

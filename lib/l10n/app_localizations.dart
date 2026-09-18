@@ -250,12 +250,6 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 budget set} other{{count} budgets set}}'**
   String budgetsCardPlanned(int count);
 
-  /// Opens the Budgets screen from the budgets card on Home (BUD-8).
-  ///
-  /// In en, this message translates to:
-  /// **'Edit budgets'**
-  String get editBudgetsButton;
-
   /// No description provided for @deleteFailed.
   ///
   /// In en, this message translates to:

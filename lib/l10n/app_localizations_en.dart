@@ -108,9 +108,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'Edit budgets';
-
-  @override
   String get deleteFailed => 'Couldn\'t delete the transaction. Try again.';
 
   @override

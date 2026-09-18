@@ -108,9 +108,6 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'แก้ไขงบประมาณ';
-
-  @override
   String get deleteFailed => 'ลบรายการไม่สำเร็จ ลองอีกครั้ง';
 
   @override

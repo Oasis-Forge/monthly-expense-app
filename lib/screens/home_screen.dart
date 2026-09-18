@@ -439,14 +439,17 @@ class _BudgetsCard extends StatelessWidget {
         expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (final status in statuses)
-            BudgetProgress(status: status, currency: currency),
+            BudgetProgress(status: status, currency: currency, compact: true),
           Align(
             alignment: AlignmentDirectional.centerEnd,
-            child: TextButton(
+            // The fuller picture, where the budgets sit above the spending by
+            // category, as the drawer's row of the same name opens it.
+            child: TextButton.icon(
               onPressed: () => Navigator.of(
                 context,
-              ).push(MaterialPageRoute(builder: (_) => const BudgetsScreen())),
-              child: Text(l10n.editBudgetsButton),
+              ).push(MaterialPageRoute(builder: (_) => const InsightsScreen())),
+              icon: const Icon(Icons.pie_chart_outline),
+              label: Text(l10n.drawerSpending),
             ),
           ),
         ],

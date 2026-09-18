@@ -108,9 +108,6 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'बजट बदलें';
-
-  @override
   String get deleteFailed => 'लेनदेन हटाया नहीं जा सका। फिर कोशिश करें।';
 
   @override

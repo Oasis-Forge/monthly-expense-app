@@ -108,9 +108,6 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => '예산 편집';
-
-  @override
   String get deleteFailed => '거래를 삭제하지 못했어요. 다시 시도해 주세요.';
 
   @override

@@ -108,9 +108,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => '编辑预算';
-
-  @override
   String get deleteFailed => '无法删除该交易，请重试。';
 
   @override

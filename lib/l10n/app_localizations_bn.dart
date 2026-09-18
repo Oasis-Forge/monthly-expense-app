@@ -108,9 +108,6 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'বাজেট সম্পাদনা';
-
-  @override
   String get deleteFailed => 'লেনদেন মুছে ফেলা যায়নি। আবার চেষ্টা করুন।';
 
   @override

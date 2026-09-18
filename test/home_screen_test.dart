@@ -421,13 +421,23 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(BudgetProgress), findsNWidgets(2));
-      expect(find.text('10%'), findsOneWidget);
-      expect(find.text('125%'), findsOneWidget);
+      // Each bar with what's spent of its limit and the share used, but not
+      // the line under it, which stays in Insights.
+      expect(find.text('\$12.50 of \$125.00   10%'), findsOneWidget);
+      expect(find.text('\$12.50 of \$10.00   125%'), findsOneWidget);
+      expect(find.textContaining('left'), findsNothing);
+      expect(find.textContaining('Over by'), findsNothing);
 
-      await tester.tap(find.text('Edit budgets'));
+      // The fuller picture: Insights, on the tab that lists the budgets
+      // above the spending by category.
+      await tester.tap(find.text('Spending by category'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(BudgetsScreen), findsOneWidget);
+      expect(
+        tester.widget<InsightsScreen>(find.byType(InsightsScreen)).initialTab,
+        0,
+      );
+      expect(find.text('Over by \$2.50'), findsOneWidget);
     });
 
     testWidgets('a future period with nothing recorded still shows its '

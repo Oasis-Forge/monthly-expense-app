@@ -120,9 +120,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'تعديل الميزانيات';
-
-  @override
   String get deleteFailed => 'تعذّر حذف المعاملة. حاول مرة أخرى.';
 
   @override

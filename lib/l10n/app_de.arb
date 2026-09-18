@@ -19,7 +19,6 @@
   "budgetsOverNotice": "{count, plural, =1{1 Budget ist überschritten} other{{count} Budgets sind überschritten}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} verbraucht} =1{{percent} verbraucht · 1 überschritten} other{{percent} verbraucht · {over} überschritten}}",
   "budgetsCardPlanned": "{count, plural, =1{1 Budget festgelegt} other{{count} Budgets festgelegt}}",
-  "editBudgetsButton": "Budgets bearbeiten",
   "deleteFailed": "Die Buchung konnte nicht gelöscht werden. Versuche es erneut.",
   "transactionDeleted": "Buchung gelöscht",
   "transferDeleted": "Umbuchung gelöscht",

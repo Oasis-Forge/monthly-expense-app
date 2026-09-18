@@ -108,9 +108,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'Bütçeleri düzenle';
-
-  @override
   String get deleteFailed => 'İşlem silinemedi. Tekrar deneyin.';
 
   @override

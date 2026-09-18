@@ -108,9 +108,6 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'بجٹ میں ترمیم کریں';
-
-  @override
   String get deleteFailed => 'ٹرانزیکشن حذف نہیں ہو سکی۔ دوبارہ کوشش کریں۔';
 
   @override

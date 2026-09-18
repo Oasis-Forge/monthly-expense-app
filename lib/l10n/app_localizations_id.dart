@@ -108,9 +108,6 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'Ubah anggaran';
-
-  @override
   String get deleteFailed => 'Transaksi gagal dihapus. Coba lagi.';
 
   @override

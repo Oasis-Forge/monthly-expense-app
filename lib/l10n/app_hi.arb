@@ -19,7 +19,6 @@
   "budgetsOverNotice": "{count, plural, =1{1 बजट अपनी सीमा से ऊपर है} other{{count} बजट अपनी सीमा से ऊपर हैं}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} इस्तेमाल} =1{{percent} इस्तेमाल · 1 सीमा से ऊपर} other{{percent} इस्तेमाल · {over} सीमा से ऊपर}}",
   "budgetsCardPlanned": "{count, plural, =1{1 बजट तय} other{{count} बजट तय}}",
-  "editBudgetsButton": "बजट बदलें",
   "deleteFailed": "लेनदेन हटाया नहीं जा सका। फिर कोशिश करें।",
   "transactionDeleted": "लेनदेन हटाया गया",
   "transferDeleted": "ट्रांसफर हटाया गया",

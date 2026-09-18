@@ -19,7 +19,6 @@
   "budgetsOverNotice": "{count, plural, =1{1 بجٹ اپنی حد سے تجاوز کر گیا ہے} other{{count} بجٹ اپنی حد سے تجاوز کر گئے ہیں}}",
   "budgetsCardSummary": "{over, plural, =0{{percent} استعمال ہوا} =1{{percent} استعمال ہوا · 1 حد سے تجاوز} other{{percent} استعمال ہوا · {over} حد سے تجاوز}}",
   "budgetsCardPlanned": "{count, plural, =1{1 بجٹ مقرر} other{{count} بجٹ مقرر}}",
-  "editBudgetsButton": "بجٹ میں ترمیم کریں",
   "deleteFailed": "ٹرانزیکشن حذف نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
   "transactionDeleted": "ٹرانزیکشن حذف ہو گئی",
   "transferDeleted": "ٹرانسفر حذف ہو گیا",

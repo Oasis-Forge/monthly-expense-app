@@ -116,9 +116,6 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
-  String get editBudgetsButton => 'Изменить бюджеты';
-
-  @override
   String get deleteFailed => 'Не удалось удалить операцию. Попробуйте ещё раз.';
 
   @override

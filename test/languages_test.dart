@@ -166,7 +166,7 @@ void main() {
             // (BUD-8).
             await tester.tap(find.text(l10n.budgetsTitle));
             await tester.pumpAndSettle();
-            expect(find.text(l10n.editBudgetsButton), findsOne);
+            expect(find.text(l10n.drawerSpending), findsOne);
             // Every drawer row is text of its own, and the list is longer
             // than a phone, so it is scrolled through (NAV-1, NAV-2).
             tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
