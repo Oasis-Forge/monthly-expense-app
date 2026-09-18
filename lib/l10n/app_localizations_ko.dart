@@ -85,6 +85,32 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String budgetsCardSummary(String percent, int over) {
+    String _temp0 = intl.Intl.pluralLogic(
+      over,
+      locale: localeName,
+      other: '$percent 사용 · $over건 초과',
+      one: '$percent 사용 · 1건 초과',
+      zero: '$percent 사용',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsCardPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '예산 $count건 설정됨',
+      one: '예산 1건 설정됨',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editBudgetsButton => '예산 편집';
+
+  @override
   String get deleteFailed => '거래를 삭제하지 못했어요. 다시 시도해 주세요.';
 
   @override

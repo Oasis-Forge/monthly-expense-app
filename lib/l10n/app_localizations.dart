@@ -238,6 +238,24 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 budget is over its limit} other{{count} budgets are over their limit}}'**
   String budgetsOverNotice(int count);
 
+  /// The budgets card's line on Home before it's opened (BUD-7): how much of the budget is used, and how many budgets are over their limit.
+  ///
+  /// In en, this message translates to:
+  /// **'{over, plural, =0{{percent} used} =1{{percent} used · 1 over} other{{percent} used · {over} over}}'**
+  String budgetsCardSummary(String percent, int over);
+
+  /// The budgets card's line on Home for a future period, which only has limits so far (BUD-6, BUD-7).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 budget set} other{{count} budgets set}}'**
+  String budgetsCardPlanned(int count);
+
+  /// Opens the Budgets screen from the budgets card on Home (BUD-8).
+  ///
+  /// In en, this message translates to:
+  /// **'Edit budgets'**
+  String get editBudgetsButton;
+
   /// No description provided for @deleteFailed.
   ///
   /// In en, this message translates to:

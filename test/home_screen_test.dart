@@ -12,6 +12,7 @@ import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/accounts_screen.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
+import 'package:monthly_expense_app/screens/budget_progress.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/categories_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
@@ -383,6 +384,64 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(InsightsScreen), findsOneWidget);
+  });
+
+  group('the budgets card (BUD-7, BUD-8)', () {
+    Budget limit(String id, String? categoryId, int amount) => Budget(
+      id: id,
+      categoryId: categoryId,
+      limit: Money(amount * 1000),
+      effectiveFrom: DateTime(2026, 9),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+
+    testWidgets('no budgets, no card', (tester) async {
+      await showHome(tester);
+
+      expect(find.byType(ExpansionTile), findsNothing);
+    });
+
+    testWidgets('one line at first, every budget once opened', (tester) async {
+      fake.budgets.addAll([
+        limit('all', null, 125),
+        limit('food', 'cat-food', 10),
+      ]);
+      await provider.load();
+
+      await showHome(tester);
+      // Lunch (12.50) is 10% of the overall budget, and puts food over; the
+      // concert on the 18th doesn't count yet (BAL-4).
+      expect(find.text('10% used · 1 over'), findsOneWidget);
+      expect(find.byType(BudgetProgress), findsNothing);
+      // The notice stays, so an overspend shows while the card is closed.
+      expect(find.text('1 budget is over its limit'), findsOneWidget);
+
+      await tester.tap(find.text('Budgets'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetProgress), findsNWidgets(2));
+      expect(find.text('10%'), findsOneWidget);
+      expect(find.text('125%'), findsOneWidget);
+
+      await tester.tap(find.text('Edit budgets'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetsScreen), findsOneWidget);
+    });
+
+    testWidgets('a future period with nothing recorded still shows its '
+        'budgets, as limits only (BUD-6)', (tester) async {
+      fake.budgets.add(limit('food', 'cat-food', 10));
+      await provider.load();
+
+      await showHome(tester);
+      await tester.tap(find.byTooltip('Next period'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 budget set'), findsOneWidget);
+      expect(find.text('No transactions in this period yet.'), findsOneWidget);
+    });
   });
 
   testWidgets('notes due in the period show a notice (NOTE-5)', (tester) async {

@@ -85,6 +85,32 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String budgetsCardSummary(String percent, int over) {
+    String _temp0 = intl.Intl.pluralLogic(
+      over,
+      locale: localeName,
+      other: 'Đã dùng $percent · $over vượt hạn mức',
+      one: 'Đã dùng $percent · 1 vượt hạn mức',
+      zero: 'Đã dùng $percent',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsCardPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Đã đặt $count ngân sách',
+      one: 'Đã đặt 1 ngân sách',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editBudgetsButton => 'Sửa ngân sách';
+
+  @override
   String get deleteFailed => 'Không thể xóa giao dịch. Vui lòng thử lại.';
 
   @override

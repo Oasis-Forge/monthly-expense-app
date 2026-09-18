@@ -142,3 +142,50 @@ class BudgetStatus {
       ? Money(remaining.thousandths ~/ daysLeft)
       : null;
 }
+
+/// The one line the budgets card on Home shows before it's opened (BUD-7).
+class BudgetSummary {
+  const BudgetSummary({
+    required this.progress,
+    required this.over,
+    required this.level,
+    required this.count,
+    required this.timing,
+  });
+
+  /// The line for a period's [statuses], or null when it has no budgets.
+  ///
+  /// The overall budget speaks for the period when there is one. Otherwise
+  /// the category budgets count together: their spending against their
+  /// limits combined. The level is the worst of them all, so one budget over
+  /// its limit shows even when the total is fine.
+  static BudgetSummary? of(List<BudgetStatus> statuses) {
+    if (statuses.isEmpty) return null;
+    final overall = statuses.where((s) => s.categoryId == null).firstOrNull;
+    final limit = statuses.fold(Money.zero, (sum, s) => sum + s.limit);
+    final spent = statuses.fold(Money.zero, (sum, s) => sum + s.spent);
+    final levels = statuses.map((s) => s.level).toSet();
+    return BudgetSummary(
+      progress:
+          overall?.progress ??
+          (limit.isPositive ? spent.thousandths / limit.thousandths : 1),
+      over: statuses.where((s) => s.level == BudgetLevel.over).length,
+      level: levels.contains(BudgetLevel.over)
+          ? BudgetLevel.over
+          : levels.contains(BudgetLevel.warning)
+          ? BudgetLevel.warning
+          : BudgetLevel.ok,
+      count: statuses.length,
+      timing: statuses.first.timing,
+    );
+  }
+
+  /// Spent as a share of the budget; 1 or more means over.
+  final double progress;
+
+  /// How many budgets are at or over their limit.
+  final int over;
+  final BudgetLevel level;
+  final int count;
+  final PeriodTiming timing;
+}

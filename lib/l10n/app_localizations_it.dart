@@ -85,6 +85,32 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String budgetsCardSummary(String percent, int over) {
+    String _temp0 = intl.Intl.pluralLogic(
+      over,
+      locale: localeName,
+      other: '$percent usato · $over superati',
+      one: '$percent usato · 1 superato',
+      zero: '$percent usato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsCardPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count budget impostati',
+      one: '1 budget impostato',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editBudgetsButton => 'Modifica budget';
+
+  @override
   String get deleteFailed => 'Impossibile eliminare la transazione. Riprova.';
 
   @override

@@ -130,6 +130,53 @@ void main() {
       expect(status(100, timing: PeriodTiming.past).perDayAllowance, isNull);
     });
 
+    group('the budgets card line (BUD-7)', () {
+      BudgetStatus status(String? categoryId, int limit, int spent) =>
+          BudgetStatus(
+            categoryId: categoryId,
+            limit: Money(limit * 1000),
+            spent: Money(spent * 1000),
+            timing: PeriodTiming.current,
+          );
+
+      test('no budgets, no line', () {
+        expect(BudgetSummary.of(const []), isNull);
+      });
+
+      test('the overall budget speaks for the period', () {
+        final summary = BudgetSummary.of([
+          status(null, 1000, 500),
+          status('cat-food', 100, 150),
+        ])!;
+
+        expect(summary.progress, 0.5);
+        // The food budget is over, so the line says so and turns red.
+        expect((summary.over, summary.level), (1, BudgetLevel.over));
+        expect(summary.count, 2);
+      });
+
+      test('without one, the category budgets count together', () {
+        final summary = BudgetSummary.of([
+          status('cat-food', 300, 240),
+          status('cat-transport', 100, 20),
+        ])!;
+
+        expect(summary.progress, closeTo(260 / 400, 1e-9));
+        // Food is at 80%: a warning, and nothing over.
+        expect((summary.over, summary.level), (0, BudgetLevel.warning));
+      });
+
+      test('all within their limits', () {
+        final summary = BudgetSummary.of([status('cat-food', 300, 10)])!;
+
+        expect((summary.over, summary.level), (0, BudgetLevel.ok));
+      });
+
+      test('a limit of nothing counts as used up, like its budget', () {
+        expect(BudgetSummary.of([status('cat-food', 0, 0)])!.progress, 1);
+      });
+    });
+
     test('a period is past, current, or future relative to today', () {
       final september = Period.containing(DateTime(2026, 9, 10));
 
@@ -207,6 +254,7 @@ void main() {
           (const Money(1150000), BudgetLevel.over, null),
         );
         expect(provider.budgetsOver, 1);
+        expect(BudgetSummary.of(statuses)!.over, 1);
       },
     );
 

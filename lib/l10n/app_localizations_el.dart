@@ -85,6 +85,32 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String budgetsCardSummary(String percent, int over) {
+    String _temp0 = intl.Intl.pluralLogic(
+      over,
+      locale: localeName,
+      other: '$percent σε χρήση · $over πάνω από το όριο',
+      one: '$percent σε χρήση · 1 πάνω από το όριο',
+      zero: '$percent σε χρήση',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsCardPlanned(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count προϋπολογισμοί ορίστηκαν',
+      one: '1 προϋπολογισμός ορίστηκε',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get editBudgetsButton => 'Επεξεργασία προϋπολογισμών';
+
+  @override
   String get deleteFailed =>
       'Δεν ήταν δυνατή η διαγραφή της συναλλαγής. Δοκιμάστε ξανά.';
 
