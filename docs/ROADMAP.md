@@ -84,6 +84,7 @@ Decided 13 September 2026: these ship in v1. Languages come first. After that, e
 - [ ] Google Play: new personal developer accounts must run a closed test (at least 12 testers for 14 days) before production access. Confirm the current rule in Play Console and plan for the wait. Progress: the closed test started 18 September 2026.
 - [ ] Declare the EU trader status (Digital Services Act) in Play Console before production. Trader is the likely answer, since the app has ads and a paid purchase. It publishes an address, a phone number and an email on the EU listing, so choose ones that can be public first.
 - [ ] Play store listing in every language the app ships (screenshots, description, privacy policy URL, the data safety form including what the ad network collects (ADS-6)), then promote to production. Progress: the listing text, screenshots, feature graphics and store icon for all 23 Play languages were uploaded on 18 September 2026.
+
 ## Phase 6 — Windows and Linux (Microsoft Store, Flathub)
 Split out on 18 September 2026, to come after Google Play and before the Apple platforms. The desktop builds carry no ads and make no network calls (RUN-2), so their listings have no ad network to disclose.
 - [ ] **Microsoft Store:** a Partner Center developer account, the app name reserved, and the MSIX that `release-desktop.yml` builds, submitted with a listing and the privacy policy URL.
