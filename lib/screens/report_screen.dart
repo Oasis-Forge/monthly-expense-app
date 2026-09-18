@@ -285,10 +285,9 @@ class _ReportScreenState extends State<ReportScreen> {
   TextStyle? _sectionStyle(BuildContext context) =>
       Theme.of(context).textTheme.titleMedium;
 
-  TextStyle? _mutedStyle(BuildContext context) => Theme.of(context)
-      .textTheme
-      .bodySmall
-      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
+  TextStyle? _mutedStyle(BuildContext context) =>
+      Theme.of(context).textTheme.bodySmall
+          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
 
   /// The years there is anything to report on, newest first, always including
   /// the selected period's.
