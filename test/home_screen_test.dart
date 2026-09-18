@@ -431,6 +431,13 @@ void main() {
 
       expect(find.text('1 budget set'), findsOneWidget);
       expect(find.text('No transactions in this period yet.'), findsOneWidget);
+
+      // Opened, each budget shows only its limit: nothing is spent yet.
+      await tester.tap(find.text('Budgets'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Limit \$10.00'), findsOneWidget);
+      expect(find.textContaining('%'), findsNothing);
     });
   });
 
