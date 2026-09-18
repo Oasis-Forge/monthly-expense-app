@@ -95,6 +95,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **BUD-4** At 80% of the limit the budget shows a warning; at 100% it shows over budget.
 - **BUD-5** A budget repeats every period until the user changes or removes it. A change applies from the current period onward; past periods keep their limits.
 - **BUD-6** Past periods show the final result; future periods show the limit only.
+- **BUD-7** Whenever the selected period has budgets, Home shows them in one card at the top of the day list, so opening it scrolls with the days instead of squeezing them. It starts closed, as one line: the share of the budget used (the overall budget's when there is one, otherwise the category budgets' spending against their limits combined) and how many budgets are over, in the colour of the worst of them (BUD-4). A future period's line says how many budgets are set (BUD-6). The over-budget notice stays too, so an overspend shows while the card is closed.
+- **BUD-8** Opened, the card shows every budget as Insights does: its bar, what's spent of the limit, the share used, and what's left per day or how much is over (BUD-2–BUD-4), with an "Edit budgets" button that opens the Budgets screen.
 
 ## 8. Recurring transactions
 
@@ -399,6 +401,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 ## Decisions (18 September 2026)
 
 27. The store identity becomes `com.oasisforge.monthlyexpenses`, in the Oasis Forge namespace every future app will share, replacing `com.monthlyexpenses.app`. Decided the morning of the first Play upload, which is the last moment a package name can change; the old one was never uploaded anywhere. Users see it only in the store URL, so this is for the studio's order, not for them. The store *title* is "Monthly Expense Tracker", for search, while the name under the icon stays "Monthly Expenses", which fits without being cut off.
+
+28. Home gets a budgets card (BUD-7, BUD-8), decided in the roadmap review. Budgets were a tab away in Insights, and Home only mentioned them once one was already over; now how the month is going is on the first screen, one line until it is opened. The over-budget notice stays alongside it, at the user's request, because the card can be closed.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
