@@ -395,6 +395,10 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 25. Development builds serve Google's test units, release builds the real ones (ADS-10). Decided 17 September 2026 after the accounts were ready: the choice was never between test and live IDs but between risking the AdMob account and not, since AdMob suspends accounts over self-clicks. One constant, `AdsConfig.liveAdsEverywhere`, turns it off for a deliberate check of a real fill.
 26. The Android release check turns around rather than going away. It used to fail if the APK asked for `INTERNET`; it now fails if the APK does *not* ask for it, and also if any of the permissions that would let the app read the user's life — location, contacts, calendar, messages, call history, sensors, all-files, package queries — has crept in through a plugin update (ADS-7, RUN-2).
 
+## Decisions (18 September 2026)
+
+27. The store identity becomes `com.oasisforge.monthlyexpenses`, in the Oasis Forge namespace every future app will share, replacing `com.monthlyexpenses.app`. Decided the morning of the first Play upload, which is the last moment a package name can change; the old one was never uploaded anywhere. Users see it only in the store URL, so this is for the studio's order, not for them. The store *title* is "Monthly Expense Tracker", for search, while the name under the icon stays "Monthly Expenses", which fits without being cut off.
+
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
 - amounts as integers (MONEY-1)

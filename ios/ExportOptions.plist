@@ -15,7 +15,7 @@
 	<string>Apple Distribution</string>
 	<key>provisioningProfiles</key>
 	<dict>
-		<key>com.monthlyexpenses.app</key>
+		<key>com.oasisforge.monthlyexpenses</key>
 		<string>Monthly Expenses App Store</string>
 	</dict>
 	<key>uploadSymbols</key>

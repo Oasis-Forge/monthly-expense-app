@@ -30,7 +30,7 @@
 				<key>CFBundleTypeRole</key>
 				<string>Editor</string>
 				<key>CFBundleURLName</key>
-				<string>com.monthlyexpenses.app.widget</string>
+				<string>com.oasisforge.monthlyexpenses.widget</string>
 				<key>CFBundleURLSchemes</key>
 				<array>
 					<string>monthlyexpenses</string>

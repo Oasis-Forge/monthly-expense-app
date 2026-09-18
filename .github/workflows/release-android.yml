@@ -21,7 +21,7 @@ concurrency:
 
 env:
   FLUTTER_VERSION: 3.47.4
-  PACKAGE_NAME: com.monthlyexpenses.app
+  PACKAGE_NAME: com.oasisforge.monthlyexpenses
 
 jobs:
   version:

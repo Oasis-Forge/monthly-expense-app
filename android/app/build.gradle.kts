@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.monthlyexpenses.app"
+    namespace = "com.oasisforge.monthlyexpenses"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -29,7 +29,7 @@ android {
 
     defaultConfig {
         // The store ID; it can't change after the first Play upload.
-        applicationId = "com.monthlyexpenses.app"
+        applicationId = "com.oasisforge.monthlyexpenses"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

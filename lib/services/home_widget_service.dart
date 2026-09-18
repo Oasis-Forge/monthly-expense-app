@@ -60,7 +60,9 @@ class NoopHomeWidgetService implements HomeWidgetService {
 /// written where the widget can read them without the app running. The
 /// database never leaves the app (WID-5).
 class DeviceHomeWidgetService implements HomeWidgetService {
-  static const channel = MethodChannel('com.monthlyexpenses.app/home_widget');
+  static const channel = MethodChannel(
+    'com.oasisforge.monthlyexpenses/home_widget',
+  );
 
   /// Whether this platform has a home-screen widget at all (WID-1).
   static bool get isSupported =>

@@ -141,6 +141,6 @@ flutter:
 msix_config:
   display_name: Monthly Expenses
   publisher_display_name: Monthly Expenses
-  identity_name: com.monthlyexpenses.app
+  identity_name: com.oasisforge.monthlyexpenses
   logo_path: assets/icon/icon.png
   languages: en-us

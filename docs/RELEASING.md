@@ -49,14 +49,14 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
    keyAlias=upload
    storeFile=upload-keystore.jks
    ```
-4. In Play Console, create the app with package `com.monthlyexpenses.app` and keep Play App Signing enabled.
+4. In Play Console, create the app with package `com.oasisforge.monthlyexpenses` and keep Play App Signing enabled.
 5. **Upload the first AAB by hand** in Play Console → Testing → Internal testing. The API can't create an app's first release. Build it with `flutter build appbundle` (after step 3), or download it from a `release-android.yml` run that had the secrets.
 6. In Google Cloud, create a service account and a JSON key. In Play Console → Users and permissions, invite the service account with release permissions for this app. Save the JSON as `PLAY_SERVICE_ACCOUNT_JSON`.
 
 ## One-time setup: iOS
 
 1. Enroll in the Apple Developer Program.
-2. Register the App ID `com.monthlyexpenses.app`, and create the app record in App Store Connect.
+2. Register the App ID `com.oasisforge.monthlyexpenses`, and create the app record in App Store Connect.
 3. Create an Apple Distribution certificate. Without a Mac, use OpenSSL (ships with Git for Windows):
    ```bash
    openssl genrsa -out dist.key 2048
@@ -70,8 +70,8 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
    Base64 `dist.p12` into `IOS_DIST_CERT_P12_BASE64`, and put its export password in `IOS_DIST_CERT_PASSWORD`.
 4. Create an **App Store** provisioning profile for the App ID named `Monthly Expenses App Store`, or set `IOS_PROFILE_NAME` to your profile's name.
    The home-screen widget is a second target, so it needs its own of both (WID-1):
-   - Register the App Group `group.com.monthlyexpenses.app`, and enable the App Groups capability on **both** App IDs, ticking that group. Without it the widget shows nothing — it reads the app's numbers through the group and has no other way in.
-   - Register the App ID `com.monthlyexpenses.app.MonthlyExpensesWidget` for the extension.
+   - Register the App Group `group.com.oasisforge.monthlyexpenses`, and enable the App Groups capability on **both** App IDs, ticking that group. Without it the widget shows nothing — it reads the app's numbers through the group and has no other way in.
+   - Register the App ID `com.oasisforge.monthlyexpenses.MonthlyExpensesWidget` for the extension.
    - Create a second **App Store** profile for it named `Monthly Expenses Widget App Store`, or set `IOS_WIDGET_PROFILE_NAME`. `release-ios.yml` installs both and maps each to its target.
 5. In App Store Connect → Users and Access → Integrations, create an API key with the App Manager role. Fill in `APPSTORE_ISSUER_ID`, `APPSTORE_KEY_ID` and `APPSTORE_PRIVATE_KEY`.
 6. Set the `APPLE_TEAM_ID` variable. This enables iOS on tag pushes.
@@ -146,7 +146,7 @@ The repository lives in the `Oasis-Forge` organization, so store listings don't 
 
 ## Mac App Store (Phase 4)
 
-The macOS app is sandboxed and can read or write only the files people pick. Signing and a release workflow come with the desktop releases. They need macOS enabled for the App ID `com.monthlyexpenses.app`, Mac App Distribution and Mac Installer Distribution certificates, and a Mac App Store provisioning profile.
+The macOS app is sandboxed and can read or write only the files people pick. Signing and a release workflow come with the desktop releases. They need macOS enabled for the App ID `com.oasisforge.monthlyexpenses`, Mac App Distribution and Mac Installer Distribution certificates, and a Mac App Store provisioning profile.
 
 ## Ads and the one purchase
 

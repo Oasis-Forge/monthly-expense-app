@@ -1,4 +1,4 @@
-package com.monthlyexpenses.app
+package com.oasisforge.monthlyexpenses
 
 import android.content.Intent
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -47,6 +47,6 @@ class MainActivity : FlutterFragmentActivity() {
   }
 
   private companion object {
-    const val CHANNEL = "com.monthlyexpenses.app/home_widget"
+    const val CHANNEL = "com.oasisforge.monthlyexpenses/home_widget"
   }
 }

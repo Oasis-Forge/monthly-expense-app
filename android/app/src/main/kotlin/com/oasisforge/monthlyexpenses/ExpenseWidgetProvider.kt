@@ -1,4 +1,4 @@
-package com.monthlyexpenses.app
+package com.oasisforge.monthlyexpenses
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -189,7 +189,7 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
   }
 
   companion object {
-    const val EXTRA_ACTION = "com.monthlyexpenses.app.WIDGET_ACTION"
+    const val EXTRA_ACTION = "com.oasisforge.monthlyexpenses.WIDGET_ACTION"
     const val ACTION_ADD_EXPENSE = "add_expense"
     const val ACTION_ADD_INCOME = "add_income"
     const val ACTION_OPEN_HOME = "open_home"

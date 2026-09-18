@@ -2,12 +2,12 @@ import SwiftUI
 import WidgetKit
 
 // The home-screen widget (WID-1–WID-6). Its Android twin is
-// android/app/src/main/kotlin/com/monthlyexpenses/app/ExpenseWidgetProvider.kt,
+// android/app/src/main/kotlin/com/oasisforge/monthlyexpenses/ExpenseWidgetProvider.kt,
 // and both read the same payload: the app writes finished strings, in its own
 // language and currency format, and the widget only paints them. Nothing here
 // reads the database or works a number out (WID-5, WID-6).
 
-let appGroupId = "group.com.monthlyexpenses.app"
+let appGroupId = "group.com.oasisforge.monthlyexpenses"
 private let payloadKey = "payload"
 
 /// The payload layout this build understands.
