@@ -2,9 +2,11 @@ import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart' show ChangeNotifier, Locale, ThemeMode;
 import 'package:intl/intl.dart';
+import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../l10n/languages.dart';
+import '../models/currencies.dart' show arabicCurrencySymbols;
 import '../models/period.dart';
 
 /// App settings kept in shared_preferences: language (LANG-1), currency
@@ -148,12 +150,66 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Formats amounts in the chosen currency for [locale], with that
   /// currency's decimals (CUR-2).
-  NumberFormat currencyFormat(String locale) =>
-      NumberFormat.simpleCurrency(locale: locale, name: _currencyCode);
+  ///
+  /// In Arabic and Urdu each amount is one left-to-right piece, sign and
+  /// symbol included, so it reads the same inside right-to-left text as on
+  /// its own (LANG-5). [isolated] false leaves that out, for the PDF report,
+  /// which lays out its own text.
+  NumberFormat currencyFormat(String locale, {bool isolated = true}) {
+    final simple = NumberFormat.simpleCurrency(
+      locale: locale,
+      name: _currencyCode,
+    );
+    final symbol = _localSymbol(locale);
+    final rtl = isolated && rightToLeftLanguages.contains(_language(locale));
+    if (symbol == null && !rtl) return simple;
+    return NumberFormat.currency(
+      locale: locale,
+      name: _currencyCode,
+      symbol: symbol ?? simple.currencySymbol,
+      decimalDigits: simple.decimalDigits,
+      customPattern: rtl ? _leftToRightPattern(locale) : null,
+    );
+  }
 
   /// Short amounts like `$1.2K`, for small spaces such as calendar days.
-  NumberFormat compactCurrencyFormat(String locale) =>
-      NumberFormat.compactSimpleCurrency(locale: locale, name: _currencyCode);
+  NumberFormat compactCurrencyFormat(String locale) {
+    final symbol = _localSymbol(locale);
+    return symbol == null
+        ? NumberFormat.compactSimpleCurrency(
+            locale: locale,
+            name: _currencyCode,
+          )
+        : NumberFormat.compactCurrency(
+            locale: locale,
+            name: _currencyCode,
+            symbol: symbol,
+          );
+  }
+
+  static String _language(String locale) => locale.split(RegExp('[-_]')).first;
+
+  /// The currency's symbol as [locale]'s language writes it, where intl's
+  /// short one is in another script.
+  String? _localSymbol(String locale) =>
+      _language(locale) == 'ar' ? arabicCurrencySymbols[_currencyCode] : null;
+
+  /// [locale]'s currency pattern with each half, positive and negative,
+  /// isolated as left to right (U+2066 … U+2069). The marks intl puts in for
+  /// right-to-left text would reorder the amount around its sign and symbol.
+  static String _leftToRightPattern(String locale) {
+    final symbols =
+        numberFormatSymbols[Intl.verifiedLocale(
+          locale,
+          NumberFormat.localeExists,
+        )]!;
+    final halves = symbols.CURRENCY_PATTERN
+        .replaceAll(RegExp('[\u200E\u200F]'), '')
+        .split(';');
+    final positive = halves.first;
+    final negative = halves.length > 1 ? halves[1] : '-$positive';
+    return '\u2066$positive\u2069;\u2066$negative\u2069';
+  }
 
   /// Changes the currency label only; stored amounts never change (CUR-3).
   Future<void> setCurrencyCode(String code) async {

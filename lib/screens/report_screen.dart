@@ -117,7 +117,7 @@ class _ReportScreenState extends State<ReportScreen> {
         labels: ReportLabels(
           l10n: l10n,
           locale: locale,
-          currency: settings.currencyFormat(l10n.localeName),
+          currency: settings.currencyFormat(l10n.localeName, isolated: false),
           categoryName: (id) => provider.categoryById(id)?.label(l10n) ?? '',
           accountName: (id) => provider.accountById(id)?.label(l10n) ?? '',
           accountFilterName: _accountId == null
@@ -285,9 +285,10 @@ class _ReportScreenState extends State<ReportScreen> {
   TextStyle? _sectionStyle(BuildContext context) =>
       Theme.of(context).textTheme.titleMedium;
 
-  TextStyle? _mutedStyle(BuildContext context) =>
-      Theme.of(context).textTheme.bodySmall
-          ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
+  TextStyle? _mutedStyle(BuildContext context) => Theme.of(context)
+      .textTheme
+      .bodySmall
+      ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant);
 
   /// The years there is anything to report on, newest first, always including
   /// the selected period's.
