@@ -4,28 +4,39 @@
 //   dart run flutter_launcher_icons
 //   dart run flutter_native_splash:create
 // It lives outside test/ so the regular test run doesn't rewrite the assets.
+// The store icon and feature graphics come from the same painter, through
+// integration_test/store_screenshots_test.dart.
 
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// The app's seed color.
-const _purple = Color(0xFF6C5CE7);
+/// The purple behind the glyph, lighter at the top left.
+const _backgroundColors = [Color(0xFF7457FF), Color(0xFF3F22C0)];
 
-/// A calendar page with a small bar chart: a month of spending at a glance.
-/// Shapes are laid out on a 1024-unit square around its center.
-class _IconPainter extends CustomPainter {
-  const _IconPainter({
+/// The ring runs from green, plenty left, to amber, getting close.
+const _green = Color(0xFF2EE6A8);
+const _amber = Color(0xFFFFC83D);
+
+/// A budget ring three quarters used, around a small bar chart: how much of
+/// the month's money is gone, at a glance. It needs no currency sign, so it
+/// reads the same in every language. Shapes are laid out on a 1024-unit
+/// square around its center.
+class AppIconPainter extends CustomPainter {
+  const AppIconPainter({
     required this.scale,
     this.background = false,
     this.rounded = false,
     this.monochrome = false,
+    this.glyph = true,
   });
 
-  /// The glyph's size relative to the canvas; 1 fills about half of it.
+  /// The glyph's size relative to the canvas; 1 makes the ring about three
+  /// fifths of it across.
   final double scale;
 
   /// Paints the purple gradient behind the glyph, for icons that can't be
@@ -35,8 +46,12 @@ class _IconPainter extends CustomPainter {
   /// Rounds the background's corners, for desktops that don't mask icons.
   final bool rounded;
 
-  /// A single-color glyph with cut-out details, for Android themed icons.
+  /// One color with the track faded, for Android themed icons, which tint
+  /// whatever is drawn.
   final bool monochrome;
+
+  /// False for the background alone, behind Android's adaptive icon.
+  final bool glyph;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -46,7 +61,7 @@ class _IconPainter extends CustomPainter {
         ..shader = const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF8472F2), Color(0xFF5B4BD9)],
+          colors: _backgroundColors,
         ).createShader(area);
       if (rounded) {
         final inset = area.deflate(size.width * 0.04);
@@ -58,6 +73,7 @@ class _IconPainter extends CustomPainter {
         canvas.drawRect(area, paint);
       }
     }
+    if (!glyph) return;
     canvas
       ..save()
       ..translate(size.width / 2, size.height / 2)
@@ -68,65 +84,96 @@ class _IconPainter extends CustomPainter {
   }
 
   void _paintGlyph(Canvas canvas) {
-    // Details are colored, or cut out of a monochrome glyph.
-    Paint detail(Color color) => monochrome
-        ? (Paint()..blendMode = BlendMode.clear)
-        : (Paint()..color = color);
-    final card = RRect.fromLTRBR(272, 300, 752, 780, const Radius.circular(72));
+    const center = Offset(512, 512);
+    const radius = 262.0;
+    const width = 108.0;
+    // Three quarters gone: the gap left at the top is the quarter still to
+    // spend.
+    const start = -math.pi / 2;
+    const sweep = 2 * math.pi * 0.75;
+    final ring = Rect.fromCircle(center: center, radius: radius);
+    Paint stroke() => Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = width
+      ..strokeCap = StrokeCap.round;
 
-    canvas
-      ..saveLayer(const Rect.fromLTRB(0, 0, 1024, 1024), Paint())
-      ..drawRRect(card, Paint()..color = Colors.white)
-      ..save()
-      ..clipRRect(card)
-      ..drawRect(
-        monochrome
-            ? const Rect.fromLTRB(272, 404, 752, 428)
-            : const Rect.fromLTRB(272, 300, 752, 420),
-        detail(const Color(0xFFDAD4FF)),
-      )
-      ..restore();
-    for (final (left, top) in const [
-      (350.0, 580.0),
-      (474.0, 500.0),
-      (598.0, 540.0),
-    ]) {
-      canvas.drawRRect(
-        RRect.fromLTRBR(left, top, left + 76, 712, const Radius.circular(18)),
-        detail(_purple),
+    canvas.drawCircle(
+      center,
+      radius,
+      stroke()..color = Color(monochrome ? 0x66FFFFFF : 0x30FFFFFF),
+    );
+    if (!monochrome) {
+      canvas.drawArc(
+        ring.shift(const Offset(0, 14)),
+        start,
+        sweep,
+        false,
+        stroke()
+          ..color = const Color(0x40000000)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18),
       );
     }
-    canvas.restore();
+    canvas.drawArc(
+      ring,
+      start,
+      sweep,
+      false,
+      monochrome
+          ? (stroke()..color = Colors.white)
+          // Green where the ring starts, amber where it ends. The start's
+          // rounded cap reaches back past the top, so the color wraps to
+          // green again before it gets there.
+          : (stroke()
+              ..shader = const SweepGradient(
+                colors: [_green, _amber, _amber, _green],
+                stops: [0, 0.75, 0.85, 1],
+                transform: GradientRotation(start),
+              ).createShader(ring)),
+    );
 
-    // The binder rings over the top edge.
-    for (final left in const [382.0, 594.0]) {
+    // The bar chart in the middle.
+    for (final (left, top) in const [
+      (402.0, 520.0),
+      (482.0, 418.0),
+      (562.0, 470.0),
+    ]) {
       canvas.drawRRect(
-        RRect.fromLTRBR(left, 244, left + 48, 356, const Radius.circular(24)),
-        Paint()..color = monochrome ? Colors.white : const Color(0xFF3F32B5),
+        RRect.fromLTRBR(left, top, left + 60, 610, const Radius.circular(18)),
+        Paint()..color = Colors.white,
       );
     }
   }
 
   @override
-  bool shouldRepaint(_IconPainter oldDelegate) => false;
+  bool shouldRepaint(AppIconPainter oldDelegate) => false;
 }
 
 void main() {
   // File name → (square size in pixels, painter).
   const outputs = {
     // Launchers that mask a full square: iOS, macOS, Windows, older Android.
-    'icon.png': (1024, _IconPainter(scale: 1.1, background: true)),
+    'icon.png': (1024, AppIconPainter(scale: 1, background: true)),
     // Linux desktops show icons as they are, so the corners are rounded.
     'icon_linux.png': (
       512,
-      _IconPainter(scale: 1.05, background: true, rounded: true),
+      AppIconPainter(scale: 0.95, background: true, rounded: true),
     ),
-    // Android adaptive and themed icons keep the glyph inside the safe zone.
-    'icon_foreground.png': (1024, _IconPainter(scale: 0.72)),
-    'icon_monochrome.png': (1024, _IconPainter(scale: 0.72, monochrome: true)),
-    'splash.png': (768, _IconPainter(scale: 0.9)),
+    // Android adaptive and themed icons keep the glyph inside the safe zone,
+    // over the same gradient. Launchers show the middle two thirds, so at
+    // 0.64 the ring fills about three fifths of the visible icon; the
+    // generator adds no inset of its own (flutter_launcher_icons.yaml).
+    'icon_background.png': (
+      1024,
+      AppIconPainter(scale: 1, background: true, glyph: false),
+    ),
+    'icon_foreground.png': (1024, AppIconPainter(scale: 0.64)),
+    'icon_monochrome.png': (
+      1024,
+      AppIconPainter(scale: 0.64, monochrome: true),
+    ),
+    'splash.png': (768, AppIconPainter(scale: 0.9)),
     // Android 12 shows the splash icon inside a circle of two thirds.
-    'splash_android12.png': (1152, _IconPainter(scale: 0.6)),
+    'splash_android12.png': (1152, AppIconPainter(scale: 0.6)),
   };
 
   testWidgets('renders the app icon and splash images', (tester) async {

@@ -4,6 +4,14 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-09-18
+
+### Changed
+- A new app icon: a budget ring around a small bar chart, on a deeper purple, on every platform, with splash screens to match.
+
+### Fixed
+- The trend chart no longer labels the top of its amount axis, where the label could sit on the gridline label just below it, and its axis labels stay on one line in every currency.
+
 ## [1.14.0] - 2026-09-18
 
 ### Added

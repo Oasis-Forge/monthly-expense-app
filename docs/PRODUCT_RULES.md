@@ -172,6 +172,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **INS-2** The trend shows income and expense for the last 6 or 12 periods, ending with the selected one. Only entries that count are included (BAL-4), and the averages leave out periods that haven't started.
 - **INS-3** The category chart works for any period and shows expense or income, with budget progress for expense (BUD-2).
 - **INS-4** Tapping the period label on Home opens Insights on the calendar for that period (INS-1). The arrows beside it still move between periods (PER-1), and inside Insights the label does nothing, since the calendar is already there.
+- **INS-5** The trend's amount axis labels only its gridlines, each on one line. The top of the axis, which is rarely a round amount, gets no label of its own, so no two labels overlap in any currency.
 
 ## 15. App lock
 

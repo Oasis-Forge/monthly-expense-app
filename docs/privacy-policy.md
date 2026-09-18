@@ -42,10 +42,10 @@ The free app shows a banner at the bottom of the Home screen and the bottom of t
 
 - your device's advertising identifier (the Android advertising ID, or, on iOS, the identifier for advertisers if you have allowed it);
 - your IP address, from which an approximate location such as a country or region can be worked out;
-- technical details of your device and the app, such as the model, operating system, app version and language;
+- technical details of your device and the app, such as the model, operating system, app version and language, and how the ads perform, such as how long one took to load;
 - whether an ad was shown, and whether it was tapped.
 
-Google uses these to choose an ad, count it, and detect fraud. Google's own explanation is at [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites).
+Google uses these to choose an ad, count and measure it, and detect fraud. Google's own explanation is at [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites).
 
 **Your choice.** In the EEA, the UK and Switzerland the app shows Google's consent form before it requests its first ad, and you can change your answer at any time from **Settings → Privacy options**. Saying no means the ads you see are not personalised; it never means fewer features or a nagging reminder.
 
