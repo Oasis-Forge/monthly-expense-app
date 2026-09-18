@@ -30,16 +30,21 @@ class AdsConfig {
   static const _testBannerAndroid = 'ca-app-pub-3940256099942544/6300978111';
   static const _testBannerIos = 'ca-app-pub-3940256099942544/2934735716';
 
-  // The real units, from the AdMob console. The app IDs also go in
+  // The real units, from the AdMob console ("Monthly expense Tracker
+  // android" and "… ios"). The app IDs also go in
   // `android/app/src/main/AndroidManifest.xml` and `ios/Runner/Info.plist`,
-  // where the SDK reads them before Dart runs; keep all three in step.
-  // Empty means "not set up yet", and then no ad is ever requested.
-  static const liveAppIdAndroid = '';
-  static const liveAppIdIos = '';
-  static const liveBannerHomeAndroid = '';
-  static const liveBannerInsightsAndroid = '';
-  static const liveBannerHomeIos = '';
-  static const liveBannerInsightsIos = '';
+  // where the SDK reads them before Dart runs; keep all three in step, and
+  // `test/ads_config_test.dart` fails if they drift. An empty set for a
+  // platform means "not set up", and then that platform requests nothing.
+  // The account also has interstitial and native units; they are unused on
+  // purpose, since the app shows banners only (ADS-1).
+  static const liveAppIdAndroid = 'ca-app-pub-8287765177319119~2977310217';
+  static const liveAppIdIos = 'ca-app-pub-8287765177319119~8155905694';
+  static const liveBannerHomeAndroid = 'ca-app-pub-8287765177319119/4783636897';
+  static const liveBannerInsightsAndroid =
+      'ca-app-pub-8287765177319119/2157473555';
+  static const liveBannerHomeIos = 'ca-app-pub-8287765177319119/3697785931';
+  static const liveBannerInsightsIos = 'ca-app-pub-8287765177319119/5473902035';
 
   static bool get _live => kReleaseMode || liveAdsEverywhere;
 

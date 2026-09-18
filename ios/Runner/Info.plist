@@ -62,13 +62,12 @@
 				</array>
 			</dict>
 		</dict>
-		<!-- The AdMob account this app belongs to (ADS-6). The SDK reads it
-		     before Dart runs, so it cannot come from AdsConfig; keep the two
-		     in step. This is Google's sample ID, which serves nothing:
-		     replace it with the app ID from the AdMob console at the same
-		     time as the live unit IDs in lib/services/ads_config.dart. -->
+		<!-- The AdMob app this build belongs to ("Monthly expense Tracker
+		     ios", ADS-6). The SDK reads it before Dart runs, so it cannot
+		     come from AdsConfig; it must match liveAppIdIos in
+		     lib/services/ads_config.dart, and a test fails if it doesn't. -->
 		<key>GADApplicationIdentifier</key>
-		<string>ca-app-pub-3940256099942544~1458002511</string>
+		<string>ca-app-pub-8287765177319119~8155905694</string>
 		<key>NSCameraUsageDescription</key>
 		<string>The camera takes a photo of a receipt to keep with a transaction. Photos stay on this device.</string>
 		<key>NSMicrophoneUsageDescription</key>
