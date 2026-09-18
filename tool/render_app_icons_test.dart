@@ -159,15 +159,17 @@ void main() {
       AppIconPainter(scale: 0.95, background: true, rounded: true),
     ),
     // Android adaptive and themed icons keep the glyph inside the safe zone,
-    // over the same gradient.
+    // over the same gradient. Launchers show the middle two thirds, so at
+    // 0.64 the ring fills about three fifths of the visible icon; the
+    // generator adds no inset of its own (flutter_launcher_icons.yaml).
     'icon_background.png': (
       1024,
       AppIconPainter(scale: 1, background: true, glyph: false),
     ),
-    'icon_foreground.png': (1024, AppIconPainter(scale: 0.72)),
+    'icon_foreground.png': (1024, AppIconPainter(scale: 0.64)),
     'icon_monochrome.png': (
       1024,
-      AppIconPainter(scale: 0.72, monochrome: true),
+      AppIconPainter(scale: 0.64, monochrome: true),
     ),
     'splash.png': (768, AppIconPainter(scale: 0.9)),
     // Android 12 shows the splash icon inside a circle of two thirds.
