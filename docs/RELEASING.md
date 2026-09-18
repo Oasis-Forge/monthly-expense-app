@@ -177,17 +177,30 @@ Add Google's **`SKAdNetworkItems`** to `ios/Runner/Info.plist`, from [AdMob's iO
 
 Until the product exists in a console, the screen says there is nothing to sell and offers no button (PAY-3) — which is also what a device with no store answers, so that path is worth leaving in place.
 
+### Store listing graphics
+
+`integration_test/store_screenshots_test.dart` renders the Play listing graphics on the emulator from the real screens with sample data: six captioned phone screenshots (1080×1920) and a feature graphic (1024×500) for each of the 23 listing languages, and the 512×512 store icon. Android draws the text and emoji itself, so they look as they do on a phone.
+
+```
+adb shell rm -rf /sdcard/Download/store-screenshots
+flutter test integration_test/store_screenshots_test.dart -d emulator-5554
+adb pull /sdcard/Download/store-screenshots <folder>
+```
+
+Clear the folder first: the test runner uninstalls the app when it finishes, and a new install can't overwrite files the old one wrote. `--dart-define=ONLY=en-US,ar` renders only those languages. The captions and listing titles live in the test file; the store icon and feature graphics use the app icon's painter from `tool/render_app_icons_test.dart`.
+
 ### What to tell the stores
 
 Both forms have to match `docs/privacy-policy.md`, which is the wording to copy from (ADS-6).
 
-**Play Console → Data safety.** Data is *collected* (by the ad SDK) and *shared* (with Google), it is **not** encrypted in transit by us because we send nothing ourselves, and there is no way to request deletion of something we never hold:
+**Play Console → Data safety.** Data is *collected* (by the ad SDK) and *shared* (with Google). It is encrypted in transit, since the SDK only talks to Google over HTTPS. Users can't turn the collection off inside the app, and there is no way to request deletion of something we never hold. Every type below is collected and shared, required, not processed ephemerally, and used for **advertising or marketing**, **analytics**, and **fraud prevention, security and compliance**, as in Google's [data disclosure for the Mobile Ads SDK](https://developers.google.com/admob/android/privacy/play-data-disclosure):
 
 | Category | Answer |
 | --- | --- |
-| Device or other IDs | Collected and shared, for **advertising or marketing** and **fraud prevention**. Not optional (buying "Remove ads" stops it, which the form has no way to express). |
-| Approximate location | Collected and shared, for advertising — derived from the IP address by the ad network, never requested from the device. |
-| App info and performance | Diagnostics, collected and shared, for advertising and fraud prevention. |
+| Location → Approximate location | Worked out from the IP address by the ad network, never requested from the device. |
+| App activity → App interactions | Whether an ad was shown, and whether it was tapped. |
+| App info and performance → Diagnostics | How the SDK and its ads perform, such as how long an ad took to load. |
+| Device or other IDs | The advertising ID and the app set ID. Buying "Remove ads" stops it, which the form has no way to express. |
 | Financial info | **Not collected.** Everything the user records stays on the device (ADS-7). |
 | Personal info, messages, photos, contacts, calendar, files | **Not collected.** |
 

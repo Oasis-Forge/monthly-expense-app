@@ -82,7 +82,7 @@ Decided 13 September 2026: these ship in v1. Languages come first. After that, e
 - [ ] Google Play: new personal developer accounts must run a closed test (at least 12 testers for 14 days) before production access. Confirm the current rule in Play Console and plan for the wait.
 - [x] Every merged PR is a release: CI requires a SemVer bump and changelog entry, and `release-android.yml` tags the merge and attaches the APK to a draft GitHub Release. `v1.0.0` is the first.
 - [ ] Play internal testing + TestFlight from a release, once the signing secrets exist. Play internal testing started 18 September 2026 with 1.13.0, uploaded by hand and signed with the Oasis Forge upload key; TestFlight waits for the iOS signing secrets.
-- [ ] Store listings in every language the app ships (screenshots, description, privacy policy URL, Play data safety form including what the ad network collects (ADS-6), App Store privacy labels), then promote to production.
+- [ ] Store listings in every language the app ships (screenshots, description, privacy policy URL, Play data safety form including what the ad network collects (ADS-6), App Store privacy labels), then promote to production. Progress: the Play listing text, screenshots, feature graphics and store icon exist for all 23 Play languages (18 September 2026).
 - [ ] Desktop releases: Mac App Store, Microsoft Store, and Snap Store or Flathub.
 
 ## After v1
