@@ -7,9 +7,10 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 ## [1.16.0] - 2026-09-18
 
 ### Added
-- A budgets card on Home: one line with how much of your budget is used and how many budgets are over. Tap it to see every budget's bar, and edit them from there.
+- A budgets card on Home: one line with how much of your budget is used and how many budgets are over. Tap it to see each budget's bar and share used, and open Insights for the details.
 
 ### Changed
+- The budgets card replaces the "over its limit" notice on Home.
 - Budget bars in Insights also show the share of each budget used.
 
 ## [1.15.1] - 2026-09-18
