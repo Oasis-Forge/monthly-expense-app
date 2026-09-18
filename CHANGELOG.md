@@ -4,6 +4,13 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.15.1] - 2026-09-18
+
+### Fixed
+- Backing out of the Remove ads payment sheet no longer leaves the screen waiting for the store; the price comes back at once.
+- In Arabic, the Arab currencies use their Arabic symbols (ر.س., د.إ., ج.م. and others) instead of Latin ones, and in Arabic and Urdu every amount keeps the same order on every screen.
+- The banner ad sits on the bottom edge with no blank space around it, and "Remove ads" sits right above it.
+
 ## [1.15.0] - 2026-09-18
 
 ### Changed
