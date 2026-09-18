@@ -74,12 +74,24 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String budgetsOverNotice(int count) {
+  String budgetsCardSummary(String percent, int over) {
+    String _temp0 = intl.Intl.pluralLogic(
+      over,
+      locale: localeName,
+      other: '已用 $percent · $over个超支',
+      one: '已用 $percent · 1个超支',
+      zero: '已用 $percent',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsCardPlanned(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '有$count个预算已超支',
-      one: '有1个预算已超支',
+      other: '已设$count个预算',
+      one: '已设1个预算',
     );
     return '$_temp0';
   }

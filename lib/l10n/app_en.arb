@@ -57,8 +57,22 @@
       }
     }
   },
-  "budgetsOverNotice": "{count, plural, =1{1 budget is over its limit} other{{count} budgets are over their limit}}",
-  "@budgetsOverNotice": {
+  "budgetsCardSummary": "{over, plural, =0{{percent} used} =1{{percent} used · 1 over} other{{percent} used · {over} over}}",
+  "@budgetsCardSummary": {
+    "description": "The budgets card's line on Home before it's opened (BUD-7): how much of the budget is used, and how many budgets are over their limit.",
+    "placeholders": {
+      "percent": {
+        "type": "String",
+        "example": "78%"
+      },
+      "over": {
+        "type": "int"
+      }
+    }
+  },
+  "budgetsCardPlanned": "{count, plural, =1{1 budget set} other{{count} budgets set}}",
+  "@budgetsCardPlanned": {
+    "description": "The budgets card's line on Home for a future period, which only has limits so far (BUD-6, BUD-7).",
     "placeholders": {
       "count": {
         "type": "int"

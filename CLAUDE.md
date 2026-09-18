@@ -30,7 +30,7 @@ Flutter 3.47.4 / Dart 3.13.3 app for tracking monthly income and expenses. Targe
 - Every model/provider change gets a test. DB tests use `sqflite_common_ffi` (copy the setup in `test/widget_test.dart`); widget and write-failure tests use `FakeDB`, `testApp`, and `testTx` from `test/helpers.dart`, with `FakeBackupFiles` and `FakeAuthenticator` standing in for file dialogs and `local_auth`.
 - Feature order: model → migration → provider → screen → test → analyze.
 - One branch per feature, PR to `main`; CI (`.github/workflows/ci.yml`) must pass.
-- Every merged PR is a release: bump the version on the branch with `/release [major|minor|patch]` (SemVer `x.y.z+N` plus a `CHANGELOG.md` entry; CI checks it), and the merge tags `vX.Y.Z` and attaches the APK to a draft GitHub Release. `/release` also builds the same version locally into `dist/monthly-expenses-X.Y.Z.apk` (gitignored); rebuild it after any app change on the branch.
+- Every merged PR is a release: bump the version on the branch with `/release [major|minor|patch]` (SemVer `x.y.z+N` plus a `CHANGELOG.md` entry; CI checks it), and the merge tags `vX.Y.Z` and attaches the APK to a draft GitHub Release. `/release` also builds the same version locally into `dist/monthly-expenses-X.Y.Z.apk` and `.aab` (gitignored), and writes Play's release notes in every listing language to `store/play/release-notes/X.Y.Z.txt`; rebuild after any app change on the branch.
 - Before a branch is merged: check coverage of the changed files (`/coverage`) and add tests for gaps, then run the app (`flutter run`, or `/emulator` to drive it) so the user can test it by hand.
 
 ## Token rules

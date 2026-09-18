@@ -15,6 +15,7 @@ import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
 import 'ad_slot.dart';
+import 'budget_progress.dart';
 import 'budgets_screen.dart';
 import 'note_form_screen.dart';
 import 'period_selector.dart';
@@ -154,7 +155,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
           Text(l10n.budgetsTitle, style: theme.textTheme.titleMedium),
           const SizedBox(height: 8),
           for (final status in statuses)
-            _BudgetProgress(status: status, currency: currency),
+            BudgetProgress(status: status, currency: currency),
           const Divider(height: 32),
         ],
         if (entries.isEmpty)
@@ -215,91 +216,6 @@ class _CategoriesTabState extends State<_CategoriesTab> {
             ),
         ],
       ],
-    );
-  }
-}
-
-/// One budget's bar: spent against the limit, and what's left or over
-/// (BUD-2–BUD-4, BUD-6).
-class _BudgetProgress extends StatelessWidget {
-  const _BudgetProgress({required this.status, required this.currency});
-
-  final BudgetStatus status;
-  final NumberFormat currency;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final provider = context.watch<TransactionProvider>();
-    final categoryId = status.categoryId;
-    final category = categoryId == null
-        ? null
-        : provider.categoryById(categoryId);
-    final isFuture = status.timing == PeriodTiming.future;
-    final color = switch (status.level) {
-      BudgetLevel.ok => theme.colorScheme.primary,
-      BudgetLevel.warning => Colors.orange,
-      BudgetLevel.over => theme.colorScheme.error,
-    };
-    String money(Money amount) => currency.format(amount.toDouble());
-    final perDay = status.perDayAllowance;
-    final detail = isFuture
-        ? l10n.budgetLimitOnly(money(status.limit))
-        : status.remaining.isNegative
-        ? l10n.budgetOverBy(money(-status.remaining))
-        : !status.remaining.isPositive
-        ? l10n.budgetLimitReached
-        : perDay != null
-        ? l10n.budgetLeftPerDay(money(status.remaining), money(perDay))
-        : l10n.budgetLeft(money(status.remaining));
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Wraps, so long names and amounts move to a second line instead of
-          // overflowing (LANG-6).
-          Wrap(
-            alignment: WrapAlignment.spaceBetween,
-            spacing: 8,
-            children: [
-              Text(
-                category == null
-                    ? l10n.overallBudget
-                    : '${category.icon} ${category.label(l10n)}',
-                style: theme.textTheme.titleSmall,
-              ),
-              if (!isFuture)
-                Text(
-                  l10n.budgetSpentOfLimit(
-                    money(status.spent),
-                    money(status.limit),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          LinearProgressIndicator(
-            value: isFuture
-                ? 0
-                : status.progress > 1
-                ? 1
-                : status.progress,
-            color: color,
-            minHeight: 6,
-            borderRadius: BorderRadius.circular(3),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            detail,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: status.level == BudgetLevel.ok || isFuture ? null : color,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

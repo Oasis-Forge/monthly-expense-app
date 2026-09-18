@@ -40,8 +40,9 @@ void main() {
   const income = TransactionType.income;
   final today = DateTime(2026, 9, 15, 10);
 
-  /// Data that fills every screen: both notices on Home, a budget, a due
-  /// recurring rule, two accounts, and a trend with income in September.
+  /// Data that fills every screen: the recurring notice on Home, an overall
+  /// and a category budget, a due recurring rule, two accounts, and a trend
+  /// with income in September.
   Future<TransactionProvider> loadProvider() async {
     final provider = TransactionProvider(
       db: FakeDB(
@@ -60,6 +61,14 @@ void main() {
             id: 'overall',
             categoryId: null,
             limit: const Money(1000 * 1000),
+            effectiveFrom: DateTime(2026, 9),
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+          Budget(
+            id: 'food',
+            categoryId: 'cat-food',
+            limit: const Money(1500 * 1000),
             effectiveFrom: DateTime(2026, 9),
             createdAt: DateTime.utc(2026),
             updatedAt: DateTime.utc(2026),
@@ -153,6 +162,11 @@ void main() {
                 : null,
           );
           if (screen is HomeScreen) {
+            // The budgets card, opened: a bar, amounts and a share each
+            // (BUD-8).
+            await tester.tap(find.text(l10n.budgetsTitle));
+            await tester.pumpAndSettle();
+            expect(find.text(l10n.drawerSpending), findsOne);
             // Every drawer row is text of its own, and the list is longer
             // than a phone, so it is scrolled through (NAV-1, NAV-2).
             tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();

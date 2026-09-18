@@ -74,12 +74,24 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
-  String budgetsOverNotice(int count) {
+  String budgetsCardSummary(String percent, int over) {
+    String _temp0 = intl.Intl.pluralLogic(
+      over,
+      locale: localeName,
+      other: '$percent इस्तेमाल · $over सीमा से ऊपर',
+      one: '$percent इस्तेमाल · 1 सीमा से ऊपर',
+      zero: '$percent इस्तेमाल',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String budgetsCardPlanned(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count बजट अपनी सीमा से ऊपर हैं',
-      one: '1 बजट अपनी सीमा से ऊपर है',
+      other: '$count बजट तय',
+      one: '1 बजट तय',
     );
     return '$_temp0';
   }

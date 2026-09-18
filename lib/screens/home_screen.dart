@@ -4,8 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/budget.dart';
 import '../models/csv_export.dart';
 import '../models/money.dart';
+import '../models/period.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
@@ -15,6 +17,7 @@ import 'accounts_screen.dart';
 import 'ad_slot.dart';
 import 'add_transaction_screen.dart';
 import 'backup_screen.dart';
+import 'budget_progress.dart';
 import 'budgets_screen.dart';
 import 'categories_screen.dart';
 import 'csv_export_action.dart';
@@ -61,7 +64,8 @@ class HomeScreen extends StatelessWidget {
       ...provider.transfersByDay.keys,
     }.toList()..sort((a, b) => b.compareTo(a));
     final dueCount = provider.dueOccurrences.length;
-    final overCount = provider.budgetsOver;
+    final budgetStatuses = provider.budgetStatuses;
+    final budgetSummary = BudgetSummary.of(budgetStatuses);
     final dueNotesCount = provider.notesDueInPeriod.length;
     final lastBackup = settings.lastBackupAt;
     // RUN-1: before anything is recorded, Home offers one clear action.
@@ -118,13 +122,6 @@ class HomeScreen extends StatelessWidget {
               text: l10n.recurringDueNotice(dueCount),
               onTap: () => _open(context, const RecurringScreen()),
             ),
-          if (overCount > 0)
-            _Notice(
-              icon: Icons.warning_amber_rounded,
-              color: Theme.of(context).colorScheme.error,
-              text: l10n.budgetsOverNotice(overCount),
-              onTap: () => _open(context, const InsightsScreen()),
-            ),
           if (dueNotesCount > 0)
             _Notice(
               icon: Icons.sticky_note_2_outlined,
@@ -148,11 +145,24 @@ class HomeScreen extends StatelessWidget {
           Expanded(
             child: firstRun
                 ? const _FirstRun()
-                : days.isEmpty
+                : days.isEmpty && budgetSummary == null
                 ? Center(child: Text(l10n.emptyPeriod))
                 : ListView(
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
+                      // BUD-7: at the top of the list, so opening it scrolls
+                      // with the days instead of squeezing them.
+                      if (budgetSummary != null)
+                        _BudgetsCard(
+                          summary: budgetSummary,
+                          statuses: budgetStatuses,
+                          currency: currency,
+                        ),
+                      if (days.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Center(child: Text(l10n.emptyPeriod)),
+                        ),
                       for (final day in days)
                         _DaySection(
                           day: day,
@@ -363,6 +373,78 @@ class _FirstRun extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The period's budgets in one card: a line until it's opened, then every
+/// budget's bar, as in Insights (BUD-7, BUD-8).
+class _BudgetsCard extends StatelessWidget {
+  const _BudgetsCard({
+    required this.summary,
+    required this.statuses,
+    required this.currency,
+  });
+
+  final BudgetSummary summary;
+  final List<BudgetStatus> statuses;
+  final NumberFormat currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final color = switch (summary.level) {
+      BudgetLevel.ok => theme.colorScheme.primary,
+      BudgetLevel.warning => Colors.orange,
+      BudgetLevel.over => theme.colorScheme.error,
+    };
+    // A future period has only its limits, so there's nothing used yet
+    // (BUD-6).
+    final line = summary.timing == PeriodTiming.future
+        ? l10n.budgetsCardPlanned(summary.count)
+        : l10n.budgetsCardSummary(
+            NumberFormat.percentPattern(l10n.localeName)
+                .format(summary.progress),
+            summary.over,
+          );
+
+    return Card(
+      margin: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 4),
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        // Starts closed (BUD-7), and stays as the user left it while the list
+        // rebuilds.
+        key: const PageStorageKey('home-budgets'),
+        leading: Icon(Icons.pie_chart_outline, color: color),
+        title: Text(l10n.budgetsTitle),
+        subtitle: Text(
+          line,
+          style: TextStyle(
+            color: summary.level == BudgetLevel.ok ? null : color,
+          ),
+        ),
+        shape: const Border(),
+        collapsedShape: const Border(),
+        childrenPadding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 4),
+        expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (final status in statuses)
+            BudgetProgress(status: status, currency: currency, compact: true),
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            // The fuller picture, where the budgets sit above the spending by
+            // category, as the drawer's row of the same name opens it.
+            child: TextButton.icon(
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const InsightsScreen())),
+              icon: const Icon(Icons.pie_chart_outline),
+              label: Text(l10n.drawerSpending),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -95,6 +95,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **BUD-4** At 80% of the limit the budget shows a warning; at 100% it shows over budget.
 - **BUD-5** A budget repeats every period until the user changes or removes it. A change applies from the current period onward; past periods keep their limits.
 - **BUD-6** Past periods show the final result; future periods show the limit only.
+- **BUD-7** Whenever the selected period has budgets, Home shows them in one card at the top of the day list, so opening it scrolls with the days instead of squeezing them. It starts closed, as one line: the share of the budget used (the overall budget's when there is one, otherwise the category budgets' spending against their limits combined) and how many budgets are over, in the colour of the worst of them (BUD-4). A future period's line says how many budgets are set (BUD-6). It replaces the over-budget notice Home used to show: the line says how many are over, in red.
+- **BUD-8** Opened, the card shows each budget more simply than Insights: its name, what's spent of the limit with the share used, and its bar. What's left per day or how much is over stays in Insights (BUD-3), where the card's "Spending by category" button leads: the tab with the budgets above the spending by category.
 
 ## 8. Recurring transactions
 
@@ -234,7 +236,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **NOTE-2** The Notes screen lists open notes first: overdue, then by due date, then notes without a date by last edit. Done notes collapse into a Done section below. An empty list explains what notes are for, with one "Add a note" action.
 - **NOTE-3** Search (LANG-4) and the Open, Done, and due-date filters combine. The screen always shows which are on, with one tap to clear them, and every count comes from the list on screen.
 - **NOTE-4** "Record as transaction" opens the add form with the note's amount, category, and text as the title, dated today; ADD-3 fills the rest. Saving marks the note done and links the two, and each shows the other. Deleting that transaction reopens the note.
-- **NOTE-5** Open notes due in the selected period appear in the Home notices, next to the recurring and budget ones, and the Insights calendar marks their days (INS-1).
+- **NOTE-5** Open notes due in the selected period appear in the Home notices, next to the recurring one, and the Insights calendar marks their days (INS-1).
 - **NOTE-6** A due date can have a reminder at a chosen time, sent as a local notification from the device. The app asks for notification permission only when the user first sets a reminder, and everything else works if it's refused. Android may deliver it a few minutes late. With app lock on, the notification says only that a note is due, and tapping it opens the note through the lock (LOCK-2).
 - **NOTE-7** Deleting a note works like deleting a transaction: Undo, then the trash, then a purge after 30 days (DEL-2–DEL-4).
 - **NOTE-8** Backups include notes, and restore merges them by ID like every other record (BAK-1, BAK-3). CSV and PDF exports leave notes out.
@@ -399,6 +401,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 ## Decisions (18 September 2026)
 
 27. The store identity becomes `com.oasisforge.monthlyexpenses`, in the Oasis Forge namespace every future app will share, replacing `com.monthlyexpenses.app`. Decided the morning of the first Play upload, which is the last moment a package name can change; the old one was never uploaded anywhere. Users see it only in the store URL, so this is for the studio's order, not for them. The store *title* is "Monthly Expense Tracker", for search, while the name under the icon stays "Monthly Expenses", which fits without being cut off.
+
+28. Home gets a budgets card (BUD-7, BUD-8), decided in the roadmap review. Budgets were a tab away in Insights, and Home only mentioned them once one was already over; now how the month is going is on the first screen, one line until it is opened. It replaces the over-budget notice, whose news the card's red line carries, and stays slim: the per-day detail is one tap away in Insights.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

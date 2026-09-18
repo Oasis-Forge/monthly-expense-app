@@ -12,6 +12,7 @@ import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/accounts_screen.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
+import 'package:monthly_expense_app/screens/budget_progress.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/categories_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
@@ -365,24 +366,79 @@ void main() {
     expect(find.byType(RecurringScreen), findsOneWidget);
   });
 
-  testWidgets('budgets over their limit show a notice (BUD-4)', (tester) async {
-    fake.budgets.add(
-      Budget(
-        id: 'food',
-        categoryId: 'cat-food',
-        limit: const Money(10000),
-        effectiveFrom: DateTime(2026, 9),
-        createdAt: DateTime.utc(2026),
-        updatedAt: DateTime.utc(2026),
-      ),
+  group('the budgets card (BUD-7, BUD-8)', () {
+    Budget limit(String id, String? categoryId, int amount) => Budget(
+      id: id,
+      categoryId: categoryId,
+      limit: Money(amount * 1000),
+      effectiveFrom: DateTime(2026, 9),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
     );
-    await provider.load();
 
-    await showHome(tester);
-    await tester.tap(find.text('1 budget is over its limit'));
-    await tester.pumpAndSettle();
+    testWidgets('no budgets, no card', (tester) async {
+      await showHome(tester);
 
-    expect(find.byType(InsightsScreen), findsOneWidget);
+      expect(find.byType(ExpansionTile), findsNothing);
+    });
+
+    testWidgets('one line at first, every budget once opened', (tester) async {
+      fake.budgets.addAll([
+        limit('all', null, 125),
+        limit('food', 'cat-food', 10),
+      ]);
+      await provider.load();
+
+      await showHome(tester);
+      // Lunch (12.50) is 10% of the overall budget, and puts food over; the
+      // concert on the 18th doesn't count yet (BAL-4).
+      expect(find.text('10% used · 1 over'), findsOneWidget);
+      expect(find.byType(BudgetProgress), findsNothing);
+      // The line says it in red; there's no separate notice for it.
+      expect(find.text('1 budget is over its limit'), findsNothing);
+
+      await tester.tap(find.text('Budgets'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(BudgetProgress), findsNWidgets(2));
+      // Each bar with what's spent of its limit and the share used, but not
+      // the line under it, which stays in Insights.
+      expect(find.text('\$12.50 of \$125.00   10%'), findsOneWidget);
+      expect(find.text('\$12.50 of \$10.00   125%'), findsOneWidget);
+      expect(find.textContaining('left'), findsNothing);
+      expect(find.textContaining('Over by'), findsNothing);
+
+      // The fuller picture: Insights, on the tab that lists the budgets
+      // above the spending by category.
+      await tester.tap(find.text('Spending by category'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<InsightsScreen>(find.byType(InsightsScreen)).initialTab,
+        0,
+      );
+      expect(find.text('Over by \$2.50'), findsOneWidget);
+    });
+
+    testWidgets('a future period with nothing recorded still shows its '
+        'budgets, as limits only (BUD-6)', (tester) async {
+      fake.budgets.add(limit('food', 'cat-food', 10));
+      await provider.load();
+
+      await showHome(tester);
+      await tester.tap(find.byTooltip('Next period'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 budget set'), findsOneWidget);
+      expect(find.text('No transactions in this period yet.'), findsOneWidget);
+
+      // Opened, each budget shows only its limit: nothing is spent yet.
+      await tester.tap(find.text('Budgets'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Limit \$10.00'), findsOneWidget);
+      expect(find.textContaining('%'), findsNothing);
+    });
   });
 
   testWidgets('notes due in the period show a notice (NOTE-5)', (tester) async {
