@@ -184,10 +184,10 @@ Until the product exists in a console, the screen says there is nothing to sell 
 ```
 adb shell rm -rf /sdcard/Download/store-screenshots
 flutter test integration_test/store_screenshots_test.dart -d emulator-5554
-adb pull /sdcard/Download/store-screenshots <folder>
+adb pull /sdcard/Download/store-screenshots/<code> store/play/graphics
 ```
 
-Clear the folder first: the test runner uninstalls the app when it finishes, and a new install can't overwrite files the old one wrote. `--dart-define=ONLY=en-US,ar` renders only those languages. The captions and listing titles live in the test file; the store icon and feature graphics use the app icon's painter from `tool/render_app_icons_test.dart`.
+Clear the folder first: the test runner uninstalls the app when it finishes, and a new install can't overwrite files the old one wrote. `--dart-define=ONLY=en-US,ar` renders only those languages. The captions and listing titles live in the test file; the store icon and feature graphics use the app icon's painter from `tool/render_app_icons_test.dart`. The pull puts one language's folder in place, replacing the old files; pull each language you rendered. Everything for the listing (text, graphics, the Data safety files, and the scripts that made them) lives in `store/`, which `.gitignore` keeps out of the public repository; `store/play/README.txt` says what is where.
 
 ### What to tell the stores
 
