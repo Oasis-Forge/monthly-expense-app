@@ -10,9 +10,9 @@ import WidgetKit
 final class HomeWidgetBridge {
   static let shared = HomeWidgetBridge()
 
-  static let channelName = "com.monthlyexpenses.app/home_widget"
+  static let channelName = "com.oasisforge.monthlyexpenses/home_widget"
   private static let payloadKey = "payload"
-  private static let appGroupId = "group.com.monthlyexpenses.app"
+  private static let appGroupId = "group.com.oasisforge.monthlyexpenses"
   private static let urlScheme = "monthlyexpenses"
   private static let urlHost = "widget"
 

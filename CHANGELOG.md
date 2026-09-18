@@ -4,6 +4,15 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-09-18
+
+### Fixed
+- On Android, 1.12.0 closed as soon as it was opened. The part of the build that shrinks the app removed something Google's ad library needs at startup; it is kept now. Only the released version was affected, and it never reached a store.
+
+### Changed
+- The app's permanent store identity is now `com.oasisforge.monthlyexpenses`, under the Oasis Forge name that every future app will share. It is set before the first store upload, which is the last moment it can change.
+- **If you installed an earlier test build, this one installs as a separate app** rather than updating it, because the identity is different. Make a backup in the old one (Settings → Backup & restore), install this one, and restore it there; then the old one can be removed.
+
 ## [1.12.0] - 2026-09-17
 
 ### Added

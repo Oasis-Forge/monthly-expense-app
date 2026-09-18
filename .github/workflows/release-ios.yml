@@ -23,8 +23,8 @@ concurrency:
 
 env:
   FLUTTER_VERSION: 3.47.4
-  BUNDLE_ID: com.monthlyexpenses.app
-  WIDGET_BUNDLE_ID: com.monthlyexpenses.app.MonthlyExpensesWidget
+  BUNDLE_ID: com.oasisforge.monthlyexpenses
+  WIDGET_BUNDLE_ID: com.oasisforge.monthlyexpenses.MonthlyExpensesWidget
 
 jobs:
   build:

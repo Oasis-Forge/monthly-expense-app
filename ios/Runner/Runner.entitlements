@@ -6,7 +6,7 @@
 	     shows. See WID-5 and docs/RELEASING.md. -->
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.com.monthlyexpenses.app</string>
+		<string>group.com.oasisforge.monthlyexpenses</string>
 	</array>
 </dict>
 </plist>

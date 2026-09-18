@@ -1,4 +1,4 @@
-package com.monthlyexpenses.app
+package com.oasisforge.monthlyexpenses
 
 import android.content.Context
 import org.json.JSONObject

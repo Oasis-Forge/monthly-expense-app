@@ -44,7 +44,7 @@ Groundwork every feature builds on. After this phase, only budgets, recurring ru
 ## Phase 3 — Store readiness (after Phase 2)
 - [x] Display name "Monthly Expenses" on every platform: the Android label, the iOS and macOS bundle names, the Windows version info and window title, and the Linux window title.
 - [x] Launcher icons (`flutter_launcher_icons`) and splash screen (`flutter_native_splash`), drawn by `tool/render_app_icons_test.dart`.
-- [x] Store IDs, permanent after the first upload and free of personal names: `com.monthlyexpenses.app` on Google Play, the App Store, the Mac App Store, and the Microsoft Store; `io.github.monthly_expenses.MonthlyExpenses` on Flathub, verified through the `monthly-expenses` GitHub organization.
+- [x] Store IDs, permanent after the first upload and free of personal names: `com.oasisforge.monthlyexpenses` on Google Play, the App Store, the Mac App Store, and the Microsoft Store; `io.github.monthly_expenses.MonthlyExpenses` on Flathub, verified through the `monthly-expenses` GitHub organization.
 - [x] Privacy policy published at https://oasis-forge.github.io/monthly-expense-app/privacy-policy.
 - [x] Update the privacy policy for accounts, backup and restore, CSV export, and app lock.
 - [x] Android release build declares no `INTERNET` permission (RUN-2), so the Play data safety form can say no data is collected. `release-android.yml` fails if it ever does. **Superseded by Phase 4's ads item (17 September 2026):** the release build now asks for `INTERNET`, for the ad slots and nothing else, and the check is the other way round — it fails if the permission is missing, or if a plugin has quietly added one of the permissions that would let the app read the user's life.
