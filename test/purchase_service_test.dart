@@ -23,6 +23,9 @@ class FakeStore implements InAppPurchase {
   Object? buyThrows;
   Object? restoreThrows;
 
+  /// False for a purchase sheet that never opens.
+  bool launches = true;
+
   final _updates = StreamController<List<PurchaseDetails>>.broadcast();
   int buys = 0;
   int restores = 0;
@@ -62,7 +65,7 @@ class FakeStore implements InAppPurchase {
   Future<bool> buyNonConsumable({required PurchaseParam purchaseParam}) async {
     if (buyThrows != null) throw buyThrows!;
     buys++;
-    return true;
+    return launches;
   }
 
   @override
@@ -232,6 +235,88 @@ void main() {
       expect(service.stage, PurchaseStage.owned);
     });
 
+    group('a sheet that closes without naming a product (PAY-8)', () {
+      // What Android sends when the sheet closes with no purchase in it.
+      PurchaseDetails closed(PurchaseStatus status, {String? message}) =>
+          purchase(
+            status,
+            id: '',
+            pendingComplete: false,
+            error: message == null
+                ? null
+                : IAPError(source: 'test', code: 'purchase', message: message),
+          );
+
+      test('backing out puts the price back, and says nothing', () async {
+        await service.buy();
+
+        store.send(closed(PurchaseStatus.canceled));
+        await pumpEventQueue();
+
+        expect(service.stage, PurchaseStage.offered);
+        expect(service.lastError, isNull);
+        expect(store.restores, 1);
+        expect(store.completed, isEmpty);
+      });
+
+      test(
+        'a failure puts the price back, says so, and asks what is owned',
+        () async {
+          await service.buy();
+
+          store.send(closed(PurchaseStatus.error, message: 'declined'));
+          await pumpEventQueue();
+
+          expect(service.stage, PurchaseStage.offered);
+          expect(service.lastError, 'declined');
+          expect(store.restores, 2);
+        },
+      );
+
+      test('"already owned" ends with the ads off, and no error', () async {
+        await service.buy();
+
+        store.send(closed(PurchaseStatus.error, message: 'itemAlreadyOwned'));
+        await pumpEventQueue();
+        // The store answers the question that followed.
+        store.send(purchase(PurchaseStatus.restored));
+        await pumpEventQueue();
+
+        expect(service.adsRemoved, isTrue);
+        expect(service.lastError, isNull);
+      });
+
+      test('a purchase with no product in it proves nothing', () async {
+        await service.buy();
+
+        store.send(closed(PurchaseStatus.purchased));
+        await pumpEventQueue();
+
+        expect(service.adsRemoved, isFalse);
+        expect(service.stage, PurchaseStage.offered);
+        expect(store.restores, 2);
+      });
+
+      test('a failed check afterwards still leaves the price', () async {
+        await service.buy();
+        store.restoreThrows = StateError('no');
+
+        store.send(closed(PurchaseStatus.error, message: 'declined'));
+        await pumpEventQueue();
+
+        expect(service.stage, PurchaseStage.offered);
+      });
+
+      test('with no purchase under way, it changes nothing', () async {
+        store.send(closed(PurchaseStatus.error, message: 'stray'));
+        await pumpEventQueue();
+
+        expect(service.stage, PurchaseStage.offered);
+        expect(service.lastError, isNull);
+        expect(store.restores, 1);
+      });
+    });
+
     test(
       'a broken stream leaves nothing to sell rather than a dead button',
       () async {
@@ -263,6 +348,18 @@ void main() {
 
       await service.buy();
 
+      expect(service.stage, PurchaseStage.offered);
+      expect(service.lastError, isNotNull);
+    });
+
+    test('a sheet that never opens puts the price back (PAY-8)', () async {
+      final store = FakeStore()..launches = false;
+      final service = DevicePurchaseService(store: store);
+      await service.start();
+
+      await service.buy();
+
+      expect(store.buys, 1);
       expect(service.stage, PurchaseStage.offered);
       expect(service.lastError, isNotNull);
     });
