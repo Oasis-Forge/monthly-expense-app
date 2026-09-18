@@ -796,7 +796,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Tanpa akun, tanpa iklan, tanpa pelacakan. Data Anda tetap di sini, dicadangkan dan dikunci sesuai keinginan Anda.';
+      'Tanpa akun. Yang kamu catat tetap di ponsel ini; iklan yang membiayai aplikasi ini tidak pernah melihatnya.';
 
   @override
   String get walkthroughBringTitle => 'Bawa data yang sudah Anda punya';
@@ -832,6 +832,9 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'Empat halaman yang ditampilkan saat aplikasi baru diinstal';
+
+  @override
+  String get removeAdsTitle => 'Hapus iklan';
 
   @override
   String get exportCsvMenu => 'Ekspor CSV';
@@ -1537,4 +1540,51 @@ class AppLocalizationsId extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Termasuk lampiran, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Menyembunyikan semua iklan dengan satu kali pembayaran. Ini terhubung ke akun toko kamu, jadi akan kembali meski ganti ponsel atau instal ulang.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Hapus iklan seharga $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Iklan sudah dimatikan. Terima kasih.';
+
+  @override
+  String get removeAdsPending => 'Menunggu toko…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'Toko belum punya apa pun untuk dijual di sini. Coba lagi nanti.';
+
+  @override
+  String get removeAdsFailed =>
+      'Transaksi gagal, dan kamu tidak dikenai biaya.';
+
+  @override
+  String get restorePurchasesButton => 'Pulihkan pembelian';
+
+  @override
+  String get payNothingWithheld =>
+      'Semua fitur tetap gratis, dengan atau tanpa iklan.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Segera hadir';
+
+  @override
+  String get plusBody =>
+      'Koneksi bank yang mengambil transaksimu untuk dikonfirmasi. Fitur ini belum selesai, jadi belum ada yang bisa dibeli.';
+
+  @override
+  String get privacyOptionsTitle => 'Opsi privasi';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Ubah pilihanmu tentang iklan yang dipersonalisasi';
 }

@@ -793,7 +793,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'ไม่ต้องสมัครสมาชิก ไม่มีโฆษณา ไม่มีการติดตาม ข้อมูลของคุณอยู่ที่นี่ สำรองและล็อกได้ตามต้องการ';
+      'ไม่ต้องมีบัญชี ข้อมูลที่คุณบันทึกจะอยู่ในเครื่องนี้เท่านั้น โฆษณาที่สนับสนุนแอปจะไม่มีวันเห็นข้อมูลนี้';
 
   @override
   String get walkthroughBringTitle => 'นำข้อมูลเดิมมาด้วย';
@@ -829,6 +829,9 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'สี่หน้าที่แสดงตอนเริ่มใช้แอปครั้งแรก';
+
+  @override
+  String get removeAdsTitle => 'ลบโฆษณา';
 
   @override
   String get exportCsvMenu => 'ส่งออก CSV';
@@ -1529,4 +1532,51 @@ class AppLocalizationsTh extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'รวมไฟล์แนบ $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'ซ่อนโฆษณาทั้งหมดด้วยการจ่ายเงินครั้งเดียว ผูกกับบัญชีร้านค้าของคุณ จึงกลับมาใช้ได้แม้เปลี่ยนเครื่องหรือติดตั้งใหม่';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'ลบโฆษณาในราคา $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'ปิดโฆษณาแล้ว ขอบคุณ';
+
+  @override
+  String get removeAdsPending => 'กำลังรอร้านค้า…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'ร้านค้ายังไม่มีสินค้าให้ซื้อตอนนี้ กรุณาลองใหม่ภายหลัง';
+
+  @override
+  String get removeAdsFailed =>
+      'การทำรายการไม่สำเร็จ และคุณยังไม่ถูกเรียกเก็บเงิน';
+
+  @override
+  String get restorePurchasesButton => 'เรียกคืนการซื้อ';
+
+  @override
+  String get payNothingWithheld =>
+      'ทุกฟีเจอร์ใช้งานได้ฟรีเสมอ ไม่ว่าจะมีโฆษณาหรือไม่';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'เร็วๆ นี้';
+
+  @override
+  String get plusBody =>
+      'การเชื่อมต่อธนาคารที่ดึงรายการธุรกรรมมาให้คุณยืนยัน ยังพัฒนาไม่เสร็จ จึงยังไม่มีอะไรให้ซื้อ';
+
+  @override
+  String get privacyOptionsTitle => 'ตัวเลือกความเป็นส่วนตัว';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'เปลี่ยนตัวเลือกเกี่ยวกับโฆษณาที่ปรับให้เหมาะกับคุณ';
 }

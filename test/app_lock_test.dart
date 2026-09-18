@@ -101,4 +101,54 @@ void main() {
     expect(locked, findsNothing);
     expect(settings.appLock, isFalse);
   });
+
+  group('what the lock tells the rest of the app (ADS-9)', () {
+    tearDown(() => appIsLocked.value = false);
+
+    testWidgets('it is on from the first frame of a locked launch', (
+      tester,
+    ) async {
+      // The screens underneath are built while the lock is up, so they have
+      // to be able to see it straight away, before any ad is asked for.
+      authenticator.result = AuthResult.failed;
+      await showApp(tester, appLock: true);
+
+      expect(locked, findsOneWidget);
+      expect(appIsLocked.value, isTrue);
+    });
+
+    testWidgets('it goes off once the app is unlocked', (tester) async {
+      authenticator.result = AuthResult.failed;
+      await showApp(tester, appLock: true);
+      expect(appIsLocked.value, isTrue);
+
+      authenticator.result = AuthResult.success;
+      await tester.tap(find.byType(FilledButton));
+      await tester.pumpAndSettle();
+
+      expect(locked, findsNothing);
+      expect(appIsLocked.value, isFalse);
+    });
+
+    testWidgets('it comes back when the app locks itself again (LOCK-2)', (
+      tester,
+    ) async {
+      await showApp(tester, appLock: true);
+      expect(appIsLocked.value, isFalse);
+      authenticator.result = AuthResult.failed;
+
+      await leaveFor(tester, const Duration(minutes: 2));
+
+      expect(locked, findsOneWidget);
+      expect(appIsLocked.value, isTrue);
+    });
+
+    testWidgets('with app lock off it stays off', (tester) async {
+      await showApp(tester, appLock: false);
+
+      await leaveFor(tester, const Duration(hours: 1));
+
+      expect(appIsLocked.value, isFalse);
+    });
+  });
 }

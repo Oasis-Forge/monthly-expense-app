@@ -13,6 +13,8 @@ import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../services/ads_config.dart';
+import 'ad_slot.dart';
 import 'budgets_screen.dart';
 import 'note_form_screen.dart';
 import 'period_selector.dart';
@@ -88,6 +90,9 @@ class InsightsScreen extends StatelessWidget {
             ),
           ],
         ),
+        // The second of the two slots (ADS-1), outside the charts and above
+        // the system navigation bar (ADS-3).
+        bottomNavigationBar: const AdSlot(placement: AdPlacement.insights),
       ),
     );
   }

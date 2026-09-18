@@ -798,7 +798,7 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'কোনো অ্যাকাউন্ট, বিজ্ঞাপন বা ট্র্যাকিং নেই। আপনার ডেটা এখানেই থাকে, চাইলে ব্যাকআপ ও লক করা যায়।';
+      'কোনো অ্যাকাউন্ট লাগে না। আপনি যা লেখেন তা এই ফোনেই থাকে; অ্যাপের খরচ চালানো বিজ্ঞাপনগুলো তা কখনো দেখে না।';
 
   @override
   String get walkthroughBringTitle => 'যা আছে তা নিয়ে আসুন';
@@ -834,6 +834,9 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'অ্যাপ নতুন থাকাকালীন দেখানো চারটি পৃষ্ঠা';
+
+  @override
+  String get removeAdsTitle => 'বিজ্ঞাপন সরান';
 
   @override
   String get exportCsvMenu => 'সিএসভি এক্সপোর্ট করুন';
@@ -1535,4 +1538,51 @@ class AppLocalizationsBn extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'সংযুক্তিসহ, $size এমবি';
   }
+
+  @override
+  String get removeAdsBody =>
+      'একবার পেমেন্টে সব বিজ্ঞাপন বন্ধ হয়ে যায়। এটি স্টোর অ্যাকাউন্টের সাথে যুক্ত, তাই নতুন ফোন বা পুনরায় ইনস্টলেও ফিরে আসে।';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return '$price-এ বিজ্ঞাপন সরান';
+  }
+
+  @override
+  String get removeAdsOwned => 'বিজ্ঞাপন বন্ধ আছে। ধন্যবাদ।';
+
+  @override
+  String get removeAdsPending => 'স্টোরের জন্য অপেক্ষা করা হচ্ছে…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'স্টোরে এখনই এখানে বিক্রির মতো কিছু নেই। পরে আবার চেষ্টা করুন।';
+
+  @override
+  String get removeAdsFailed =>
+      'এটি সম্পন্ন হয়নি এবং আপনার কাছ থেকে কোনো টাকা কাটা হয়নি।';
+
+  @override
+  String get restorePurchasesButton => 'কেনাকাটা পুনরুদ্ধার করুন';
+
+  @override
+  String get payNothingWithheld =>
+      'বিজ্ঞাপন থাকুক বা না থাকুক, সব ফিচার সবসময় বিনামূল্যে থাকে।';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'শীঘ্রই আসছে';
+
+  @override
+  String get plusBody =>
+      'একটি ব্যাংক সংযোগ যা লেনদেন এনে নিশ্চিত করতে দেয়। এখনও সম্পূর্ণ হয়নি, তাই কেনার কিছু নেই।';
+
+  @override
+  String get privacyOptionsTitle => 'গোপনীয়তা বিকল্প';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'ব্যক্তিগতকৃত বিজ্ঞাপন সম্পর্কে আপনার পছন্দ পরিবর্তন করুন';
 }

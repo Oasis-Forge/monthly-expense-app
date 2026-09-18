@@ -21,6 +21,7 @@ import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
+import 'package:monthly_expense_app/screens/remove_ads_screen.dart';
 import 'package:monthly_expense_app/screens/report_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
@@ -29,6 +30,7 @@ import 'package:monthly_expense_app/screens/transaction_detail_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
 import 'package:monthly_expense_app/screens/walkthrough_screen.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
+import 'package:monthly_expense_app/services/purchase_service.dart';
 import 'package:monthly_expense_app/services/report_fonts.dart';
 
 import 'helpers.dart';
@@ -77,13 +79,20 @@ void main() {
     String language,
     Widget screen, {
     BackupService? backup,
+    PurchaseService? purchases,
   }) async {
     usePhoneScreen(tester);
     tester.platformDispatcher.textScaleFactorTestValue = 1.3;
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     final settings = await testSettings({'language': language});
     await tester.pumpWidget(
-      testApp(await loadProvider(), settings, screen, backup: backup),
+      testApp(
+        await loadProvider(),
+        settings,
+        screen,
+        backup: backup,
+        purchases: purchases,
+      ),
     );
     await tester.pump();
     await tester.pump();
@@ -124,6 +133,7 @@ void main() {
     'Transaction details': TransactionDetailScreen(id: 'a'),
     'Setup': SetupScreen(),
     'Walkthrough': WalkthroughScreen(),
+    'Remove ads': RemoveAdsScreen(),
   };
 
   group('screens fit in every language at 1.3× text (LANG-6)', () {
@@ -136,6 +146,11 @@ void main() {
             language,
             screen,
             backup: screen is ImportScreen ? withSampleCsv() : null,
+            // The price and the buy button are the longest text on that
+            // screen, so it is checked with something to sell (PAY-6).
+            purchases: screen is RemoveAdsScreen
+                ? FakePurchases(stage: PurchaseStage.offered, price: 'US\$2.99')
+                : null,
           );
           if (screen is HomeScreen) {
             // Every drawer row is text of its own, and the list is longer

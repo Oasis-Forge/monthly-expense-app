@@ -795,7 +795,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'No account, no ads, no tracking. Your data stays here, backed up and locked when you choose.';
+      'No account. What you record stays on this phone; the ads that pay for the app never see it.';
 
   @override
   String get walkthroughBringTitle => 'Bring what you have';
@@ -831,6 +831,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'The four pages shown when the app was new';
+
+  @override
+  String get removeAdsTitle => 'Remove ads';
 
   @override
   String get exportCsvMenu => 'Export CSV';
@@ -1533,4 +1536,51 @@ class AppLocalizationsEn extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Includes attachments, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Hides every ad, for one payment. It follows your store account, so a new phone or a reinstall brings it back.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Remove ads for $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Ads are off. Thank you.';
+
+  @override
+  String get removeAdsPending => 'Waiting for the store…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'The store has nothing to sell here yet. Please try again later.';
+
+  @override
+  String get removeAdsFailed =>
+      'That didn\'t go through, and you haven\'t been charged.';
+
+  @override
+  String get restorePurchasesButton => 'Restore purchases';
+
+  @override
+  String get payNothingWithheld =>
+      'Every feature stays free, with or without ads.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Coming soon';
+
+  @override
+  String get plusBody =>
+      'A bank connection that brings your transactions in for you to confirm. It isn\'t finished, so there is nothing to buy yet.';
+
+  @override
+  String get privacyOptionsTitle => 'Privacy options';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Change your choice about personalised ads';
 }

@@ -804,7 +804,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Sem conta, sem anúncios, sem rastreamento. Seus dados ficam aqui, protegidos por backup e bloqueio quando você quiser.';
+      'Sem conta. O que você registra fica neste telefone; os anúncios que sustentam o app nunca veem isso.';
 
   @override
   String get walkthroughBringTitle => 'Traga o que você já tem';
@@ -840,6 +840,9 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'As quatro páginas mostradas na primeira abertura do app';
+
+  @override
+  String get removeAdsTitle => 'Remover anúncios';
 
   @override
   String get exportCsvMenu => 'Exportar CSV';
@@ -1555,4 +1558,51 @@ class AppLocalizationsPt extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Inclui anexos, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Oculta todos os anúncios com um único pagamento. Fica associado à sua conta da loja, por isso volta ao trocar de telefone ou reinstalar.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Remover anúncios por $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Os anúncios estão desativados. Obrigado.';
+
+  @override
+  String get removeAdsPending => 'Aguardando resposta da loja…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'A loja ainda não tem nada para vender aqui. Tente novamente mais tarde.';
+
+  @override
+  String get removeAdsFailed =>
+      'Isso não foi concluído e você não foi cobrado.';
+
+  @override
+  String get restorePurchasesButton => 'Restaurar compras';
+
+  @override
+  String get payNothingWithheld =>
+      'Todos os recursos continuam gratuitos, com ou sem anúncios.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Em breve';
+
+  @override
+  String get plusBody =>
+      'Uma conexão bancária que traz suas transações para você confirmar. Ainda não está pronta, então não há nada para comprar.';
+
+  @override
+  String get privacyOptionsTitle => 'Opções de privacidade';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Altere sua escolha sobre anúncios personalizados';
 }

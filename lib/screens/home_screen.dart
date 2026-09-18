@@ -10,7 +10,9 @@ import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import '../services/ads_config.dart';
 import 'accounts_screen.dart';
+import 'ad_slot.dart';
 import 'add_transaction_screen.dart';
 import 'backup_screen.dart';
 import 'budgets_screen.dart';
@@ -170,6 +172,10 @@ class HomeScreen extends StatelessWidget {
               icon: const Icon(Icons.add),
               label: Text(l10n.addButton),
             ),
+      // ADS-1, ADS-3: the slot goes here rather than in the body, so it sits
+      // outside the day list, above the system navigation bar, and the add
+      // button lifts above it instead of sitting on top of it.
+      bottomNavigationBar: const AdSlot(placement: AdPlacement.home),
     );
   }
 }

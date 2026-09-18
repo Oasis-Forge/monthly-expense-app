@@ -7,12 +7,14 @@ import '../l10n/languages.dart';
 import '../models/currencies.dart';
 import '../models/period.dart';
 import '../models/transaction_filter.dart' show foldForSearch;
+import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/authenticator.dart';
 import 'accounts_screen.dart';
 import 'backup_screen.dart';
 import 'categories_screen.dart';
+import 'remove_ads_screen.dart';
 import 'trash_screen.dart';
 import 'walkthrough_screen.dart';
 
@@ -153,6 +155,7 @@ class SettingsScreen extends StatelessWidget {
             // RUN-4: the same four pages, closing back to Settings.
             onTap: () => _open(context, const WalkthroughScreen(replay: true)),
           ),
+          const _AdsRows(),
         ],
       ),
     );
@@ -383,6 +386,41 @@ class _CurrencyPickerScreenState extends State<CurrencyPickerScreen> {
               ),
         ],
       ),
+    );
+  }
+}
+
+/// "Remove ads" and, where the law asks for it, "Privacy options" (PAY-7,
+/// ADS-5). Neither appears on the desktop builds, which have no ads.
+class _AdsRows extends StatelessWidget {
+  const _AdsRows();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final ads = context.watch<AdsProvider>();
+    if (!ads.supported) return const SizedBox.shrink();
+
+    return Column(
+      children: [
+        ListTile(
+          leading: const Icon(Icons.block_outlined),
+          title: Text(l10n.removeAdsTitle),
+          // PAY-7: the whole of the selling, in one quiet row.
+          subtitle: ads.adsRemoved ? Text(l10n.removeAdsOwned) : null,
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => SettingsScreen._open(context, const RemoveAdsScreen()),
+        ),
+        // ADS-5: only in the places whose law asks for the form, and the
+        // SDK is what decides that.
+        if (ads.privacyOptionsRequired)
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(l10n.privacyOptionsTitle),
+            subtitle: Text(l10n.privacyOptionsSubtitle),
+            onTap: ads.showPrivacyOptions,
+          ),
+      ],
     );
   }
 }

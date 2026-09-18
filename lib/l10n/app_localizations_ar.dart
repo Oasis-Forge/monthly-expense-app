@@ -820,7 +820,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'بلا حساب ولا إعلانات ولا تتبّع. تبقى بياناتك هنا، وأنت من يقرر نسخها وقفلها.';
+      'لا حاجة لحساب. ما تسجّله يبقى على هذا الهاتف، ولا تراه الإعلانات التي تموّل التطبيق أبدًا.';
 
   @override
   String get walkthroughBringTitle => 'أحضر ما لديك';
@@ -856,6 +856,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'الصفحات الأربع التي ظهرت عند تثبيت التطبيق';
+
+  @override
+  String get removeAdsTitle => 'إزالة الإعلانات';
 
   @override
   String get exportCsvMenu => 'تصدير CSV';
@@ -1592,4 +1595,49 @@ class AppLocalizationsAr extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'يشمل المرفقات، $size ميجابايت';
   }
+
+  @override
+  String get removeAdsBody =>
+      'يُخفي كل الإعلانات بدفعة واحدة. يرتبط بحساب متجرك، فيعود مع هاتف جديد أو إعادة التثبيت.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'إزالة الإعلانات مقابل $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'الإعلانات متوقفة. شكرًا لك.';
+
+  @override
+  String get removeAdsPending => 'بانتظار المتجر…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'لا يوجد شيء للبيع هنا حاليًا. يُرجى المحاولة لاحقًا.';
+
+  @override
+  String get removeAdsFailed => 'لم تتم العملية، ولم يُخصم منك أي مبلغ.';
+
+  @override
+  String get restorePurchasesButton => 'استعادة عمليات الشراء';
+
+  @override
+  String get payNothingWithheld =>
+      'تبقى جميع الميزات مجانية، مع الإعلانات أو بدونها.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'قريبًا';
+
+  @override
+  String get plusBody =>
+      'ربط مع البنك يجلب معاملاتك لتأكيدها. لم يكتمل بعد، فلا يوجد شيء للشراء حاليًا.';
+
+  @override
+  String get privacyOptionsTitle => 'خيارات الخصوصية';
+
+  @override
+  String get privacyOptionsSubtitle => 'غيّر اختيارك بشأن الإعلانات المخصصة';
 }

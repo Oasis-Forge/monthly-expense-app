@@ -784,7 +784,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get walkthroughPrivacyTitle => '只属于你';
 
   @override
-  String get walkthroughPrivacyBody => '无需账号、无广告、无追踪。数据留在本地，可自行备份和加锁。';
+  String get walkthroughPrivacyBody => '无需账户。你记录的内容只留在这部手机上，为本应用付费的广告永远看不到它。';
 
   @override
   String get walkthroughBringTitle => '带上你原有的数据';
@@ -817,6 +817,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get walkthroughReplaySubtitle => '首次打开应用时显示的四页引导';
+
+  @override
+  String get removeAdsTitle => '移除广告';
 
   @override
   String get exportCsvMenu => '导出 CSV';
@@ -1497,4 +1500,45 @@ class AppLocalizationsZh extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return '含附件，共 $size MB';
   }
+
+  @override
+  String get removeAdsBody => '一次付费即可隐藏所有广告。它与你的商店账户绑定，换新手机或重新安装后仍会恢复。';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return '以 $price 移除广告';
+  }
+
+  @override
+  String get removeAdsOwned => '广告已关闭，谢谢支持。';
+
+  @override
+  String get removeAdsPending => '正在等待应用商店…';
+
+  @override
+  String get removeAdsUnavailable => '商店目前暂无此项目可供购买，请稍后再试。';
+
+  @override
+  String get removeAdsFailed => '交易未成功，你没有被扣款。';
+
+  @override
+  String get restorePurchasesButton => '恢复购买';
+
+  @override
+  String get payNothingWithheld => '无论有没有广告，所有功能都是免费的。';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => '即将推出';
+
+  @override
+  String get plusBody => '银行连接功能会导入你的交易记录供确认，目前尚未完成，暂时无法购买。';
+
+  @override
+  String get privacyOptionsTitle => '隐私选项';
+
+  @override
+  String get privacyOptionsSubtitle => '更改你对个性化广告的选择';
 }

@@ -803,7 +803,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Geen account, geen advertenties, geen tracking. Je gegevens blijven hier, met back-up en vergrendeling wanneer jij dat kiest.';
+      'Geen account nodig. Wat je invoert, blijft op deze telefoon; de advertenties die de app betalen, zien het nooit.';
 
   @override
   String get walkthroughBringTitle => 'Breng mee wat je hebt';
@@ -839,6 +839,9 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'De vier pagina\'s die je zag toen de app nieuw was';
+
+  @override
+  String get removeAdsTitle => 'Advertenties verwijderen';
 
   @override
   String get exportCsvMenu => 'CSV exporteren';
@@ -1554,4 +1557,51 @@ class AppLocalizationsNl extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Inclusief bijlagen, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Verbergt alle advertenties met één betaling. Dit is gekoppeld aan je store-account, dus het keert terug bij een nieuwe telefoon of herinstallatie.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Advertenties verwijderen voor $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Advertenties staan uit. Bedankt.';
+
+  @override
+  String get removeAdsPending => 'Wachten op de store…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'De store heeft hier nog niets te koop. Probeer het later opnieuw.';
+
+  @override
+  String get removeAdsFailed =>
+      'Dat is niet gelukt en er is niets in rekening gebracht.';
+
+  @override
+  String get restorePurchasesButton => 'Aankopen herstellen';
+
+  @override
+  String get payNothingWithheld =>
+      'Alle functies blijven gratis, met of zonder advertenties.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Binnenkort beschikbaar';
+
+  @override
+  String get plusBody =>
+      'Een bankkoppeling die je transacties ophaalt zodat je ze kunt bevestigen. Nog niet klaar, dus er is nog niets te koop.';
+
+  @override
+  String get privacyOptionsTitle => 'Privacyopties';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Wijzig je keuze over gepersonaliseerde advertenties';
 }

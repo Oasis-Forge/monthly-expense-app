@@ -62,6 +62,13 @@
 				</array>
 			</dict>
 		</dict>
+		<!-- The AdMob account this app belongs to (ADS-6). The SDK reads it
+		     before Dart runs, so it cannot come from AdsConfig; keep the two
+		     in step. This is Google's sample ID, which serves nothing:
+		     replace it with the app ID from the AdMob console at the same
+		     time as the live unit IDs in lib/services/ads_config.dart. -->
+		<key>GADApplicationIdentifier</key>
+		<string>ca-app-pub-3940256099942544~1458002511</string>
 		<key>NSCameraUsageDescription</key>
 		<string>The camera takes a photo of a receipt to keep with a transaction. Photos stay on this device.</string>
 		<key>NSMicrophoneUsageDescription</key>
@@ -70,6 +77,10 @@
 		<string>Choosing a photo attaches a copy of it to a transaction. It stays on this device.</string>
 		<key>NSFaceIDUsageDescription</key>
 		<string>Face ID unlocks Monthly Expenses when app lock is on.</string>
+		<!-- Shown if the consent flow asks for tracking permission (ADS-5).
+		     Refusing means non-personalised ads, and nothing else changes. -->
+		<key>NSUserTrackingUsageDescription</key>
+		<string>Allowing this lets the ads that pay for Monthly Expenses be chosen for you. Your transactions are never shared, whichever you choose.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UILaunchStoryboardName</key>

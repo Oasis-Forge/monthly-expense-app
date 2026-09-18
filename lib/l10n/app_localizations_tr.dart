@@ -795,7 +795,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Hesap yok, reklam yok, takip yok. Verileriniz burada kalır; yedeklemeye ve kilitlemeye siz karar verirsiniz.';
+      'Hesap gerekmez. Kaydettikleriniz bu telefonda kalır; uygulamayı finanse eden reklamlar bunu asla görmez.';
 
   @override
   String get walkthroughBringTitle => 'Verilerinizi getirin';
@@ -831,6 +831,9 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'Uygulama yeniyken gösterilen dört sayfa';
+
+  @override
+  String get removeAdsTitle => 'Reklamları kaldır';
 
   @override
   String get exportCsvMenu => 'CSV dışa aktar';
@@ -1534,4 +1537,50 @@ class AppLocalizationsTr extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Ekleri içerir, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Tek seferlik ödemeyle tüm reklamları gizler. Mağaza hesabınıza bağlıdır, bu yüzden yeni telefonda veya yeniden yüklemede geri gelir.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return '$price karşılığında reklamları kaldır';
+  }
+
+  @override
+  String get removeAdsOwned => 'Reklamlar kapalı. Teşekkürler.';
+
+  @override
+  String get removeAdsPending => 'Mağazadan yanıt bekleniyor…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'Mağazada henüz satılık bir şey yok. Lütfen daha sonra tekrar deneyin.';
+
+  @override
+  String get removeAdsFailed => 'İşlem tamamlanmadı ve sizden ücret alınmadı.';
+
+  @override
+  String get restorePurchasesButton => 'Satın alımları geri yükle';
+
+  @override
+  String get payNothingWithheld =>
+      'Reklamlı ya da reklamsız, tüm özellikler ücretsiz kalır.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Yakında';
+
+  @override
+  String get plusBody =>
+      'Banka bağlantısı işlemlerinizi getirir, siz onaylarsınız. Henüz tamamlanmadı, satın alınacak bir şey yok.';
+
+  @override
+  String get privacyOptionsTitle => 'Gizlilik seçenekleri';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Kişiselleştirilmiş reklam tercihinizi değiştirin';
 }

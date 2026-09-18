@@ -797,7 +797,7 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'Không cần tài khoản, không quảng cáo, không theo dõi. Dữ liệu ở lại đây, được sao lưu và khóa khi bạn muốn.';
+      'Không cần tài khoản. Những gì bạn ghi lại chỉ lưu trên điện thoại này; quảng cáo giúp duy trì ứng dụng không bao giờ thấy được.';
 
   @override
   String get walkthroughBringTitle => 'Mang theo dữ liệu bạn đã có';
@@ -833,6 +833,9 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get walkthroughReplaySubtitle =>
       'Bốn trang hiển thị khi ứng dụng mới cài';
+
+  @override
+  String get removeAdsTitle => 'Xóa quảng cáo';
 
   @override
   String get exportCsvMenu => 'Xuất CSV';
@@ -1538,4 +1541,51 @@ class AppLocalizationsVi extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'Bao gồm tệp đính kèm, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'Ẩn mọi quảng cáo chỉ với một lần thanh toán. Gắn với tài khoản cửa hàng của bạn, nên vẫn còn khi đổi điện thoại hoặc cài lại ứng dụng.';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return 'Xóa quảng cáo với $price';
+  }
+
+  @override
+  String get removeAdsOwned => 'Đã tắt quảng cáo. Cảm ơn bạn.';
+
+  @override
+  String get removeAdsPending => 'Đang chờ cửa hàng…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'Cửa hàng chưa có gì để bán ở đây. Vui lòng thử lại sau.';
+
+  @override
+  String get removeAdsFailed =>
+      'Giao dịch không thành công và bạn chưa bị tính phí.';
+
+  @override
+  String get restorePurchasesButton => 'Khôi phục giao dịch mua';
+
+  @override
+  String get payNothingWithheld =>
+      'Mọi tính năng đều miễn phí, dù có quảng cáo hay không.';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'Sắp ra mắt';
+
+  @override
+  String get plusBody =>
+      'Kết nối ngân hàng để tự động lấy giao dịch cho bạn xác nhận. Tính năng chưa hoàn thiện nên chưa có gì để mua.';
+
+  @override
+  String get privacyOptionsTitle => 'Tùy chọn quyền riêng tư';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'Thay đổi lựa chọn về quảng cáo được cá nhân hóa';
 }

@@ -109,16 +109,32 @@ jobs:
           flutter build appbundle --release
           flutter build apk --release
 
-      # RUN-2: the store listings say the app collects no data, so the release
-      # build must not request internet access, even through a plugin.
-      - name: Check the APK requests no internet access
+      # RUN-2 and ADS-6: since the ads item, the release build asks for
+      # INTERNET, and for that one reason. What the store listing promises is
+      # that nothing the user records leaves the device (ADS-7), so the check
+      # is now the other way round: internet must be there, and none of the
+      # permissions that would let the app read the user's life may be.
+      - name: Check what the APK asks for
         run: |
           aapt2=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -n 1)
           "$aapt2" dump permissions build/app/outputs/flutter-apk/app-release.apk | tee permissions.txt
-          if grep -q 'android.permission.INTERNET' permissions.txt; then
-            echo "::error::The release APK requests android.permission.INTERNET (RUN-2)."
+          if ! grep -q 'android.permission.INTERNET' permissions.txt; then
+            echo "::error::The release APK has no INTERNET permission, so no ad can fill (ADS-6)."
             exit 1
           fi
+          # Nothing here has any business in this app, and a plugin update is
+          # how one would arrive unnoticed.
+          forbidden='ACCESS_FINE_LOCATION ACCESS_COARSE_LOCATION ACCESS_BACKGROUND_LOCATION
+            READ_CONTACTS WRITE_CONTACTS GET_ACCOUNTS
+            READ_SMS SEND_SMS RECEIVE_SMS READ_CALL_LOG WRITE_CALL_LOG READ_PHONE_NUMBERS
+            READ_CALENDAR WRITE_CALENDAR BODY_SENSORS ACTIVITY_RECOGNITION
+            WRITE_EXTERNAL_STORAGE READ_EXTERNAL_STORAGE QUERY_ALL_PACKAGES'
+          for permission in $forbidden; do
+            if grep -q "android.permission.$permission" permissions.txt; then
+              echo "::error::The release APK requests $permission, which nothing in this app needs (ADS-7)."
+              exit 1
+            fi
+          done
 
       - name: Name the files after the version
         run: |

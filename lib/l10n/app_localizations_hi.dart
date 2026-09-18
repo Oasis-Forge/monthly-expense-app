@@ -795,7 +795,7 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get walkthroughPrivacyBody =>
-      'कोई अकाउंट नहीं, कोई विज्ञापन नहीं, कोई ट्रैकिंग नहीं। आपका डेटा यहीं रहता है, जब चाहें बैकअप और लॉक करें।';
+      'किसी खाते की ज़रूरत नहीं। आप जो दर्ज करते हैं वह इसी फ़ोन में रहता है; ऐप को चलाने वाले विज्ञापन इसे कभी नहीं देखते।';
 
   @override
   String get walkthroughBringTitle => 'जो है उसे साथ लाएं';
@@ -830,6 +830,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get walkthroughReplaySubtitle => 'ऐप नया होने पर दिखाए गए चार पेज';
+
+  @override
+  String get removeAdsTitle => 'विज्ञापन हटाएं';
 
   @override
   String get exportCsvMenu => 'CSV एक्सपोर्ट करें';
@@ -1530,4 +1533,51 @@ class AppLocalizationsHi extends AppLocalizations {
   String backupIncludesAttachments(String size) {
     return 'अटैचमेंट शामिल हैं, $size MB';
   }
+
+  @override
+  String get removeAdsBody =>
+      'एक बार भुगतान करते ही सभी विज्ञापन हट जाते हैं। यह आपके स्टोर खाते से जुड़ा है, इसलिए नया फ़ोन लेने या फिर से इंस्टॉल करने पर भी वापस आ जाता है।';
+
+  @override
+  String removeAdsBuyButton(String price) {
+    return '$price में विज्ञापन हटाएं';
+  }
+
+  @override
+  String get removeAdsOwned => 'विज्ञापन बंद हैं। धन्यवाद।';
+
+  @override
+  String get removeAdsPending => 'स्टोर की प्रतीक्षा हो रही है…';
+
+  @override
+  String get removeAdsUnavailable =>
+      'स्टोर में अभी यहाँ बेचने के लिए कुछ नहीं है। बाद में फिर कोशिश करें।';
+
+  @override
+  String get removeAdsFailed =>
+      'यह पूरा नहीं हुआ, और आपसे कोई शुल्क नहीं लिया गया।';
+
+  @override
+  String get restorePurchasesButton => 'खरीदारी पुनर्स्थापित करें';
+
+  @override
+  String get payNothingWithheld =>
+      'विज्ञापन हों या न हों, सभी सुविधाएं हमेशा मुफ़्त रहेंगी।';
+
+  @override
+  String get plusTitle => 'Plus';
+
+  @override
+  String get plusComingSoon => 'जल्द आ रहा है';
+
+  @override
+  String get plusBody =>
+      'एक बैंक कनेक्शन जो लेन-देन लाकर पुष्टि के लिए दिखाता है। यह अभी पूरा नहीं हुआ, इसलिए खरीदने के लिए कुछ नहीं है।';
+
+  @override
+  String get privacyOptionsTitle => 'गोपनीयता विकल्प';
+
+  @override
+  String get privacyOptionsSubtitle =>
+      'व्यक्तिगत विज्ञापनों के बारे में अपनी पसंद बदलें';
 }
