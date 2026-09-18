@@ -75,7 +75,7 @@ Decided 13 September 2026: these ship in v1. Languages come first. After that, e
 - [x] **Live AdMob IDs** (1.14.0, 18 September 2026): both apps, and their Home and Insights banners, in `lib/services/ads_config.dart`, the Android manifest and `Info.plist`, with a test that fails if the three drift apart (ADS-10). The account's interstitial and native units are unused on purpose (ADS-1).
 - [ ] **Test "Remove ads" on the internal track:** the `remove_ads` product active in Play Console, bought with a licence-test account, then restored after a reinstall (PAY-1, PAY-5, PAY-8). Progress: the product was created on 18 September 2026 as a one-time product with the purchase option `buy`; the test waits for 1.15.0 to reach the testers.
 
-## Phase 5 — Release on Google Play and desktop
+## Phase 5 — Release on Google Play
 - [ ] Finish the one-time setup in `docs/RELEASING.md`.
 - [ ] Exercise `claude.yml` once its secret exists.
 - [ ] Google Play: new personal developer accounts must run a closed test (at least 12 testers for 14 days) before production access. Confirm the current rule in Play Console and plan for the wait. Progress: the closed test started 18 September 2026.
@@ -83,15 +83,20 @@ Decided 13 September 2026: these ship in v1. Languages come first. After that, e
 - [ ] Play internal testing from a release, once the signing secrets exist. Play internal testing started 18 September 2026 with 1.13.0, uploaded by hand and signed with the Oasis Forge upload key; 1.15.0 followed the same day.
 - [ ] Declare the EU trader status (Digital Services Act) in Play Console before production. Trader is the likely answer, since the app has ads and a paid purchase. It publishes an address, a phone number and an email on the EU listing, so choose ones that can be public first.
 - [ ] Play store listing in every language the app ships (screenshots, description, privacy policy URL, the data safety form including what the ad network collects (ADS-6)), then promote to production. Progress: the listing text, screenshots, feature graphics and store icon for all 23 Play languages were uploaded on 18 September 2026.
-- [ ] Desktop releases: Mac App Store, Microsoft Store, and Snap Store or Flathub.
+## Phase 6 — Windows and Linux (Microsoft Store, Flathub)
+Split out on 18 September 2026, to come after Google Play and before the Apple platforms. The desktop builds carry no ads and make no network calls (RUN-2), so their listings have no ad network to disclose.
+- [ ] **Microsoft Store:** a Partner Center developer account, the app name reserved, and the MSIX that `release-desktop.yml` builds, submitted with a listing and the privacy policy URL.
+- [ ] **Linux:** Flathub or the Snap Store. Flathub uses `io.github.monthly_expenses.MonthlyExpenses`, verified through the `monthly-expenses` GitHub organization, and the Flatpak that `release-desktop.yml` builds.
+- [ ] Desktop screenshots and listing text for both stores, in every language the app ships. The screenshot tool renders phone sizes only so far. Store material goes in `store/` (gitignored), like Play's.
 
-## Phase 6 — iOS release (App Store)
-Kept apart from Phase 5 on 18 September 2026, so the Google Play release doesn't wait on it.
+## Phase 7 — Apple: iOS and macOS (App Store, Mac App Store)
+Kept apart from Google Play on 18 September 2026, and macOS joined it the same day: both go through one Apple Developer account, App Store Connect and Apple's signing.
 - [ ] **Add Google's `SKAdNetworkItems` to `ios/Runner/Info.plist`**, from AdMob's iOS guide. Without it, SKAdNetwork attribution doesn't work and the iOS ads earn less. It changes nothing on Android (ADS-6).
 - [ ] Add the iOS signing secrets, exercise `release-ios.yml`, and send a release to TestFlight.
-- [ ] **"Remove ads" in App Store Connect:** a Non-Consumable with the ID `remove_ads`, bought with a Sandbox Apple Account, then restored after a reinstall (PAY-1, PAY-5, PAY-8).
-- [ ] App Store listing in every language the app ships: iPhone screenshots (the screenshot tool renders Android sizes only so far), description, privacy policy URL, and the App Store privacy labels including what the ad network collects (ADS-6).
-- [ ] Declare the EU trader status in App Store Connect, with the same public details as on Google Play, then release to the App Store.
+- [ ] **Mac App Store:** Mac signing and the sandboxed build that `release-desktop.yml` makes, uploaded through App Store Connect and tried through TestFlight. The Mac build carries no ads and makes no network calls (RUN-2).
+- [ ] **"Remove ads" in App Store Connect:** a Non-Consumable with the ID `remove_ads` for the iOS app, bought with a Sandbox Apple Account, then restored after a reinstall (PAY-1, PAY-5, PAY-8). The Mac app has no ads, so it sells nothing.
+- [ ] App Store listings in every language the app ships: iPhone and Mac screenshots (the screenshot tool renders Android sizes only so far), description, privacy policy URL, and each app's App Store privacy labels: the iOS app's including what the ad network collects (ADS-6), the Mac app's collecting nothing. Store material goes in `store/` (gitignored).
+- [ ] Declare the EU trader status in App Store Connect, with the same public details as on Google Play, then release both apps.
 
 ## After v1
 **A coverage check, before any of the rest.** List the banks that actually matter — the ones you and the first users hold — and find which open-banking providers reach them and what they charge: Plaid for the US and Canada, TrueLayer, Tink or GoCardless Bank Account Data for the UK and the EU, Lean or a regional player for the Gulf, and nothing at all in some countries. The answer decides which market Plus launches in, what a yearly price has to cover, and whether the connection is worth building at all. It costs nothing but reading and a few emails, so it comes first.
