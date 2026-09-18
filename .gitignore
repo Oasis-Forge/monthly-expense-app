@@ -59,3 +59,7 @@ app.*.map.json
 *.p12
 *.p8
 *.mobileprovision
+
+# Store listing text, graphics and their sources (see store/play/README.txt).
+# Kept with the app, out of the public repo.
+/store/
