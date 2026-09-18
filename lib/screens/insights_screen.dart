@@ -667,10 +667,24 @@ class _TrendTabState extends State<_TrendTab> {
       sideTitles: SideTitles(
         showTitles: true,
         reservedSize: 48,
-        getTitlesWidget: (value, meta) => SideTitleWidget(
-          meta: meta,
-          child: Text(compact.format(value), style: small),
-        ),
+        getTitlesWidget: (value, meta) {
+          // The chart also labels the top of the axis, which is rarely a
+          // round amount and can land on the gridline label just below it
+          // (INS-5). The gridlines give the scale on their own.
+          final steps = value / meta.appliedInterval;
+          if (value == meta.max && (steps - steps.round()).abs() > 1e-6) {
+            return const SizedBox.shrink();
+          }
+          return SideTitleWidget(
+            meta: meta,
+            child: Text(
+              compact.format(value),
+              style: small,
+              maxLines: 1,
+              softWrap: false,
+            ),
+          );
+        },
       ),
     );
 

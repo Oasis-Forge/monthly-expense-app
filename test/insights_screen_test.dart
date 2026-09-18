@@ -313,6 +313,19 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets('the top of the amount axis gets no label of its own '
+        '(INS-5)', (tester) async {
+      await showInsights(tester, [
+        testTx('pay', income, 3650, DateTime(2026, 9, 15)),
+      ]);
+      await openTab(tester, 'Trend');
+
+      // $3.65K is only where the axis ends, not a gridline, and its label
+      // would sit on top of the $3.5K one.
+      expect(find.text('\$3.65K'), findsNothing);
+      expect(find.text('\$3K'), findsOneWidget);
+    });
   });
 
   group('other periods', () {

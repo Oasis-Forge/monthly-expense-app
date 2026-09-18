@@ -60,6 +60,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # Renders the store screenshots on a device (integration_test/).
+  integration_test:
+    sdk: flutter
 
   # The fake store in test/purchase_service_test.dart has to name
   # InAppPurchasePlatformAddition, which in_app_purchase doesn't re-export.
