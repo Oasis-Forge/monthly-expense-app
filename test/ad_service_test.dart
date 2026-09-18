@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart' show DebugGeography;
 
 import 'package:monthly_expense_app/services/ad_service.dart';
 import 'package:monthly_expense_app/services/ads_config.dart';
@@ -32,6 +33,35 @@ void main() {
         expect(await service.loadBanner(placement, 360), isNull);
       }
     });
+  });
+
+  group('pretending to be somewhere else, to see the consent form (ADS-5)', () {
+    test('a debug build can pretend to be in the EEA or a US state', () {
+      expect(
+        consentTestGeography(debug: true, region: 'eea'),
+        DebugGeography.debugGeographyEea,
+      );
+      expect(
+        consentTestGeography(debug: true, region: 'US'),
+        DebugGeography.debugGeographyRegulatedUsState,
+      );
+    });
+
+    test('a release build never pretends, whatever it is told', () {
+      // The guard that matters: no real user may be shown a form meant for
+      // somewhere else, even if a build was made with the setting on.
+      for (final region in ['eea', 'us', 'EEA']) {
+        expect(consentTestGeography(debug: false, region: region), isNull);
+      }
+    });
+
+    test(
+      'without the setting, or with nonsense, the device is where it is',
+      () {
+        expect(consentTestGeography(debug: true, region: ''), isNull);
+        expect(consentTestGeography(debug: true, region: 'mars'), isNull);
+      },
+    );
   });
 
   group('the real service, before it can ask for anything', () {

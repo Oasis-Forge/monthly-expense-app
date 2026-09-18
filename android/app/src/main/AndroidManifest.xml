@@ -52,14 +52,14 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_medium_info" />
         </receiver>
-        <!-- The AdMob account this app belongs to. The SDK reads it before
-             Dart runs, so it cannot come from `AdsConfig`; keep the two in
-             step. This one is Google's sample ID, which serves nothing:
-             replace it with the app ID from the AdMob console at the same
-             time as the live unit IDs in `lib/services/ads_config.dart`. -->
+        <!-- The AdMob app this build belongs to ("Monthly expense Tracker
+             android"). The SDK reads it before Dart runs, so it cannot come
+             from `AdsConfig`; it must match `liveAppIdAndroid` in
+             `lib/services/ads_config.dart`, and a test fails if it doesn't.
+             A wrong ID here crashes the app at start-up. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-8287765177319119~2977310217" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

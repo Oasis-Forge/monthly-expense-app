@@ -152,7 +152,7 @@ The macOS app is sandboxed and can read or write only the files people pick. Sig
 
 ### Filling in the live AdMob IDs
 
-The app ships with Google's sample IDs, which serve nothing. Replace them in **three** places at once — the SDK reads the app ID from the platform files before Dart runs, so all three have to agree, and `test/ads_config_test.dart` fails if they drift apart:
+The live IDs went in with 1.14.0 (18 September 2026). If they ever change — a new AdMob app, a replaced unit — change them in **three** places at once — the SDK reads the app ID from the platform files before Dart runs, so all three have to agree, and `test/ads_config_test.dart` fails if they drift apart:
 
 1. `lib/services/ads_config.dart` — `liveAppIdAndroid`, `liveAppIdIos`, and the four banner unit IDs (`liveBannerHomeAndroid`, `liveBannerInsightsAndroid`, `liveBannerHomeIos`, `liveBannerInsightsIos`). Either fill in every one for a platform or none: the test fails on a half-filled set, because a release would otherwise ask for an ad with an empty unit ID.
 2. `android/app/src/main/AndroidManifest.xml` — the `com.google.android.gms.ads.APPLICATION_ID` meta-data.
@@ -161,6 +161,8 @@ The app ships with Google's sample IDs, which serve nothing. Replace them in **t
 None of these is a secret: they ship inside every binary, so they belong in the repository rather than in a GitHub secret.
 
 **Only release builds serve them** (ADS-10). Debug and profile builds use the test units, because AdMob suspends accounts for impressions and clicks on their own live ads. To check a real fill once, set `AdsConfig.liveAdsEverywhere` to `true`, look, and set it back — and don't tap the ad.
+
+**Seeing the consent form from outside Europe.** The form only appears where the law asks for it, so from anywhere else it can't be checked. A debug build run with `--dart-define=CONSENT_TEST_REGION=eea` behaves as if it were in the EEA, and `CONSENT_TEST_REGION=us` as if it were in a regulated US state; it also forgets the last answer at each launch, so the form shows every time. A release build ignores the setting. Emulators need nothing else; a physical phone must also be registered under AdMob → Settings → Test devices.
 
 ### Before the iOS release
 

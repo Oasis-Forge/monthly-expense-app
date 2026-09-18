@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/widgets.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -73,6 +74,33 @@ class NoAdService implements AdService {
       null;
 }
 
+/// Set with `--dart-define=CONSENT_TEST_REGION=eea` (or `us`) to see the
+/// consent form from anywhere. See [consentTestGeography].
+const _consentTestRegion = String.fromEnvironment('CONSENT_TEST_REGION');
+
+/// Where the consent form should believe the device is, or null for "where
+/// it really is".
+///
+/// The form only appears in the places whose law asks for it (ADS-5), so
+/// from anywhere else it can't be seen, let alone checked. A debug build run
+/// with `CONSENT_TEST_REGION=eea` behaves as if it were in the EEA, and with
+/// `us` as if it were in a regulated US state — the two messages published
+/// in AdMob. A release build ignores the setting whatever it says, so no
+/// real user can ever be shown a form meant for somewhere else. Emulators
+/// need nothing more; a physical phone also has to be registered as a test
+/// device in AdMob.
+DebugGeography? consentTestGeography({
+  required bool debug,
+  required String region,
+}) {
+  if (!debug) return null;
+  return switch (region.toLowerCase()) {
+    'eea' => DebugGeography.debugGeographyEea,
+    'us' => DebugGeography.debugGeographyRegulatedUsState,
+    _ => null,
+  };
+}
+
 /// The real thing, over `google_mobile_ads`.
 class DeviceAdService implements AdService {
   bool _started = false;
@@ -103,9 +131,19 @@ class DeviceAdService implements AdService {
   /// the SDK decides that, and answers [canRequestAds] accordingly (ADS-5).
   Future<void> _settleConsent() async {
     final consent = ConsentInformation.instance;
+    final testing = consentTestGeography(
+      debug: kDebugMode,
+      region: _consentTestRegion,
+    );
+    // Testing the form means seeing it: forget the last answer each launch.
+    if (testing != null) await consent.reset();
     final updated = Completer<void>();
     consent.requestConsentInfoUpdate(
-      ConsentRequestParameters(),
+      ConsentRequestParameters(
+        consentDebugSettings: testing == null
+            ? null
+            : ConsentDebugSettings(debugGeography: testing),
+      ),
       updated.complete,
       // A consent lookup that fails leaves the user unasked, so nothing is
       // requested. Ads are worth less than getting this wrong.
