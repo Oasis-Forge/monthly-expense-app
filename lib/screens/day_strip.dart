@@ -178,7 +178,9 @@ class _DayChip extends StatelessWidget {
         clipBehavior: Clip.antiAlias,
         child: Tooltip(
           // DAY-5: the way back to the whole period, which a filled day
-          // otherwise doesn't say.
+          // otherwise doesn't say. A plain date only repeats what the day
+          // already reads out, so that one is left out of the semantics.
+          excludeFromSemantics: !isSelected,
           message: isSelected
               ? l10n.wholePeriodTooltip
               : DateFormat.yMMMEd(locale).format(day),
