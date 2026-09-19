@@ -31,6 +31,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get balanceLabel => '잔액';
 
   @override
+  String get expandSummaryTooltip => '수입과 지출 표시';
+
+  @override
+  String get collapseSummaryTooltip => '잔액만 표시';
+
+  @override
   String get periodNetLabel => '이번 기간';
 
   @override
@@ -115,6 +121,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get restoreFailed => '거래를 복원하지 못했어요. 다시 시도해 주세요.';
 
   @override
+  String get restoreTransferFailed => '이체를 복원하지 못했어요. 다시 시도해 주세요.';
+
+  @override
   String get addTransactionTitle => '거래 추가';
 
   @override
@@ -131,6 +140,27 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get duplicateTooltip => '복제';
+
+  @override
+  String get rowMenuTooltip => '추가 작업';
+
+  @override
+  String get deleteTransactionTitle => '이 거래를 삭제할까요?';
+
+  @override
+  String get deleteTransactionMessage => '휴지통으로 이동하며 30일 동안 복원할 수 있어요.';
+
+  @override
+  String get discardChangesTitle => '변경사항을 버릴까요?';
+
+  @override
+  String get discardChangesMessage => '여기에 입력한 내용은 저장되지 않았어요.';
+
+  @override
+  String get discardButton => '버리기';
+
+  @override
+  String get keepEditingButton => '계속 편집';
 
   @override
   String get titleOptionalLabel => '제목 (선택)';
@@ -694,6 +724,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => '이전 기간';
+
+  @override
+  String get wholePeriodTooltip => '전체 기간 표시';
 
   @override
   String get nextPeriodTooltip => '다음 기간';

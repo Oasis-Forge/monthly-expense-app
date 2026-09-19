@@ -350,4 +350,19 @@ void main() {
     await settings.restoreBackupValues({'language': null});
     expect(settings.languageCode, isNull);
   });
+
+  test('the summary card remembers being collapsed (BAL-6)', () async {
+    final settings = SettingsProvider(await prefsWith({}));
+    expect(settings.summaryCollapsed, isFalse);
+
+    await settings.setSummaryCollapsed(true);
+    expect(settings.summaryCollapsed, isTrue);
+
+    // It is a view of this device, so it comes back from the phone's own
+    // storage rather than from a backup.
+    final reopened = SettingsProvider(
+      await prefsWith({'summary_collapsed': true}),
+    );
+    expect(reopened.summaryCollapsed, isTrue);
+  });
 }

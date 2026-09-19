@@ -31,6 +31,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get balanceLabel => 'Υπόλοιπο';
 
   @override
+  String get expandSummaryTooltip => 'Εμφάνιση εσόδων και εξόδων';
+
+  @override
+  String get collapseSummaryTooltip => 'Εμφάνιση μόνο του υπολοίπου';
+
+  @override
   String get periodNetLabel => 'Αυτή η περίοδος';
 
   @override
@@ -117,6 +123,10 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν ήταν δυνατή η επαναφορά της συναλλαγής. Δοκιμάστε ξανά.';
 
   @override
+  String get restoreTransferFailed =>
+      'Δεν ήταν δυνατή η επαναφορά της μεταφοράς. Δοκιμάστε ξανά.';
+
+  @override
   String get addTransactionTitle => 'Προσθήκη συναλλαγής';
 
   @override
@@ -133,6 +143,29 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'Αντιγραφή';
+
+  @override
+  String get rowMenuTooltip => 'Περισσότερες ενέργειες';
+
+  @override
+  String get deleteTransactionTitle => 'Διαγραφή αυτής της συναλλαγής;';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Πηγαίνει στον κάδο και μπορεί να επαναφερθεί για 30 ημέρες.';
+
+  @override
+  String get discardChangesTitle => 'Απόρριψη αλλαγών;';
+
+  @override
+  String get discardChangesMessage =>
+      'Ό,τι πληκτρολογήσατε εδώ δεν έχει αποθηκευτεί.';
+
+  @override
+  String get discardButton => 'Απόρριψη';
+
+  @override
+  String get keepEditingButton => 'Συνέχεια';
 
   @override
   String get titleOptionalLabel => 'Τίτλος (προαιρετικό)';
@@ -708,6 +741,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'Προηγούμενη περίοδος';
+
+  @override
+  String get wholePeriodTooltip => 'Εμφάνιση όλης της περιόδου';
 
   @override
   String get nextPeriodTooltip => 'Επόμενη περίοδος';

@@ -63,7 +63,7 @@ void main() {
           'dinner',
           TransactionType.expense,
           20,
-          DateTime(2026, 9, 12),
+          DateTime(2026, 9, 16),
           title: 'Dinner',
         ),
       ],

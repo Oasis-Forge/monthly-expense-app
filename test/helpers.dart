@@ -304,6 +304,12 @@ class FakeDB extends DBHelper {
   ];
 
   @override
+  Future<List<Transfer>> fetchDeletedTransfers() async => [
+    for (final transfer in transfers)
+      if (transfer.deletedAt != null) transfer,
+  ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
+
+  @override
   Future<void> insertTransfer(Transfer transfer) async {
     _checkWrite();
     transfers.add(transfer);

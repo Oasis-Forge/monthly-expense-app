@@ -28,6 +28,7 @@ class SettingsProvider extends ChangeNotifier {
        _themeMode = _themeModeNamed(_prefs.getString(_themeKey)),
        _startDay = _validStartDay(_prefs.getInt(_startDayKey)),
        _showCarriedForward = _prefs.getBool(_carriedForwardKey) ?? true,
+       _summaryCollapsed = _prefs.getBool(_summaryCollapsedKey) ?? false,
        _weekStartDay = _validWeekDay(_prefs.getInt(_weekStartKey)),
        _backupReminder = _prefs.getBool(_backupReminderKey) ?? true,
        _lastBackupAt = _dateOrNull(_prefs.getString(_lastBackupKey)),
@@ -60,6 +61,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _themeKey = 'theme_mode';
   static const _startDayKey = 'month_start_day';
   static const _carriedForwardKey = 'show_carried_forward';
+  static const _summaryCollapsedKey = 'summary_collapsed';
   static const _weekStartKey = 'week_start_day';
   static const _backupReminderKey = 'backup_reminder';
   static const _lastBackupKey = 'last_backup_at';
@@ -83,6 +85,7 @@ class SettingsProvider extends ChangeNotifier {
   ThemeMode _themeMode;
   int _startDay;
   bool _showCarriedForward;
+  bool _summaryCollapsed;
   int? _weekStartDay;
   bool _backupReminder;
   DateTime? _lastBackupAt;
@@ -111,6 +114,17 @@ class SettingsProvider extends ChangeNotifier {
   /// Whether Home shows the closing balance, carried forward from earlier
   /// periods, instead of only this period's net. On by default.
   bool get showCarriedForward => _showCarriedForward;
+
+  /// Whether Home's summary card is the balance alone (BAL-6). It is how
+  /// this device is set up to look, so a backup doesn't carry it.
+  bool get summaryCollapsed => _summaryCollapsed;
+
+  Future<void> setSummaryCollapsed(bool collapsed) async {
+    if (collapsed == _summaryCollapsed) return;
+    await _prefs.setBool(_summaryCollapsedKey, collapsed);
+    _summaryCollapsed = collapsed;
+    notifyListeners();
+  }
 
   /// The first day of the week, from 0 (Sunday) to 6 (Saturday), or null to
   /// follow the device locale (PER-4).

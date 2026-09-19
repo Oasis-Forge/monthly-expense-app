@@ -629,4 +629,119 @@ void main() {
       },
     );
   });
+
+  group('the day Home shows (DAY-1, DAY-3, DAY-5, DAY-6, DAY-9)', () {
+    test('it opens on today', () async {
+      final provider = await loaded(FakeDB());
+
+      expect(provider.selectedDay, DateTime(2026, 9, 15));
+    });
+
+    test('a period without today in it opens on no day (DAY-6)', () async {
+      final provider = await loaded(FakeDB());
+
+      provider.previousPeriod();
+      expect(provider.selectedDay, isNull);
+
+      // Back on the period that holds today, today is chosen again.
+      provider.nextPeriod();
+      expect(provider.selectedDay, DateTime(2026, 9, 15));
+    });
+
+    test(
+      'a day outside the period brings the period with it (DAY-3)',
+      () async {
+        final provider = await loaded(FakeDB());
+
+        provider.selectDay(DateTime(2026, 8, 20));
+
+        expect(provider.selectedDay, DateTime(2026, 8, 20));
+        expect(provider.period.start, DateTime(2026, 8));
+      },
+    );
+
+    test('a day inside the period leaves the period alone', () async {
+      final provider = await loaded(FakeDB());
+
+      provider.selectDay(DateTime(2026, 9, 2, 17));
+
+      // The time of day is dropped; the period is untouched.
+      expect(provider.selectedDay, DateTime(2026, 9, 2));
+      expect(provider.period.start, DateTime(2026, 9));
+    });
+
+    test('clearing it goes back to the whole period (DAY-5)', () async {
+      final provider = await loaded(FakeDB());
+
+      provider.clearSelectedDay();
+
+      expect(provider.selectedDay, isNull);
+    });
+
+    test(
+      'a new entry takes the chosen day at the current time (DAY-9)',
+      () async {
+        final provider = await loaded(FakeDB());
+
+        expect(provider.newEntryDate, today);
+
+        provider.selectDay(DateTime(2026, 9, 12));
+        expect(provider.newEntryDate, DateTime(2026, 9, 12, 10));
+
+        provider.clearSelectedDay();
+        expect(provider.newEntryDate, today);
+      },
+    );
+
+    test(
+      'days that carry an entry are listed for their dots (DAY-4)',
+      () async {
+        final provider = await loaded(
+          FakeDB(
+            transactions: [
+              testTx('a', expense, 5, DateTime(2026, 9, 15, 8)),
+              testTx('b', expense, 5, DateTime(2026, 9, 21)),
+            ],
+            transfers: [
+              testTransfer('t', cash, 'bank', 20, DateTime(2026, 9, 16)),
+            ],
+          ),
+        );
+
+        expect(
+          provider.entryDaysIn(DateTime(2026, 9, 13), DateTime(2026, 9, 19)),
+          {DateTime(2026, 9, 15), DateTime(2026, 9, 16)},
+        );
+        expect(
+          provider.entryDaysIn(DateTime(2026, 9, 17), DateTime(2026, 9, 19)),
+          isEmpty,
+        );
+        // A day beyond the shown week still counts on its own week.
+        expect(
+          provider.entryDaysIn(DateTime(2026, 9, 20), DateTime(2026, 9, 26)),
+          {DateTime(2026, 9, 21)},
+        );
+      },
+    );
+  });
+
+  test('a deleted transfer survives the next launch (DEL-5)', () async {
+    final db = FakeDB(
+      accounts: [testAccount(cash), testAccount('bank')],
+      transfers: [testTransfer('t', cash, 'bank', 20, DateTime(2026, 9, 12))],
+    );
+    final provider = await loaded(db);
+
+    await provider.deleteTransfer('t');
+    expect(provider.deletedTransfers.single.id, 't');
+
+    // What the next launch reads back, rather than what is in memory.
+    final relaunched = await loaded(db);
+    expect(relaunched.transfers, isEmpty);
+    expect(relaunched.deletedTransfers.single.id, 't');
+
+    await relaunched.restoreTransfer('t');
+    expect(relaunched.transfers.single.id, 't');
+    expect(relaunched.deletedTransfers, isEmpty);
+  });
 }

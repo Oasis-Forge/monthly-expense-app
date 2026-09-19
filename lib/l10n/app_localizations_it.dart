@@ -31,6 +31,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get balanceLabel => 'Saldo';
 
   @override
+  String get expandSummaryTooltip => 'Mostra entrate e uscite';
+
+  @override
+  String get collapseSummaryTooltip => 'Mostra solo il saldo';
+
+  @override
   String get periodNetLabel => 'Questo periodo';
 
   @override
@@ -116,6 +122,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile ripristinare la transazione. Riprova.';
 
   @override
+  String get restoreTransferFailed =>
+      'Impossibile ripristinare il trasferimento. Riprova.';
+
+  @override
   String get addTransactionTitle => 'Aggiungi transazione';
 
   @override
@@ -132,6 +142,29 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'Duplica';
+
+  @override
+  String get rowMenuTooltip => 'Altre azioni';
+
+  @override
+  String get deleteTransactionTitle => 'Eliminare questa transazione?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Va nel cestino e può essere ripristinata per 30 giorni.';
+
+  @override
+  String get discardChangesTitle => 'Ignorare le modifiche?';
+
+  @override
+  String get discardChangesMessage =>
+      'Quello che hai scritto qui non è stato salvato.';
+
+  @override
+  String get discardButton => 'Ignora';
+
+  @override
+  String get keepEditingButton => 'Continua a modificare';
 
   @override
   String get titleOptionalLabel => 'Titolo (opzionale)';
@@ -702,6 +735,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'Periodo precedente';
+
+  @override
+  String get wholePeriodTooltip => 'Mostra tutto il periodo';
 
   @override
   String get nextPeriodTooltip => 'Periodo successivo';

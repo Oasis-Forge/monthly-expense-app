@@ -41,12 +41,13 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - **ADD-1** Only amount and category are required. Title and note are optional. A list row shows the title, else the note, else the category name.
 - **ADD-2** The keypad supports `+` and `−` (`12.5+3`), shows the result live, and saves the result.
-- **ADD-3** A new transaction defaults to today, the chosen type, the last category used for that type, and the last account used.
+- **ADD-3** A new transaction defaults to the day Home is showing (DAY-9), the chosen type, the last category used for that type, and the last account used.
 - **ADD-4** "Save & add another" keeps the type, category, account, and date, clears the amount, title, and note, and focuses the amount.
 - **ADD-5** Recent categories show the last 5 used for the chosen type.
 - **ADD-6** The date arrows move one day back or forward; tapping the date opens a picker.
 - **ADD-7** Duplicate copies everything except the ID and sets the date to today.
 - **ADD-8** Future dates are allowed. The row is marked as upcoming until its date arrives (BAL-4).
+- **ADD-9** Leaving a form with unsaved edits asks first. Back closes the keypad if it is open, and the next Back — like the toolbar's arrow — asks "Discard changes?", with Keep editing and Discard. A form nothing has been typed into leaves without a word, and saving, "Save & add another" and deleting leave as they always did. It covers the transaction form and the transfer form.
 
 ## 4. Categories
 
@@ -70,6 +71,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **BAL-3** Closing balance = carried forward + period net. Showing the carried-forward balance is a setting, on by default.
 - **BAL-4** A future-dated transaction counts nowhere until its date arrives: not in totals, balances, charts, or budgets. It shows in the list as upcoming and starts counting on its date.
 - **BAL-5** Deleted (trashed) transactions count nowhere: totals, charts, budgets, search, or export.
+- **BAL-6** The summary card on Home collapses to a single line — the balance, in its colour — and opens again on a tap. It keeps the way it was last left, on this device: it is a view of Home rather than a record, so a backup doesn't carry it.
+- **BAL-7** Scrolling the day list collapses the card, and coming back to the top opens it again, so the entries have the screen while they are being read. Scrolling never opens a card that was closed by hand, and never changes what was chosen.
 
 ## 6. Accounts and transfers
 
@@ -118,9 +121,10 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **Learn:** undo is faster than a confirmation dialog and just as safe.
 
-- **DEL-2** Delete needs no confirmation. A snackbar offers Undo for about 5 seconds.
+- **DEL-2** Swiping a row away needs no confirmation: a snackbar offers Undo for about 5 seconds. Delete chosen from a row's menu asks first (ROW-3), since a tap in a menu is easy to land by mistake. Either way the entry goes to the trash and the same Undo snackbar appears.
 - **DEL-3** Deleted items stay in the trash for 30 days, then get purged on app start.
 - **DEL-4** Restore keeps the original ID, date, and category. If the category was archived in the meantime, the transaction still restores.
+- **DEL-5** The trash holds everything that was deleted — transfers as well as transactions — most recently deleted first, each restored by the same button (DEL-4). A deleted transfer survives the next launch: it waits out its 30 days in the database like anything else (DEL-3), and the app reads it back rather than forgetting it.
 
 ## 10. Search and filters
 
@@ -297,7 +301,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **NAV-1** Every destination that isn't Home lives in a navigation drawer, opened from the toolbar's menu button or an edge swipe: Add expense, Add income, Transfer, Budgets, Recurring, Notes, Spending by category, Calendar, Trend, Search, Accounts, Categories, Settings, Export CSV, Export PDF, Backup & restore, and Trash. A row goes where it says: the three views of Insights are named one by one and each opens on its own (INS-1–INS-3), and Add expense and Add income open the form already on that type. The three-dot overflow goes.
 - **NAV-2** The drawer is grouped under headings: adding (Add expense, Add income, Transfer), planning (Budgets, Recurring, Notes), looking back (Spending by category, Calendar, Trend, Search), managing (Accounts, Categories, Settings), and data (Export CSV, Export PDF, Backup & restore, Trash). Every row has an icon and a translated label (LANG-2), and the list scrolls on a phone.
 - **NAV-3** The drawer opens from the leading edge: the left in left-to-right languages, the right in Arabic and Urdu (LANG-5). Choosing a destination closes it, and Back closes it before it leaves the screen.
-- **NAV-4** Home keeps its own quick paths — the period selector (INS-4), Search and Settings in the toolbar, and the add button — so the everyday round never goes through the drawer.
+- **NAV-4** Home keeps its own quick paths — the period selector (INS-4), the day strip under it (DAY-1), Search and Settings in the toolbar, and the add button — so the everyday round never goes through the drawer.
 - **NAV-5** The drawer is for going somewhere and nothing else: no settings toggles, no account area, no ads (ADS-1).
 - **NAV-6** The toolbar carries two actions, Search and Settings, with Settings at the trailing edge. A third would squeeze the app's name, which is the same untranslated words in every language (LANG-6); Insights lost its toolbar icon to the gear and is named three times in the drawer instead.
 - **NAV-7** Nothing is more than two taps from Home: open the drawer, choose the row. Accounts and Categories are among those rows as well as in Settings, and adding one is the button on the list itself.
@@ -361,6 +365,33 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - **DET-7** Transfers keep opening their own form for now (ACC-3); if they get a details page it follows this section.
 
+## 27. The day on Home
+
+**They do:** the month's days run one after another down Home, newest first, and the current day is wherever it happens to fall in that list.
+
+**Learn:** a new entry is nearly always today's, so Home should already be there. A week of days across the top says which day is which, keeps today in sight without scrolling, and turns "record yesterday's taxi" into two taps rather than a date picker. The month doesn't go away: it is the same list, one tap back.
+
+- **DAY-1** Home opens on today: the strip chooses it and the list shows that day alone. Adding an entry is then always on the day it belongs to.
+- **DAY-2** The strip sits under the period selector: seven days, the weekday over the date, ordered by the first day of the week (PER-4) and the locale's direction (LANG-5). Today keeps a mark of its own even when another day is chosen. The strip is on every Home there is, the first-run welcome included, so the day a first entry lands on is never a surprise.
+- **DAY-3** Swiping the strip moves a week at a time. Choosing a day outside the shown period moves the period to the one that contains it, whatever day that period starts on (PER-1, PER-2).
+- **DAY-4** A day carrying any entry shows a dot under its date, so a week's activity reads at a glance.
+- **DAY-5** Tapping the chosen day again clears it: the list goes back to every day in the period, newest first.
+- **DAY-6** The choice follows the period: a period holding today opens on today, and any other period opens with no day chosen and shows all of its days. Looking back over history stays a month at a time.
+- **DAY-7** The chosen day shows its entries under its date, with its own income and expense beside it; a day holding nothing says so rather than showing an empty screen. Every day in the whole-period list carries that same total.
+- **DAY-8** The summary card and the budgets card stay on the period (BAL-3, BUD-7): the strip changes which entries are listed, not what the period means.
+- **DAY-9** A new entry opened while a day is chosen starts on that day, at the current time; with no day chosen it starts on today. A duplicate and a recorded note are still dated today (ADD-7, NOTE-4).
+
+## 28. A row's own actions
+
+**They do:** a swipe deletes a row, and everything else waits until the entry is opened.
+
+**Learn:** a swipe is quick once you know it is there, but nothing on the row says so, and a row has only one swipe to give. A button that names its actions is findable by anyone, and it gives deleting the moment of thought a swipe doesn't need: a swipe is deliberate, a tap in a menu is easy to land by mistake.
+
+- **ROW-1** Every transaction row in a list — Home's day list, Search results, and the calendar's day list — carries a three-dot button at its trailing edge, beside the amount. It opens a menu of Duplicate and Delete, and opening it never opens the entry.
+- **ROW-2** Duplicate opens the add form prefilled from the row, exactly as it does from the details page: everything but the ID and the attachments, dated today (ADD-7). Nothing is written until the form is saved, and it is called Duplicate in both places, because it is one action.
+- **ROW-3** Delete from the menu asks "Delete this transaction?" and says where the entry goes, before anything happens. Confirming moves it to the trash with the usual Undo (DEL-2, DEL-3); Cancel leaves the row alone, and a delete that fails says so and keeps it.
+- **ROW-4** The row's other ways in are unchanged: a tap opens the details page (DET-1), and a swipe still deletes with Undo and no question (DEL-2). Transfer rows keep the swipe alone until they have a details page of their own (DET-7).
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -403,6 +434,14 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 27. The store identity becomes `com.oasisforge.monthlyexpenses`, in the Oasis Forge namespace every future app will share, replacing `com.monthlyexpenses.app`. Decided the morning of the first Play upload, which is the last moment a package name can change; the old one was never uploaded anywhere. Users see it only in the store URL, so this is for the studio's order, not for them. The store *title* is "Monthly Expense Tracker", for search, while the name under the icon stays "Monthly Expenses", which fits without being cut off.
 
 28. Home gets a budgets card (BUD-7, BUD-8), decided in the roadmap review. Budgets were a tab away in Insights, and Home only mentioned them once one was already over; now how the month is going is on the first screen, one line until it is opened. It replaces the over-budget notice, whose news the card's red line carries, and stays slim: the per-day detail is one tap away in Insights.
+
+## Decisions (19 September 2026)
+
+29. Home opens on today, with a week of days above the list to move between them (section 27, DAY-1–DAY-9). Home named the month but never the day, so an entry that is nearly always today's began life in a list of the whole month, and reaching another day meant scrolling or the calendar. The month list stays one tap away (DAY-5), and each day now carries its own total (DAY-7).
+
+30. A transaction row gets a three-dot menu of its own — Duplicate and Delete — in every list that shows one (section 28, ROW-1–ROW-4), and Delete from it asks before it acts, which is the one place DEL-2's "no confirmation" now bends: the gesture keeps its speed, the menu tap gets a moment of thought. A form also stops losing what was typed into it: Back closes the keypad, and the next one asks (ADD-9). Both came out of using the app by hand.
+
+31. Home's summary card can be one line (BAL-6), and scrolling the day list collapses it (BAL-7): on a phone the fixed header — period, day strip, summary, notices — was eating the list it sits above. The strip itself is now on every Home, the welcome included (DAY-2). And the trash finally holds transfers (DEL-5): deleting one offered Undo and nothing else, so a transfer deleted a minute earlier was already beyond recovery, and one deleted before a relaunch was forgotten entirely. Found by asking what the trash was tested for.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

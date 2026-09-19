@@ -458,4 +458,122 @@ void main() {
       expect(provider.noteById('n')!.transactionId, saved.id);
     },
   );
+
+  group('the day a new entry starts on (ADD-3, DAY-9)', () {
+    final today = DateTime(2026, 9, 15, 10);
+
+    /// A provider whose today is fixed, so the day Home shows is known.
+    Future<void> onDay(DateTime? day) async {
+      provider = TransactionProvider(db: fake, clock: () => today);
+      await provider.load();
+      if (day == null) {
+        provider.clearSelectedDay();
+      } else {
+        provider.selectDay(day);
+      }
+    }
+
+    testWidgets('it is the day Home is showing', (tester) async {
+      await onDay(DateTime(2026, 9, 12));
+
+      await open(tester);
+      await enterAmount(tester, '20');
+      await tapButton(tester, 'Add Transaction');
+
+      final added = provider.transactions.single;
+      expect(added.date.month, 9);
+      expect(added.date.day, 12);
+    });
+
+    testWidgets('with the whole period shown it is today', (tester) async {
+      await onDay(null);
+
+      await open(tester);
+      await enterAmount(tester, '20');
+      await tapButton(tester, 'Add Transaction');
+
+      expect(provider.transactions.single.date.day, 15);
+    });
+  });
+
+  group('leaving a form with edits (ADD-9)', () {
+    testWidgets('the first Back closes the keypad and the form stays', (
+      tester,
+    ) async {
+      await open(tester);
+      expect(find.byType(AmountKeypad), findsOneWidget);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.byType(AmountKeypad), findsNothing);
+    });
+
+    testWidgets('a form nothing was typed into leaves without a word', (
+      tester,
+    ) async {
+      await open(tester);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(AddTransactionScreen), findsNothing);
+    });
+
+    testWidgets('edits are asked about, and Keep editing stays on the form', (
+      tester,
+    ) async {
+      await open(tester);
+      await enterAmount(tester, '12');
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.text('12'), findsWidgets);
+    });
+
+    testWidgets('Discard leaves, and writes nothing', (tester) async {
+      await open(tester);
+      await enterAmount(tester, '12');
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsNothing);
+      expect(provider.transactions, isEmpty);
+    });
+
+    testWidgets('a title typed on its own still counts as an edit', (
+      tester,
+    ) async {
+      await open(tester);
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Title (optional)'),
+        'Lunch',
+      );
+      await tester.pumpAndSettle();
+
+      // Typing in the title moved focus off the amount, so the keypad has
+      // already gone and one Back reaches the question.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsOneWidget);
+    });
+  });
 }

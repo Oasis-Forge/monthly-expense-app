@@ -9,6 +9,7 @@ import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
+import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
 
@@ -195,6 +196,25 @@ void main() {
       await tester.tap(find.text('Flat'));
       await tester.pumpAndSettle();
       expect(find.text('Details'), findsOneWidget);
+    });
+
+    testWidgets("a day's entries carry the row menu too (ROW-1, ROW-2)", (
+      tester,
+    ) async {
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+
+      await tester.tap(find.text('6'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('More actions'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Duplicate'));
+      await tester.pumpAndSettle();
+      // ROW-2: the form opens prefilled, on top of the calendar.
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.text('Flat'), findsWidgets);
+      expect(find.text('10'), findsWidgets);
     });
 
     testWidgets('empty days say so; transfers are listed', (tester) async {

@@ -31,6 +31,12 @@ class AppLocalizationsBn extends AppLocalizations {
   String get balanceLabel => 'ব্যালেন্স';
 
   @override
+  String get expandSummaryTooltip => 'আয় ও ব্যয় দেখান';
+
+  @override
+  String get collapseSummaryTooltip => 'শুধু ব্যালেন্স দেখান';
+
+  @override
   String get periodNetLabel => 'এই মেয়াদ';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get restoreFailed => 'লেনদেন ফিরিয়ে আনা যায়নি। আবার চেষ্টা করুন।';
 
   @override
+  String get restoreTransferFailed =>
+      'ট্রান্সফার ফেরানো যায়নি। আবার চেষ্টা করুন।';
+
+  @override
   String get addTransactionTitle => 'লেনদেন যোগ করুন';
 
   @override
@@ -131,6 +141,28 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'কপি করুন';
+
+  @override
+  String get rowMenuTooltip => 'আরও কাজ';
+
+  @override
+  String get deleteTransactionTitle => 'এই লেনদেন মুছবেন?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'এটি ট্র্যাশে যাবে, ৩০ দিন পর্যন্ত ফেরানো যাবে।';
+
+  @override
+  String get discardChangesTitle => 'পরিবর্তন বাতিল করবেন?';
+
+  @override
+  String get discardChangesMessage => 'এখানে যা লিখেছেন তা সংরক্ষণ করা হয়নি।';
+
+  @override
+  String get discardButton => 'বাতিল করুন';
+
+  @override
+  String get keepEditingButton => 'সম্পাদনা চালিয়ে যান';
 
   @override
   String get titleOptionalLabel => 'শিরোনাম (ঐচ্ছিক)';
@@ -701,6 +733,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'আগের মেয়াদ';
+
+  @override
+  String get wholePeriodTooltip => 'পুরো মেয়াদ দেখান';
 
   @override
   String get nextPeriodTooltip => 'পরের মেয়াদ';

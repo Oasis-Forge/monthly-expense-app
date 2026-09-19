@@ -236,3 +236,64 @@ class DateField extends StatelessWidget {
     );
   }
 }
+
+/// Back on a form: the keypad first, then a question before edits are
+/// dropped (ADD-9). A form carries a snapshot of how it opened, so a form
+/// nothing was typed into leaves without a word.
+mixin UnsavedGuard<T extends StatefulWidget> on AmountEntry<T> {
+  String? _opened;
+
+  /// Every value the user can change, in one string. Each form writes its
+  /// own; two snapshots that differ mean there is something to lose.
+  String formSnapshot();
+
+  /// Takes the snapshot the next Back compares against: once the form is
+  /// built, and again whenever it is deliberately emptied (ADD-4).
+  void snapshotForm() => _opened = formSnapshot();
+
+  bool get hasUnsavedEdits => _opened != null && formSnapshot() != _opened;
+
+  /// Wraps the form so system Back and the toolbar's arrow both go through
+  /// [handleBack]. Saving and deleting pop directly, so they are untouched.
+  Widget guardBack({required Widget child}) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) handleBack();
+    },
+    child: child,
+  );
+
+  Future<void> handleBack() async {
+    // The keypad or the keyboard goes first, and the form stays (ADD-9).
+    final typing =
+        amountFocus.hasFocus || MediaQuery.viewInsetsOf(context).bottom > 0;
+    if (typing) {
+      FocusScope.of(context).unfocus();
+      return;
+    }
+    final navigator = Navigator.of(context);
+    if (!hasUnsavedEdits) {
+      navigator.pop();
+      return;
+    }
+    final l10n = AppLocalizations.of(context);
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.discardChangesTitle),
+        content: Text(l10n.discardChangesMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.keepEditingButton),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.discardButton),
+          ),
+        ],
+      ),
+    );
+    if ((discard ?? false) && mounted) navigator.pop();
+  }
+}

@@ -22,6 +22,7 @@
 #   type <text>        type ASCII text into the focused field
 #   key <name>         press a key: back, enter, del, tab, home
 #   scroll <up|down>   swipe the middle of the screen
+#   swipe <left|right> [y]  swipe sideways, at y or mid-screen (the day strip)
 #   push <file>        copy a file into Downloads, for the file picker
 #   shot <file.png>    save a screenshot, for when the look matters
 set -euo pipefail
@@ -150,6 +151,20 @@ type_text() {
   adb shell "input text '${text// /%s}'"
 }
 
+
+# Sideways, for a pager like Home's day strip: [y] is where to swipe, in the
+# phone's own pixels, and defaults to the middle of the screen.
+swipe() {
+  local size w h y
+  size=$(adb shell wm size | tr -d '\r' | awk 'END { print $NF }')
+  w=${size%x*} h=${size#*x}
+  y=${2:-$((h / 2))}
+  case ${1:-} in
+  left) adb shell input swipe $((w * 8 / 10)) "$y" $((w * 2 / 10)) "$y" 300 ;;
+  right) adb shell input swipe $((w * 2 / 10)) "$y" $((w * 8 / 10)) "$y" 300 ;;
+  *) usage ;;
+  esac
+}
 scroll() {
   local size w h
   size=$(adb shell wm size | tr -d '\r' | awk 'END { print $NF }')
@@ -179,6 +194,7 @@ tapxy) adb shell input tap "${1:?needs x}" "${2:?needs y}" ;;
 type) type_text "$@" ;;
 key) adb shell input keyevent "KEYCODE_${1^^}" ;;
 scroll) scroll "$@" ;;
+swipe) swipe "$@" ;;
 push) adb push "${1:?needs a file}" /storage/emulated/0/Download/ | tail -1 ;;
 shot) adb exec-out screencap -p >"${1:?needs a file}" && echo "Saved $1." ;;
 *) usage ;;

@@ -31,6 +31,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get balanceLabel => 'Saldo';
 
   @override
+  String get expandSummaryTooltip => 'Tampilkan pemasukan dan pengeluaran';
+
+  @override
+  String get collapseSummaryTooltip => 'Tampilkan saldo saja';
+
+  @override
   String get periodNetLabel => 'Periode ini';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get restoreFailed => 'Transaksi gagal dipulihkan. Coba lagi.';
 
   @override
+  String get restoreTransferFailed =>
+      'Transfer tidak bisa dipulihkan. Coba lagi.';
+
+  @override
   String get addTransactionTitle => 'Tambah Transaksi';
 
   @override
@@ -131,6 +141,28 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'Duplikat';
+
+  @override
+  String get rowMenuTooltip => 'Tindakan lain';
+
+  @override
+  String get deleteTransactionTitle => 'Hapus transaksi ini?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Masuk ke sampah dan bisa dipulihkan selama 30 hari.';
+
+  @override
+  String get discardChangesTitle => 'Buang perubahan?';
+
+  @override
+  String get discardChangesMessage => 'Yang kamu ketik di sini belum disimpan.';
+
+  @override
+  String get discardButton => 'Buang';
+
+  @override
+  String get keepEditingButton => 'Lanjut mengedit';
 
   @override
   String get titleOptionalLabel => 'Judul (opsional)';
@@ -699,6 +731,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'Periode sebelumnya';
+
+  @override
+  String get wholePeriodTooltip => 'Tampilkan seluruh periode';
 
   @override
   String get nextPeriodTooltip => 'Periode berikutnya';

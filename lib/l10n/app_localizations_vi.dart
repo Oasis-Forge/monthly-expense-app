@@ -31,6 +31,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get balanceLabel => 'Số dư';
 
   @override
+  String get expandSummaryTooltip => 'Hiện thu và chi';
+
+  @override
+  String get collapseSummaryTooltip => 'Chỉ hiện số dư';
+
+  @override
   String get periodNetLabel => 'Kỳ này';
 
   @override
@@ -116,6 +122,10 @@ class AppLocalizationsVi extends AppLocalizations {
       'Không thể khôi phục giao dịch. Vui lòng thử lại.';
 
   @override
+  String get restoreTransferFailed =>
+      'Không khôi phục được giao dịch chuyển. Thử lại.';
+
+  @override
   String get addTransactionTitle => 'Thêm giao dịch';
 
   @override
@@ -132,6 +142,28 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'Nhân bản';
+
+  @override
+  String get rowMenuTooltip => 'Thao tác khác';
+
+  @override
+  String get deleteTransactionTitle => 'Xóa giao dịch này?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Mục này chuyển vào thùng rác và khôi phục được trong 30 ngày.';
+
+  @override
+  String get discardChangesTitle => 'Bỏ thay đổi?';
+
+  @override
+  String get discardChangesMessage => 'Nội dung bạn nhập ở đây chưa được lưu.';
+
+  @override
+  String get discardButton => 'Bỏ';
+
+  @override
+  String get keepEditingButton => 'Tiếp tục sửa';
 
   @override
   String get titleOptionalLabel => 'Tiêu đề (không bắt buộc)';
@@ -700,6 +732,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'Kỳ trước';
+
+  @override
+  String get wholePeriodTooltip => 'Hiện toàn bộ kỳ';
 
   @override
   String get nextPeriodTooltip => 'Kỳ sau';

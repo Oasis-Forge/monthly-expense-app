@@ -21,6 +21,7 @@ import 'note_form_screen.dart';
 import 'period_selector.dart';
 import 'report_screen.dart';
 import 'transaction_detail_screen.dart';
+import 'transaction_row_menu.dart';
 import 'transfer_screen.dart';
 
 const List<Color> _chartColors = [
@@ -479,11 +480,15 @@ class _DayDetails extends StatelessWidget {
                       ? l10n.upcomingCategory(categoryName)
                       : categoryName,
                 ),
-                trailing: Text(
-                  '${isIncome ? '+' : '-'}${money(tx.amount)}',
-                  style: TextStyle(
-                    color: isIncome ? Colors.green : Colors.red,
-                    fontWeight: FontWeight.w600,
+                // ROW-1: the amount, then the row's own menu.
+                trailing: TransactionRowTrailing(
+                  transaction: tx,
+                  amount: Text(
+                    '${isIncome ? '+' : '-'}${money(tx.amount)}',
+                    style: TextStyle(
+                      color: isIncome ? Colors.green : Colors.red,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 onTap: () => open(TransactionDetailScreen(id: tx.id)),

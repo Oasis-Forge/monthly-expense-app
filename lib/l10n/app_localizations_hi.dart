@@ -31,6 +31,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get balanceLabel => 'बैलेंस';
 
   @override
+  String get expandSummaryTooltip => 'आय और व्यय दिखाएँ';
+
+  @override
+  String get collapseSummaryTooltip => 'केवल बैलेंस दिखाएँ';
+
+  @override
   String get periodNetLabel => 'इस अवधि में';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get restoreFailed => 'लेनदेन रीस्टोर नहीं हो सका। फिर कोशिश करें।';
 
   @override
+  String get restoreTransferFailed =>
+      'ट्रांसफ़र वापस नहीं लाया जा सका। फिर कोशिश करें।';
+
+  @override
   String get addTransactionTitle => 'लेनदेन जोड़ें';
 
   @override
@@ -131,6 +141,29 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'डुप्लीकेट';
+
+  @override
+  String get rowMenuTooltip => 'और विकल्प';
+
+  @override
+  String get deleteTransactionTitle => 'यह लेनदेन हटाएँ?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'यह ट्रैश में जाएगा और 30 दिनों तक वापस लाया जा सकता है।';
+
+  @override
+  String get discardChangesTitle => 'बदलाव छोड़ दें?';
+
+  @override
+  String get discardChangesMessage =>
+      'आपने यहाँ जो लिखा है वह सहेजा नहीं गया है।';
+
+  @override
+  String get discardButton => 'छोड़ें';
+
+  @override
+  String get keepEditingButton => 'संपादन जारी रखें';
 
   @override
   String get titleOptionalLabel => 'शीर्षक (वैकल्पिक)';
@@ -698,6 +731,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'पिछली अवधि';
+
+  @override
+  String get wholePeriodTooltip => 'पूरी अवधि दिखाएँ';
 
   @override
   String get nextPeriodTooltip => 'अगली अवधि';

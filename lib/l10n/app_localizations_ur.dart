@@ -31,6 +31,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get balanceLabel => 'بیلنس';
 
   @override
+  String get expandSummaryTooltip => 'آمدنی اور اخراجات دکھائیں';
+
+  @override
+  String get collapseSummaryTooltip => 'صرف بیلنس دکھائیں';
+
+  @override
   String get periodNetLabel => 'اس مدت';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get restoreFailed => 'ٹرانزیکشن بحال نہیں ہو سکی۔ دوبارہ کوشش کریں۔';
 
   @override
+  String get restoreTransferFailed =>
+      'ٹرانسفر بحال نہیں ہو سکا۔ دوبارہ کوشش کریں۔';
+
+  @override
   String get addTransactionTitle => 'ٹرانزیکشن شامل کریں';
 
   @override
@@ -131,6 +141,29 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'نقل بنائیں';
+
+  @override
+  String get rowMenuTooltip => 'مزید اختیارات';
+
+  @override
+  String get deleteTransactionTitle => 'یہ ٹرانزیکشن حذف کریں؟';
+
+  @override
+  String get deleteTransactionMessage =>
+      'یہ ردی میں چلی جائے گی اور 30 دن تک بحال ہو سکتی ہے۔';
+
+  @override
+  String get discardChangesTitle => 'تبدیلیاں مسترد کریں؟';
+
+  @override
+  String get discardChangesMessage =>
+      'آپ نے یہاں جو لکھا ہے وہ محفوظ نہیں ہوا۔';
+
+  @override
+  String get discardButton => 'مسترد کریں';
+
+  @override
+  String get keepEditingButton => 'ترمیم جاری رکھیں';
 
   @override
   String get titleOptionalLabel => 'عنوان (اختیاری)';
@@ -700,6 +733,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'پچھلی مدت';
+
+  @override
+  String get wholePeriodTooltip => 'پوری مدت دکھائیں';
 
   @override
   String get nextPeriodTooltip => 'اگلی مدت';

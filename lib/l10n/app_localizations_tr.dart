@@ -31,6 +31,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get balanceLabel => 'Bakiye';
 
   @override
+  String get expandSummaryTooltip => 'Gelir ve gideri göster';
+
+  @override
+  String get collapseSummaryTooltip => 'Yalnızca bakiyeyi göster';
+
+  @override
   String get periodNetLabel => 'Bu dönem';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get restoreFailed => 'İşlem geri yüklenemedi. Tekrar deneyin.';
 
   @override
+  String get restoreTransferFailed =>
+      'Transfer geri alınamadı. Yeniden deneyin.';
+
+  @override
   String get addTransactionTitle => 'İşlem Ekle';
 
   @override
@@ -131,6 +141,28 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'Çoğalt';
+
+  @override
+  String get rowMenuTooltip => 'Diğer işlemler';
+
+  @override
+  String get deleteTransactionTitle => 'Bu işlem silinsin mi?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Çöp kutusuna gider ve 30 gün boyunca geri alınabilir.';
+
+  @override
+  String get discardChangesTitle => 'Değişiklikler atılsın mı?';
+
+  @override
+  String get discardChangesMessage => 'Buraya yazdıkların kaydedilmedi.';
+
+  @override
+  String get discardButton => 'At';
+
+  @override
+  String get keepEditingButton => 'Düzenlemeye devam';
 
   @override
   String get titleOptionalLabel => 'Başlık (isteğe bağlı)';
@@ -698,6 +730,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'Önceki dönem';
+
+  @override
+  String get wholePeriodTooltip => 'Tüm dönemi göster';
 
   @override
   String get nextPeriodTooltip => 'Sonraki dönem';

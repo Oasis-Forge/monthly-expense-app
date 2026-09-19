@@ -31,6 +31,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get balanceLabel => '残高';
 
   @override
+  String get expandSummaryTooltip => '収入と支出を表示';
+
+  @override
+  String get collapseSummaryTooltip => '残高のみ表示';
+
+  @override
   String get periodNetLabel => '今期';
 
   @override
@@ -115,6 +121,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get restoreFailed => '取引を復元できませんでした。もう一度お試しください。';
 
   @override
+  String get restoreTransferFailed => '振替を元に戻せませんでした。もう一度お試しください。';
+
+  @override
   String get addTransactionTitle => '取引を追加';
 
   @override
@@ -131,6 +140,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get duplicateTooltip => '複製';
+
+  @override
+  String get rowMenuTooltip => 'その他の操作';
+
+  @override
+  String get deleteTransactionTitle => 'この取引を削除しますか？';
+
+  @override
+  String get deleteTransactionMessage => 'ゴミ箱に移動し、30 日間は元に戻せます。';
+
+  @override
+  String get discardChangesTitle => '変更を破棄しますか？';
+
+  @override
+  String get discardChangesMessage => '入力した内容はまだ保存されていません。';
+
+  @override
+  String get discardButton => '破棄';
+
+  @override
+  String get keepEditingButton => '編集を続ける';
 
   @override
   String get titleOptionalLabel => 'タイトル(任意)';
@@ -694,6 +724,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => '前の期間';
+
+  @override
+  String get wholePeriodTooltip => '期間全体を表示';
 
   @override
   String get nextPeriodTooltip => '次の期間';

@@ -31,6 +31,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get balanceLabel => 'الرصيد';
 
   @override
+  String get expandSummaryTooltip => 'عرض الدخل والمصروفات';
+
+  @override
+  String get collapseSummaryTooltip => 'عرض الرصيد فقط';
+
+  @override
   String get periodNetLabel => 'هذه الفترة';
 
   @override
@@ -124,6 +130,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get restoreFailed => 'تعذّرت استعادة المعاملة. حاول مرة أخرى.';
 
   @override
+  String get restoreTransferFailed => 'تعذّرت استعادة التحويل. حاول مرة أخرى.';
+
+  @override
   String get addTransactionTitle => 'إضافة معاملة';
 
   @override
@@ -140,6 +149,28 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'تكرار';
+
+  @override
+  String get rowMenuTooltip => 'خيارات أخرى';
+
+  @override
+  String get deleteTransactionTitle => 'حذف هذه المعاملة؟';
+
+  @override
+  String get deleteTransactionMessage =>
+      'تنتقل إلى المحذوفات، ويمكن استعادتها خلال ٣٠ يومًا.';
+
+  @override
+  String get discardChangesTitle => 'تجاهل التغييرات؟';
+
+  @override
+  String get discardChangesMessage => 'ما كتبته هنا لم يُحفظ.';
+
+  @override
+  String get discardButton => 'تجاهل';
+
+  @override
+  String get keepEditingButton => 'متابعة التعديل';
 
   @override
   String get titleOptionalLabel => 'العنوان (اختياري)';
@@ -723,6 +754,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'الفترة السابقة';
+
+  @override
+  String get wholePeriodTooltip => 'عرض الفترة كاملة';
 
   @override
   String get nextPeriodTooltip => 'الفترة التالية';

@@ -178,6 +178,18 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balanceLabel;
 
+  /// What tapping the collapsed summary card on Home does (BAL-6).
+  ///
+  /// In en, this message translates to:
+  /// **'Show income and expense'**
+  String get expandSummaryTooltip;
+
+  /// What tapping the open summary card on Home does (BAL-6).
+  ///
+  /// In en, this message translates to:
+  /// **'Show only the balance'**
+  String get collapseSummaryTooltip;
+
   /// No description provided for @periodNetLabel.
   ///
   /// In en, this message translates to:
@@ -280,6 +292,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t restore the transaction. Try again.'**
   String get restoreFailed;
 
+  /// Shown when restoring a transfer from the trash fails (DEL-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t restore the transfer. Try again.'**
+  String get restoreTransferFailed;
+
   /// No description provided for @addTransactionTitle.
   ///
   /// In en, this message translates to:
@@ -315,6 +333,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Duplicate'**
   String get duplicateTooltip;
+
+  /// Tooltip on a transaction row's three-dot button (ROW-1).
+  ///
+  /// In en, this message translates to:
+  /// **'More actions'**
+  String get rowMenuTooltip;
+
+  /// Title of the dialog that a row menu's Delete opens (ROW-3).
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this transaction?'**
+  String get deleteTransactionTitle;
+
+  /// Body of the delete dialog: where the entry goes (ROW-3, DEL-3).
+  ///
+  /// In en, this message translates to:
+  /// **'It goes to the trash, and can be restored for 30 days.'**
+  String get deleteTransactionMessage;
+
+  /// Title of the dialog shown when Back would leave a form with unsaved edits (ADD-9).
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get discardChangesTitle;
+
+  /// Body of the discard dialog (ADD-9).
+  ///
+  /// In en, this message translates to:
+  /// **'What you typed here hasn\'t been saved.'**
+  String get discardChangesMessage;
+
+  /// Button that leaves the form and loses the edits (ADD-9).
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get discardButton;
+
+  /// Button that stays on the form (ADD-9).
+  ///
+  /// In en, this message translates to:
+  /// **'Keep editing'**
+  String get keepEditingButton;
 
   /// No description provided for @titleOptionalLabel.
   ///
@@ -1293,6 +1353,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Previous period'**
   String get previousPeriodTooltip;
+
+  /// Tooltip on the chosen day in Home's day strip; tapping that day again shows every day in the period (DAY-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Show the whole period'**
+  String get wholePeriodTooltip;
 
   /// No description provided for @nextPeriodTooltip.
   ///

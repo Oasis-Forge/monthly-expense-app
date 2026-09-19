@@ -31,6 +31,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get balanceLabel => 'Saldo';
 
   @override
+  String get expandSummaryTooltip => 'Einnahmen und Ausgaben anzeigen';
+
+  @override
+  String get collapseSummaryTooltip => 'Nur den Saldo anzeigen';
+
+  @override
   String get periodNetLabel => 'Dieser Zeitraum';
 
   @override
@@ -118,6 +124,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Buchung konnte nicht wiederhergestellt werden. Versuche es erneut.';
 
   @override
+  String get restoreTransferFailed =>
+      'Umbuchung konnte nicht wiederhergestellt werden. Versuch es erneut.';
+
+  @override
   String get addTransactionTitle => 'Buchung hinzufügen';
 
   @override
@@ -134,6 +144,29 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'Duplizieren';
+
+  @override
+  String get rowMenuTooltip => 'Weitere Aktionen';
+
+  @override
+  String get deleteTransactionTitle => 'Diese Buchung löschen?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Sie kommt in den Papierkorb und kann 30 Tage lang wiederhergestellt werden.';
+
+  @override
+  String get discardChangesTitle => 'Änderungen verwerfen?';
+
+  @override
+  String get discardChangesMessage =>
+      'Was du hier eingegeben hast, ist nicht gespeichert.';
+
+  @override
+  String get discardButton => 'Verwerfen';
+
+  @override
+  String get keepEditingButton => 'Weiter bearbeiten';
 
   @override
   String get titleOptionalLabel => 'Titel (optional)';
@@ -707,6 +740,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'Vorheriger Zeitraum';
+
+  @override
+  String get wholePeriodTooltip => 'Ganzen Zeitraum anzeigen';
 
   @override
   String get nextPeriodTooltip => 'Nächster Zeitraum';

@@ -40,7 +40,7 @@ class AddTransactionScreen extends StatefulWidget {
 }
 
 class _AddTransactionScreenState extends State<AddTransactionScreen>
-    with AmountEntry {
+    with AmountEntry, UnsavedGuard {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _noteController = TextEditingController();
@@ -91,10 +91,31 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       _categoryId = provider.defaultCategoryId(_type);
       _accountId = provider.defaultAccountId();
     }
-    // A new transaction, a duplicate, or a recorded note is dated now
-    // (ADD-3, ADD-7, NOTE-4).
-    _date = widget.editing?.date ?? DateTime.now();
+    // A new transaction starts on the day Home is showing, which is today
+    // unless the strip says otherwise (ADD-3, DAY-9). A duplicate or a
+    // recorded note is dated now either way (ADD-7, NOTE-4).
+    _date =
+        widget.editing?.date ??
+        (source == null && note == null
+            ? provider.newEntryDate
+            : DateTime.now());
+    // ADD-9: what a later Back compares against.
+    snapshotForm();
   }
+
+  /// Everything the user can change here, for the Back guard (ADD-9).
+  @override
+  String formSnapshot() => [
+    amountController.text,
+    _titleController.text,
+    _noteController.text,
+    _type.name,
+    _categoryId ?? '',
+    _accountId ?? '',
+    _date.toIso8601String(),
+    _photoFile ?? '',
+    _voiceFile ?? '',
+  ].join('\u0000');
 
   @override
   void dispose() {
@@ -185,6 +206,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
         _voiceFile = null;
       });
       amountFocus.requestFocus();
+      // ADD-4 emptied the form on purpose, so that is the new starting point.
+      snapshotForm();
       messenger.showSnackBar(SnackBar(content: Text(l10n.transactionAdded)));
     } else {
       Navigator.of(context).pop();
@@ -252,185 +275,189 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     ];
     final recent = provider.recentCategories(_type);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          isEditing
-              ? l10n.editTransactionTitle
-              : widget.recordingNote != null
-              ? l10n.recordNoteButton
-              : l10n.addTransactionTitle,
-        ),
-        actions: [
-          if (isEditing) ...[
-            IconButton(
-              icon: const Icon(Icons.copy_outlined),
-              tooltip: l10n.duplicateTooltip,
-              onPressed: _duplicate,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: l10n.deleteTooltip,
-              onPressed: _delete,
-            ),
-          ],
-        ],
-      ),
-      bottomNavigationBar: amountKeypad(),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            SegmentedButton<TransactionType>(
-              segments: [
-                ButtonSegment(
-                  value: TransactionType.expense,
-                  label: Text(l10n.expenseLabel),
-                  icon: const Icon(Icons.arrow_upward),
-                ),
-                ButtonSegment(
-                  value: TransactionType.income,
-                  label: Text(l10n.incomeLabel),
-                  icon: const Icon(Icons.arrow_downward),
-                ),
-              ],
-              selected: {_type},
-              onSelectionChanged: (selection) => _selectType(selection.first),
-            ),
-            const SizedBox(height: 20),
-            amountField(currency, l10n, autofocus: !isEditing),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: l10n.titleOptionalLabel,
-                border: const OutlineInputBorder(),
+    return guardBack(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            isEditing
+                ? l10n.editTransactionTitle
+                : widget.recordingNote != null
+                ? l10n.recordNoteButton
+                : l10n.addTransactionTitle,
+          ),
+          actions: [
+            if (isEditing) ...[
+              IconButton(
+                icon: const Icon(Icons.copy_outlined),
+                tooltip: l10n.duplicateTooltip,
+                onPressed: _duplicate,
               ),
-            ),
-            const SizedBox(height: 16),
-            if (recent.isNotEmpty) ...[
-              // ADD-5: recently used categories, one tap away.
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final category in recent)
-                    ChoiceChip(
-                      label: Text('${category.icon} ${category.label(l10n)}'),
-                      selected: category.id == _categoryId,
-                      onSelected: (_) =>
-                          setState(() => _categoryId = category.id),
-                    ),
-                ],
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l10n.deleteTooltip,
+                onPressed: _delete,
               ),
-              const SizedBox(height: 12),
             ],
-            DropdownButtonFormField<String>(
-              // A new key resets the field when the type or a chip changes it.
-              key: ValueKey((_type, _categoryId)),
-              // Long names shorten instead of overflowing (LANG-6).
-              isExpanded: true,
-              initialValue: categories.any((c) => c.id == _categoryId)
-                  ? _categoryId
-                  : null,
-              decoration: InputDecoration(
-                labelText: l10n.categoryLabel,
-                border: const OutlineInputBorder(),
-              ),
-              items: [
-                for (final category in categories)
-                  DropdownMenuItem(
-                    value: category.id,
-                    child: Text('${category.icon} ${category.label(l10n)}'),
+          ],
+        ),
+        bottomNavigationBar: amountKeypad(),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              SegmentedButton<TransactionType>(
+                segments: [
+                  ButtonSegment(
+                    value: TransactionType.expense,
+                    label: Text(l10n.expenseLabel),
+                    icon: const Icon(Icons.arrow_upward),
                   ),
-              ],
-              validator: (value) =>
-                  value == null ? l10n.categoryRequired : null,
-              onChanged: (value) => setState(() => _categoryId = value),
-            ),
-            if (accounts.length > 1) ...[
+                  ButtonSegment(
+                    value: TransactionType.income,
+                    label: Text(l10n.incomeLabel),
+                    icon: const Icon(Icons.arrow_downward),
+                  ),
+                ],
+                selected: {_type},
+                onSelectionChanged: (selection) => _selectType(selection.first),
+              ),
+              const SizedBox(height: 20),
+              amountField(currency, l10n, autofocus: !isEditing),
               const SizedBox(height: 16),
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: l10n.titleOptionalLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (recent.isNotEmpty) ...[
+                // ADD-5: recently used categories, one tap away.
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    for (final category in recent)
+                      ChoiceChip(
+                        label: Text('${category.icon} ${category.label(l10n)}'),
+                        selected: category.id == _categoryId,
+                        onSelected: (_) =>
+                            setState(() => _categoryId = category.id),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
               DropdownButtonFormField<String>(
+                // A new key resets the field when the type or a chip changes it.
+                key: ValueKey((_type, _categoryId)),
+                // Long names shorten instead of overflowing (LANG-6).
                 isExpanded: true,
-                initialValue: accounts.any((a) => a.id == _accountId)
-                    ? _accountId
+                initialValue: categories.any((c) => c.id == _categoryId)
+                    ? _categoryId
                     : null,
                 decoration: InputDecoration(
-                  labelText: l10n.accountLabel,
+                  labelText: l10n.categoryLabel,
                   border: const OutlineInputBorder(),
                 ),
                 items: [
-                  for (final account in accounts)
+                  for (final category in categories)
                     DropdownMenuItem(
-                      value: account.id,
-                      child: Text(account.label(l10n)),
+                      value: category.id,
+                      child: Text('${category.icon} ${category.label(l10n)}'),
                     ),
                 ],
                 validator: (value) =>
-                    value == null ? l10n.accountRequired : null,
-                onChanged: (value) => setState(() => _accountId = value),
+                    value == null ? l10n.categoryRequired : null,
+                onChanged: (value) => setState(() => _categoryId = value),
               ),
-            ],
-            const SizedBox(height: 16),
-            DateField(
-              date: _date,
-              onChanged: (date) => setState(() => _date = date),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _noteController,
-              decoration: InputDecoration(
-                labelText: l10n.noteOptionalLabel,
-                border: const OutlineInputBorder(),
-              ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            AttachmentField(
-              photoFile: _photoFile,
-              voiceFile: _voiceFile,
-              onPhotoChanged: (name) => setState(() => _photoFile = name),
-              onVoiceChanged: (name) => setState(() => _voiceFile = name),
-            ),
-            if (linkedNote != null) ...[
+              if (accounts.length > 1) ...[
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  initialValue: accounts.any((a) => a.id == _accountId)
+                      ? _accountId
+                      : null,
+                  decoration: InputDecoration(
+                    labelText: l10n.accountLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  items: [
+                    for (final account in accounts)
+                      DropdownMenuItem(
+                        value: account.id,
+                        child: Text(account.label(l10n)),
+                      ),
+                  ],
+                  validator: (value) =>
+                      value == null ? l10n.accountRequired : null,
+                  onChanged: (value) => setState(() => _accountId = value),
+                ),
+              ],
               const SizedBox(height: 16),
-              Card(
-                child: ListTile(
-                  leading: const Icon(Icons.sticky_note_2_outlined),
-                  title: Text(l10n.noteLinkedNoteLabel),
-                  subtitle: Text(linkedNote.text),
-                  onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => NoteFormScreen(editing: linkedNote),
+              DateField(
+                date: _date,
+                onChanged: (date) => setState(() => _date = date),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _noteController,
+                decoration: InputDecoration(
+                  labelText: l10n.noteOptionalLabel,
+                  border: const OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 16),
+              AttachmentField(
+                photoFile: _photoFile,
+                voiceFile: _voiceFile,
+                onPhotoChanged: (name) => setState(() => _photoFile = name),
+                onVoiceChanged: (name) => setState(() => _voiceFile = name),
+              ),
+              if (linkedNote != null) ...[
+                const SizedBox(height: 16),
+                Card(
+                  child: ListTile(
+                    leading: const Icon(Icons.sticky_note_2_outlined),
+                    title: Text(l10n.noteLinkedNoteLabel),
+                    subtitle: Text(linkedNote.text),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => NoteFormScreen(editing: linkedNote),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _submit,
-              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-              child: Text(
-                isEditing
-                    ? l10n.saveChangesButton
-                    : widget.recordingNote != null
-                    ? l10n.recordNoteButton
-                    : l10n.addTransactionButton,
-              ),
-            ),
-            if (!isEditing && widget.recordingNote == null) ...[
-              const SizedBox(height: 8),
-              OutlinedButton(
-                onPressed: () => _submit(addAnother: true),
-                style: OutlinedButton.styleFrom(
+              ],
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _submit,
+                style: FilledButton.styleFrom(
                   padding: const EdgeInsets.all(16),
                 ),
-                child: Text(l10n.saveAndAddAnotherButton),
+                child: Text(
+                  isEditing
+                      ? l10n.saveChangesButton
+                      : widget.recordingNote != null
+                      ? l10n.recordNoteButton
+                      : l10n.addTransactionButton,
+                ),
               ),
+              if (!isEditing && widget.recordingNote == null) ...[
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: () => _submit(addAnother: true),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                  ),
+                  child: Text(l10n.saveAndAddAnotherButton),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

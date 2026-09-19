@@ -31,6 +31,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get balanceLabel => '结余';
 
   @override
+  String get expandSummaryTooltip => '显示收入和支出';
+
+  @override
+  String get collapseSummaryTooltip => '仅显示余额';
+
+  @override
   String get periodNetLabel => '本期';
 
   @override
@@ -115,6 +121,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get restoreFailed => '无法恢复该交易，请重试。';
 
   @override
+  String get restoreTransferFailed => '无法恢复这笔转账，请重试。';
+
+  @override
   String get addTransactionTitle => '添加交易';
 
   @override
@@ -131,6 +140,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get duplicateTooltip => '复制';
+
+  @override
+  String get rowMenuTooltip => '更多操作';
+
+  @override
+  String get deleteTransactionTitle => '删除这笔交易？';
+
+  @override
+  String get deleteTransactionMessage => '它会移入回收站，30 天内可以恢复。';
+
+  @override
+  String get discardChangesTitle => '放弃更改？';
+
+  @override
+  String get discardChangesMessage => '你在这里输入的内容尚未保存。';
+
+  @override
+  String get discardButton => '放弃';
+
+  @override
+  String get keepEditingButton => '继续编辑';
 
   @override
   String get titleOptionalLabel => '标题（选填）';
@@ -694,6 +724,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => '上一期';
+
+  @override
+  String get wholePeriodTooltip => '显示整期';
 
   @override
   String get nextPeriodTooltip => '下一期';

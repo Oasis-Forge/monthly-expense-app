@@ -31,6 +31,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get balanceLabel => 'Баланс';
 
   @override
+  String get expandSummaryTooltip => 'Показать доходы и расходы';
+
+  @override
+  String get collapseSummaryTooltip => 'Показать только баланс';
+
+  @override
   String get periodNetLabel => 'За этот период';
 
   @override
@@ -122,6 +128,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось восстановить операцию. Попробуйте ещё раз.';
 
   @override
+  String get restoreTransferFailed =>
+      'Не удалось восстановить перевод. Попробуйте ещё раз.';
+
+  @override
   String get addTransactionTitle => 'Новая операция';
 
   @override
@@ -138,6 +148,28 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'Дублировать';
+
+  @override
+  String get rowMenuTooltip => 'Другие действия';
+
+  @override
+  String get deleteTransactionTitle => 'Удалить эту операцию?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Она попадёт в корзину, откуда её можно вернуть в течение 30 дней.';
+
+  @override
+  String get discardChangesTitle => 'Отменить изменения?';
+
+  @override
+  String get discardChangesMessage => 'Введённое здесь не сохранено.';
+
+  @override
+  String get discardButton => 'Отменить';
+
+  @override
+  String get keepEditingButton => 'Продолжить';
 
   @override
   String get titleOptionalLabel => 'Заголовок (необязательно)';
@@ -721,6 +753,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'Предыдущий период';
+
+  @override
+  String get wholePeriodTooltip => 'Показать весь период';
 
   @override
   String get nextPeriodTooltip => 'Следующий период';

@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/budget.dart';
 import '../models/csv_export.dart';
+import '../models/insights.dart';
 import '../models/money.dart';
 import '../models/period.dart';
 import '../models/transaction.dart';
@@ -21,6 +22,7 @@ import 'budget_progress.dart';
 import 'budgets_screen.dart';
 import 'categories_screen.dart';
 import 'csv_export_action.dart';
+import 'day_strip.dart';
 import 'delete_snack_bar.dart';
 import 'insights_screen.dart';
 import 'notes_screen.dart';
@@ -30,11 +32,15 @@ import 'report_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'transaction_detail_screen.dart';
+import 'transaction_row_menu.dart';
 import 'transfer_screen.dart';
 import 'trash_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
 
   static void _open(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
@@ -52,6 +58,33 @@ class HomeScreen extends StatelessWidget {
       transfers: provider.periodTransfers,
     );
   }
+}
+
+/// Home's own state is how far the day list has been scrolled: away from the
+/// top, the summary card gives its room to the entries (BAL-7).
+class _HomeScreenState extends State<HomeScreen> {
+  final _listController = ScrollController();
+
+  /// Whether the list has been scrolled off the top.
+  bool _scrolled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _listController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _listController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    // A nudge is not a scroll; a flick is.
+    final scrolled = _listController.hasClients && _listController.offset > 24;
+    if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,10 +92,14 @@ class HomeScreen extends StatelessWidget {
     final provider = context.watch<TransactionProvider>();
     final settings = context.watch<SettingsProvider>();
     final currency = settings.currencyFormat(l10n.localeName);
-    final days = {
-      ...provider.groupedByDay.keys,
-      ...provider.transfersByDay.keys,
-    }.toList()..sort((a, b) => b.compareTo(a));
+    final selectedDay = provider.selectedDay;
+    // DAY-7: the chosen day on its own, whether or not it holds anything.
+    final days = selectedDay != null
+        ? [selectedDay]
+        : ({
+            ...provider.groupedByDay.keys,
+            ...provider.transfersByDay.keys,
+          }.toList()..sort((a, b) => b.compareTo(a)));
     final dueCount = provider.dueOccurrences.length;
     final budgetStatuses = provider.budgetStatuses;
     final budgetSummary = BudgetSummary.of(budgetStatuses);
@@ -82,14 +119,14 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.search),
             tooltip: l10n.searchTooltip,
-            onPressed: () => _open(context, const SearchScreen()),
+            onPressed: () => HomeScreen._open(context, const SearchScreen()),
           ),
           // NAV-6: the toolbar keeps two actions so the name still fits at
           // large text; Insights has three named rows in the drawer instead.
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: l10n.settingsTitle,
-            onPressed: () => _open(context, const SettingsScreen()),
+            onPressed: () => HomeScreen._open(context, const SettingsScreen()),
           ),
         ],
       ),
@@ -101,8 +138,12 @@ class HomeScreen extends StatelessWidget {
           // INS-4: the label opens the calendar for the period it names.
           PeriodSelector(
             onLabelTap: () =>
-                _open(context, const InsightsScreen(initialTab: 1)),
+                HomeScreen._open(context, const InsightsScreen(initialTab: 1)),
           ),
+          // DAY-1, DAY-2: the week under the period, today marked, on every
+          // Home there is — the welcome included, so the day a first entry
+          // lands on is never a surprise.
+          const DayStrip(),
           _SummaryCard(
             income: provider.periodIncome,
             expense: provider.periodExpense,
@@ -114,20 +155,29 @@ class HomeScreen extends StatelessWidget {
                 ? provider.carriedForward
                 : null,
             currency: currency,
+            // BAL-6 by hand, BAL-7 because the list is scrolled.
+            collapsed: settings.summaryCollapsed || _scrolled,
+            onToggle: () {
+              // A tap does what the card shows: opens it when it is a line,
+              // closes it when it is open. A later scroll collapses it again.
+              final collapsed = settings.summaryCollapsed || _scrolled;
+              settings.setSummaryCollapsed(!collapsed);
+              if (collapsed && _scrolled) setState(() => _scrolled = false);
+            },
           ),
           if (dueCount > 0)
             _Notice(
               icon: Icons.event_repeat,
               color: Theme.of(context).colorScheme.primary,
               text: l10n.recurringDueNotice(dueCount),
-              onTap: () => _open(context, const RecurringScreen()),
+              onTap: () => HomeScreen._open(context, const RecurringScreen()),
             ),
           if (dueNotesCount > 0)
             _Notice(
               icon: Icons.sticky_note_2_outlined,
               color: Theme.of(context).colorScheme.primary,
               text: l10n.notesDueNotice(dueNotesCount),
-              onTap: () => _open(context, const NotesScreen()),
+              onTap: () => HomeScreen._open(context, const NotesScreen()),
             ),
           if (settings.backupReminderDue(provider.transactions.length))
             _Notice(
@@ -138,7 +188,7 @@ class HomeScreen extends StatelessWidget {
                   : l10n.backupReminderSince(
                       DateFormat.yMMMd(l10n.localeName).format(lastBackup),
                     ),
-              onTap: () => _open(context, const BackupScreen()),
+              onTap: () => HomeScreen._open(context, const BackupScreen()),
               onDismiss: settings.snoozeBackupReminder,
             ),
           const Divider(height: 1),
@@ -148,6 +198,7 @@ class HomeScreen extends StatelessWidget {
                 : days.isEmpty && budgetSummary == null
                 ? Center(child: Text(l10n.emptyPeriod))
                 : ListView(
+                    controller: _listController,
                     padding: const EdgeInsets.only(bottom: 80),
                     children: [
                       // BUD-7: at the top of the list, so opening it scrolls
@@ -168,6 +219,7 @@ class HomeScreen extends StatelessWidget {
                           day: day,
                           transactions: provider.groupedByDay[day] ?? const [],
                           transfers: provider.transfersByDay[day] ?? const [],
+                          totals: provider.dailyTotals[day],
                           currency: currency,
                         ),
                     ],
@@ -178,7 +230,8 @@ class HomeScreen extends StatelessWidget {
       floatingActionButton: firstRun
           ? null
           : FloatingActionButton.extended(
-              onPressed: () => _open(context, const AddTransactionScreen()),
+              onPressed: () =>
+                  HomeScreen._open(context, const AddTransactionScreen()),
               icon: const Icon(Icons.add),
               label: Text(l10n.addButton),
             ),
@@ -499,68 +552,136 @@ class _SummaryCard extends StatelessWidget {
   final Money? carriedForward;
   final NumberFormat currency;
 
+  /// Whether the card is the balance on one line (BAL-6).
+  final bool collapsed;
+  final VoidCallback onToggle;
+
   const _SummaryCard({
     required this.income,
     required this.expense,
     required this.balance,
     required this.carriedForward,
     required this.currency,
+    required this.collapsed,
+    required this.onToggle,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final carried = carriedForward;
+    final label = carried == null ? l10n.periodNetLabel : l10n.balanceLabel;
+    final amountColor = balance.isNegative ? Colors.red : Colors.green;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(
-              carried == null ? l10n.periodNetLabel : l10n.balanceLabel,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            Text(
-              currency.format(balance.toDouble()),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: balance.isNegative ? Colors.red : Colors.green,
-              ),
-            ),
-            if (carried != null)
-              Text(
-                l10n.carriedForwardLine(currency.format(carried.toDouble())),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            const SizedBox(height: 12),
-            // Each side gets half the card, so long labels and large amounts
-            // fit at any text size and in every language (LANG-6).
-            Row(
-              children: [
-                Expanded(
-                  child: _AmountTile(
-                    label: l10n.incomeLabel,
-                    amount: income,
-                    color: Colors.green,
-                    icon: Icons.arrow_downward,
-                    currency: currency,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        // BAL-6: the card itself is the switch between one line and the rest.
+        onTap: onToggle,
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOut,
+          alignment: AlignmentDirectional.topStart,
+          child: collapsed
+              ? Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
+                  child: Row(
+                    children: [
+                      Text(label, style: theme.textTheme.bodyMedium),
+                      const SizedBox(width: 12),
+                      // The balance keeps the room it needs in any language.
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: Text(
+                            currency.format(balance.toDouble()),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: amountColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Icon(
+                        Icons.expand_more,
+                        semanticLabel: l10n.expandSummaryTooltip,
+                      ),
+                    ],
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          // The same width as the chevron, so the label stays
+                          // in the middle of the card.
+                          const SizedBox(width: 24),
+                          Expanded(
+                            child: Text(
+                              label,
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                          ),
+                          Icon(
+                            Icons.expand_less,
+                            semanticLabel: l10n.collapseSummaryTooltip,
+                          ),
+                        ],
+                      ),
+                      Text(
+                        currency.format(balance.toDouble()),
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: amountColor,
+                        ),
+                      ),
+                      if (carried != null)
+                        Text(
+                          l10n.carriedForwardLine(
+                            currency.format(carried.toDouble()),
+                          ),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      const SizedBox(height: 12),
+                      // Each side gets half the card, so long labels and large
+                      // amounts fit at any text size and in every language
+                      // (LANG-6).
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _AmountTile(
+                              label: l10n.incomeLabel,
+                              amount: income,
+                              color: Colors.green,
+                              icon: Icons.arrow_downward,
+                              currency: currency,
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: Colors.grey.shade300,
+                          ),
+                          Expanded(
+                            child: _AmountTile(
+                              label: l10n.expenseLabel,
+                              amount: expense,
+                              color: Colors.red,
+                              icon: Icons.arrow_upward,
+                              currency: currency,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                Container(width: 1, height: 40, color: Colors.grey.shade300),
-                Expanded(
-                  child: _AmountTile(
-                    label: l10n.expenseLabel,
-                    amount: expense,
-                    color: Colors.red,
-                    icon: Icons.arrow_upward,
-                    currency: currency,
-                  ),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );
@@ -615,38 +736,102 @@ class _AmountTile extends StatelessWidget {
   }
 }
 
+/// One day's entries under its date, with what the day came to (DAY-7). A
+/// day chosen in the strip is shown even when it holds nothing.
 class _DaySection extends StatelessWidget {
   final DateTime day;
   final List<ExpenseTransaction> transactions;
   final List<Transfer> transfers;
+
+  /// The day's own income and expense, or null for a day with neither.
+  final DayTotals? totals;
   final NumberFormat currency;
 
   const _DaySection({
     required this.day,
     required this.transactions,
     required this.transfers,
+    required this.totals,
     required this.currency,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final dayTotals = totals ?? const DayTotals();
+    final empty = transactions.isEmpty && transfers.isEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Text(
-            DateFormat.yMMMd(l10n.localeName).format(day),
-            style: Theme.of(context).textTheme.labelLarge
-                ?.copyWith(color: Colors.grey.shade600),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat.yMMMd(l10n.localeName).format(day),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+              // DAY-7: income and expense stay apart, as they do for the
+              // period above (BAL-1).
+              if (dayTotals.income.isPositive)
+                _DayTotal(
+                  amount: dayTotals.income,
+                  color: Colors.green,
+                  currency: currency,
+                ),
+              if (dayTotals.income.isPositive && dayTotals.expense.isPositive)
+                const SizedBox(width: 8),
+              if (dayTotals.expense.isPositive)
+                _DayTotal(
+                  amount: dayTotals.expense,
+                  color: Colors.red,
+                  currency: currency,
+                ),
+            ],
           ),
         ),
+        if (empty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+            child: Text(
+              l10n.dayEmpty,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
         for (final tx in transactions)
           _TransactionTile(transaction: tx, currency: currency),
         for (final transfer in transfers)
           _TransferTile(transfer: transfer, currency: currency),
       ],
+    );
+  }
+}
+
+/// One side of a day's total, coloured like the summary card's (DAY-7).
+class _DayTotal extends StatelessWidget {
+  const _DayTotal({
+    required this.amount,
+    required this.color,
+    required this.currency,
+  });
+
+  final Money amount;
+  final Color color;
+  final NumberFormat currency;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      currency.format(amount.toDouble()),
+      style: Theme.of(context).textTheme.labelLarge
+          ?.copyWith(color: color, fontWeight: FontWeight.w600),
     );
   }
 }
@@ -705,11 +890,15 @@ class _TransactionTile extends StatelessWidget {
               ? l10n.upcomingCategory(categoryName)
               : categoryName,
         ),
-        trailing: Text(
-          '$sign${currency.format(transaction.amount.toDouble())}',
-          // The sign stays in front of the amount in Arabic (LANG-5).
-          textDirection: TextDirection.ltr,
-          style: TextStyle(color: color, fontWeight: FontWeight.w600),
+        // ROW-1: the amount, then the row's own menu.
+        trailing: TransactionRowTrailing(
+          transaction: transaction,
+          amount: Text(
+            '$sign${currency.format(transaction.amount.toDouble())}',
+            // The sign stays in front of the amount in Arabic (LANG-5).
+            textDirection: TextDirection.ltr,
+            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
         ),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(

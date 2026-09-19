@@ -31,6 +31,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get balanceLabel => 'ยอดคงเหลือ';
 
   @override
+  String get expandSummaryTooltip => 'แสดงรายรับและรายจ่าย';
+
+  @override
+  String get collapseSummaryTooltip => 'แสดงเฉพาะยอดคงเหลือ';
+
+  @override
   String get periodNetLabel => 'งวดนี้';
 
   @override
@@ -115,6 +121,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get restoreFailed => 'กู้คืนรายการไม่สำเร็จ ลองอีกครั้ง';
 
   @override
+  String get restoreTransferFailed => 'กู้คืนการโอนไม่สำเร็จ ลองอีกครั้ง';
+
+  @override
   String get addTransactionTitle => 'เพิ่มรายการ';
 
   @override
@@ -131,6 +140,28 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get duplicateTooltip => 'ทำสำเนา';
+
+  @override
+  String get rowMenuTooltip => 'การทำงานอื่น';
+
+  @override
+  String get deleteTransactionTitle => 'ลบรายการนี้ไหม';
+
+  @override
+  String get deleteTransactionMessage =>
+      'จะย้ายไปถังขยะ และกู้คืนได้ภายใน 30 วัน';
+
+  @override
+  String get discardChangesTitle => 'ละทิ้งการเปลี่ยนแปลงไหม';
+
+  @override
+  String get discardChangesMessage => 'สิ่งที่คุณพิมพ์ไว้ยังไม่ได้บันทึก';
+
+  @override
+  String get discardButton => 'ละทิ้ง';
+
+  @override
+  String get keepEditingButton => 'แก้ไขต่อ';
 
   @override
   String get titleOptionalLabel => 'ชื่อรายการ (ไม่บังคับ)';
@@ -696,6 +727,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get previousPeriodTooltip => 'งวดก่อนหน้า';
+
+  @override
+  String get wholePeriodTooltip => 'แสดงทั้งงวด';
 
   @override
   String get nextPeriodTooltip => 'งวดถัดไป';
