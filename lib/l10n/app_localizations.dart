@@ -178,13 +178,13 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balanceLabel;
 
-  /// What tapping the collapsed summary card on Home does (BAL-5).
+  /// What tapping the collapsed summary card on Home does (BAL-6).
   ///
   /// In en, this message translates to:
   /// **'Show income and expense'**
   String get expandSummaryTooltip;
 
-  /// What tapping the open summary card on Home does (BAL-5).
+  /// What tapping the open summary card on Home does (BAL-6).
   ///
   /// In en, this message translates to:
   /// **'Show only the balance'**
