@@ -152,4 +152,23 @@ void main() {
     expect(find.byType(TransferScreen), findsOneWidget);
     expect(find.text("Couldn't save the transfer. Try again."), findsOneWidget);
   });
+
+  testWidgets('a new transfer starts on the day Home is showing (DAY-9)', (
+    tester,
+  ) async {
+    provider = TransactionProvider(
+      db: fake,
+      clock: () => DateTime(2026, 9, 15, 10),
+    );
+    await provider.load();
+    provider.selectDay(DateTime(2026, 9, 12));
+
+    await open(tester);
+    await enterAmount(tester, '50');
+    await tapButton(tester, 'Add Transfer');
+
+    final transfer = provider.transfers.single;
+    expect(transfer.date.month, 9);
+    expect(transfer.date.day, 12);
+  });
 }

@@ -458,4 +458,41 @@ void main() {
       expect(provider.noteById('n')!.transactionId, saved.id);
     },
   );
+
+  group('the day a new entry starts on (ADD-3, DAY-9)', () {
+    final today = DateTime(2026, 9, 15, 10);
+
+    /// A provider whose today is fixed, so the day Home shows is known.
+    Future<void> onDay(DateTime? day) async {
+      provider = TransactionProvider(db: fake, clock: () => today);
+      await provider.load();
+      if (day == null) {
+        provider.clearSelectedDay();
+      } else {
+        provider.selectDay(day);
+      }
+    }
+
+    testWidgets('it is the day Home is showing', (tester) async {
+      await onDay(DateTime(2026, 9, 12));
+
+      await open(tester);
+      await enterAmount(tester, '20');
+      await tapButton(tester, 'Add Transaction');
+
+      final added = provider.transactions.single;
+      expect(added.date.month, 9);
+      expect(added.date.day, 12);
+    });
+
+    testWidgets('with the whole period shown it is today', (tester) async {
+      await onDay(null);
+
+      await open(tester);
+      await enterAmount(tester, '20');
+      await tapButton(tester, 'Add Transaction');
+
+      expect(provider.transactions.single.date.day, 15);
+    });
+  });
 }

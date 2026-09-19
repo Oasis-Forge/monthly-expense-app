@@ -15,6 +15,7 @@ import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/screens/budget_progress.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/categories_screen.dart';
+import 'package:monthly_expense_app/screens/day_strip.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
@@ -94,7 +95,7 @@ void main() {
   Future<void> addTransfer() async {
     fake.accounts.add(testAccount('bank'));
     fake.transfers.add(
-      testTransfer('t', Account.cashId, 'bank', 50, DateTime(2026, 9, 16)),
+      testTransfer('t', Account.cashId, 'bank', 50, DateTime(2026, 9, 15)),
     );
     await provider.load();
   }
@@ -116,12 +117,17 @@ void main() {
   testWidgets('future-dated rows are marked upcoming and not counted', (
     tester,
   ) async {
+    // DAY-5: every day in the period, so the concert's day shows as well.
+    provider.clearSelectedDay();
     await showHome(tester);
 
     expect(find.text('September 2026'), findsOneWidget);
     expect(find.text('Food · Upcoming'), findsOneWidget);
-    // The expense total is only lunch; the concert hasn't happened yet.
-    expect(find.text('\$12.50'), findsOneWidget);
+    // The expense total is only lunch; the concert hasn't happened yet. Its
+    // day still carries a total of its own (DAY-7), so 12.50 shows twice: in
+    // the summary and on lunch's day.
+    expect(find.text('\$12.50'), findsNWidgets(2));
+    expect(find.text('\$40.00'), findsOneWidget);
   });
 
   testWidgets('the balance carries forward from earlier periods (BAL-2)', (
@@ -155,7 +161,8 @@ void main() {
 
     await showHome(tester);
 
-    expect(find.text('€12.50'), findsOneWidget);
+    // The summary's expense and the day's own total (DAY-7).
+    expect(find.text('€12.50'), findsNWidgets(2));
   });
 
   testWidgets('the arrows move between periods', (tester) async {
@@ -524,7 +531,9 @@ void main() {
 
     expect(find.text('acc-cash → bank'), findsOneWidget);
     expect(find.text('\$50.00'), findsOneWidget);
-    expect(find.text('\$12.50'), findsOneWidget);
+    // The summary's expense and lunch's own day total (DAY-7); the transfer
+    // counts in neither.
+    expect(find.text('\$12.50'), findsNWidgets(2));
 
     await tester.tap(find.text('acc-cash → bank'));
     await tester.pumpAndSettle();
@@ -558,5 +567,136 @@ void main() {
 
     expect(find.text('acc-cash → bank'), findsOneWidget);
     expect(find.text("Couldn't save the transfer. Try again."), findsOneWidget);
+  });
+
+  group('the day strip (DAY-1 – DAY-7)', () {
+    testWidgets('Home opens on today, with that day on its own (DAY-1)', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      // A week of days, and only today's entries under them.
+      expect(find.text('19'), findsOneWidget);
+      expect(find.text('Sep 15, 2026'), findsOneWidget);
+      expect(find.text('Lunch'), findsOneWidget);
+      expect(find.text('Concert'), findsNothing);
+    });
+
+    testWidgets('another day in the week shows that day instead', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.text('18'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sep 18, 2026'), findsOneWidget);
+      expect(find.text('Concert'), findsOneWidget);
+      expect(find.text('Lunch'), findsNothing);
+    });
+
+    testWidgets('a day with nothing on it says so (DAY-7)', (tester) async {
+      await showHome(tester);
+
+      await tester.tap(find.text('16'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nothing on this day.'), findsOneWidget);
+      expect(find.text('Lunch'), findsNothing);
+    });
+
+    testWidgets('the chosen day again shows the whole period (DAY-5)', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.text('15'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lunch'), findsOneWidget);
+      expect(find.text('Concert'), findsOneWidget);
+    });
+
+    testWidgets('a day in another period brings the period with it (DAY-3)', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      // Two weeks back from 13–19 September reaches 30 August – 5 September.
+      for (var i = 0; i < 2; i++) {
+        await tester.drag(find.byType(DayStrip), const Offset(600, 0));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.text('31'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('August 2026'), findsOneWidget);
+      expect(find.text('Aug 31, 2026'), findsOneWidget);
+    });
+
+    testWidgets('the period arrows leave the strip on that period (DAY-6)', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.byTooltip('Previous period'));
+      await tester.pumpAndSettle();
+
+      // August holds no today, so it shows every day it has (DAY-6).
+      expect(find.text('August 2026'), findsOneWidget);
+      expect(find.text('No transactions in this period yet.'), findsOneWidget);
+    });
+
+    testWidgets('a day shows its own income and expense (DAY-7)', (
+      tester,
+    ) async {
+      fake.rows.add(
+        testTx(
+          'c',
+          TransactionType.income,
+          30,
+          DateTime(2026, 9, 15),
+          title: 'Pay',
+        ),
+      );
+      await provider.load();
+
+      await showHome(tester);
+
+      // Each side twice: once in the summary, once on the day (DAY-7, DAY-8).
+      expect(find.text('\$30.00'), findsNWidgets(2));
+      expect(find.text('\$12.50'), findsNWidgets(2));
+    });
+
+    testWidgets('a transfer dated ahead is marked upcoming (BAL-4)', (
+      tester,
+    ) async {
+      fake.accounts.add(testAccount('bank'));
+      fake.transfers.add(
+        testTransfer('t2', Account.cashId, 'bank', 20, DateTime(2026, 9, 18)),
+      );
+      await provider.load();
+
+      await showHome(tester);
+      await tester.tap(find.text('18'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Transfer · Upcoming'), findsOneWidget);
+    });
+
+    testWidgets('a different first day of the week moves the strip (DAY-2)', (
+      tester,
+    ) async {
+      await showHome(tester);
+      expect(find.text('19'), findsOneWidget);
+
+      // Weeks starting on Wednesday put today, a Tuesday, at the end of
+      // 9–15 September (PER-4).
+      await settings.setWeekStartDay(3);
+      await tester.pumpAndSettle();
+
+      expect(find.text('9'), findsOneWidget);
+      expect(find.text('19'), findsNothing);
+    });
   });
 }

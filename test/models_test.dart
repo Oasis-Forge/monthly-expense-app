@@ -296,4 +296,33 @@ void main() {
       expect(december.next.previous, december);
     });
   });
+
+  group('the week a day sits in (DAY-2, DAY-3)', () {
+    // 15 September 2026 is a Tuesday.
+    final tuesday = DateTime(2026, 9, 15);
+
+    test('a week starts on the chosen first day', () {
+      expect(startOfWeek(tuesday, 0), DateTime(2026, 9, 13));
+      expect(startOfWeek(tuesday, 1), DateTime(2026, 9, 14));
+      expect(startOfWeek(tuesday, 6), DateTime(2026, 9, 12));
+    });
+
+    test('a day that already starts its week stays where it is', () {
+      expect(startOfWeek(DateTime(2026, 9, 13), 0), DateTime(2026, 9, 13));
+    });
+
+    test('weeks run across a month end', () {
+      expect(startOfWeek(DateTime(2026, 10, 1), 1), DateTime(2026, 9, 28));
+    });
+
+    test('days are counted on the calendar, either way', () {
+      expect(daysBetween(DateTime(2026, 9, 28), DateTime(2026, 10, 5)), 7);
+      expect(daysBetween(DateTime(2026, 10, 5), DateTime(2026, 9, 28)), -7);
+      // The clock inside a day never adds or drops one.
+      expect(
+        daysBetween(DateTime(2026, 9, 15, 23), DateTime(2026, 9, 16, 1)),
+        1,
+      );
+    });
+  });
 }
