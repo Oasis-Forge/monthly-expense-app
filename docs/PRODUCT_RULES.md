@@ -47,6 +47,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ADD-6** The date arrows move one day back or forward; tapping the date opens a picker.
 - **ADD-7** Duplicate copies everything except the ID and sets the date to today.
 - **ADD-8** Future dates are allowed. The row is marked as upcoming until its date arrives (BAL-4).
+- **ADD-9** Leaving a form with unsaved edits asks first. Back closes the keypad if it is open, and the next Back — like the toolbar's arrow — asks "Discard changes?", with Keep editing and Discard. A form nothing has been typed into leaves without a word, and saving, "Save & add another" and deleting leave as they always did. It covers the transaction form and the transfer form.
 
 ## 4. Categories
 
@@ -118,7 +119,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **Learn:** undo is faster than a confirmation dialog and just as safe.
 
-- **DEL-2** Delete needs no confirmation. A snackbar offers Undo for about 5 seconds.
+- **DEL-2** Swiping a row away needs no confirmation: a snackbar offers Undo for about 5 seconds. Delete chosen from a row's menu asks first (ROW-3), since a tap in a menu is easy to land by mistake. Either way the entry goes to the trash and the same Undo snackbar appears.
 - **DEL-3** Deleted items stay in the trash for 30 days, then get purged on app start.
 - **DEL-4** Restore keeps the original ID, date, and category. If the category was archived in the meantime, the transaction still restores.
 
@@ -377,6 +378,17 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **DAY-8** The summary card and the budgets card stay on the period (BAL-3, BUD-7): the strip changes which entries are listed, not what the period means.
 - **DAY-9** A new entry opened while a day is chosen starts on that day, at the current time; with no day chosen it starts on today. A duplicate and a recorded note are still dated today (ADD-7, NOTE-4).
 
+## 28. A row's own actions
+
+**They do:** a swipe deletes a row, and everything else waits until the entry is opened.
+
+**Learn:** a swipe is quick once you know it is there, but nothing on the row says so, and a row has only one swipe to give. A button that names its actions is findable by anyone, and it gives deleting the moment of thought a swipe doesn't need: a swipe is deliberate, a tap in a menu is easy to land by mistake.
+
+- **ROW-1** Every transaction row in a list — Home's day list, Search results, and the calendar's day list — carries a three-dot button at its trailing edge, beside the amount. It opens a menu of Duplicate and Delete, and opening it never opens the entry.
+- **ROW-2** Duplicate opens the add form prefilled from the row, exactly as it does from the details page: everything but the ID and the attachments, dated today (ADD-7). Nothing is written until the form is saved, and it is called Duplicate in both places, because it is one action.
+- **ROW-3** Delete from the menu asks "Delete this transaction?" and says where the entry goes, before anything happens. Confirming moves it to the trash with the usual Undo (DEL-2, DEL-3); Cancel leaves the row alone, and a delete that fails says so and keeps it.
+- **ROW-4** The row's other ways in are unchanged: a tap opens the details page (DET-1), and a swipe still deletes with Undo and no question (DEL-2). Transfer rows keep the swipe alone until they have a details page of their own (DET-7).
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -423,6 +435,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 ## Decisions (19 September 2026)
 
 29. Home opens on today, with a week of days above the list to move between them (section 27, DAY-1–DAY-9). Home named the month but never the day, so an entry that is nearly always today's began life in a list of the whole month, and reaching another day meant scrolling or the calendar. The month list stays one tap away (DAY-5), and each day now carries its own total (DAY-7).
+
+30. A transaction row gets a three-dot menu of its own — Duplicate and Delete — in every list that shows one (section 28, ROW-1–ROW-4), and Delete from it asks before it acts, which is the one place DEL-2's "no confirmation" now bends: the gesture keeps its speed, the menu tap gets a moment of thought. A form also stops losing what was typed into it: Back closes the keypad, and the next one asks (ADD-9). Both came out of using the app by hand.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
