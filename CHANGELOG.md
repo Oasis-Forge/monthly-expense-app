@@ -4,6 +4,20 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-09-19
+
+### Added
+- Home opens on the current day, with a week of days above the list: tap a day to see it on its own, swipe sideways for other weeks, and a day carrying an entry shows a dot. Each day now shows its own income and expense beside its date.
+- A three-dot menu on every transaction row, on Home, in Search and in the calendar, with Duplicate and Delete. Deleting from the menu asks first, and says the entry can be restored from the trash for 30 days.
+- The summary card collapses to a single line with your balance, by a tap or while you scroll the list, and opens again at the top. It keeps the way you left it.
+
+### Changed
+- A new transaction or transfer starts on the day Home is showing, instead of always today. Tapping the chosen day again brings back the whole period's list.
+- Leaving a form no longer loses what you typed: Back closes the keypad first, and then asks before anything is discarded.
+
+### Fixed
+- A deleted transfer can be got back. The trash now lists transfers beside transactions, and keeps them when the app restarts; before, only the Undo snackbar could bring one back.
+
 ## [1.16.0] - 2026-09-18
 
 ### Added
