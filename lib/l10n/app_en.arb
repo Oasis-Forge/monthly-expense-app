@@ -9,11 +9,11 @@
   "balanceLabel": "Balance",
   "expandSummaryTooltip": "Show income and expense",
   "@expandSummaryTooltip": {
-    "description": "What tapping the collapsed summary card on Home does (BAL-5)."
+    "description": "What tapping the collapsed summary card on Home does (BAL-6)."
   },
   "collapseSummaryTooltip": "Show only the balance",
   "@collapseSummaryTooltip": {
-    "description": "What tapping the open summary card on Home does (BAL-5)."
+    "description": "What tapping the open summary card on Home does (BAL-6)."
   },
   "periodNetLabel": "This period",
   "carriedForwardLine": "Carried forward {amount}",

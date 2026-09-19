@@ -115,7 +115,7 @@ class SettingsProvider extends ChangeNotifier {
   /// periods, instead of only this period's net. On by default.
   bool get showCarriedForward => _showCarriedForward;
 
-  /// Whether Home's summary card is the balance alone (BAL-5). It is how
+  /// Whether Home's summary card is the balance alone (BAL-6). It is how
   /// this device is set up to look, so a backup doesn't carry it.
   bool get summaryCollapsed => _summaryCollapsed;
 

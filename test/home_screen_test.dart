@@ -798,7 +798,7 @@ void main() {
     });
   });
 
-  group('the summary card (BAL-5, BAL-6)', () {
+  group('the summary card (BAL-6, BAL-7)', () {
     testWidgets('tapping it leaves the balance, and it is remembered', (
       tester,
     ) async {
@@ -832,7 +832,7 @@ void main() {
       expect(settings.summaryCollapsed, isFalse);
     });
 
-    testWidgets('scrolling the list collapses it; the top opens it (BAL-6)', (
+    testWidgets('scrolling the list collapses it; the top opens it (BAL-7)', (
       tester,
     ) async {
       for (var i = 0; i < 20; i++) {

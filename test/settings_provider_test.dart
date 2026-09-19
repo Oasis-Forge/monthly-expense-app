@@ -351,7 +351,7 @@ void main() {
     expect(settings.languageCode, isNull);
   });
 
-  test('the summary card remembers being collapsed (BAL-5)', () async {
+  test('the summary card remembers being collapsed (BAL-6)', () async {
     final settings = SettingsProvider(await prefsWith({}));
     expect(settings.summaryCollapsed, isFalse);
 

@@ -61,7 +61,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 /// Home's own state is how far the day list has been scrolled: away from the
-/// top, the summary card gives its room to the entries (BAL-6).
+/// top, the summary card gives its room to the entries (BAL-7).
 class _HomeScreenState extends State<HomeScreen> {
   final _listController = ScrollController();
 
@@ -155,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? provider.carriedForward
                 : null,
             currency: currency,
-            // BAL-5 by hand, BAL-6 because the list is scrolled.
+            // BAL-6 by hand, BAL-7 because the list is scrolled.
             collapsed: settings.summaryCollapsed || _scrolled,
             onToggle: () {
               // A tap does what the card shows: opens it when it is a line,
@@ -552,7 +552,7 @@ class _SummaryCard extends StatelessWidget {
   final Money? carriedForward;
   final NumberFormat currency;
 
-  /// Whether the card is the balance on one line (BAL-5).
+  /// Whether the card is the balance on one line (BAL-6).
   final bool collapsed;
   final VoidCallback onToggle;
 
@@ -578,7 +578,7 @@ class _SummaryCard extends StatelessWidget {
       elevation: 2,
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        // BAL-5: the card itself is the switch between one line and the rest.
+        // BAL-6: the card itself is the switch between one line and the rest.
         onTap: onToggle,
         child: AnimatedSize(
           duration: const Duration(milliseconds: 180),

@@ -71,6 +71,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **BAL-3** Closing balance = carried forward + period net. Showing the carried-forward balance is a setting, on by default.
 - **BAL-4** A future-dated transaction counts nowhere until its date arrives: not in totals, balances, charts, or budgets. It shows in the list as upcoming and starts counting on its date.
 - **BAL-5** Deleted (trashed) transactions count nowhere: totals, charts, budgets, search, or export.
+- **BAL-6** The summary card on Home collapses to a single line — the balance, in its colour — and opens again on a tap. It keeps the way it was last left, on this device: it is a view of Home rather than a record, so a backup doesn't carry it.
+- **BAL-7** Scrolling the day list collapses the card, and coming back to the top opens it again, so the entries have the screen while they are being read. Scrolling never opens a card that was closed by hand, and never changes what was chosen.
 
 ## 6. Accounts and transfers
 
@@ -122,6 +124,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **DEL-2** Swiping a row away needs no confirmation: a snackbar offers Undo for about 5 seconds. Delete chosen from a row's menu asks first (ROW-3), since a tap in a menu is easy to land by mistake. Either way the entry goes to the trash and the same Undo snackbar appears.
 - **DEL-3** Deleted items stay in the trash for 30 days, then get purged on app start.
 - **DEL-4** Restore keeps the original ID, date, and category. If the category was archived in the meantime, the transaction still restores.
+- **DEL-5** The trash holds everything that was deleted — transfers as well as transactions — most recently deleted first, each restored by the same button (DEL-4). A deleted transfer survives the next launch: it waits out its 30 days in the database like anything else (DEL-3), and the app reads it back rather than forgetting it.
 
 ## 10. Search and filters
 
@@ -369,7 +372,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 **Learn:** a new entry is nearly always today's, so Home should already be there. A week of days across the top says which day is which, keeps today in sight without scrolling, and turns "record yesterday's taxi" into two taps rather than a date picker. The month doesn't go away: it is the same list, one tap back.
 
 - **DAY-1** Home opens on today: the strip chooses it and the list shows that day alone. Adding an entry is then always on the day it belongs to.
-- **DAY-2** The strip sits under the period selector: seven days, the weekday over the date, ordered by the first day of the week (PER-4) and the locale's direction (LANG-5). Today keeps a mark of its own even when another day is chosen.
+- **DAY-2** The strip sits under the period selector: seven days, the weekday over the date, ordered by the first day of the week (PER-4) and the locale's direction (LANG-5). Today keeps a mark of its own even when another day is chosen. The strip is on every Home there is, the first-run welcome included, so the day a first entry lands on is never a surprise.
 - **DAY-3** Swiping the strip moves a week at a time. Choosing a day outside the shown period moves the period to the one that contains it, whatever day that period starts on (PER-1, PER-2).
 - **DAY-4** A day carrying any entry shows a dot under its date, so a week's activity reads at a glance.
 - **DAY-5** Tapping the chosen day again clears it: the list goes back to every day in the period, newest first.
@@ -437,6 +440,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 29. Home opens on today, with a week of days above the list to move between them (section 27, DAY-1–DAY-9). Home named the month but never the day, so an entry that is nearly always today's began life in a list of the whole month, and reaching another day meant scrolling or the calendar. The month list stays one tap away (DAY-5), and each day now carries its own total (DAY-7).
 
 30. A transaction row gets a three-dot menu of its own — Duplicate and Delete — in every list that shows one (section 28, ROW-1–ROW-4), and Delete from it asks before it acts, which is the one place DEL-2's "no confirmation" now bends: the gesture keeps its speed, the menu tap gets a moment of thought. A form also stops losing what was typed into it: Back closes the keypad, and the next one asks (ADD-9). Both came out of using the app by hand.
+
+31. Home's summary card can be one line (BAL-6), and scrolling the day list collapses it (BAL-7): on a phone the fixed header — period, day strip, summary, notices — was eating the list it sits above. The strip itself is now on every Home, the welcome included (DAY-2). And the trash finally holds transfers (DEL-5): deleting one offered Undo and nothing else, so a transfer deleted a minute earlier was already beyond recovery, and one deleted before a relaunch was forgotten entirely. Found by asking what the trash was tested for.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
