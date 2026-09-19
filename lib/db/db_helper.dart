@@ -246,6 +246,19 @@ class DBHelper {
     return [for (final map in maps) Transfer.fromMap(map)];
   }
 
+  /// Transfers in the trash, most recently deleted first (DEL-5). Without
+  /// this the next launch forgot them, and only the Undo snackbar could
+  /// bring one back.
+  Future<List<Transfer>> fetchDeletedTransfers() async {
+    final db = await database;
+    final maps = await db.query(
+      'transfers',
+      where: 'deleted_at IS NOT NULL',
+      orderBy: 'deleted_at DESC',
+    );
+    return [for (final map in maps) Transfer.fromMap(map)];
+  }
+
   Future<void> insertTransfer(Transfer transfer) async {
     final db = await database;
     await db.insert('transfers', transfer.toMap());

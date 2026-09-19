@@ -115,6 +115,10 @@ class TransactionProvider extends ChangeNotifier {
   /// Transfers that aren't deleted, newest first.
   List<Transfer> get transfers => List.unmodifiable(_transfers);
 
+  /// Transfers in the trash, most recently deleted first (DEL-5). They are
+  /// restored the same way transactions are, from the same screen.
+  List<Transfer> get deletedTransfers => List.unmodifiable(_deletedTransfers);
+
   List<Category> get categories => List.unmodifiable(_categories);
 
   /// Every account that isn't deleted, archived ones included.
@@ -308,9 +312,14 @@ class TransactionProvider extends ChangeNotifier {
   bool isUpcoming(ExpenseTransaction tx) => isUpcomingDate(tx.date);
 
   /// Whole days before a trashed [tx] is deleted for good, at least 1.
-  int trashDaysLeft(ExpenseTransaction tx) {
-    final left =
-        trashRetention.inDays - _clock().difference(tx.deletedAt!).inDays;
+  int trashDaysLeft(ExpenseTransaction tx) => _daysLeftSince(tx.deletedAt!);
+
+  /// The same for a trashed transfer (DEL-5).
+  int trashDaysLeftForTransfer(Transfer transfer) =>
+      _daysLeftSince(transfer.deletedAt!);
+
+  int _daysLeftSince(DateTime deletedAt) {
+    final left = trashRetention.inDays - _clock().difference(deletedAt).inDays;
     return left < 1 ? 1 : left;
   }
 
@@ -357,6 +366,7 @@ class TransactionProvider extends ChangeNotifier {
     final loaded = await _db.fetchTransactions();
     final deleted = await _db.fetchDeletedTransactions();
     final transfers = await _db.fetchTransfers();
+    final deletedTransfers = await _db.fetchDeletedTransfers();
     _occurrences
       ..clear()
       ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
@@ -371,7 +381,10 @@ class TransactionProvider extends ChangeNotifier {
       ..clear()
       ..addAll(transfers)
       ..sort(_newestTransferFirst);
-    _deletedTransfers.clear();
+    // DEL-5: the trash keeps transfers across a launch, like transactions.
+    _deletedTransfers
+      ..clear()
+      ..addAll(deletedTransfers);
     _deletedNotes.clear();
     _reopenedNotes.clear();
     await _postAutomaticOccurrences();
