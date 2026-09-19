@@ -133,6 +133,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get duplicateTooltip => '복제';
 
   @override
+  String get rowMenuTooltip => '추가 작업';
+
+  @override
+  String get deleteTransactionTitle => '이 거래를 삭제할까요?';
+
+  @override
+  String get deleteTransactionMessage => '휴지통으로 이동하며 30일 동안 복원할 수 있어요.';
+
+  @override
+  String get discardChangesTitle => '변경사항을 버릴까요?';
+
+  @override
+  String get discardChangesMessage => '여기에 입력한 내용은 저장되지 않았어요.';
+
+  @override
+  String get discardButton => '버리기';
+
+  @override
+  String get keepEditingButton => '계속 편집';
+
+  @override
   String get titleOptionalLabel => '제목 (선택)';
 
   @override

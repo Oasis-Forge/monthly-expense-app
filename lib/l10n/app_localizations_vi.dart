@@ -134,6 +134,28 @@ class AppLocalizationsVi extends AppLocalizations {
   String get duplicateTooltip => 'Nhân bản';
 
   @override
+  String get rowMenuTooltip => 'Thao tác khác';
+
+  @override
+  String get deleteTransactionTitle => 'Xóa giao dịch này?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Mục này chuyển vào thùng rác và khôi phục được trong 30 ngày.';
+
+  @override
+  String get discardChangesTitle => 'Bỏ thay đổi?';
+
+  @override
+  String get discardChangesMessage => 'Nội dung bạn nhập ở đây chưa được lưu.';
+
+  @override
+  String get discardButton => 'Bỏ';
+
+  @override
+  String get keepEditingButton => 'Tiếp tục sửa';
+
+  @override
   String get titleOptionalLabel => 'Tiêu đề (không bắt buộc)';
 
   @override

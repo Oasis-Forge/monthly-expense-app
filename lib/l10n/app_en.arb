@@ -97,6 +97,34 @@
   },
   "deleteTooltip": "Delete",
   "duplicateTooltip": "Duplicate",
+  "rowMenuTooltip": "More actions",
+  "@rowMenuTooltip": {
+    "description": "Tooltip on a transaction row's three-dot button (ROW-1)."
+  },
+  "deleteTransactionTitle": "Delete this transaction?",
+  "@deleteTransactionTitle": {
+    "description": "Title of the dialog that a row menu's Delete opens (ROW-3)."
+  },
+  "deleteTransactionMessage": "It goes to the trash, and can be restored for 30 days.",
+  "@deleteTransactionMessage": {
+    "description": "Body of the delete dialog: where the entry goes (ROW-3, DEL-3)."
+  },
+  "discardChangesTitle": "Discard changes?",
+  "@discardChangesTitle": {
+    "description": "Title of the dialog shown when Back would leave a form with unsaved edits (ADD-9)."
+  },
+  "discardChangesMessage": "What you typed here hasn't been saved.",
+  "@discardChangesMessage": {
+    "description": "Body of the discard dialog (ADD-9)."
+  },
+  "discardButton": "Discard",
+  "@discardButton": {
+    "description": "Button that leaves the form and loses the edits (ADD-9)."
+  },
+  "keepEditingButton": "Keep editing",
+  "@keepEditingButton": {
+    "description": "Button that stays on the form (ADD-9)."
+  },
   "titleOptionalLabel": "Title (optional)",
   "amountLabel": "Amount",
   "amountRequired": "Enter an amount",

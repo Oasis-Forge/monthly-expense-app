@@ -133,6 +133,29 @@ class AppLocalizationsUr extends AppLocalizations {
   String get duplicateTooltip => 'نقل بنائیں';
 
   @override
+  String get rowMenuTooltip => 'مزید اختیارات';
+
+  @override
+  String get deleteTransactionTitle => 'یہ ٹرانزیکشن حذف کریں؟';
+
+  @override
+  String get deleteTransactionMessage =>
+      'یہ ردی میں چلی جائے گی اور 30 دن تک بحال ہو سکتی ہے۔';
+
+  @override
+  String get discardChangesTitle => 'تبدیلیاں مسترد کریں؟';
+
+  @override
+  String get discardChangesMessage =>
+      'آپ نے یہاں جو لکھا ہے وہ محفوظ نہیں ہوا۔';
+
+  @override
+  String get discardButton => 'مسترد کریں';
+
+  @override
+  String get keepEditingButton => 'ترمیم جاری رکھیں';
+
+  @override
   String get titleOptionalLabel => 'عنوان (اختیاری)';
 
   @override

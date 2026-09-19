@@ -133,6 +133,28 @@ class AppLocalizationsTr extends AppLocalizations {
   String get duplicateTooltip => 'Çoğalt';
 
   @override
+  String get rowMenuTooltip => 'Diğer işlemler';
+
+  @override
+  String get deleteTransactionTitle => 'Bu işlem silinsin mi?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Çöp kutusuna gider ve 30 gün boyunca geri alınabilir.';
+
+  @override
+  String get discardChangesTitle => 'Değişiklikler atılsın mı?';
+
+  @override
+  String get discardChangesMessage => 'Buraya yazdıkların kaydedilmedi.';
+
+  @override
+  String get discardButton => 'At';
+
+  @override
+  String get keepEditingButton => 'Düzenlemeye devam';
+
+  @override
   String get titleOptionalLabel => 'Başlık (isteğe bağlı)';
 
   @override

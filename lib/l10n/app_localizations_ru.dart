@@ -140,6 +140,28 @@ class AppLocalizationsRu extends AppLocalizations {
   String get duplicateTooltip => 'Дублировать';
 
   @override
+  String get rowMenuTooltip => 'Другие действия';
+
+  @override
+  String get deleteTransactionTitle => 'Удалить эту операцию?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Она попадёт в корзину, откуда её можно вернуть в течение 30 дней.';
+
+  @override
+  String get discardChangesTitle => 'Отменить изменения?';
+
+  @override
+  String get discardChangesMessage => 'Введённое здесь не сохранено.';
+
+  @override
+  String get discardButton => 'Отменить';
+
+  @override
+  String get keepEditingButton => 'Продолжить';
+
+  @override
   String get titleOptionalLabel => 'Заголовок (необязательно)';
 
   @override

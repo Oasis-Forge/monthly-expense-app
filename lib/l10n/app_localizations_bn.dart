@@ -133,6 +133,28 @@ class AppLocalizationsBn extends AppLocalizations {
   String get duplicateTooltip => 'কপি করুন';
 
   @override
+  String get rowMenuTooltip => 'আরও কাজ';
+
+  @override
+  String get deleteTransactionTitle => 'এই লেনদেন মুছবেন?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'এটি ট্র্যাশে যাবে, ৩০ দিন পর্যন্ত ফেরানো যাবে।';
+
+  @override
+  String get discardChangesTitle => 'পরিবর্তন বাতিল করবেন?';
+
+  @override
+  String get discardChangesMessage => 'এখানে যা লিখেছেন তা সংরক্ষণ করা হয়নি।';
+
+  @override
+  String get discardButton => 'বাতিল করুন';
+
+  @override
+  String get keepEditingButton => 'সম্পাদনা চালিয়ে যান';
+
+  @override
   String get titleOptionalLabel => 'শিরোনাম (ঐচ্ছিক)';
 
   @override

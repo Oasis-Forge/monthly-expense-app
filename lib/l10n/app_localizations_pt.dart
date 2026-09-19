@@ -135,6 +135,28 @@ class AppLocalizationsPt extends AppLocalizations {
   String get duplicateTooltip => 'Duplicar';
 
   @override
+  String get rowMenuTooltip => 'Mais ações';
+
+  @override
+  String get deleteTransactionTitle => 'Excluir esta transação?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Vai para a lixeira e pode ser restaurada por 30 dias.';
+
+  @override
+  String get discardChangesTitle => 'Descartar alterações?';
+
+  @override
+  String get discardChangesMessage => 'O que você digitou aqui não foi salvo.';
+
+  @override
+  String get discardButton => 'Descartar';
+
+  @override
+  String get keepEditingButton => 'Continuar editando';
+
+  @override
   String get titleOptionalLabel => 'Título (opcional)';
 
   @override

@@ -135,6 +135,29 @@ class AppLocalizationsEl extends AppLocalizations {
   String get duplicateTooltip => 'Αντιγραφή';
 
   @override
+  String get rowMenuTooltip => 'Περισσότερες ενέργειες';
+
+  @override
+  String get deleteTransactionTitle => 'Διαγραφή αυτής της συναλλαγής;';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Πηγαίνει στον κάδο και μπορεί να επαναφερθεί για 30 ημέρες.';
+
+  @override
+  String get discardChangesTitle => 'Απόρριψη αλλαγών;';
+
+  @override
+  String get discardChangesMessage =>
+      'Ό,τι πληκτρολογήσατε εδώ δεν έχει αποθηκευτεί.';
+
+  @override
+  String get discardButton => 'Απόρριψη';
+
+  @override
+  String get keepEditingButton => 'Συνέχεια';
+
+  @override
   String get titleOptionalLabel => 'Τίτλος (προαιρετικό)';
 
   @override

@@ -12,6 +12,7 @@ import '../providers/transaction_provider.dart';
 import 'csv_export_action.dart';
 import 'report_screen.dart';
 import 'transaction_detail_screen.dart';
+import 'transaction_row_menu.dart';
 
 /// Searches every transaction as you type, with filters for type, category,
 /// account, and dates (SRCH-1–SRCH-3).
@@ -230,9 +231,13 @@ class _ResultTile extends StatelessWidget {
           DateFormat.yMMMd(l10n.localeName).format(transaction.date),
         ),
       ),
-      trailing: Text(
-        '${isIncome ? '+' : '-'}${currency.format(transaction.amount.toDouble())}',
-        style: TextStyle(color: color, fontWeight: FontWeight.w600),
+      // ROW-1: the amount, then the row's own menu.
+      trailing: TransactionRowTrailing(
+        transaction: transaction,
+        amount: Text(
+          '${isIncome ? '+' : '-'}${currency.format(transaction.amount.toDouble())}',
+          style: TextStyle(color: color, fontWeight: FontWeight.w600),
+        ),
       ),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(

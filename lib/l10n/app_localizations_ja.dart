@@ -133,6 +133,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get duplicateTooltip => '複製';
 
   @override
+  String get rowMenuTooltip => 'その他の操作';
+
+  @override
+  String get deleteTransactionTitle => 'この取引を削除しますか？';
+
+  @override
+  String get deleteTransactionMessage => 'ゴミ箱に移動し、30 日間は元に戻せます。';
+
+  @override
+  String get discardChangesTitle => '変更を破棄しますか？';
+
+  @override
+  String get discardChangesMessage => '入力した内容はまだ保存されていません。';
+
+  @override
+  String get discardButton => '破棄';
+
+  @override
+  String get keepEditingButton => '編集を続ける';
+
+  @override
   String get titleOptionalLabel => 'タイトル(任意)';
 
   @override

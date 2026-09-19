@@ -133,6 +133,29 @@ class AppLocalizationsHi extends AppLocalizations {
   String get duplicateTooltip => 'डुप्लीकेट';
 
   @override
+  String get rowMenuTooltip => 'और विकल्प';
+
+  @override
+  String get deleteTransactionTitle => 'यह लेनदेन हटाएँ?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'यह ट्रैश में जाएगा और 30 दिनों तक वापस लाया जा सकता है।';
+
+  @override
+  String get discardChangesTitle => 'बदलाव छोड़ दें?';
+
+  @override
+  String get discardChangesMessage =>
+      'आपने यहाँ जो लिखा है वह सहेजा नहीं गया है।';
+
+  @override
+  String get discardButton => 'छोड़ें';
+
+  @override
+  String get keepEditingButton => 'संपादन जारी रखें';
+
+  @override
   String get titleOptionalLabel => 'शीर्षक (वैकल्पिक)';
 
   @override

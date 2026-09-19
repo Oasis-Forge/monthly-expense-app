@@ -32,6 +32,7 @@ import 'report_screen.dart';
 import 'search_screen.dart';
 import 'settings_screen.dart';
 import 'transaction_detail_screen.dart';
+import 'transaction_row_menu.dart';
 import 'transfer_screen.dart';
 import 'trash_screen.dart';
 
@@ -779,11 +780,15 @@ class _TransactionTile extends StatelessWidget {
               ? l10n.upcomingCategory(categoryName)
               : categoryName,
         ),
-        trailing: Text(
-          '$sign${currency.format(transaction.amount.toDouble())}',
-          // The sign stays in front of the amount in Arabic (LANG-5).
-          textDirection: TextDirection.ltr,
-          style: TextStyle(color: color, fontWeight: FontWeight.w600),
+        // ROW-1: the amount, then the row's own menu.
+        trailing: TransactionRowTrailing(
+          transaction: transaction,
+          amount: Text(
+            '$sign${currency.format(transaction.amount.toDouble())}',
+            // The sign stays in front of the amount in Arabic (LANG-5).
+            textDirection: TextDirection.ltr,
+            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
         ),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(

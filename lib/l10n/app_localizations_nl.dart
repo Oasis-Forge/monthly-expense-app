@@ -135,6 +135,29 @@ class AppLocalizationsNl extends AppLocalizations {
   String get duplicateTooltip => 'Dupliceren';
 
   @override
+  String get rowMenuTooltip => 'Meer acties';
+
+  @override
+  String get deleteTransactionTitle => 'Deze transactie verwijderen?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Hij gaat naar de prullenbak en kan 30 dagen worden hersteld.';
+
+  @override
+  String get discardChangesTitle => 'Wijzigingen verwerpen?';
+
+  @override
+  String get discardChangesMessage =>
+      'Wat je hier hebt getypt, is niet opgeslagen.';
+
+  @override
+  String get discardButton => 'Verwerpen';
+
+  @override
+  String get keepEditingButton => 'Verder bewerken';
+
+  @override
   String get titleOptionalLabel => 'Titel (optioneel)';
 
   @override

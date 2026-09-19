@@ -133,6 +133,28 @@ class AppLocalizationsTh extends AppLocalizations {
   String get duplicateTooltip => 'ทำสำเนา';
 
   @override
+  String get rowMenuTooltip => 'การทำงานอื่น';
+
+  @override
+  String get deleteTransactionTitle => 'ลบรายการนี้ไหม';
+
+  @override
+  String get deleteTransactionMessage =>
+      'จะย้ายไปถังขยะ และกู้คืนได้ภายใน 30 วัน';
+
+  @override
+  String get discardChangesTitle => 'ละทิ้งการเปลี่ยนแปลงไหม';
+
+  @override
+  String get discardChangesMessage => 'สิ่งที่คุณพิมพ์ไว้ยังไม่ได้บันทึก';
+
+  @override
+  String get discardButton => 'ละทิ้ง';
+
+  @override
+  String get keepEditingButton => 'แก้ไขต่อ';
+
+  @override
   String get titleOptionalLabel => 'ชื่อรายการ (ไม่บังคับ)';
 
   @override

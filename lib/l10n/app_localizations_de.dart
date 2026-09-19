@@ -136,6 +136,29 @@ class AppLocalizationsDe extends AppLocalizations {
   String get duplicateTooltip => 'Duplizieren';
 
   @override
+  String get rowMenuTooltip => 'Weitere Aktionen';
+
+  @override
+  String get deleteTransactionTitle => 'Diese Buchung löschen?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Sie kommt in den Papierkorb und kann 30 Tage lang wiederhergestellt werden.';
+
+  @override
+  String get discardChangesTitle => 'Änderungen verwerfen?';
+
+  @override
+  String get discardChangesMessage =>
+      'Was du hier eingegeben hast, ist nicht gespeichert.';
+
+  @override
+  String get discardButton => 'Verwerfen';
+
+  @override
+  String get keepEditingButton => 'Weiter bearbeiten';
+
+  @override
   String get titleOptionalLabel => 'Titel (optional)';
 
   @override

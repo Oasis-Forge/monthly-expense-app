@@ -21,7 +21,8 @@ class TransferScreen extends StatefulWidget {
   State<TransferScreen> createState() => _TransferScreenState();
 }
 
-class _TransferScreenState extends State<TransferScreen> with AmountEntry {
+class _TransferScreenState extends State<TransferScreen>
+    with AmountEntry, UnsavedGuard {
   final _formKey = GlobalKey<FormState>();
   final _noteController = TextEditingController();
 
@@ -43,7 +44,19 @@ class _TransferScreenState extends State<TransferScreen> with AmountEntry {
     // A new transfer starts on the day Home is showing, like any other
     // entry (DAY-9).
     _date = editing?.date ?? context.read<TransactionProvider>().newEntryDate;
+    // ADD-9: what a later Back compares against.
+    snapshotForm();
   }
+
+  /// Everything the user can change here, for the Back guard (ADD-9).
+  @override
+  String formSnapshot() => [
+    amountController.text,
+    _noteController.text,
+    _fromId ?? '',
+    _toId ?? '',
+    _date.toIso8601String(),
+  ].join('\u0000');
 
   @override
   void dispose() {
@@ -188,65 +201,69 @@ class _TransferScreenState extends State<TransferScreen> with AmountEntry {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          editing == null ? l10n.transferTitle : l10n.editTransferTitle,
-        ),
-        actions: [
-          if (editing != null)
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: l10n.deleteTooltip,
-              onPressed: _delete,
-            ),
-        ],
-      ),
-      bottomNavigationBar: amountKeypad(),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            amountField(currency, l10n, autofocus: editing == null),
-            const SizedBox(height: 16),
-            accountField(
-              l10n.fromAccountLabel,
-              _fromId,
-              (value) => setState(() => _fromId = value),
-            ),
-            const SizedBox(height: 16),
-            accountField(
-              l10n.toAccountLabel,
-              _toId,
-              (value) => setState(() => _toId = value),
-              validator: (value) =>
-                  value == _fromId ? l10n.sameAccountError : null,
-            ),
-            const SizedBox(height: 16),
-            DateField(
-              date: _date,
-              onChanged: (date) => setState(() => _date = date),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _noteController,
-              decoration: InputDecoration(
-                labelText: l10n.noteOptionalLabel,
-                border: const OutlineInputBorder(),
+    return guardBack(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            editing == null ? l10n.transferTitle : l10n.editTransferTitle,
+          ),
+          actions: [
+            if (editing != null)
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l10n.deleteTooltip,
+                onPressed: _delete,
               ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _submit,
-              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-              child: Text(
-                editing == null
-                    ? l10n.addTransferButton
-                    : l10n.saveChangesButton,
-              ),
-            ),
           ],
+        ),
+        bottomNavigationBar: amountKeypad(),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              amountField(currency, l10n, autofocus: editing == null),
+              const SizedBox(height: 16),
+              accountField(
+                l10n.fromAccountLabel,
+                _fromId,
+                (value) => setState(() => _fromId = value),
+              ),
+              const SizedBox(height: 16),
+              accountField(
+                l10n.toAccountLabel,
+                _toId,
+                (value) => setState(() => _toId = value),
+                validator: (value) =>
+                    value == _fromId ? l10n.sameAccountError : null,
+              ),
+              const SizedBox(height: 16),
+              DateField(
+                date: _date,
+                onChanged: (date) => setState(() => _date = date),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _noteController,
+                decoration: InputDecoration(
+                  labelText: l10n.noteOptionalLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _submit,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Text(
+                  editing == null
+                      ? l10n.addTransferButton
+                      : l10n.saveChangesButton,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

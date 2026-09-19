@@ -142,6 +142,28 @@ class AppLocalizationsAr extends AppLocalizations {
   String get duplicateTooltip => 'تكرار';
 
   @override
+  String get rowMenuTooltip => 'خيارات أخرى';
+
+  @override
+  String get deleteTransactionTitle => 'حذف هذه المعاملة؟';
+
+  @override
+  String get deleteTransactionMessage =>
+      'تنتقل إلى المحذوفات، ويمكن استعادتها خلال ٣٠ يومًا.';
+
+  @override
+  String get discardChangesTitle => 'تجاهل التغييرات؟';
+
+  @override
+  String get discardChangesMessage => 'ما كتبته هنا لم يُحفظ.';
+
+  @override
+  String get discardButton => 'تجاهل';
+
+  @override
+  String get keepEditingButton => 'متابعة التعديل';
+
+  @override
   String get titleOptionalLabel => 'العنوان (اختياري)';
 
   @override

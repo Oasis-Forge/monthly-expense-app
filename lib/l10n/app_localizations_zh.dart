@@ -133,6 +133,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get duplicateTooltip => '复制';
 
   @override
+  String get rowMenuTooltip => '更多操作';
+
+  @override
+  String get deleteTransactionTitle => '删除这笔交易？';
+
+  @override
+  String get deleteTransactionMessage => '它会移入回收站，30 天内可以恢复。';
+
+  @override
+  String get discardChangesTitle => '放弃更改？';
+
+  @override
+  String get discardChangesMessage => '你在这里输入的内容尚未保存。';
+
+  @override
+  String get discardButton => '放弃';
+
+  @override
+  String get keepEditingButton => '继续编辑';
+
+  @override
   String get titleOptionalLabel => '标题（选填）';
 
   @override

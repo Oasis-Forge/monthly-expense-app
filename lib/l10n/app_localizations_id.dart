@@ -133,6 +133,28 @@ class AppLocalizationsId extends AppLocalizations {
   String get duplicateTooltip => 'Duplikat';
 
   @override
+  String get rowMenuTooltip => 'Tindakan lain';
+
+  @override
+  String get deleteTransactionTitle => 'Hapus transaksi ini?';
+
+  @override
+  String get deleteTransactionMessage =>
+      'Masuk ke sampah dan bisa dipulihkan selama 30 hari.';
+
+  @override
+  String get discardChangesTitle => 'Buang perubahan?';
+
+  @override
+  String get discardChangesMessage => 'Yang kamu ketik di sini belum disimpan.';
+
+  @override
+  String get discardButton => 'Buang';
+
+  @override
+  String get keepEditingButton => 'Lanjut mengedit';
+
+  @override
   String get titleOptionalLabel => 'Judul (opsional)';
 
   @override
