@@ -797,4 +797,82 @@ void main() {
       expect(provider.transactions, hasLength(2));
     });
   });
+
+  group('the summary card (BAL-5, BAL-6)', () {
+    testWidgets('tapping it leaves the balance, and it is remembered', (
+      tester,
+    ) async {
+      await showHome(tester);
+      expect(find.text('Income'), findsOneWidget);
+
+      await tester.tap(find.text('Balance'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Income'), findsNothing);
+      expect(find.text('Expense'), findsNothing);
+      expect(find.text('Balance'), findsOneWidget);
+      // The row under it shows the same amount, so look inside the card.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+      expect(settings.summaryCollapsed, isTrue);
+    });
+
+    testWidgets('a card left collapsed opens again on a tap', (tester) async {
+      settings = await testSettings({'summary_collapsed': true});
+
+      await showHome(tester);
+      expect(find.text('Income'), findsNothing);
+
+      await tester.tap(find.text('Balance'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Income'), findsOneWidget);
+      expect(settings.summaryCollapsed, isFalse);
+    });
+
+    testWidgets('scrolling the list collapses it; the top opens it (BAL-6)', (
+      tester,
+    ) async {
+      for (var i = 0; i < 20; i++) {
+        fake.rows.add(
+          testTx(
+            'x$i',
+            TransactionType.expense,
+            1,
+            DateTime(2026, 9, 15),
+            title: 'Row $i',
+          ),
+        );
+      }
+      await provider.load();
+
+      await showHome(tester);
+      expect(find.text('Income'), findsOneWidget);
+
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+      expect(find.text('Income'), findsNothing);
+      expect(find.text('Balance'), findsOneWidget);
+
+      await tester.drag(find.byType(ListView), const Offset(0, 500));
+      await tester.pumpAndSettle();
+      expect(find.text('Income'), findsOneWidget);
+      // Scrolling never changed what the user had chosen.
+      expect(settings.summaryCollapsed, isFalse);
+    });
+
+    testWidgets('the strip is there before the first entry (DAY-2)', (
+      tester,
+    ) async {
+      provider = TransactionProvider(db: FakeDB(), clock: () => today);
+      await provider.load();
+
+      await showHome(tester);
+
+      expect(find.text('Welcome to Monthly Expenses'), findsOneWidget);
+      expect(find.byType(DayStrip), findsOneWidget);
+    });
+  });
 }

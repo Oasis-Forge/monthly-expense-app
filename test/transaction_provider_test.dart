@@ -724,4 +724,24 @@ void main() {
       },
     );
   });
+
+  test('a deleted transfer survives the next launch (DEL-5)', () async {
+    final db = FakeDB(
+      accounts: [testAccount(cash), testAccount('bank')],
+      transfers: [testTransfer('t', cash, 'bank', 20, DateTime(2026, 9, 12))],
+    );
+    final provider = await loaded(db);
+
+    await provider.deleteTransfer('t');
+    expect(provider.deletedTransfers.single.id, 't');
+
+    // What the next launch reads back, rather than what is in memory.
+    final relaunched = await loaded(db);
+    expect(relaunched.transfers, isEmpty);
+    expect(relaunched.deletedTransfers.single.id, 't');
+
+    await relaunched.restoreTransfer('t');
+    expect(relaunched.transfers.single.id, 't');
+    expect(relaunched.deletedTransfers, isEmpty);
+  });
 }

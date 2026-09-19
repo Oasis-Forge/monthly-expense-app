@@ -291,6 +291,34 @@ void main() {
       expect([for (final t in await helper.fetchTransfers()) t.id], ['u']);
     });
 
+    test('deleted transfers are kept and read back (DEL-5)', () async {
+      final helper = helperAt('app.db');
+      final kept = testTransfer(
+        'keep',
+        Account.cashId,
+        'bank',
+        5,
+        DateTime(2026, 9, 4),
+      );
+      final gone = testTransfer(
+        'gone',
+        Account.cashId,
+        'bank',
+        50,
+        DateTime(2026, 9, 3),
+      );
+      await helper.insertTransfer(kept);
+      await helper.insertTransfer(gone);
+      await helper.updateTransfer(
+        gone.copyWith(deletedAt: DateTime.utc(2026, 9, 5)),
+      );
+
+      expect([for (final t in await helper.fetchTransfers()) t.id], ['keep']);
+      expect(
+        [for (final t in await helper.fetchDeletedTransfers()) t.id],
+        ['gone'],
+      );
+    });
     test('an import is written whole or not at all (IMP-1)', () async {
       final helper = helperAt('app.db');
 

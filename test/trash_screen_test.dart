@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/trash_screen.dart';
@@ -65,5 +67,100 @@ void main() {
       find.text("Couldn't restore the transaction. Try again."),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a deleted transfer is in the trash too, and restores (DEL-5)', (
+    tester,
+  ) async {
+    fake.accounts.add(testAccount('bank'));
+    fake.transfers.add(
+      testTransfer(
+        't',
+        Account.cashId,
+        'bank',
+        50,
+        DateTime(2026, 9, 12),
+      ).copyWith(deletedAt: DateTime.utc(2026, 9, 15, 9)),
+    );
+    await provider.load();
+
+    await showTrash(tester);
+
+    expect(find.text('acc-cash → bank'), findsOneWidget);
+    expect(find.text('\$50.00 · deleted for good in 30 days'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Restore').first);
+    await tester.pumpAndSettle();
+
+    expect(provider.transfers.single.id, 't');
+    expect(provider.deletedTransfers, isEmpty);
+  });
+
+  testWidgets('the trash lists what was deleted last, first (DEL-5)', (
+    tester,
+  ) async {
+    fake.accounts.add(testAccount('bank'));
+    fake.transfers.add(
+      testTransfer(
+        't',
+        Account.cashId,
+        'bank',
+        50,
+        DateTime(2026, 9, 12),
+      ).copyWith(deletedAt: DateTime.utc(2026, 9, 15, 9)),
+    );
+    await provider.load();
+
+    await showTrash(tester);
+
+    // The transfer went at 9am on the 15th, the lunch a day earlier.
+    final rows = tester.widgetList<ListTile>(find.byType(ListTile)).toList();
+    expect(rows, hasLength(2));
+    expect(
+      ((rows.first.title as Text).data, (rows.last.title as Text).data),
+      ('acc-cash → bank', 'Lunch'),
+    );
+  });
+
+  testWidgets('a failed transfer restore keeps it and says so (DEL-5)', (
+    tester,
+  ) async {
+    fake.accounts.add(testAccount('bank'));
+    fake.transfers.add(
+      testTransfer(
+        't',
+        Account.cashId,
+        'bank',
+        50,
+        DateTime(2026, 9, 12),
+      ).copyWith(deletedAt: DateTime.utc(2026, 9, 15, 9)),
+    );
+    await provider.load();
+    await showTrash(tester);
+    fake.failWrites = true;
+
+    await tester.tap(find.byTooltip('Restore').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('acc-cash → bank'), findsOneWidget);
+    expect(
+      find.text("Couldn't restore the transfer. Try again."),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('an empty trash says so, with nothing of either kind', (
+    tester,
+  ) async {
+    provider = TransactionProvider(
+      db: FakeDB(),
+      clock: () => DateTime(2026, 9, 15, 12),
+    );
+    await provider.load();
+
+    await showTrash(tester);
+
+    expect(find.text('Trash is empty.'), findsOneWidget);
+    expect(find.byType(ListTile), findsNothing);
   });
 }
