@@ -252,6 +252,9 @@ void main() {
   testWidgets('the first launch offers one action: add a transaction (RUN-1)', (
     tester,
   ) async {
+    // A phone, not the default wide-and-short test surface: Home shows the
+    // day strip, the summary card and the welcome, and they all fit.
+    usePhoneScreen(tester);
     provider = TransactionProvider(db: FakeDB(), clock: () => today);
     await provider.load();
 
@@ -455,6 +458,111 @@ void main() {
 
       expect(find.text('Limit \$10.00'), findsOneWidget);
       expect(find.textContaining('%'), findsNothing);
+    });
+
+    testWidgets('a short list with budgets still collapses it (BAL-7)', (
+      tester,
+    ) async {
+      // The case that used to fail: the budgets card closed leaves so little
+      // to scroll that collapsing the card gave the list back more room than
+      // the finger had taken, and the offset was corrected back to the top.
+      fake.budgets.add(
+        Budget(
+          id: 'all',
+          categoryId: null,
+          limit: const Money(125000),
+          effectiveFrom: DateTime(2026, 9),
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+        ),
+      );
+      for (var i = 0; i < 4; i++) {
+        fake.rows.add(
+          testTx(
+            'x$i',
+            TransactionType.expense,
+            1,
+            DateTime(2026, 9, 15),
+            title: 'Row $i',
+          ),
+        );
+      }
+      await provider.load();
+
+      await showHome(tester);
+      expect(find.text('Income'), findsOneWidget);
+
+      // A finger that only moves forward, a step at a time.
+      final gesture = await tester.startGesture(const Offset(400, 400));
+      final offsets = <double>[];
+      for (var i = 0; i < 8; i++) {
+        await gesture.moveBy(const Offset(0, -12));
+        await tester.pump();
+        offsets.add(
+          tester.widget<Scrollable>(find.byType(Scrollable).last).controller ==
+                  null
+              ? Scrollable.of(tester.element(find.byType(CustomScrollView)))
+                    .position
+                    .pixels
+              : 0,
+        );
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Income'), findsNothing);
+      // It never ran backwards under a forward finger.
+      for (var i = 1; i < offsets.length; i++) {
+        expect(
+          offsets[i],
+          greaterThanOrEqualTo(offsets[i - 1]),
+          reason: 'offset went backwards at step $i: $offsets',
+        );
+      }
+    });
+
+    testWidgets('scrolling folds the budgets card, the top opens it (BUD-9)', (
+      tester,
+    ) async {
+      fake.budgets.add(
+        Budget(
+          id: 'all',
+          categoryId: null,
+          limit: const Money(125000),
+          effectiveFrom: DateTime(2026, 9),
+          createdAt: DateTime.utc(2026),
+          updatedAt: DateTime.utc(2026),
+        ),
+      );
+      for (var i = 0; i < 10; i++) {
+        fake.rows.add(
+          testTx(
+            'x$i',
+            TransactionType.expense,
+            1,
+            DateTime(2026, 9, 15),
+            title: 'Row $i',
+          ),
+        );
+      }
+      await provider.load();
+
+      await showHome(tester);
+      await tester.tap(find.text('Budgets'));
+      await tester.pumpAndSettle();
+      expect(find.byType(BudgetProgress), findsOneWidget);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -200));
+      await tester.pumpAndSettle();
+
+      // Folded away while the entries are being read (BUD-9).
+      expect(find.byType(BudgetProgress), findsNothing);
+
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 400));
+      await tester.pumpAndSettle();
+
+      // Back at the top it is as the user left it.
+      expect(find.byType(BudgetProgress), findsOneWidget);
     });
   });
 
@@ -851,12 +959,12 @@ void main() {
       await showHome(tester);
       expect(find.text('Income'), findsOneWidget);
 
-      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
       await tester.pumpAndSettle();
       expect(find.text('Income'), findsNothing);
       expect(find.text('Balance'), findsOneWidget);
 
-      await tester.drag(find.byType(ListView), const Offset(0, 500));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 500));
       await tester.pumpAndSettle();
       expect(find.text('Income'), findsOneWidget);
       // Scrolling never changed what the user had chosen.

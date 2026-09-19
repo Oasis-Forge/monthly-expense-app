@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
@@ -60,30 +61,61 @@ class HomeScreen extends StatefulWidget {
   }
 }
 
-/// Home's own state is how far the day list has been scrolled: away from the
-/// top, the summary card gives its room to the entries (BAL-7).
+/// Home's own state is the budgets card: whether the user has it open, and
+/// whether the list being scrolled has folded it away for now (BUD-9). The
+/// summary card needs no state — it is a header inside the same scroll, and
+/// shrinks with it (BAL-7).
 class _HomeScreenState extends State<HomeScreen> {
-  final _listController = ScrollController();
+  final _budgets = ExpansibleController();
 
-  /// Whether the list has been scrolled off the top.
-  bool _scrolled = false;
+  /// What the user last chose for the budgets card; it starts closed (BUD-7).
+  bool _budgetsWanted = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _listController.addListener(_onScroll);
+  /// Whether scrolling folded it away, so the top can put it back (BUD-9).
+  bool _foldedByScroll = false;
+
+  /// True while we drive the card ourselves, so its callback doesn't mistake
+  /// our fold for the user closing it.
+  bool _driving = false;
+
+  /// Whether the card is on screen at all: without budgets there is nothing
+  /// for the controller to talk to.
+  bool _budgetsShown = false;
+
+  /// Folds the budgets card while the list is scrolled, and puts it back when
+  /// the list comes to rest at the top (BUD-9). Only the user's own scrolling
+  /// counts: a correction the list makes to itself never folds anything, which
+  /// is what kept the old summary card flickering.
+  bool _onScroll(ScrollNotification notification) {
+    if (!_budgetsShown) return false;
+    // A drag, not a correction the list makes to itself: dragDetails is null
+    // when the position is only being brought back inside its own bounds,
+    // which is what kept the old summary card flickering.
+    if (notification is ScrollUpdateNotification &&
+        notification.dragDetails != null &&
+        notification.metrics.pixels > 24 &&
+        _budgetsWanted &&
+        !_foldedByScroll) {
+      _foldedByScroll = true;
+      _driving = true;
+      _budgets.collapse();
+    } else if (notification is ScrollEndNotification &&
+        notification.metrics.pixels <= 0 &&
+        _foldedByScroll) {
+      _foldedByScroll = false;
+      _driving = true;
+      _budgets.expand();
+    }
+    return false;
   }
 
-  @override
-  void dispose() {
-    _listController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    // A nudge is not a scroll; a flick is.
-    final scrolled = _listController.hasClients && _listController.offset > 24;
-    if (scrolled != _scrolled) setState(() => _scrolled = scrolled);
+  void _budgetsChanged(bool open) {
+    if (_driving) {
+      _driving = false;
+      return;
+    }
+    _budgetsWanted = open;
+    if (open) _foldedByScroll = false;
   }
 
   @override
@@ -103,6 +135,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final dueCount = provider.dueOccurrences.length;
     final budgetStatuses = provider.budgetStatuses;
     final budgetSummary = BudgetSummary.of(budgetStatuses);
+    // Whether there is a budgets card for _onScroll to fold (BUD-9).
+    _budgetsShown = budgetSummary != null;
     final dueNotesCount = provider.notesDueInPeriod.length;
     final lastBackup = settings.lastBackupAt;
     // RUN-1: before anything is recorded, Home offers one clear action.
@@ -144,86 +178,130 @@ class _HomeScreenState extends State<HomeScreen> {
           // Home there is — the welcome included, so the day a first entry
           // lands on is never a surprise.
           const DayStrip(),
-          _SummaryCard(
-            income: provider.periodIncome,
-            expense: provider.periodExpense,
-            // BAL-3: the closing balance, unless carrying forward is off.
-            balance: settings.showCarriedForward
-                ? provider.closingBalance
-                : provider.periodNet,
-            carriedForward: settings.showCarriedForward
-                ? provider.carriedForward
-                : null,
-            currency: currency,
-            // BAL-6 by hand, BAL-7 because the list is scrolled.
-            collapsed: settings.summaryCollapsed || _scrolled,
-            onToggle: () {
-              // A tap does what the card shows: opens it when it is a line,
-              // closes it when it is open. A later scroll collapses it again.
-              final collapsed = settings.summaryCollapsed || _scrolled;
-              settings.setSummaryCollapsed(!collapsed);
-              if (collapsed && _scrolled) setState(() => _scrolled = false);
-            },
-          ),
-          if (dueCount > 0)
-            _Notice(
-              icon: Icons.event_repeat,
-              color: Theme.of(context).colorScheme.primary,
-              text: l10n.recurringDueNotice(dueCount),
-              onTap: () => HomeScreen._open(context, const RecurringScreen()),
-            ),
-          if (dueNotesCount > 0)
-            _Notice(
-              icon: Icons.sticky_note_2_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              text: l10n.notesDueNotice(dueNotesCount),
-              onTap: () => HomeScreen._open(context, const NotesScreen()),
-            ),
-          if (settings.backupReminderDue(provider.transactions.length))
-            _Notice(
-              icon: Icons.backup_outlined,
-              color: Theme.of(context).colorScheme.tertiary,
-              text: lastBackup == null
-                  ? l10n.backupReminderNever
-                  : l10n.backupReminderSince(
-                      DateFormat.yMMMd(l10n.localeName).format(lastBackup),
-                    ),
-              onTap: () => HomeScreen._open(context, const BackupScreen()),
-              onDismiss: settings.snoozeBackupReminder,
-            ),
-          const Divider(height: 1),
           Expanded(
-            child: firstRun
-                ? const _FirstRun()
-                : days.isEmpty && budgetSummary == null
-                ? Center(child: Text(l10n.emptyPeriod))
-                : ListView(
-                    controller: _listController,
-                    padding: const EdgeInsets.only(bottom: 80),
-                    children: [
-                      // BUD-7: at the top of the list, so opening it scrolls
-                      // with the days instead of squeezing them.
-                      if (budgetSummary != null)
-                        _BudgetsCard(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScroll,
+              child: CustomScrollView(
+                slivers: [
+                  // BAL-6, BAL-7: the summary is a header inside this scroll,
+                  // pinned and shrinking to its one line as the entries go
+                  // under it. Outside the scroll it resized their viewport
+                  // instead, which dragged the list backwards under the
+                  // finger and, on a short list, bounced the card open again.
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _SummaryHeader(
+                      income: provider.periodIncome,
+                      expense: provider.periodExpense,
+                      // BAL-3: the closing balance, unless carrying forward
+                      // is off.
+                      balance: settings.showCarriedForward
+                          ? provider.closingBalance
+                          : provider.periodNet,
+                      carriedForward: settings.showCarriedForward
+                          ? provider.carriedForward
+                          : null,
+                      currency: currency,
+                      collapsedByHand: settings.summaryCollapsed,
+                      onToggle: () => settings.setSummaryCollapsed(
+                        !settings.summaryCollapsed,
+                      ),
+                      scale: MediaQuery.textScalerOf(context)
+                          .scale(1)
+                          .clamp(1.0, 1.4),
+                    ),
+                  ),
+                  if (dueCount > 0)
+                    SliverToBoxAdapter(
+                      child: _Notice(
+                        icon: Icons.event_repeat,
+                        color: Theme.of(context).colorScheme.primary,
+                        text: l10n.recurringDueNotice(dueCount),
+                        onTap: () =>
+                            HomeScreen._open(context, const RecurringScreen()),
+                      ),
+                    ),
+                  if (dueNotesCount > 0)
+                    SliverToBoxAdapter(
+                      child: _Notice(
+                        icon: Icons.sticky_note_2_outlined,
+                        color: Theme.of(context).colorScheme.primary,
+                        text: l10n.notesDueNotice(dueNotesCount),
+                        onTap: () =>
+                            HomeScreen._open(context, const NotesScreen()),
+                      ),
+                    ),
+                  if (settings.backupReminderDue(provider.transactions.length))
+                    SliverToBoxAdapter(
+                      child: _Notice(
+                        icon: Icons.backup_outlined,
+                        color: Theme.of(context).colorScheme.tertiary,
+                        text: lastBackup == null
+                            ? l10n.backupReminderNever
+                            : l10n.backupReminderSince(
+                                DateFormat.yMMMd(l10n.localeName)
+                                    .format(lastBackup),
+                              ),
+                        onTap: () =>
+                            HomeScreen._open(context, const BackupScreen()),
+                        onDismiss: settings.snoozeBackupReminder,
+                      ),
+                    ),
+                  if (firstRun)
+                    const SliverFillRemaining(
+                      // It fills the screen it is given, and on one too short
+                      // for it — a small phone at large text — it scrolls
+                      // rather than putting its button out of reach.
+                      hasScrollBody: false,
+                      child: _FirstRun(),
+                    )
+                  else if (days.isEmpty && budgetSummary == null)
+                    SliverFillRemaining(
+                      // The empty message needs no more than the screen it is on.
+                      hasScrollBody: true,
+                      child: Center(child: Text(l10n.emptyPeriod)),
+                    )
+                  else ...[
+                    // BUD-7: at the top of the list, so opening it scrolls
+                    // with the days instead of squeezing them.
+                    if (budgetSummary != null)
+                      SliverToBoxAdapter(
+                        child: _BudgetsCard(
                           summary: budgetSummary,
                           statuses: budgetStatuses,
                           currency: currency,
+                          controller: _budgets,
+                          onChanged: _budgetsChanged,
                         ),
-                      if (days.isEmpty)
-                        Padding(
+                      ),
+                    if (days.isEmpty)
+                      SliverToBoxAdapter(
+                        child: Padding(
                           padding: const EdgeInsets.all(32),
                           child: Center(child: Text(l10n.emptyPeriod)),
                         ),
-                      for (final day in days)
-                        _DaySection(
-                          day: day,
-                          transactions: provider.groupedByDay[day] ?? const [],
-                          transfers: provider.transfersByDay[day] ?? const [],
-                          totals: provider.dailyTotals[day],
-                          currency: currency,
-                        ),
-                    ],
-                  ),
+                      ),
+                    SliverList(
+                      // The list delegate, not the builder: a row has to be
+                      // built to be swiped, and the days are few.
+                      delegate: SliverChildListDelegate([
+                        for (final day in days)
+                          _DaySection(
+                            day: day,
+                            transactions:
+                                provider.groupedByDay[day] ?? const [],
+                            transfers: provider.transfersByDay[day] ?? const [],
+                            totals: provider.dailyTotals[day],
+                            currency: currency,
+                          ),
+                      ]),
+                    ),
+                    // Room for the add button, as the old list padding gave.
+                    const SliverToBoxAdapter(child: SizedBox(height: 80)),
+                  ],
+                ],
+              ),
+            ),
           ),
         ],
       ),
@@ -438,11 +516,17 @@ class _BudgetsCard extends StatelessWidget {
     required this.summary,
     required this.statuses,
     required this.currency,
+    required this.controller,
+    required this.onChanged,
   });
 
   final BudgetSummary summary;
   final List<BudgetStatus> statuses;
   final NumberFormat currency;
+
+  /// Lets Home fold the card away while the list is scrolled (BUD-9).
+  final ExpansibleController controller;
+  final ValueChanged<bool> onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -464,12 +548,16 @@ class _BudgetsCard extends StatelessWidget {
           );
 
     return Card(
-      margin: const EdgeInsetsDirectional.fromSTEB(16, 12, 16, 4),
+      // The same width as the summary card above it, so Home reads as one
+      // column of cards (BUD-9).
+      margin: const EdgeInsetsDirectional.fromSTEB(12, 8, 12, 4),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
         // Starts closed (BUD-7), and stays as the user left it while the list
-        // rebuilds.
+        // rebuilds. Home folds it away while the list is scrolled (BUD-9).
         key: const PageStorageKey('home-budgets'),
+        controller: controller,
+        onExpansionChanged: onChanged,
         leading: Icon(Icons.pie_chart_outline, color: color),
         title: Text(l10n.budgetsTitle),
         subtitle: Text(
@@ -543,6 +631,92 @@ class _Notice extends StatelessWidget {
   }
 }
 
+/// The summary card as a pinned header (BAL-6, BAL-7). It lives inside the
+/// same scroll as the entries, so the room it gives up is paid out of the
+/// scroll offset in one layout pass. While it sat above the scroll view,
+/// collapsing it resized the list's viewport instead: the entries lurched
+/// upward at twice the speed of the finger, and on a short list the offset
+/// was corrected back below the threshold, which opened the card again.
+class _SummaryHeader extends SliverPersistentHeaderDelegate {
+  const _SummaryHeader({
+    required this.income,
+    required this.expense,
+    required this.balance,
+    required this.carriedForward,
+    required this.currency,
+    required this.collapsedByHand,
+    required this.onToggle,
+    required this.scale,
+  });
+
+  final Money income;
+  final Money expense;
+  final Money balance;
+  final Money? carriedForward;
+  final NumberFormat currency;
+
+  /// Whether the user closed it themselves, in which case it never grows
+  /// back on its own (BAL-6).
+  final bool collapsedByHand;
+  final VoidCallback onToggle;
+
+  /// The text scale, so bigger text gets a taller header rather than a
+  /// clipped one (LANG-4).
+  final double scale;
+
+  /// The one line, and the whole card, at normal text size. Constants, like
+  /// the day strip's height, so the header's extents never depend on what it
+  /// laid out. Bigger text needs more than its own factor — measured, the
+  /// card is 176 at 1.0 and 264 at 1.3 — so the card's share grows by 1.7×
+  /// the scale. `test/languages_test.dart` fails if that is ever too mean.
+  static const _line = 60.0;
+  static const _card = 176.0;
+
+  @override
+  double get minExtent => _line * scale;
+
+  @override
+  double get maxExtent =>
+      collapsedByHand ? minExtent : _card * (1 + (scale - 1) * 1.7);
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlaps) {
+    // Any real scroll makes it the line; the background keeps the entries
+    // from showing through the room it hasn't given up yet.
+    final collapsed = collapsedByHand || shrinkOffset > 4;
+    return Material(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: ClipRect(
+        child: OverflowBox(
+          alignment: AlignmentDirectional.topStart.resolve(
+            Directionality.of(context),
+          ),
+          minHeight: 0,
+          maxHeight: collapsed ? minExtent : maxExtent,
+          child: _SummaryCard(
+            income: income,
+            expense: expense,
+            balance: balance,
+            carriedForward: carriedForward,
+            currency: currency,
+            collapsed: collapsed,
+            onToggle: onToggle,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(_SummaryHeader old) =>
+      old.income != income ||
+      old.expense != expense ||
+      old.balance != balance ||
+      old.carriedForward != carriedForward ||
+      old.collapsedByHand != collapsedByHand ||
+      old.scale != scale;
+}
+
 class _SummaryCard extends StatelessWidget {
   final Money income;
   final Money expense;
@@ -580,109 +754,110 @@ class _SummaryCard extends StatelessWidget {
       child: InkWell(
         // BAL-6: the card itself is the switch between one line and the rest.
         onTap: onToggle,
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 180),
-          curve: Curves.easeOut,
-          alignment: AlignmentDirectional.topStart,
-          child: collapsed
-              ? Padding(
-                  padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
-                  child: Row(
-                    children: [
-                      Text(label, style: theme.textTheme.bodyMedium),
-                      const SizedBox(width: 12),
-                      // The balance keeps the room it needs in any language.
-                      Expanded(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: AlignmentDirectional.centerEnd,
+        child: collapsed
+            ? Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
+                child: Row(
+                  children: [
+                    Text(label, style: theme.textTheme.bodyMedium),
+                    const SizedBox(width: 12),
+                    // The balance keeps the room it needs in any language.
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: Text(
+                          currency.format(balance.toDouble()),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: amountColor,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.expand_more,
+                      semanticLabel: l10n.expandSummaryTooltip,
+                    ),
+                  ],
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        // The same width as the chevron, so the label stays
+                        // in the middle of the card.
+                        const SizedBox(width: 24),
+                        Expanded(
                           child: Text(
-                            currency.format(balance.toDouble()),
-                            style: theme.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: amountColor,
-                            ),
+                            label,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium,
                           ),
                         ),
-                      ),
-                      Icon(
-                        Icons.expand_more,
-                        semanticLabel: l10n.expandSummaryTooltip,
-                      ),
-                    ],
-                  ),
-                )
-              : Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          // The same width as the chevron, so the label stays
-                          // in the middle of the card.
-                          const SizedBox(width: 24),
-                          Expanded(
-                            child: Text(
-                              label,
-                              textAlign: TextAlign.center,
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ),
-                          Icon(
-                            Icons.expand_less,
-                            semanticLabel: l10n.collapseSummaryTooltip,
-                          ),
-                        ],
-                      ),
-                      Text(
-                        currency.format(balance.toDouble()),
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: amountColor,
+                        Icon(
+                          Icons.expand_less,
+                          semanticLabel: l10n.collapseSummaryTooltip,
                         ),
+                      ],
+                    ),
+                    Text(
+                      currency.format(balance.toDouble()),
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: amountColor,
                       ),
-                      if (carried != null)
-                        Text(
+                    ),
+                    if (carried != null)
+                      // One line, whatever the screen: a wrapped second line
+                      // used to push the card past the header's room.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
                           l10n.carriedForwardLine(
                             currency.format(carried.toDouble()),
                           ),
+                          maxLines: 1,
                           style: theme.textTheme.bodySmall,
                         ),
-                      const SizedBox(height: 12),
-                      // Each side gets half the card, so long labels and large
-                      // amounts fit at any text size and in every language
-                      // (LANG-6).
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _AmountTile(
-                              label: l10n.incomeLabel,
-                              amount: income,
-                              color: Colors.green,
-                              icon: Icons.arrow_downward,
-                              currency: currency,
-                            ),
-                          ),
-                          Container(
-                            width: 1,
-                            height: 40,
-                            color: Colors.grey.shade300,
-                          ),
-                          Expanded(
-                            child: _AmountTile(
-                              label: l10n.expenseLabel,
-                              amount: expense,
-                              color: Colors.red,
-                              icon: Icons.arrow_upward,
-                              currency: currency,
-                            ),
-                          ),
-                        ],
                       ),
-                    ],
-                  ),
+                    const SizedBox(height: 12),
+                    // Each side gets half the card, so long labels and large
+                    // amounts fit at any text size and in every language
+                    // (LANG-6).
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _AmountTile(
+                            label: l10n.incomeLabel,
+                            amount: income,
+                            color: Colors.green,
+                            icon: Icons.arrow_downward,
+                            currency: currency,
+                          ),
+                        ),
+                        Container(
+                          width: 1,
+                          height: 40,
+                          color: Colors.grey.shade300,
+                        ),
+                        Expanded(
+                          child: _AmountTile(
+                            label: l10n.expenseLabel,
+                            amount: expense,
+                            color: Colors.red,
+                            icon: Icons.arrow_upward,
+                            currency: currency,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-        ),
+              ),
       ),
     );
   }

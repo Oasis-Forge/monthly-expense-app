@@ -4,6 +4,17 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-09-20
+
+### Added
+- The budgets card folds away while you scroll the list, and comes back at the top exactly as you left it.
+
+### Changed
+- The budgets card is the width of the summary card above it, so Home reads as one column.
+
+### Fixed
+- Scrolling Home no longer fights the list. The summary card used to take its room from the list itself, which pulled the entries upward faster than your finger and, when there was little to scroll, sprang the card open again — most visible with a budget set. The card is now part of the list's own scrolling.
+
 ## [1.17.0] - 2026-09-19
 
 ### Added
