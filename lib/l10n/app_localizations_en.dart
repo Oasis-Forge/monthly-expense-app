@@ -700,6 +700,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get previousPeriodTooltip => 'Previous period';
 
   @override
+  String get wholePeriodTooltip => 'Show the whole period';
+
+  @override
   String get nextPeriodTooltip => 'Next period';
 
   @override

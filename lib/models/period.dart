@@ -70,3 +70,19 @@ DateTime _startIn(int year, int month, int startDay) {
     startDay < daysInMonth ? startDay : daysInMonth,
   );
 }
+
+/// The first day of the week containing [day], where [firstWeekday] is 0 for
+/// Sunday through 6 for Saturday (PER-4). Used by the day strip on Home
+/// (DAY-2) and the calendar.
+DateTime startOfWeek(DateTime day, int firstWeekday) {
+  final back = (day.weekday % 7 - firstWeekday) % 7;
+  return DateTime(day.year, day.month, day.day - back);
+}
+
+/// Whole days from [from] to [to], counted on the calendar so a daylight
+/// saving change never adds or drops one.
+int daysBetween(DateTime from, DateTime to) => DateTime.utc(
+  to.year,
+  to.month,
+  to.day,
+).difference(DateTime.utc(from.year, from.month, from.day)).inDays;

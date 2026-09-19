@@ -709,6 +709,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get previousPeriodTooltip => 'Período anterior';
 
   @override
+  String get wholePeriodTooltip => 'Mostrar todo o período';
+
+  @override
   String get nextPeriodTooltip => 'Próximo período';
 
   @override

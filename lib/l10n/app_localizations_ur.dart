@@ -702,6 +702,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get previousPeriodTooltip => 'پچھلی مدت';
 
   @override
+  String get wholePeriodTooltip => 'پوری مدت دکھائیں';
+
+  @override
   String get nextPeriodTooltip => 'اگلی مدت';
 
   @override

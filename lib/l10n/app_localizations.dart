@@ -1294,6 +1294,12 @@ abstract class AppLocalizations {
   /// **'Previous period'**
   String get previousPeriodTooltip;
 
+  /// Tooltip on the chosen day in Home's day strip; tapping that day again shows every day in the period (DAY-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Show the whole period'**
+  String get wholePeriodTooltip;
+
   /// No description provided for @nextPeriodTooltip.
   ///
   /// In en, this message translates to:

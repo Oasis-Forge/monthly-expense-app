@@ -193,6 +193,7 @@
   "categoryGift": "Cadeau",
   "categoryOther": "Autre",
   "previousPeriodTooltip": "Période précédente",
+  "wholePeriodTooltip": "Afficher toute la période",
   "nextPeriodTooltip": "Période suivante",
   "insightsTooltip": "Analyses",
   "insightsTitle": "Analyses",

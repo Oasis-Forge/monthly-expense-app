@@ -703,6 +703,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get previousPeriodTooltip => 'আগের মেয়াদ';
 
   @override
+  String get wholePeriodTooltip => 'পুরো মেয়াদ দেখান';
+
+  @override
   String get nextPeriodTooltip => 'পরের মেয়াদ';
 
   @override

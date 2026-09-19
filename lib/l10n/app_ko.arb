@@ -193,6 +193,7 @@
   "categoryGift": "선물",
   "categoryOther": "기타",
   "previousPeriodTooltip": "이전 기간",
+  "wholePeriodTooltip": "전체 기간 표시",
   "nextPeriodTooltip": "다음 기간",
   "insightsTooltip": "분석",
   "insightsTitle": "분석",

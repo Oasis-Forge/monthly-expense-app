@@ -40,7 +40,9 @@ class _TransferScreenState extends State<TransferScreen> with AmountEntry {
       _fromId = editing.fromAccountId;
       _toId = editing.toAccountId;
     }
-    _date = editing?.date ?? DateTime.now();
+    // A new transfer starts on the day Home is showing, like any other
+    // entry (DAY-9).
+    _date = editing?.date ?? context.read<TransactionProvider>().newEntryDate;
   }
 
   @override

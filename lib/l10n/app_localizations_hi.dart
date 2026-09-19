@@ -700,6 +700,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get previousPeriodTooltip => 'पिछली अवधि';
 
   @override
+  String get wholePeriodTooltip => 'पूरी अवधि दिखाएँ';
+
+  @override
   String get nextPeriodTooltip => 'अगली अवधि';
 
   @override

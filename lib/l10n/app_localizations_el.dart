@@ -710,6 +710,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get previousPeriodTooltip => 'Προηγούμενη περίοδος';
 
   @override
+  String get wholePeriodTooltip => 'Εμφάνιση όλης της περιόδου';
+
+  @override
   String get nextPeriodTooltip => 'Επόμενη περίοδος';
 
   @override

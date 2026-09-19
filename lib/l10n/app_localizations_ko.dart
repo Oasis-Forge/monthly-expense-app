@@ -696,6 +696,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get previousPeriodTooltip => '이전 기간';
 
   @override
+  String get wholePeriodTooltip => '전체 기간 표시';
+
+  @override
   String get nextPeriodTooltip => '다음 기간';
 
   @override

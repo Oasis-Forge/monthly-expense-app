@@ -91,9 +91,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       _categoryId = provider.defaultCategoryId(_type);
       _accountId = provider.defaultAccountId();
     }
-    // A new transaction, a duplicate, or a recorded note is dated now
-    // (ADD-3, ADD-7, NOTE-4).
-    _date = widget.editing?.date ?? DateTime.now();
+    // A new transaction starts on the day Home is showing, which is today
+    // unless the strip says otherwise (ADD-3, DAY-9). A duplicate or a
+    // recorded note is dated now either way (ADD-7, NOTE-4).
+    _date =
+        widget.editing?.date ??
+        (source == null && note == null
+            ? provider.newEntryDate
+            : DateTime.now());
   }
 
   @override

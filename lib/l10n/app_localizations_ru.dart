@@ -723,6 +723,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get previousPeriodTooltip => 'Предыдущий период';
 
   @override
+  String get wholePeriodTooltip => 'Показать весь период';
+
+  @override
   String get nextPeriodTooltip => 'Следующий период';
 
   @override

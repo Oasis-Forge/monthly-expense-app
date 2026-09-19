@@ -708,6 +708,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get previousPeriodTooltip => 'Vorige periode';
 
   @override
+  String get wholePeriodTooltip => 'Hele periode tonen';
+
+  @override
   String get nextPeriodTooltip => 'Volgende periode';
 
   @override

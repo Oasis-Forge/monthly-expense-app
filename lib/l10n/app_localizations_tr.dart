@@ -700,6 +700,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get previousPeriodTooltip => 'Önceki dönem';
 
   @override
+  String get wholePeriodTooltip => 'Tüm dönemi göster';
+
+  @override
   String get nextPeriodTooltip => 'Sonraki dönem';
 
   @override

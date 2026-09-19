@@ -193,6 +193,7 @@
   "categoryGift": "礼金",
   "categoryOther": "其他",
   "previousPeriodTooltip": "上一期",
+  "wholePeriodTooltip": "显示整期",
   "nextPeriodTooltip": "下一期",
   "insightsTooltip": "统计",
   "insightsTitle": "统计",

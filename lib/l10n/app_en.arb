@@ -446,6 +446,10 @@
   "categoryGift": "Gift",
   "categoryOther": "Other",
   "previousPeriodTooltip": "Previous period",
+  "wholePeriodTooltip": "Show the whole period",
+  "@wholePeriodTooltip": {
+    "description": "Tooltip on the chosen day in Home's day strip; tapping that day again shows every day in the period (DAY-5)."
+  },
   "nextPeriodTooltip": "Next period",
   "insightsTooltip": "Insights",
   "insightsTitle": "Insights",

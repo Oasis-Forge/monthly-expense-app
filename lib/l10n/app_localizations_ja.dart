@@ -696,6 +696,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get previousPeriodTooltip => '前の期間';
 
   @override
+  String get wholePeriodTooltip => '期間全体を表示';
+
+  @override
   String get nextPeriodTooltip => '次の期間';
 
   @override

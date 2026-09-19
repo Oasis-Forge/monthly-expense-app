@@ -6,6 +6,7 @@ import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/budget.dart';
 import '../models/csv_export.dart';
+import '../models/insights.dart';
 import '../models/money.dart';
 import '../models/period.dart';
 import '../models/transaction.dart';
@@ -21,6 +22,7 @@ import 'budget_progress.dart';
 import 'budgets_screen.dart';
 import 'categories_screen.dart';
 import 'csv_export_action.dart';
+import 'day_strip.dart';
 import 'delete_snack_bar.dart';
 import 'insights_screen.dart';
 import 'notes_screen.dart';
@@ -59,10 +61,14 @@ class HomeScreen extends StatelessWidget {
     final provider = context.watch<TransactionProvider>();
     final settings = context.watch<SettingsProvider>();
     final currency = settings.currencyFormat(l10n.localeName);
-    final days = {
-      ...provider.groupedByDay.keys,
-      ...provider.transfersByDay.keys,
-    }.toList()..sort((a, b) => b.compareTo(a));
+    final selectedDay = provider.selectedDay;
+    // DAY-7: the chosen day on its own, whether or not it holds anything.
+    final days = selectedDay != null
+        ? [selectedDay]
+        : ({
+            ...provider.groupedByDay.keys,
+            ...provider.transfersByDay.keys,
+          }.toList()..sort((a, b) => b.compareTo(a)));
     final dueCount = provider.dueOccurrences.length;
     final budgetStatuses = provider.budgetStatuses;
     final budgetSummary = BudgetSummary.of(budgetStatuses);
@@ -103,6 +109,9 @@ class HomeScreen extends StatelessWidget {
             onLabelTap: () =>
                 _open(context, const InsightsScreen(initialTab: 1)),
           ),
+          // DAY-1, DAY-2: the week under the period, today marked. The
+          // welcome has no days to move between, so it keeps the screen.
+          if (!firstRun) const DayStrip(),
           _SummaryCard(
             income: provider.periodIncome,
             expense: provider.periodExpense,
@@ -168,6 +177,7 @@ class HomeScreen extends StatelessWidget {
                           day: day,
                           transactions: provider.groupedByDay[day] ?? const [],
                           transfers: provider.transfersByDay[day] ?? const [],
+                          totals: provider.dailyTotals[day],
                           currency: currency,
                         ),
                     ],
@@ -615,38 +625,102 @@ class _AmountTile extends StatelessWidget {
   }
 }
 
+/// One day's entries under its date, with what the day came to (DAY-7). A
+/// day chosen in the strip is shown even when it holds nothing.
 class _DaySection extends StatelessWidget {
   final DateTime day;
   final List<ExpenseTransaction> transactions;
   final List<Transfer> transfers;
+
+  /// The day's own income and expense, or null for a day with neither.
+  final DayTotals? totals;
   final NumberFormat currency;
 
   const _DaySection({
     required this.day,
     required this.transactions,
     required this.transfers,
+    required this.totals,
     required this.currency,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final dayTotals = totals ?? const DayTotals();
+    final empty = transactions.isEmpty && transfers.isEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-          child: Text(
-            DateFormat.yMMMd(l10n.localeName).format(day),
-            style: Theme.of(context).textTheme.labelLarge
-                ?.copyWith(color: Colors.grey.shade600),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormat.yMMMd(l10n.localeName).format(day),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+              // DAY-7: income and expense stay apart, as they do for the
+              // period above (BAL-1).
+              if (dayTotals.income.isPositive)
+                _DayTotal(
+                  amount: dayTotals.income,
+                  color: Colors.green,
+                  currency: currency,
+                ),
+              if (dayTotals.income.isPositive && dayTotals.expense.isPositive)
+                const SizedBox(width: 8),
+              if (dayTotals.expense.isPositive)
+                _DayTotal(
+                  amount: dayTotals.expense,
+                  color: Colors.red,
+                  currency: currency,
+                ),
+            ],
           ),
         ),
+        if (empty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+            child: Text(
+              l10n.dayEmpty,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
         for (final tx in transactions)
           _TransactionTile(transaction: tx, currency: currency),
         for (final transfer in transfers)
           _TransferTile(transfer: transfer, currency: currency),
       ],
+    );
+  }
+}
+
+/// One side of a day's total, coloured like the summary card's (DAY-7).
+class _DayTotal extends StatelessWidget {
+  const _DayTotal({
+    required this.amount,
+    required this.color,
+    required this.currency,
+  });
+
+  final Money amount;
+  final Color color;
+  final NumberFormat currency;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      currency.format(amount.toDouble()),
+      style: Theme.of(context).textTheme.labelLarge
+          ?.copyWith(color: color, fontWeight: FontWeight.w600),
     );
   }
 }

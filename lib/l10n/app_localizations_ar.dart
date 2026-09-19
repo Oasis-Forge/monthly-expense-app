@@ -725,6 +725,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get previousPeriodTooltip => 'الفترة السابقة';
 
   @override
+  String get wholePeriodTooltip => 'عرض الفترة كاملة';
+
+  @override
   String get nextPeriodTooltip => 'الفترة التالية';
 
   @override

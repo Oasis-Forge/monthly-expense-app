@@ -85,6 +85,12 @@ class TransactionProvider extends ChangeNotifier {
   final Map<String, RecurringOccurrence> _occurrences = {};
   int _startDay;
   Period _period;
+
+  /// The day Home shows on its own (DAY-1), null for the whole period
+  /// (DAY-5), with the period it was chosen for so a different period picks
+  /// its own day again (DAY-6).
+  DateTime? _selectedDay;
+  Period? _daySelectionPeriod;
   _PeriodSummary? _summary;
   bool _loaded = false;
 
@@ -119,6 +125,18 @@ class TransactionProvider extends ChangeNotifier {
 
   /// The period shown on Home and Stats.
   Period get period => _period;
+
+  /// The day Home's list is filtered to, or null when it shows every day in
+  /// the period. A period containing today starts on today; any other period
+  /// starts with no day chosen (DAY-1, DAY-6).
+  DateTime? get selectedDay {
+    if (_daySelectionPeriod != _period) {
+      _daySelectionPeriod = _period;
+      final today = _today;
+      _selectedDay = _period.contains(today) ? today : null;
+    }
+    return _selectedDay;
+  }
 
   /// The period that contains today; budget changes apply from it (BUD-5).
   Period get currentPeriod => Period.containing(_clock(), startDay: _startDay);
@@ -394,6 +412,58 @@ class TransactionProvider extends ChangeNotifier {
   void previousPeriod() {
     _period = _period.previous;
     _changed();
+  }
+
+  /// Shows one day on its own (DAY-1). A day outside the shown period moves
+  /// the period to the one that contains it (DAY-3).
+  void selectDay(DateTime day) {
+    final target = _dayOf(day);
+    final movedPeriod = !_period.contains(target);
+    if (movedPeriod) {
+      _period = Period.containing(target, startDay: _startDay);
+    }
+    _selectedDay = target;
+    _daySelectionPeriod = _period;
+    // Only a new period invalidates the cached totals.
+    if (movedPeriod) {
+      _changed();
+    } else {
+      notifyListeners();
+    }
+  }
+
+  /// Goes back to every day in the period (DAY-5).
+  void clearSelectedDay() {
+    _selectedDay = null;
+    _daySelectionPeriod = _period;
+    notifyListeners();
+  }
+
+  /// Days from [from] to [to] inclusive that carry a transaction or a
+  /// transfer, for the dots on the day strip (DAY-4).
+  Set<DateTime> entryDaysIn(DateTime from, DateTime to) {
+    final start = _dayOf(from);
+    final end = _dayOf(to);
+    final days = <DateTime>{};
+    bool inRange(DateTime day) => !day.isBefore(start) && !day.isAfter(end);
+    for (final tx in _transactions) {
+      final day = _dayOf(tx.date);
+      if (inRange(day)) days.add(day);
+    }
+    for (final transfer in _transfers) {
+      final day = _dayOf(transfer.date);
+      if (inRange(day)) days.add(day);
+    }
+    return days;
+  }
+
+  /// The date a new entry starts on: the day Home is showing, else today,
+  /// either way at the current time of day (ADD-3, DAY-9).
+  DateTime get newEntryDate {
+    final now = _clock();
+    final day = selectedDay;
+    if (day == null || day == _dayOf(now)) return now;
+    return DateTime(day.year, day.month, day.day, now.hour, now.minute);
   }
 
   /// Saves [tx] with fresh timestamps (REC-1), then adds it to the list. If

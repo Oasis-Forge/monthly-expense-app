@@ -698,6 +698,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get previousPeriodTooltip => 'งวดก่อนหน้า';
 
   @override
+  String get wholePeriodTooltip => 'แสดงทั้งงวด';
+
+  @override
   String get nextPeriodTooltip => 'งวดถัดไป';
 
   @override

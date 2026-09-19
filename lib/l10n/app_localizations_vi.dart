@@ -702,6 +702,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get previousPeriodTooltip => 'Kỳ trước';
 
   @override
+  String get wholePeriodTooltip => 'Hiện toàn bộ kỳ';
+
+  @override
   String get nextPeriodTooltip => 'Kỳ sau';
 
   @override

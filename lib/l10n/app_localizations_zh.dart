@@ -696,6 +696,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get previousPeriodTooltip => '上一期';
 
   @override
+  String get wholePeriodTooltip => '显示整期';
+
+  @override
   String get nextPeriodTooltip => '下一期';
 
   @override
