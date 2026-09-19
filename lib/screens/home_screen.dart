@@ -188,32 +188,29 @@ class _HomeScreenState extends State<HomeScreen> {
                   // under it. Outside the scroll it resized their viewport
                   // instead, which dragged the list backwards under the
                   // finger and, on a short list, bounced the card open again.
-                  // RUN-1: nothing recorded yet means nothing to summarise,
-                  // and the welcome should have the screen.
-                  if (!firstRun)
-                    SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _SummaryHeader(
-                        income: provider.periodIncome,
-                        expense: provider.periodExpense,
-                        // BAL-3: the closing balance, unless carrying forward
-                        // is off.
-                        balance: settings.showCarriedForward
-                            ? provider.closingBalance
-                            : provider.periodNet,
-                        carriedForward: settings.showCarriedForward
-                            ? provider.carriedForward
-                            : null,
-                        currency: currency,
-                        collapsedByHand: settings.summaryCollapsed,
-                        onToggle: () => settings.setSummaryCollapsed(
-                          !settings.summaryCollapsed,
-                        ),
-                        scale: MediaQuery.textScalerOf(context)
-                            .scale(1)
-                            .clamp(1.0, 1.4),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _SummaryHeader(
+                      income: provider.periodIncome,
+                      expense: provider.periodExpense,
+                      // BAL-3: the closing balance, unless carrying forward
+                      // is off.
+                      balance: settings.showCarriedForward
+                          ? provider.closingBalance
+                          : provider.periodNet,
+                      carriedForward: settings.showCarriedForward
+                          ? provider.carriedForward
+                          : null,
+                      currency: currency,
+                      collapsedByHand: settings.summaryCollapsed,
+                      onToggle: () => settings.setSummaryCollapsed(
+                        !settings.summaryCollapsed,
                       ),
+                      scale: MediaQuery.textScalerOf(context)
+                          .scale(1)
+                          .clamp(1.0, 1.4),
                     ),
+                  ),
                   if (dueCount > 0)
                     SliverToBoxAdapter(
                       child: _Notice(
@@ -252,17 +249,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   if (firstRun)
                     const SliverFillRemaining(
-                      // Bounded like the Expanded it replaces, so the welcome and the
-                      // empty message keep their room rather than running past
-                      // the bottom of the screen.
-                      hasScrollBody: true,
+                      // It fills the screen it is given, and on one too short
+                      // for it — a small phone at large text — it scrolls
+                      // rather than putting its button out of reach.
+                      hasScrollBody: false,
                       child: _FirstRun(),
                     )
                   else if (days.isEmpty && budgetSummary == null)
                     SliverFillRemaining(
-                      // Bounded like the Expanded it replaces, so the welcome and the
-                      // empty message keep their room rather than running past
-                      // the bottom of the screen.
+                      // The empty message needs no more than the screen it is on.
                       hasScrollBody: true,
                       child: Center(child: Text(l10n.emptyPeriod)),
                     )

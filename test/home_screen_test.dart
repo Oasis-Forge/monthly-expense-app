@@ -252,6 +252,9 @@ void main() {
   testWidgets('the first launch offers one action: add a transaction (RUN-1)', (
     tester,
   ) async {
+    // A phone, not the default wide-and-short test surface: Home shows the
+    // day strip, the summary card and the welcome, and they all fit.
+    usePhoneScreen(tester);
     provider = TransactionProvider(db: FakeDB(), clock: () => today);
     await provider.load();
 
