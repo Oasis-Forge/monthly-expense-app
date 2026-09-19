@@ -171,4 +171,24 @@ void main() {
     expect(transfer.date.month, 9);
     expect(transfer.date.day, 12);
   });
+
+  testWidgets('Back asks before dropping a typed transfer (ADD-9)', (
+    tester,
+  ) async {
+    await open(tester);
+    await enterAmount(tester, '50');
+
+    // The first Back closes the keypad the form opened with.
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Discard changes?'), findsOneWidget);
+    await tester.tap(find.text('Discard'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(TransferScreen), findsNothing);
+    expect(provider.transfers, isEmpty);
+  });
 }

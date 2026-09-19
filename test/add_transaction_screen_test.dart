@@ -495,4 +495,85 @@ void main() {
       expect(provider.transactions.single.date.day, 15);
     });
   });
+
+  group('leaving a form with edits (ADD-9)', () {
+    testWidgets('the first Back closes the keypad and the form stays', (
+      tester,
+    ) async {
+      await open(tester);
+      expect(find.byType(AmountKeypad), findsOneWidget);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.byType(AmountKeypad), findsNothing);
+    });
+
+    testWidgets('a form nothing was typed into leaves without a word', (
+      tester,
+    ) async {
+      await open(tester);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(AddTransactionScreen), findsNothing);
+    });
+
+    testWidgets('edits are asked about, and Keep editing stays on the form', (
+      tester,
+    ) async {
+      await open(tester);
+      await enterAmount(tester, '12');
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.text('12'), findsWidgets);
+    });
+
+    testWidgets('Discard leaves, and writes nothing', (tester) async {
+      await open(tester);
+      await enterAmount(tester, '12');
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsNothing);
+      expect(provider.transactions, isEmpty);
+    });
+
+    testWidgets('a title typed on its own still counts as an edit', (
+      tester,
+    ) async {
+      await open(tester);
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Title (optional)'),
+        'Lunch',
+      );
+      await tester.pumpAndSettle();
+
+      // Typing in the title moved focus off the amount, so the keypad has
+      // already gone and one Back reaches the question.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsOneWidget);
+    });
+  });
 }

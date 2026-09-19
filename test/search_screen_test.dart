@@ -195,4 +195,23 @@ void main() {
       isNull,
     );
   });
+
+  testWidgets('a result carries the same row menu as Home (ROW-1, ROW-3)', (
+    tester,
+  ) async {
+    await showSearch(tester);
+
+    expect(find.byTooltip('More actions'), findsNWidgets(3));
+    await tester.tap(find.byTooltip('More actions').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Delete this transaction?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(provider.transactions, hasLength(2));
+    expect(find.text('Transaction deleted'), findsOneWidget);
+  });
 }

@@ -23,6 +23,7 @@ import 'package:monthly_expense_app/screens/recurring_screen.dart';
 import 'package:monthly_expense_app/screens/report_screen.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
+import 'package:monthly_expense_app/screens/transaction_detail_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
 import 'package:monthly_expense_app/screens/trash_screen.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
@@ -201,8 +202,14 @@ void main() {
       await open();
       await tester.pumpAndSettle();
       expect(find.byType(screen), findsOneWidget);
+      // ADD-9: a form's first Back only closes its keypad, so leaving one
+      // takes a second press.
       await tester.pageBack();
       await tester.pumpAndSettle();
+      if (find.byType(screen).evaluate().isNotEmpty) {
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+      }
     }
 
     await openAndReturn(
@@ -311,6 +318,9 @@ void main() {
       );
       expect(segments.selected, {type}, reason: label);
 
+      // ADD-9: the first Back closes the keypad the form opened with.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
       await tester.pageBack();
       await tester.pumpAndSettle();
     }
@@ -697,6 +707,94 @@ void main() {
 
       expect(find.text('9'), findsOneWidget);
       expect(find.text('19'), findsNothing);
+    });
+  });
+
+  group("a row's own actions (ROW-1 – ROW-4)", () {
+    testWidgets('the menu duplicates the entry, writing nothing yet (ROW-2)', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.byTooltip('More actions').first);
+      await tester.pumpAndSettle();
+      // ROW-1: the menu opens, the entry does not.
+      expect(find.byType(TransactionDetailScreen), findsNothing);
+      await tester.tap(find.text('Duplicate'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.text('12.5'), findsWidgets);
+      expect(provider.transactions, hasLength(2));
+    });
+
+    testWidgets('Delete asks first, and Cancel keeps the row (ROW-3)', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.byTooltip('More actions').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete this transaction?'), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lunch'), findsOneWidget);
+      expect(provider.transactions, hasLength(2));
+    });
+
+    testWidgets('confirming deletes it to the trash, with Undo (DEL-2)', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.byTooltip('More actions').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(provider.transactions, hasLength(1));
+      expect(find.text('Transaction deleted'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+      expect(provider.transactions, hasLength(2));
+    });
+
+    testWidgets('a swipe still deletes without asking (ROW-4)', (tester) async {
+      await showHome(tester);
+
+      await swipe(tester, 'Lunch');
+
+      expect(find.text('Delete this transaction?'), findsNothing);
+      expect(provider.transactions, hasLength(1));
+      expect(find.text('Transaction deleted'), findsOneWidget);
+    });
+
+    testWidgets('a failed delete from the menu says so and keeps the row', (
+      tester,
+    ) async {
+      fake.failWrites = true;
+      await showHome(tester);
+
+      await tester.tap(find.byTooltip('More actions').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("Couldn't delete the transaction. Try again."),
+        findsOneWidget,
+      );
+      expect(find.text('Lunch'), findsOneWidget);
+      expect(provider.transactions, hasLength(2));
     });
   });
 }
