@@ -10,6 +10,7 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 - Home opens on the current day, with a week of days above the list: tap a day to see it on its own, swipe sideways for other weeks, and a day carrying an entry shows a dot. Each day now shows its own income and expense beside its date.
 - A three-dot menu on every transaction row, on Home, in Search and in the calendar, with Duplicate and Delete. Deleting from the menu asks first, and says the entry can be restored from the trash for 30 days.
 - The summary card collapses to a single line with your balance, by a tap or while you scroll the list, and opens again at the top. It keeps the way you left it.
+- The budgets card folds away while you scroll the list and comes back, as you left it, at the top.
 
 ### Changed
 - A new transaction or transfer starts on the day Home is showing, instead of always today. Tapping the chosen day again brings back the whole period's list.
