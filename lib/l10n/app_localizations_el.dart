@@ -31,6 +31,12 @@ class AppLocalizationsEl extends AppLocalizations {
   String get balanceLabel => 'Υπόλοιπο';
 
   @override
+  String get expandSummaryTooltip => 'Εμφάνιση εσόδων και εξόδων';
+
+  @override
+  String get collapseSummaryTooltip => 'Εμφάνιση μόνο του υπολοίπου';
+
+  @override
   String get periodNetLabel => 'Αυτή η περίοδος';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Δεν ήταν δυνατή η επαναφορά της συναλλαγής. Δοκιμάστε ξανά.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Δεν ήταν δυνατή η επαναφορά της μεταφοράς. Δοκιμάστε ξανά.';
 
   @override
   String get addTransactionTitle => 'Προσθήκη συναλλαγής';

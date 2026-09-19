@@ -31,6 +31,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get balanceLabel => '结余';
 
   @override
+  String get expandSummaryTooltip => '显示收入和支出';
+
+  @override
+  String get collapseSummaryTooltip => '仅显示余额';
+
+  @override
   String get periodNetLabel => '本期';
 
   @override
@@ -113,6 +119,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get restoreFailed => '无法恢复该交易，请重试。';
+
+  @override
+  String get restoreTransferFailed => '无法恢复这笔转账，请重试。';
 
   @override
   String get addTransactionTitle => '添加交易';

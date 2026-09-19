@@ -31,6 +31,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get balanceLabel => 'Bakiye';
 
   @override
+  String get expandSummaryTooltip => 'Gelir ve gideri göster';
+
+  @override
+  String get collapseSummaryTooltip => 'Yalnızca bakiyeyi göster';
+
+  @override
   String get periodNetLabel => 'Bu dönem';
 
   @override
@@ -113,6 +119,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get restoreFailed => 'İşlem geri yüklenemedi. Tekrar deneyin.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Transfer geri alınamadı. Yeniden deneyin.';
 
   @override
   String get addTransactionTitle => 'İşlem Ekle';

@@ -7,6 +7,14 @@
   "addButton": "Add",
   "emptyPeriod": "No transactions in this period yet.",
   "balanceLabel": "Balance",
+  "expandSummaryTooltip": "Show income and expense",
+  "@expandSummaryTooltip": {
+    "description": "What tapping the collapsed summary card on Home does (BAL-5)."
+  },
+  "collapseSummaryTooltip": "Show only the balance",
+  "@collapseSummaryTooltip": {
+    "description": "What tapping the open summary card on Home does (BAL-5)."
+  },
   "periodNetLabel": "This period",
   "carriedForwardLine": "Carried forward {amount}",
   "@carriedForwardLine": {
@@ -85,6 +93,10 @@
   "undoButton": "Undo",
   "undoFailed": "Couldn't undo. Try again.",
   "restoreFailed": "Couldn't restore the transaction. Try again.",
+  "restoreTransferFailed": "Couldn't restore the transfer. Try again.",
+  "@restoreTransferFailed": {
+    "description": "Shown when restoring a transfer from the trash fails (DEL-5)."
+  },
   "addTransactionTitle": "Add Transaction",
   "editTransactionTitle": "Edit Transaction",
   "transactionDetailTitle": "Details",

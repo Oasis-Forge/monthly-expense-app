@@ -31,6 +31,12 @@ class AppLocalizationsHi extends AppLocalizations {
   String get balanceLabel => 'बैलेंस';
 
   @override
+  String get expandSummaryTooltip => 'आय और व्यय दिखाएँ';
+
+  @override
+  String get collapseSummaryTooltip => 'केवल बैलेंस दिखाएँ';
+
+  @override
   String get periodNetLabel => 'इस अवधि में';
 
   @override
@@ -113,6 +119,10 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get restoreFailed => 'लेनदेन रीस्टोर नहीं हो सका। फिर कोशिश करें।';
+
+  @override
+  String get restoreTransferFailed =>
+      'ट्रांसफ़र वापस नहीं लाया जा सका। फिर कोशिश करें।';
 
   @override
   String get addTransactionTitle => 'लेनदेन जोड़ें';

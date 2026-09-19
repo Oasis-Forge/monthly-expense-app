@@ -31,6 +31,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get balanceLabel => '残高';
 
   @override
+  String get expandSummaryTooltip => '収入と支出を表示';
+
+  @override
+  String get collapseSummaryTooltip => '残高のみ表示';
+
+  @override
   String get periodNetLabel => '今期';
 
   @override
@@ -113,6 +119,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get restoreFailed => '取引を復元できませんでした。もう一度お試しください。';
+
+  @override
+  String get restoreTransferFailed => '振替を元に戻せませんでした。もう一度お試しください。';
 
   @override
   String get addTransactionTitle => '取引を追加';

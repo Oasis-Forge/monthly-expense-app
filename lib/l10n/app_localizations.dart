@@ -178,6 +178,18 @@ abstract class AppLocalizations {
   /// **'Balance'**
   String get balanceLabel;
 
+  /// What tapping the collapsed summary card on Home does (BAL-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Show income and expense'**
+  String get expandSummaryTooltip;
+
+  /// What tapping the open summary card on Home does (BAL-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Show only the balance'**
+  String get collapseSummaryTooltip;
+
   /// No description provided for @periodNetLabel.
   ///
   /// In en, this message translates to:
@@ -279,6 +291,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Couldn\'t restore the transaction. Try again.'**
   String get restoreFailed;
+
+  /// Shown when restoring a transfer from the trash fails (DEL-5).
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t restore the transfer. Try again.'**
+  String get restoreTransferFailed;
 
   /// No description provided for @addTransactionTitle.
   ///

@@ -31,6 +31,12 @@ class AppLocalizationsPl extends AppLocalizations {
   String get balanceLabel => 'Saldo';
 
   @override
+  String get expandSummaryTooltip => 'Pokaż wpływy i wydatki';
+
+  @override
+  String get collapseSummaryTooltip => 'Pokaż tylko saldo';
+
+  @override
   String get periodNetLabel => 'Ten okres';
 
   @override
@@ -121,6 +127,10 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Nie udało się przywrócić transakcji. Spróbuj ponownie.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Nie udało się przywrócić przelewu. Spróbuj ponownie.';
 
   @override
   String get addTransactionTitle => 'Nowa transakcja';

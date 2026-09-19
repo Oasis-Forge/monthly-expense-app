@@ -31,6 +31,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get balanceLabel => 'Solde';
 
   @override
+  String get expandSummaryTooltip => 'Afficher les revenus et les dépenses';
+
+  @override
+  String get collapseSummaryTooltip => 'Afficher seulement le solde';
+
+  @override
   String get periodNetLabel => 'Cette période';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Impossible de restaurer la transaction. Réessayez.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Impossible de restaurer le virement. Réessayez.';
 
   @override
   String get addTransactionTitle => 'Ajouter une transaction';

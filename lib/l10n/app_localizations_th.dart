@@ -31,6 +31,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get balanceLabel => 'ยอดคงเหลือ';
 
   @override
+  String get expandSummaryTooltip => 'แสดงรายรับและรายจ่าย';
+
+  @override
+  String get collapseSummaryTooltip => 'แสดงเฉพาะยอดคงเหลือ';
+
+  @override
   String get periodNetLabel => 'งวดนี้';
 
   @override
@@ -113,6 +119,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get restoreFailed => 'กู้คืนรายการไม่สำเร็จ ลองอีกครั้ง';
+
+  @override
+  String get restoreTransferFailed => 'กู้คืนการโอนไม่สำเร็จ ลองอีกครั้ง';
 
   @override
   String get addTransactionTitle => 'เพิ่มรายการ';

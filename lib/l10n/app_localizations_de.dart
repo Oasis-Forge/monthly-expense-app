@@ -31,6 +31,12 @@ class AppLocalizationsDe extends AppLocalizations {
   String get balanceLabel => 'Saldo';
 
   @override
+  String get expandSummaryTooltip => 'Einnahmen und Ausgaben anzeigen';
+
+  @override
+  String get collapseSummaryTooltip => 'Nur den Saldo anzeigen';
+
+  @override
   String get periodNetLabel => 'Dieser Zeitraum';
 
   @override
@@ -116,6 +122,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Die Buchung konnte nicht wiederhergestellt werden. Versuche es erneut.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Umbuchung konnte nicht wiederhergestellt werden. Versuch es erneut.';
 
   @override
   String get addTransactionTitle => 'Buchung hinzufügen';

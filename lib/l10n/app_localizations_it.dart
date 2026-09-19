@@ -31,6 +31,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get balanceLabel => 'Saldo';
 
   @override
+  String get expandSummaryTooltip => 'Mostra entrate e uscite';
+
+  @override
+  String get collapseSummaryTooltip => 'Mostra solo il saldo';
+
+  @override
   String get periodNetLabel => 'Questo periodo';
 
   @override
@@ -114,6 +120,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Impossibile ripristinare la transazione. Riprova.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Impossibile ripristinare il trasferimento. Riprova.';
 
   @override
   String get addTransactionTitle => 'Aggiungi transazione';

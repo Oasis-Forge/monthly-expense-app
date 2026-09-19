@@ -31,6 +31,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get balanceLabel => 'Số dư';
 
   @override
+  String get expandSummaryTooltip => 'Hiện thu và chi';
+
+  @override
+  String get collapseSummaryTooltip => 'Chỉ hiện số dư';
+
+  @override
   String get periodNetLabel => 'Kỳ này';
 
   @override
@@ -114,6 +120,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Không thể khôi phục giao dịch. Vui lòng thử lại.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Không khôi phục được giao dịch chuyển. Thử lại.';
 
   @override
   String get addTransactionTitle => 'Thêm giao dịch';

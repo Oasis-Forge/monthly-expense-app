@@ -31,6 +31,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get balanceLabel => 'Баланс';
 
   @override
+  String get expandSummaryTooltip => 'Показать доходы и расходы';
+
+  @override
+  String get collapseSummaryTooltip => 'Показать только баланс';
+
+  @override
   String get periodNetLabel => 'За этот период';
 
   @override
@@ -120,6 +126,10 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Не удалось восстановить операцию. Попробуйте ещё раз.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Не удалось восстановить перевод. Попробуйте ещё раз.';
 
   @override
   String get addTransactionTitle => 'Новая операция';

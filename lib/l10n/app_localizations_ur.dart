@@ -31,6 +31,12 @@ class AppLocalizationsUr extends AppLocalizations {
   String get balanceLabel => 'بیلنس';
 
   @override
+  String get expandSummaryTooltip => 'آمدنی اور اخراجات دکھائیں';
+
+  @override
+  String get collapseSummaryTooltip => 'صرف بیلنس دکھائیں';
+
+  @override
   String get periodNetLabel => 'اس مدت';
 
   @override
@@ -113,6 +119,10 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get restoreFailed => 'ٹرانزیکشن بحال نہیں ہو سکی۔ دوبارہ کوشش کریں۔';
+
+  @override
+  String get restoreTransferFailed =>
+      'ٹرانسفر بحال نہیں ہو سکا۔ دوبارہ کوشش کریں۔';
 
   @override
   String get addTransactionTitle => 'ٹرانزیکشن شامل کریں';

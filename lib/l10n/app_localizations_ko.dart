@@ -31,6 +31,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get balanceLabel => '잔액';
 
   @override
+  String get expandSummaryTooltip => '수입과 지출 표시';
+
+  @override
+  String get collapseSummaryTooltip => '잔액만 표시';
+
+  @override
   String get periodNetLabel => '이번 기간';
 
   @override
@@ -113,6 +119,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get restoreFailed => '거래를 복원하지 못했어요. 다시 시도해 주세요.';
+
+  @override
+  String get restoreTransferFailed => '이체를 복원하지 못했어요. 다시 시도해 주세요.';
 
   @override
   String get addTransactionTitle => '거래 추가';

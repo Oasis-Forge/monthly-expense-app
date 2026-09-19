@@ -31,6 +31,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get balanceLabel => 'الرصيد';
 
   @override
+  String get expandSummaryTooltip => 'عرض الدخل والمصروفات';
+
+  @override
+  String get collapseSummaryTooltip => 'عرض الرصيد فقط';
+
+  @override
   String get periodNetLabel => 'هذه الفترة';
 
   @override
@@ -122,6 +128,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get restoreFailed => 'تعذّرت استعادة المعاملة. حاول مرة أخرى.';
+
+  @override
+  String get restoreTransferFailed => 'تعذّرت استعادة التحويل. حاول مرة أخرى.';
 
   @override
   String get addTransactionTitle => 'إضافة معاملة';

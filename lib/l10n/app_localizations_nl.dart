@@ -31,6 +31,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get balanceLabel => 'Saldo';
 
   @override
+  String get expandSummaryTooltip => 'Inkomsten en uitgaven tonen';
+
+  @override
+  String get collapseSummaryTooltip => 'Alleen het saldo tonen';
+
+  @override
   String get periodNetLabel => 'Deze periode';
 
   @override
@@ -115,6 +121,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get restoreFailed =>
       'Kan de transactie niet herstellen. Probeer het opnieuw.';
+
+  @override
+  String get restoreTransferFailed =>
+      'Kon de overboeking niet herstellen. Probeer het opnieuw.';
 
   @override
   String get addTransactionTitle => 'Transactie toevoegen';
