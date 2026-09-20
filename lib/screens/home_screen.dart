@@ -799,7 +799,34 @@ class _SummaryCard extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
                 child: Row(
                   children: [
-                    Text(label, style: theme.textTheme.bodyMedium),
+                    // ACC-6: the way back to every account, on the one line
+                    // too. This is the state a scroll leaves Home in, and the
+                    // state it opens in when that is how it was left (BAL-6),
+                    // so it is where the way out matters most. With every
+                    // account showing there is nothing to say and nothing is
+                    // shown, exactly as on Insights' banner.
+                    if (accountName != null && onPickAccount != null) ...[
+                      InkWell(
+                        onTap: onPickAccount,
+                        customBorder: const CircleBorder(),
+                        child: Icon(
+                          Icons.account_balance_wallet_outlined,
+                          size: 20,
+                          semanticLabel: l10n.accountLabel,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    // An account's name is the user's own words, so it gives
+                    // way rather than running into the balance (LANG-4).
+                    Flexible(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
                     const SizedBox(width: 12),
                     // The balance keeps the room it needs in any language.
                     Expanded(

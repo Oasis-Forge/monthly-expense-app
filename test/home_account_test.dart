@@ -504,6 +504,63 @@ void main() {
       expect(find.byIcon(Icons.close), findsNothing);
     });
 
+    testWidgets('the one line keeps the way back (ACC-6, BAL-6)', (
+      tester,
+    ) async {
+      usePhoneScreen(tester);
+      final provider = await loaded(twoAccounts());
+      final settings = await testSettings();
+      // The state a scroll leaves Home in, and the one it opens in when that
+      // is how it was left.
+      await settings.setSummaryCollapsed(true);
+      await tester.pumpWidget(testApp(provider, settings, const HomeScreen()));
+      await tester.pumpAndSettle();
+
+      // Every account: nothing to say, so no control and no room spent on it.
+      expect(find.byIcon(Icons.account_balance_wallet_outlined), findsNothing);
+
+      provider.selectAccountFilter(bank);
+      await tester.pumpAndSettle();
+
+      // One account: the line names it (BAL-6) and hands it back in one tap,
+      // without the card having to be opened first.
+      expect(find.text(bank), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.account_balance_wallet_outlined));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('All accounts'));
+      await tester.pumpAndSettle();
+
+      expect(provider.accountFilterId, isNull);
+      expect(settings.accountFilterId, isNull);
+      expect(find.text('Balance'), findsOneWidget);
+    });
+
+    testWidgets('a long account name gives way rather than overflowing', (
+      tester,
+    ) async {
+      usePhoneScreen(tester);
+      // An account's name is the user's own words, and the one line has the
+      // balance to fit as well (LANG-4).
+      const long = 'Joint savings account at the building society';
+      final provider = await loaded(
+        FakeDB(
+          transactions: [testTx('cash-spend', expense, 30, today)],
+          accounts: [
+            testAccount(cash, opening: 100),
+            testAccount(long, opening: 5000),
+          ],
+        ),
+      );
+      final settings = await testSettings();
+      await settings.setSummaryCollapsed(true);
+      provider.selectAccountFilter(long);
+      await tester.pumpWidget(testApp(provider, settings, const HomeScreen()));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text(long), findsOneWidget);
+    });
+
     test(
       'the sheet offers every account that is not archived (ACC-5)',
       () async {
