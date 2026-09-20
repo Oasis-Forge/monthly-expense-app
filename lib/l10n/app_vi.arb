@@ -443,5 +443,20 @@
   "plusComingSoon": "Sắp ra mắt",
   "plusBody": "Kết nối ngân hàng để tự động lấy giao dịch cho bạn xác nhận. Tính năng chưa hoàn thiện nên chưa có gì để mua.",
   "privacyOptionsTitle": "Tùy chọn quyền riêng tư",
-  "privacyOptionsSubtitle": "Thay đổi lựa chọn về quảng cáo được cá nhân hóa"
+  "privacyOptionsSubtitle": "Thay đổi lựa chọn về quảng cáo được cá nhân hóa",
+  "dueEntryReminderTitle": "Một mục đã đến hạn",
+  "dueEntryReminderOne": "{title} đã đến hạn hôm nay và vẫn đang chờ.",
+  "dueEntryReminderUntitled": "Một mục lặp lại đã đến hạn hôm nay và vẫn đang chờ.",
+  "dueEntryReminderMany": "{count, plural, =1{Có {count} mục lặp lại đến hạn hôm nay.} other{Có {count} mục lặp lại đến hạn hôm nay.}}",
+  "emptyDayReminderTitle": "Hôm nay chưa ghi gì",
+  "emptyDayReminderBody": "Hãy thêm khoản chi trong khi bạn còn nhớ.",
+  "reminderLockedTitle": "Có điều gì đó đang chờ",
+  "nudgeSettingsTitle": "Nhắc tôi vào ngày trống",
+  "nudgeSettingsSubtitle": "Một lời nhắc vào buổi tối, chỉ khi ngày đó chưa ghi gì.",
+  "nudgeOfferTitle": "Nhắc bạn vào những ngày bạn quên?",
+  "nudgeOfferBody": "Một lời nhắc vào thời điểm bạn chọn, chỉ khi ngày đó chưa ghi gì. Có thể tắt bất cứ lúc nào.",
+  "nudgeOfferYes": "Có, nhắc tôi nhé",
+  "nudgeOfferNo": "Không",
+  "nudgeStoppedNotice": "Nhắc nhở đã dừng sau ba lần không phản hồi. Bật lại bất cứ khi nào bạn muốn.",
+  "nudgePermissionDenied": "Bật thông báo trong cài đặt hệ thống để nhận nhắc nhở."
 }

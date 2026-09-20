@@ -12,6 +12,7 @@ import '../models/money.dart';
 import '../models/note.dart';
 import '../models/period.dart';
 import '../models/recurring_rule.dart';
+import '../models/reminders.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../models/transfer.dart';
@@ -387,6 +388,7 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> load({
     bool appLockOn = false,
     Locale locale = const Locale('en'),
+    NudgeSettings nudge = NudgeSettings.off,
   }) async {
     await _attachments.deleteAll(
       await _db.purgeDeletedBefore(_clock().subtract(trashRetention)),
@@ -422,7 +424,11 @@ class TransactionProvider extends ChangeNotifier {
     _deletedNotes.clear();
     _reopenedNotes.clear();
     await _postAutomaticOccurrences();
-    await rescheduleReminders(appLockOn: appLockOn, locale: locale);
+    await rescheduleReminders(
+      appLockOn: appLockOn,
+      locale: locale,
+      nudge: nudge,
+    );
     _loaded = true;
     _changed();
   }
@@ -434,12 +440,29 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> rescheduleReminders({
     required bool appLockOn,
     required Locale locale,
+    NudgeSettings nudge = NudgeSettings.off,
   }) async {
     _appLockOn = appLockOn;
     _locale = locale;
     for (final note in _notes) {
       await _reminders.schedule(note, appLockOn: appLockOn, locale: locale);
     }
+    // The app's own reminders are planned from what is due and what the
+    // user has asked for, and replace whatever was scheduled before
+    // (NUDGE-1).
+    await _reminders.scheduleNudges(
+      planReminders(
+        now: _clock(),
+        due: dueOccurrences,
+        upcoming: upcomingOccurrences,
+        emptyDayOn: nudge.on,
+        emptyDayHour: nudge.hour,
+        emptyDayMinute: nudge.minute,
+        recordedToday: recordedToday,
+      ),
+      appLockOn: appLockOn,
+      locale: locale,
+    );
   }
 
   /// Sets the first day of each month (PER-2) and shows the period that
@@ -1209,6 +1232,38 @@ class TransactionProvider extends ChangeNotifier {
         ?statusFor(category.id, byCategory[category.id] ?? Money.zero),
     ];
   }
+
+  /// The days anything was added on, at midnight local: when the person used
+  /// the app, not what the entry is dated. Three of them is what the
+  /// empty-day nudge is offered after (NUDGE-3), and one of them is what
+  /// answers a nudge that has already fired (NUDGE-5).
+  Set<DateTime> get daysUsed => {
+    for (final transaction in _transactions)
+      DateTime(
+        transaction.createdAt.year,
+        transaction.createdAt.month,
+        transaction.createdAt.day,
+      ),
+    for (final transfer in _transfers)
+      DateTime(
+        transfer.createdAt.year,
+        transfer.createdAt.month,
+        transfer.createdAt.day,
+      ),
+  };
+
+  /// Whether today has anything dated to it, which is what keeps it from
+  /// being told that it is empty (NUDGE-4).
+  bool get recordedToday {
+    final today = _today;
+    return _transactions.any((t) => _isToday(t.date, today)) ||
+        _transfers.any((t) => _isToday(t.date, today));
+  }
+
+  static bool _isToday(DateTime date, DateTime today) =>
+      date.year == today.year &&
+      date.month == today.month &&
+      date.day == today.day;
 
   // Recurring transactions (RCR-1–RCR-7).
 

@@ -1586,4 +1586,59 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get privacyOptionsSubtitle => '更改你对个性化广告的选择';
+
+  @override
+  String get dueEntryReminderTitle => '有一笔记录到期';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title今天到期，仍在等待处理。';
+  }
+
+  @override
+  String get dueEntryReminderUntitled => '一笔重复记录今天到期，仍在等待处理。';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '今天有 $count 笔重复记录到期。',
+      one: '今天有 $count 笔重复记录到期。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => '今天没有记录';
+
+  @override
+  String get emptyDayReminderBody => '趁还记得，把花费记下来吧。';
+
+  @override
+  String get reminderLockedTitle => '有一项内容在等待';
+
+  @override
+  String get nudgeSettingsTitle => '空白日提醒我';
+
+  @override
+  String get nudgeSettingsSubtitle => '仅在晚上提醒一次，且仅限当天没有任何记录时。';
+
+  @override
+  String get nudgeOfferTitle => '在你忘记的日子提醒一下？';
+
+  @override
+  String get nudgeOfferBody => '在你选择的时间提醒一次，仅限当天没有任何记录时。随时可以关闭。';
+
+  @override
+  String get nudgeOfferYes => '好的，提醒我';
+
+  @override
+  String get nudgeOfferNo => '不用了，谢谢';
+
+  @override
+  String get nudgeStoppedNotice => '连续三次未响应后提醒已停止，可随时重新开启。';
+
+  @override
+  String get nudgePermissionDenied => '请在系统设置中开启通知以接收提醒。';
 }

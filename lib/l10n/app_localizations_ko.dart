@@ -1594,4 +1594,60 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get privacyOptionsSubtitle => '맞춤 광고 설정 변경';
+
+  @override
+  String get dueEntryReminderTitle => '예정된 입력이 있었습니다';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title이(가) 오늘 예정이었고 아직 대기 중입니다.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled => '반복 항목이 오늘 예정이었고 아직 대기 중입니다.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '오늘 예정된 반복 항목이 $count개 있습니다.',
+      one: '오늘 예정된 반복 항목이 $count개 있습니다.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => '오늘 기록된 내용이 없습니다';
+
+  @override
+  String get emptyDayReminderBody => '기억이 남아 있을 때 지출을 추가하세요.';
+
+  @override
+  String get reminderLockedTitle => '무언가가 기다리고 있습니다';
+
+  @override
+  String get nudgeSettingsTitle => '기록 없는 날에 알림';
+
+  @override
+  String get nudgeSettingsSubtitle => '저녁에 한 번, 기록이 전혀 없는 날에만 알려드려요.';
+
+  @override
+  String get nudgeOfferTitle => '잊어버리는 날에 알림을 보내드릴까요?';
+
+  @override
+  String get nudgeOfferBody =>
+      '원하는 시간에 한 번, 기록이 전혀 없는 날에만 알려드려요. 언제든 다시 끌 수 있어요.';
+
+  @override
+  String get nudgeOfferYes => '네, 알려주세요';
+
+  @override
+  String get nudgeOfferNo => '괜찮습니다';
+
+  @override
+  String get nudgeStoppedNotice => '세 번 응답이 없어 알림이 중지되었습니다. 언제든 다시 켤 수 있어요.';
+
+  @override
+  String get nudgePermissionDenied => '알림을 받으려면 시스템 설정에서 알림을 켜세요.';
 }

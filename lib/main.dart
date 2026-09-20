@@ -9,6 +9,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'l10n/app_localizations.dart';
 import 'l10n/languages.dart';
+import 'models/reminders.dart';
 import 'models/transaction.dart';
 import 'providers/ads_provider.dart';
 import 'providers/settings_provider.dart';
@@ -18,6 +19,7 @@ import 'screens/app_lock.dart';
 import 'screens/first_run_gate.dart';
 import 'screens/note_form_screen.dart';
 import 'screens/notes_screen.dart';
+import 'screens/recurring_screen.dart';
 import 'services/ad_service.dart';
 import 'services/ads_config.dart';
 import 'services/attachment_service.dart';
@@ -89,6 +91,7 @@ class MonthlyExpenseApp extends StatelessWidget {
                 ..load(
                   appLockOn: settings.appLock,
                   locale: effectiveAppLocale(settings.locale),
+                  nudge: settings.nudgeSettings,
                 ),
         ),
         Provider<BackupService>(create: (_) => backup ?? BackupService()),
@@ -264,13 +267,19 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps> {
   void initState() {
     super.initState();
     tappedNoteId.addListener(_open);
+    tappedReminder.addListener(_openReminder);
     // A tap that launched the app from cold may already be pending.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _open());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _open();
+      _openReminder();
+      unawaited(_countIgnoredNudges());
+    });
   }
 
   @override
   void dispose() {
     tappedNoteId.removeListener(_open);
+    tappedReminder.removeListener(_openReminder);
     super.dispose();
   }
 
@@ -288,6 +297,53 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps> {
         },
       ),
     );
+  }
+
+  /// Opens what the app's own reminder was about (NUDGE-2). A tap is an
+  /// answer, so a nudge that had started counting against itself begins
+  /// again (NUDGE-5).
+  void _openReminder() {
+    final kind = tappedReminder.value;
+    if (kind == null) return;
+    tappedReminder.value = null;
+    unawaited(context.read<SettingsProvider>().answerNudge());
+    // The empty day has nowhere of its own to go: opening the app is the
+    // whole of it. What fell due has the upcoming list.
+    if (kind != ReminderKind.dueEntry) return;
+    MonthlyExpenseApp.navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (_) => const RecurringScreen()),
+    );
+  }
+
+  /// Counts the nudges that fired while the app was closed and went
+  /// unanswered, and lets the nudge stop itself after three in a row
+  /// (NUDGE-5). Stopping cancels what was still scheduled.
+  Future<void> _countIgnoredNudges() async {
+    final settings = context.read<SettingsProvider>();
+    final transactions = context.read<TransactionProvider>();
+    final now = DateTime.now();
+    final since = settings.nudgeCheckedAt;
+    final wasOn = settings.emptyDayNudge;
+    await settings.recordNudgesIgnored(
+      wasOn && since != null
+          ? countIgnoredNudges(
+              now: now,
+              since: since,
+              hour: settings.nudgeHour,
+              minute: settings.nudgeMinute,
+              daysWithEntries: transactions.daysUsed,
+              ignoredSoFar: settings.nudgeIgnored,
+            )
+          : settings.nudgeIgnored,
+      now,
+    );
+    if (wasOn && !settings.emptyDayNudge) {
+      await transactions.rescheduleReminders(
+        appLockOn: settings.appLock,
+        locale: effectiveAppLocale(settings.locale),
+        nudge: settings.nudgeSettings,
+      );
+    }
   }
 
   @override

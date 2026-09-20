@@ -1632,4 +1632,65 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'ব্যক্তিগতকৃত বিজ্ঞাপন সম্পর্কে আপনার পছন্দ পরিবর্তন করুন';
+
+  @override
+  String get dueEntryReminderTitle => 'এন্ট্রি বকেয়া ছিল';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'একটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
+      one: '1টি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'আজ কিছু রেকর্ড করা হয়নি';
+
+  @override
+  String get emptyDayReminderBody =>
+      'আপনি যা খরচ করেছেন তা মনে থাকতে থাকতেই যোগ করুন।';
+
+  @override
+  String get reminderLockedTitle => 'কিছু একটা অপেক্ষা করছে';
+
+  @override
+  String get nudgeSettingsTitle => 'খালি দিনে আমাকে মনে করিয়ে দিন';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'সন্ধ্যায় একটি রিমাইন্ডার, এবং শুধু সেই দিনে যেখানে কিছু রেকর্ড করা হয়নি।';
+
+  @override
+  String get nudgeOfferTitle => 'যেদিন ভুলে যান, সেদিন একটা মনে করানো?';
+
+  @override
+  String get nudgeOfferBody =>
+      'আপনার পছন্দের সময়ে একটি রিমাইন্ডার, শুধু সেই দিনে যেখানে কিছু রেকর্ড করা হয়নি। যেকোনো সময় বন্ধ করুন।';
+
+  @override
+  String get nudgeOfferYes => 'হ্যাঁ, মনে করান';
+
+  @override
+  String get nudgeOfferNo => 'না ধন্যবাদ';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'তিনটি অনুত্তরিত থাকার পর রিমাইন্ডার বন্ধ হয়েছে। যখন ইচ্ছা আবার চালু করুন।';
+
+  @override
+  String get nudgePermissionDenied =>
+      'রিমাইন্ডার পেতে সিস্টেম সেটিংসে বিজ্ঞপ্তি চালু করুন।';
 }

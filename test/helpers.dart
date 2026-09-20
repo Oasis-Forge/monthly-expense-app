@@ -17,6 +17,7 @@ import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/note.dart';
+import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transfer.dart';
@@ -569,6 +570,26 @@ class FakeReminderService implements ReminderService {
 
   /// How many times [requestPermission] was called.
   int permissionRequests = 0;
+
+  /// The app's own reminders currently scheduled, in the order planned, and
+  /// the [appLockOn] they were scheduled with (NUDGE-1).
+  List<PlannedReminder> nudges = const [];
+  bool nudgesLocked = false;
+
+  /// How many times a plan replaced the one before it, so a test can tell a
+  /// reschedule from a plan that simply stayed the same.
+  int nudgePlans = 0;
+
+  @override
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    nudges = plan;
+    nudgesLocked = appLockOn;
+    nudgePlans++;
+  }
 
   @override
   Future<bool> requestPermission() async {

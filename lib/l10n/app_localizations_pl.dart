@@ -1693,4 +1693,67 @@ class AppLocalizationsPl extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Zmień ustawienia reklam spersonalizowanych';
+
+  @override
+  String get dueEntryReminderTitle => 'Wpis był zaplanowany';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title miał termin dzisiaj i wciąż czeka.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Wpis cykliczny miał termin dzisiaj i wciąż czeka.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wpisów cyklicznych miało dziś termin.',
+      many: '$count wpisów cyklicznych miało dziś termin.',
+      few: '$count wpisy cykliczne miały dziś termin.',
+      one: '1 wpis cykliczny miał dziś termin.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Dziś nic nie zapisano';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Dodaj wydatki, dopóki jeszcze je pamiętasz.';
+
+  @override
+  String get reminderLockedTitle => 'Coś czeka';
+
+  @override
+  String get nudgeSettingsTitle => 'Przypomnij mi w pusty dzień';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Jedno przypomnienie wieczorem, tylko w dniu bez żadnego wpisu.';
+
+  @override
+  String get nudgeOfferTitle => 'Przypomnienie w dni zapomnienia?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Jedno przypomnienie o wybranej porze, tylko w dniu bez wpisu. Możesz je wyłączyć w każdej chwili.';
+
+  @override
+  String get nudgeOfferYes => 'Tak, przypominaj';
+
+  @override
+  String get nudgeOfferNo => 'Nie';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Przypomnienia zatrzymano po trzech bez odpowiedzi. Włącz je ponownie, kiedy chcesz.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Włącz powiadomienia w ustawieniach systemowych.';
 }

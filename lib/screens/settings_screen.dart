@@ -6,11 +6,13 @@ import '../l10n/app_localizations.dart';
 import '../l10n/languages.dart';
 import '../models/currencies.dart';
 import '../models/period.dart';
+import '../models/reminders.dart';
 import '../models/transaction_filter.dart' show foldForSearch;
 import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/authenticator.dart';
+import '../services/reminder_service.dart';
 import 'accounts_screen.dart';
 import 'backup_screen.dart';
 import 'categories_screen.dart';
@@ -34,6 +36,7 @@ class SettingsScreen extends StatelessWidget {
     await transactions.rescheduleReminders(
       appLockOn: settings.appLock,
       locale: effectiveAppLocale(settings.locale),
+      nudge: settings.nudgeSettings,
     );
   }
 
@@ -122,6 +125,7 @@ class SettingsScreen extends StatelessWidget {
             // (WID-4).
             onChanged: settings.appLock ? settings.setShowWidgetAmounts : null,
           ),
+          const _NudgeTile(),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.account_balance_wallet_outlined),
@@ -298,6 +302,7 @@ class _AppLockTileState extends State<_AppLockTile> {
       await transactions.rescheduleReminders(
         appLockOn: on,
         locale: effectiveAppLocale(settings.locale),
+        nudge: settings.nudgeSettings,
       );
     } else {
       messenger.showSnackBar(SnackBar(content: Text(l10n.appLockFailed)));
@@ -419,6 +424,95 @@ class _AdsRows extends StatelessWidget {
             title: Text(l10n.privacyOptionsTitle),
             subtitle: Text(l10n.privacyOptionsSubtitle),
             onTap: ads.showPrivacyOptions,
+          ),
+      ],
+    );
+  }
+}
+
+/// The empty-day nudge, and the time of day it fires (NUDGE-3 to NUDGE-6).
+/// Nothing is offered where the phone cannot schedule one (NUDGE-10).
+class _NudgeTile extends StatelessWidget {
+  const _NudgeTile();
+
+  /// Turns it on or off. Permission is asked the first time one is turned
+  /// on, never before (NUDGE-7), and a refusal leaves the switch alone and
+  /// everything else working.
+  static Future<void> _set(BuildContext context, bool on) async {
+    final l10n = AppLocalizations.of(context);
+    final settings = context.read<SettingsProvider>();
+    final transactions = context.read<TransactionProvider>();
+    final reminders = context.read<ReminderService>();
+    final messenger = ScaffoldMessenger.of(context);
+    if (on && !await reminders.requestPermission()) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.nudgePermissionDenied)),
+      );
+      return;
+    }
+    await settings.setEmptyDayNudge(on);
+    await settings.markNudgeOffered();
+    await transactions.rescheduleReminders(
+      appLockOn: settings.appLock,
+      locale: effectiveAppLocale(settings.locale),
+      nudge: settings.nudgeSettings,
+    );
+  }
+
+  static Future<void> _pickTime(BuildContext context) async {
+    final settings = context.read<SettingsProvider>();
+    final transactions = context.read<TransactionProvider>();
+    final chosen = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(
+        hour: settings.nudgeHour,
+        minute: settings.nudgeMinute,
+      ),
+    );
+    if (chosen == null) return;
+    // An hour outside the waking ones comes back as the default, and the row
+    // shows what was kept rather than what was asked for (NUDGE-6).
+    await settings.setNudgeTime(chosen.hour, chosen.minute);
+    await transactions.rescheduleReminders(
+      appLockOn: settings.appLock,
+      locale: effectiveAppLocale(settings.locale),
+      nudge: settings.nudgeSettings,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!remindersSupported) return const SizedBox.shrink();
+    final l10n = AppLocalizations.of(context);
+    final settings = context.watch<SettingsProvider>();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.notifications_none),
+          title: Text(l10n.nudgeSettingsTitle),
+          // Off after giving up, the row says why rather than looking as
+          // though the user turned it off themselves (NUDGE-5).
+          subtitle: Text(
+            settings.nudgeStopped
+                ? l10n.nudgeStoppedNotice
+                : l10n.nudgeSettingsSubtitle,
+          ),
+          value: settings.emptyDayNudge,
+          onChanged: (on) => _set(context, on),
+        ),
+        if (settings.emptyDayNudge)
+          ListTile(
+            title: Text(l10n.noteReminderTimeLabel),
+            trailing: Text(
+              MaterialLocalizations.of(context).formatTimeOfDay(
+                TimeOfDay(
+                  hour: settings.nudgeHour,
+                  minute: settings.nudgeMinute,
+                ),
+              ),
+            ),
+            onTap: () => _pickTime(context),
           ),
       ],
     );

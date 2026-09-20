@@ -1628,4 +1628,64 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'व्यक्तिगत विज्ञापनों के बारे में अपनी पसंद बदलें';
+
+  @override
+  String get dueEntryReminderTitle => 'एक प्रविष्टि बाकी थी';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title आज देय था और अभी भी प्रतीक्षा में है।';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'एक आवर्ती प्रविष्टि आज देय थी और अभी भी प्रतीक्षा में है।';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count आवर्ती प्रविष्टियाँ आज देय थीं।',
+      one: '1 आवर्ती प्रविष्टि आज देय थी।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'आज कुछ भी दर्ज नहीं हुआ';
+
+  @override
+  String get emptyDayReminderBody => 'जब तक याद है, अपना खर्च जोड़ लें।';
+
+  @override
+  String get reminderLockedTitle => 'कुछ आपका इंतज़ार कर रहा है';
+
+  @override
+  String get nudgeSettingsTitle => 'खाली दिन मुझे याद दिलाएं';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'शाम को एक याद दिलाना, और केवल उस दिन जब कुछ भी दर्ज न हो।';
+
+  @override
+  String get nudgeOfferTitle => 'जिन दिनों आप भूल जाते हैं, याद दिलाना?';
+
+  @override
+  String get nudgeOfferBody =>
+      'आपके चुने समय पर एक याद दिलाना, केवल उस दिन जब कुछ भी दर्ज न हो। जब चाहें बंद कर दें।';
+
+  @override
+  String get nudgeOfferYes => 'हां, याद दिलाएं';
+
+  @override
+  String get nudgeOfferNo => 'नहीं';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'तीन बार अनुत्तरित रहने पर याद दिलाना बंद हो गया। जब चाहें फिर चालू करें।';
+
+  @override
+  String get nudgePermissionDenied =>
+      'याद दिलाने के लिए सिस्टम सेटिंग्स में सूचनाएं चालू करें।';
 }

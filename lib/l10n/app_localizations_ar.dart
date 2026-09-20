@@ -1689,4 +1689,68 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get privacyOptionsSubtitle => 'غيّر اختيارك بشأن الإعلانات المخصصة';
+
+  @override
+  String get dueEntryReminderTitle => 'إدخال متكرر مستحق';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title كان مستحقًا اليوم ولا يزال بانتظارك.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'إدخال متكرر كان مستحقًا اليوم ولا يزال بانتظارك.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إدخال متكرر كان مستحقًا اليوم.',
+      many: '$count إدخالًا متكررًا كانت مستحقة اليوم.',
+      few: '$count إدخالات متكررة كانت مستحقة اليوم.',
+      two: 'إدخالان متكرران كانا مستحقين اليوم.',
+      one: 'إدخال متكرر واحد كان مستحقًا اليوم.',
+      zero: 'لا توجد إدخالات متكررة مستحقة اليوم.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'لا شيء مسجل اليوم';
+
+  @override
+  String get emptyDayReminderBody => 'أضف ما أنفقته بينما ما زلت تتذكره.';
+
+  @override
+  String get reminderLockedTitle => 'هناك شيء بانتظارك';
+
+  @override
+  String get nudgeSettingsTitle => 'ذكّرني في يوم بلا تسجيلات';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'تذكير واحد في المساء، وفقط في يوم لم يُسجَّل فيه شيء.';
+
+  @override
+  String get nudgeOfferTitle => 'تذكير في الأيام التي تنسى فيها؟';
+
+  @override
+  String get nudgeOfferBody =>
+      'تذكير واحد في وقت تختاره، فقط في يوم بلا تسجيلات. أوقفه متى شئت.';
+
+  @override
+  String get nudgeOfferYes => 'نعم، ذكّرني';
+
+  @override
+  String get nudgeOfferNo => 'لا، شكرًا';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'توقفت التذكيرات بعد ثلاث مرات دون رد. أعد تفعيلها متى شئت.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'فعّل الإشعارات في إعدادات النظام لتلقي التذكيرات.';
 }

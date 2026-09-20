@@ -1634,4 +1634,64 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Ubah pilihanmu tentang iklan yang dipersonalisasi';
+
+  @override
+  String get dueEntryReminderTitle => 'Entri jatuh tempo';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title jatuh tempo hari ini dan masih menunggu.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Entri berulang jatuh tempo hari ini dan masih menunggu.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ada $count entri berulang jatuh tempo hari ini.',
+      one: 'Ada $count entri berulang jatuh tempo hari ini.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Belum ada catatan hari ini';
+
+  @override
+  String get emptyDayReminderBody => 'Catat pengeluaranmu selagi masih ingat.';
+
+  @override
+  String get reminderLockedTitle => 'Ada sesuatu yang menunggu';
+
+  @override
+  String get nudgeSettingsTitle => 'Ingatkan aku di hari kosong';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Satu pengingat di malam hari, hanya pada hari tanpa catatan apa pun.';
+
+  @override
+  String get nudgeOfferTitle => 'Pengingat di hari kamu lupa?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Satu pengingat pada waktu pilihanmu, hanya pada hari tanpa catatan apa pun. Bisa dimatikan kapan saja.';
+
+  @override
+  String get nudgeOfferYes => 'Ya, ingatkan aku';
+
+  @override
+  String get nudgeOfferNo => 'Tidak';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Pengingat berhenti setelah tiga kali tak dijawab. Aktifkan lagi kapan saja.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Aktifkan notifikasi di pengaturan sistem untuk pengingat.';
 }

@@ -1639,4 +1639,65 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Modifica la tua scelta sugli annunci personalizzati';
+
+  @override
+  String get dueEntryReminderTitle => 'Una voce era scaduta';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title era previsto per oggi ed è ancora in attesa.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Una voce ricorrente era prevista per oggi ed è ancora in attesa.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voci ricorrenti erano previste per oggi.',
+      one: '1 voce ricorrente era prevista per oggi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Nessuna registrazione oggi';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Aggiungi le tue spese finché le ricordi ancora.';
+
+  @override
+  String get reminderLockedTitle => 'C\'è qualcosa in attesa';
+
+  @override
+  String get nudgeSettingsTitle => 'Ricordamelo nei giorni vuoti';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Un promemoria alla sera, solo nei giorni senza alcuna registrazione.';
+
+  @override
+  String get nudgeOfferTitle => 'Promemoria nei giorni che dimentichi?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Un promemoria all\'ora che scegli tu, solo nei giorni senza registrazioni. Disattivabile quando vuoi.';
+
+  @override
+  String get nudgeOfferYes => 'Sì, ricordamelo';
+
+  @override
+  String get nudgeOfferNo => 'No grazie';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'I promemoria si sono fermati dopo tre senza risposta. Riattivali quando vuoi.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Attiva le notifiche nelle impostazioni di sistema.';
 }

@@ -1688,4 +1688,67 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Изменить настройки персонализированной рекламы';
+
+  @override
+  String get dueEntryReminderTitle => 'Наступил срок записи';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return 'Срок $title наступил сегодня, и запись всё ещё ждёт.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Срок повторяющейся записи наступил сегодня, и она всё ещё ждёт.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'У $count повторяющихся записей сегодня срок.',
+      many: 'У $count повторяющихся записей сегодня срок.',
+      few: 'У $count повторяющихся записей сегодня срок.',
+      one: 'У 1 повторяющейся записи сегодня срок.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Сегодня ничего не записано';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Добавьте расходы, пока ещё помните о них.';
+
+  @override
+  String get reminderLockedTitle => 'Кое-что ждёт';
+
+  @override
+  String get nudgeSettingsTitle => 'Напоминать в пустой день';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Одно напоминание вечером, только в день без записей.';
+
+  @override
+  String get nudgeOfferTitle => 'Напоминание в дни, когда забываете?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Одно напоминание в выбранное время, только в день без записей. Можно отключить в любой момент.';
+
+  @override
+  String get nudgeOfferYes => 'Да, напоминайте';
+
+  @override
+  String get nudgeOfferNo => 'Нет';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Напоминания остановлены после трёх без ответа. Включите их снова, когда захотите.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Включите уведомления в настройках системы.';
 }

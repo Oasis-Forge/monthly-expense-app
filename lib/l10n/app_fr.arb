@@ -443,5 +443,20 @@
   "plusComingSoon": "Bientôt disponible",
   "plusBody": "Une connexion bancaire qui importe vos transactions pour confirmation. Ce n'est pas encore terminé, donc rien à acheter pour l'instant.",
   "privacyOptionsTitle": "Options de confidentialité",
-  "privacyOptionsSubtitle": "Modifiez votre choix concernant les publicités personnalisées"
+  "privacyOptionsSubtitle": "Modifiez votre choix concernant les publicités personnalisées",
+  "dueEntryReminderTitle": "Une saisie était due",
+  "dueEntryReminderOne": "{title} était dû aujourd'hui et attend toujours.",
+  "dueEntryReminderUntitled": "Une saisie récurrente était due aujourd'hui et attend toujours.",
+  "dueEntryReminderMany": "{count, plural, =1{1 saisie récurrente due aujourd'hui.} other{{count} saisies récurrentes dues aujourd'hui.}}",
+  "emptyDayReminderTitle": "Rien de noté aujourd'hui",
+  "emptyDayReminderBody": "Ajoutez vos dépenses tant que vous vous en souvenez.",
+  "reminderLockedTitle": "Quelque chose vous attend",
+  "nudgeSettingsTitle": "Me le rappeler les jours vides",
+  "nudgeSettingsSubtitle": "Un seul rappel le soir, uniquement les jours sans aucune saisie.",
+  "nudgeOfferTitle": "Un rappel les jours où vous oubliez ?",
+  "nudgeOfferBody": "Un rappel à l'heure de votre choix, uniquement les jours sans saisie. Désactivable à tout moment.",
+  "nudgeOfferYes": "Oui, rappelle-moi",
+  "nudgeOfferNo": "Non merci",
+  "nudgeStoppedNotice": "Les rappels se sont arrêtés après trois sans réponse. Réactivez-les quand vous voulez.",
+  "nudgePermissionDenied": "Activez les notifications dans les paramètres système."
 }

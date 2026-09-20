@@ -443,5 +443,20 @@
   "plusComingSoon": "Segera hadir",
   "plusBody": "Koneksi bank yang mengambil transaksimu untuk dikonfirmasi. Fitur ini belum selesai, jadi belum ada yang bisa dibeli.",
   "privacyOptionsTitle": "Opsi privasi",
-  "privacyOptionsSubtitle": "Ubah pilihanmu tentang iklan yang dipersonalisasi"
+  "privacyOptionsSubtitle": "Ubah pilihanmu tentang iklan yang dipersonalisasi",
+  "dueEntryReminderTitle": "Entri jatuh tempo",
+  "dueEntryReminderOne": "{title} jatuh tempo hari ini dan masih menunggu.",
+  "dueEntryReminderUntitled": "Entri berulang jatuh tempo hari ini dan masih menunggu.",
+  "dueEntryReminderMany": "{count, plural, =1{Ada {count} entri berulang jatuh tempo hari ini.} other{Ada {count} entri berulang jatuh tempo hari ini.}}",
+  "emptyDayReminderTitle": "Belum ada catatan hari ini",
+  "emptyDayReminderBody": "Catat pengeluaranmu selagi masih ingat.",
+  "reminderLockedTitle": "Ada sesuatu yang menunggu",
+  "nudgeSettingsTitle": "Ingatkan aku di hari kosong",
+  "nudgeSettingsSubtitle": "Satu pengingat di malam hari, hanya pada hari tanpa catatan apa pun.",
+  "nudgeOfferTitle": "Pengingat di hari kamu lupa?",
+  "nudgeOfferBody": "Satu pengingat pada waktu pilihanmu, hanya pada hari tanpa catatan apa pun. Bisa dimatikan kapan saja.",
+  "nudgeOfferYes": "Ya, ingatkan aku",
+  "nudgeOfferNo": "Tidak",
+  "nudgeStoppedNotice": "Pengingat berhenti setelah tiga kali tak dijawab. Aktifkan lagi kapan saja.",
+  "nudgePermissionDenied": "Aktifkan notifikasi di pengaturan sistem untuk pengingat."
 }

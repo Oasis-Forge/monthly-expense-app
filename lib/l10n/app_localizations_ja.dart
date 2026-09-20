@@ -1595,4 +1595,59 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get privacyOptionsSubtitle => 'パーソナライズ広告の設定を変更';
+
+  @override
+  String get dueEntryReminderTitle => '入力期限が来ました';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$titleは本日期限でしたが、まだ未対応です。';
+  }
+
+  @override
+  String get dueEntryReminderUntitled => '定期入力の期限が今日でしたが、まだ未対応です。';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '本日期限の定期入力が$count件あります。',
+      one: '本日期限の定期入力が$count件あります。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => '今日は何も記録されていません';
+
+  @override
+  String get emptyDayReminderBody => '忘れないうちに支出を記録しましょう。';
+
+  @override
+  String get reminderLockedTitle => '何かが待っています';
+
+  @override
+  String get nudgeSettingsTitle => '記録がない日に通知する';
+
+  @override
+  String get nudgeSettingsSubtitle => '夜に一度だけ、何も記録がない日に通知します。';
+
+  @override
+  String get nudgeOfferTitle => '忘れがちな日に、ひと押ししましょうか？';
+
+  @override
+  String get nudgeOfferBody => '好きな時間に一度だけ、何も記録がない日に通知します。いつでもオフにできます。';
+
+  @override
+  String get nudgeOfferYes => 'はい、通知してほしい';
+
+  @override
+  String get nudgeOfferNo => 'いいえ、結構です';
+
+  @override
+  String get nudgeStoppedNotice => '3回応答がなかったため通知を停止しました。いつでも再開できます。';
+
+  @override
+  String get nudgePermissionDenied => 'リマインダーには、設定で通知をオンにしてください。';
 }

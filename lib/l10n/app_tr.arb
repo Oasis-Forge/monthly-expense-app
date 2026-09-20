@@ -443,5 +443,20 @@
   "plusComingSoon": "Yakında",
   "plusBody": "Banka bağlantısı işlemlerinizi getirir, siz onaylarsınız. Henüz tamamlanmadı, satın alınacak bir şey yok.",
   "privacyOptionsTitle": "Gizlilik seçenekleri",
-  "privacyOptionsSubtitle": "Kişiselleştirilmiş reklam tercihinizi değiştirin"
+  "privacyOptionsSubtitle": "Kişiselleştirilmiş reklam tercihinizi değiştirin",
+  "dueEntryReminderTitle": "Giriş vadesi geldi",
+  "dueEntryReminderOne": "{title} bugün vadesi geldi ve hâlâ bekliyor.",
+  "dueEntryReminderUntitled": "Tekrarlanan bir kayıt bugün vadesi geldi ve hâlâ bekliyor.",
+  "dueEntryReminderMany": "{count, plural, =1{1 tekrarlanan kayıt bugün vadesi geldi.} other{{count} tekrarlanan kayıt bugün vadesi geldi.}}",
+  "emptyDayReminderTitle": "Bugün kayıt yok",
+  "emptyDayReminderBody": "Hatırlarken harcamalarını ekle.",
+  "reminderLockedTitle": "Seni bekleyen bir şey var",
+  "nudgeSettingsTitle": "Boş günde bana hatırlat",
+  "nudgeSettingsSubtitle": "Akşam bir hatırlatma, yalnızca hiçbir kaydın olmadığı günlerde.",
+  "nudgeOfferTitle": "Unuttuğun günlerde bir hatırlatma?",
+  "nudgeOfferBody": "Seçtiğin saatte tek hatırlatma, yalnızca kaydın olmadığı günlerde. İstediğin an kapatabilirsin.",
+  "nudgeOfferYes": "Evet, hatırlat",
+  "nudgeOfferNo": "Hayır",
+  "nudgeStoppedNotice": "Üç kez yanıtsız kalınca hatırlatmalar durduruldu. İstediğin an tekrar açabilirsin.",
+  "nudgePermissionDenied": "Bildirimleri sistem ayarlarından açın."
 }

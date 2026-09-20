@@ -1652,4 +1652,65 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Wijzig je keuze over gepersonaliseerde advertenties';
+
+  @override
+  String get dueEntryReminderTitle => 'Invoer vervallen';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title was vandaag verschuldigd en wacht nog steeds.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Een terugkerende invoer was vandaag verschuldigd en wacht nog.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vaste posten stonden vandaag open.',
+      one: '1 vaste post stond vandaag open.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Vandaag niets geregistreerd';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Voeg toe wat je hebt uitgegeven terwijl je het nog weet.';
+
+  @override
+  String get reminderLockedTitle => 'Er wacht iets op je';
+
+  @override
+  String get nudgeSettingsTitle => 'Herinner me op een lege dag';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Eén herinnering \'s avonds, en alleen op een dag zonder registraties.';
+
+  @override
+  String get nudgeOfferTitle => 'Een duwtje op dagen dat je het vergeet?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Eén herinnering op een tijdstip dat jij kiest, alleen op een dag zonder registraties. Weer uit te zetten wanneer je wilt.';
+
+  @override
+  String get nudgeOfferYes => 'Ja, herinner me';
+
+  @override
+  String get nudgeOfferNo => 'Nee';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Herinneringen zijn gestopt na drie keer zonder reactie. Zet ze weer aan wanneer je wilt.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Zet meldingen aan in systeeminstellingen voor herinneringen.';
 }

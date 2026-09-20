@@ -443,5 +443,20 @@
   "plusComingSoon": "جلد آ رہا ہے",
   "plusBody": "ایک بینک کنکشن جو آپ کے لین دین لا کر تصدیق کے لیے دکھاتا ہے۔ یہ ابھی مکمل نہیں، اس لیے خریدنے کو کچھ نہیں۔",
   "privacyOptionsTitle": "رازداری کے اختیارات",
-  "privacyOptionsSubtitle": "ذاتی نوعیت کے اشتہارات کے بارے میں اپنی پسند تبدیل کریں"
+  "privacyOptionsSubtitle": "ذاتی نوعیت کے اشتہارات کے بارے میں اپنی پسند تبدیل کریں",
+  "dueEntryReminderTitle": "ایک اندراج واجب تھا",
+  "dueEntryReminderOne": "{title} آج واجب الادا تھا اور اب بھی زیر التوا ہے۔",
+  "dueEntryReminderUntitled": "ایک تکراری اندراج آج واجب الادا تھا اور اب بھی زیر التوا ہے۔",
+  "dueEntryReminderMany": "{count, plural, =1{1 تکراری اندراج آج واجب الادا تھا۔} other{{count} تکراری اندراجات آج واجب الادا تھے۔}}",
+  "emptyDayReminderTitle": "آج کچھ بھی درج نہیں ہوا",
+  "emptyDayReminderBody": "جب تک یاد ہے، اپنا خرچ درج کر لیں۔",
+  "reminderLockedTitle": "کچھ آپ کا منتظر ہے",
+  "nudgeSettingsTitle": "خالی دن مجھے یاد دلائیں",
+  "nudgeSettingsSubtitle": "شام کو ایک یاد دہانی، اور صرف اس دن جب کچھ بھی درج نہ ہو۔",
+  "nudgeOfferTitle": "جن دنوں آپ بھول جاتے ہیں، یاد دہانی؟",
+  "nudgeOfferBody": "آپ کے وقت پر ایک یاد دہانی، صرف خالی دن میں۔ جب چاہیں بند کر دیں۔",
+  "nudgeOfferYes": "جی ہاں، یاد دلائیں",
+  "nudgeOfferNo": "نہیں شکریہ",
+  "nudgeStoppedNotice": "تین بار جواب نہ ملنے پر یاد دہانیاں بند ہو گئیں۔ جب چاہیں دوبارہ آن کریں۔",
+  "nudgePermissionDenied": "یاد دہانیاں پانے کے لیے سسٹم سیٹنگز میں اطلاعات آن کریں۔"
 }

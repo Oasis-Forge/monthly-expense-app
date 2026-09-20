@@ -443,5 +443,20 @@
   "plusComingSoon": "Em breve",
   "plusBody": "Uma conexão bancária que traz suas transações para você confirmar. Ainda não está pronta, então não há nada para comprar.",
   "privacyOptionsTitle": "Opções de privacidade",
-  "privacyOptionsSubtitle": "Altere sua escolha sobre anúncios personalizados"
+  "privacyOptionsSubtitle": "Altere sua escolha sobre anúncios personalizados",
+  "dueEntryReminderTitle": "Um lançamento venceu",
+  "dueEntryReminderOne": "{title} venceu hoje e ainda está pendente.",
+  "dueEntryReminderUntitled": "Um lançamento recorrente venceu hoje e ainda está pendente.",
+  "dueEntryReminderMany": "{count, plural, =1{1 lançamento recorrente venceu hoje.} other{{count} lançamentos recorrentes venceram hoje.}}",
+  "emptyDayReminderTitle": "Nada registrado hoje",
+  "emptyDayReminderBody": "Adicione o que gastou enquanto ainda se lembra.",
+  "reminderLockedTitle": "Algo está à espera",
+  "nudgeSettingsTitle": "Lembrar-me em dias sem registro",
+  "nudgeSettingsSubtitle": "Um lembrete à noite, apenas em dias sem nenhum registro.",
+  "nudgeOfferTitle": "Um lembrete nos dias que esquece?",
+  "nudgeOfferBody": "Um lembrete no horário que você escolher, apenas em dias sem registro. Pode desativar quando quiser.",
+  "nudgeOfferYes": "Sim, lembrar-me",
+  "nudgeOfferNo": "Não",
+  "nudgeStoppedNotice": "Os lembretes pararam após três sem resposta. Reative-os quando quiser.",
+  "nudgePermissionDenied": "Ative as notificações nas configurações do sistema."
 }

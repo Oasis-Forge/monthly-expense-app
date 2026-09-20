@@ -443,5 +443,20 @@
   "plusComingSoon": "Demnächst verfügbar",
   "plusBody": "Eine Bankverbindung, die deine Buchungen zur Bestätigung einliest. Noch nicht fertig, also gibt es noch nichts zu kaufen.",
   "privacyOptionsTitle": "Datenschutzoptionen",
-  "privacyOptionsSubtitle": "Ändere deine Wahl zu personalisierter Werbung"
+  "privacyOptionsSubtitle": "Ändere deine Wahl zu personalisierter Werbung",
+  "dueEntryReminderTitle": "Eintrag fällig",
+  "dueEntryReminderOne": "{title} war heute fällig und wartet noch.",
+  "dueEntryReminderUntitled": "Ein wiederkehrender Eintrag war heute fällig und wartet noch.",
+  "dueEntryReminderMany": "{count, plural, =1{1 wiederkehrender Eintrag war heute fällig.} other{{count} wiederkehrende Einträge waren heute fällig.}}",
+  "emptyDayReminderTitle": "Heute nichts erfasst",
+  "emptyDayReminderBody": "Trage deine Ausgaben ein, solange du dich noch erinnerst.",
+  "reminderLockedTitle": "Etwas wartet auf dich",
+  "nudgeSettingsTitle": "An leeren Tagen erinnern",
+  "nudgeSettingsSubtitle": "Eine Erinnerung am Abend, nur an Tagen ohne Einträge.",
+  "nudgeOfferTitle": "Erinnerung an Tagen, die du vergisst?",
+  "nudgeOfferBody": "Eine Erinnerung zu einer Zeit deiner Wahl, nur an Tagen ohne Einträge. Jederzeit wieder abschaltbar.",
+  "nudgeOfferYes": "Ja, erinnere mich",
+  "nudgeOfferNo": "Nein danke",
+  "nudgeStoppedNotice": "Erinnerungen wurden nach drei unbeantworteten gestoppt. Schalte sie jederzeit wieder ein.",
+  "nudgePermissionDenied": "Aktiviere Benachrichtigungen in den Systemeinstellungen."
 }
