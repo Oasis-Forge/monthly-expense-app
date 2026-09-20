@@ -817,9 +817,13 @@ class _SummaryCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                     ],
-                    // An account's name is the user's own words, so it gives
-                    // way rather than running into the balance (LANG-4).
-                    Flexible(
+                    // The balance is laid out first and keeps the room it
+                    // needs in any language; the label takes what is left and
+                    // gives way with an ellipsis, since an account's name is
+                    // the user's own words (LANG-4). Two flexible children
+                    // would split the row between them instead and leave a
+                    // hole after the chevron.
+                    Expanded(
                       child: Text(
                         label,
                         maxLines: 1,
@@ -828,18 +832,11 @@ class _SummaryCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    // The balance keeps the room it needs in any language.
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: Text(
-                          currency.format(balance.toDouble()),
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: amountColor,
-                          ),
-                        ),
+                    Text(
+                      currency.format(balance.toDouble()),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: amountColor,
                       ),
                     ),
                     Icon(
