@@ -561,7 +561,6 @@ void main() {
       expect(find.text(long), findsOneWidget);
     });
 
-
     testWidgets('the one line runs to its own edge (BAL-6)', (tester) async {
       usePhoneScreen(tester);
       final provider = await loaded(twoAccounts());
@@ -576,7 +575,9 @@ void main() {
       // with a hole after them. The balance takes what it needs, the label
       // what is left, and the chevron lands on the edge.
       final row = tester.getRect(
-        find.ancestor(of: find.text('Balance'), matching: find.byType(Row)).first,
+        find
+            .ancestor(of: find.text('Balance'), matching: find.byType(Row))
+            .first,
       );
       final label = tester.getRect(find.text('Balance'));
       final chevron = tester.getRect(find.byIcon(Icons.expand_more));
