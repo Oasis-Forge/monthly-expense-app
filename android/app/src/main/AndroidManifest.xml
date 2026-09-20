@@ -4,10 +4,14 @@
          anywhere: entry, budgets, notes, reports, attachments and backups are
          all local, and the ad SDK is handed none of it (ADS-7). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- BAK-8: the phone's own automatic backup is off, so Android never
+         copies the records to Google Drive behind the user's back. -->
     <application
         android:label="Monthly Expenses"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

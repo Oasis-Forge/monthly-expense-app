@@ -156,6 +156,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **BAK-5** CSV export covers the current view (period and filters), with ISO dates and plain decimal amounts. Text that a spreadsheet would run as a formula (starting with `=`, `+`, `-`, or `@`) gets a leading apostrophe.
 - **BAK-6** Nothing leaves the device without an explicit user action. No cloud sync, no scheduled email.
 - **BAK-7** A backup reminder appears only after 20 transactions, then at most every 30 days since the last backup, and can be turned off. Dismissing it also waits 30 days. Never within a day of first opening the app.
+- **BAK-8** The phone's own automatic backup is refused: `android:allowBackup="false"`, and `dataExtractionRules` excludes every domain from cloud backup. Android would otherwise copy the database and the settings to the user's Google Drive by itself — a copy of every entry that nobody asked for, and one that would be handed to whoever next installs the app under that account. Moving to a new phone still carries them, because that is the user taking their own data with them rather than a copy kept somewhere. A reinstall therefore starts empty, and the way back is the backup the app makes when asked (BAK-1, BAK-6).
 
 ## 12. Currency and formatting
 
@@ -407,6 +408,23 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ROW-3** Delete from the menu asks "Delete this transaction?" and says where the entry goes, before anything happens. Confirming moves it to the trash with the usual Undo (DEL-2, DEL-3); Cancel leaves the row alone, and a delete that fails says so and keeps it.
 - **ROW-4** The row's other ways in are unchanged: a tap opens the details page (DET-1), and a swipe still deletes with Undo and no question (DEL-2). Transfer rows keep the swipe alone until they have a details page of their own (DET-7).
 
+## 29. Reminders
+
+**They do:** neither app ever speaks first. Recurring rules have an upcoming list and the notes tab has dates and times, but nothing on the phone says anything; remembering is left entirely to the user.
+
+**Learn:** a list only reaches someone who has already opened the app, which is exactly the person who did not need reminding. But a reminder that arrives whether or not it is needed teaches people to swipe it away, and then the one that mattered is swiped away with it. So the app speaks only when it knows something — a rule the user wrote is due and unhandled, or a day is ending with nothing in it — and it stops on its own when it turns out not to be wanted.
+
+- **NUDGE-1** Two reminders and no others: a recurring entry that was due and has not been handled, and a day that is ending with nothing recorded. Both are local notifications from the device's own notification system, as a note's reminder already is (NOTE-6). Nothing is sent anywhere, and nothing leaves the phone (BAK-6, ADS-7).
+- **NUDGE-2** The due one is specific: it names what was due and for how much, in the words of the rule the user wrote (section 8), and it appears only while that occurrence is still unhandled. Several due on the same day are one notification, not one each. Tapping it opens the upcoming list, and nothing is ever recorded from a notification — a proposal is confirmed by a person, exactly as a bank's is (BANK-3, ALERT-4).
+- **NUDGE-3** The empty day is asked for, never assumed. It is off until the user turns it on, and the app offers it once — after they have recorded on three separate days, so it reaches someone who has shown they want the habit rather than someone still deciding. Declined, it is never offered again, and the switch stays in Settings for whenever they want it.
+- **NUDGE-4** It fires only on a day that really is empty, at a time the user chose, nine in the evening until they change it. A day with anything recorded in it is a day the app says nothing, however long ago they last opened it.
+- **NUDGE-5** It goes quiet by itself: three in a row that are neither opened nor followed by an entry that day, and it stops, with Settings saying why and one tap to start it again. A reminder people swipe away has already stopped working, and it is better for it to admit that than to keep teaching them that the app is worth ignoring.
+- **NUDGE-6** At most one a day, whatever is waiting, and never between ten at night and eight in the morning by the device's own clock. A day with something due is not also told that it is empty.
+- **NUDGE-7** Permission is asked when the user first turns a reminder on, never at first run, and everything else works if it is refused (NOTE-6). A refusal is not asked about again; Settings says the phone is not allowing them and how to change that.
+- **NUDGE-8** With app lock on a reminder names nothing: it says only that the app has something waiting, and tapping it opens through the lock (LOCK-2, NOTE-6).
+- **NUDGE-9** Inexact alarms, so Play is never asked for the exact-alarm permission and Android may deliver a few minutes late. Reminders are rescheduled after a reboot and after a restore, as a note's are (NOTE-6).
+- **NUDGE-10** Android and iOS only. The desktop builds schedule nothing, and Settings does not offer what they cannot do.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -470,6 +488,10 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 
 36. A full-screen ad, once a day, at a seam (ADS-11–ADS-16). ADS-1 had banned interstitials outright, and the ban was right about what it feared: an ad inside the entry loop would cost more in ratings than it could ever earn. It also left the app with the format that pays least, at a fraction of an interstitial's rate, which is a strange way to fund a free app. The reversal keeps the fear and drops the ban — the ad may appear only where a job has just ended and nothing is half-finished, at most once in a day, never before three days and ten entries have passed, and never at the price of a wait (ADS-13). App-open ads were refused for the very reason the ban existed: they land between tapping the icon and typing an amount, which is the whole of what the app promises. Ads dressed as rows in the day list were refused because that list is the user's own money.
+
+37. Android's own automatic backup is refused (BAK-8). It came up while answering what a second person on the same phone would see. The purchase turned out to be safe — nothing about it is cached, and `restorePurchases()` asks the store at every launch, so a different Google account is offered the price again — but `android:allowBackup` had never been set, and its default is on. Android was quietly copying the database and the settings to the user's Drive, and putting them back for whoever next installed the app under that account. "Nothing you record leaves your device" is the first line of the privacy policy and it was not quite true. Device-to-device transfer is left alone: carrying your own data to a new phone is not the same as a copy kept somewhere else. The cost is that a reinstall now starts empty, which is what the app's own backup is for.
+
+38. The app may speak first, twice and no more (NUDGE-1–NUDGE-10). Recurring reminders were dropped on 18 September 2026, and RCR-7 left notifications for later; both are reversed, because the entries people miss are exactly the ones an upcoming list never reaches — it is read by whoever already opened the app. The due-entry reminder is safe to give freely: it fires only for a rule the user wrote, on the day it was due, and it proposes rather than records. The empty-day nudge is the one that could become a nag, so it is the one that has to be asked for (NUDGE-3), fires only on a day that really is empty (NUDGE-4), and stops itself after three that are ignored (NUDGE-5). Budget thresholds and a period wrap-up were offered and left out: each is another message in twenty-one languages, and neither is something the user asked to be told. Nothing new goes on the phone for this — notes have had local notifications since NOTE-6, with the permission, the inexact alarms and the rescheduling already in place.
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
 - amounts as integers (MONEY-1)
