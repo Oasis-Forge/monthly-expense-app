@@ -85,7 +85,7 @@ class MonthlyExpenseApp extends StatelessWidget {
                   attachments: attachmentService,
                 )
                 // ACC-6: open on the account Home was last left showing.
-                ..selectHomeAccount(settings.homeAccountId)
+                ..selectAccountFilter(settings.accountFilterId)
                 ..load(
                   appLockOn: settings.appLock,
                   locale: effectiveAppLocale(settings.locale),

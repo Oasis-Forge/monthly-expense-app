@@ -93,10 +93,15 @@ class TransactionProvider extends ChangeNotifier {
   Period? _daySelectionPeriod;
 
   /// The account Home is showing on its own, null for every account (ACC-6).
-  /// Read through [homeAccountId], which falls back to every account when the
+  /// Read through [accountFilterId], which falls back to every account when the
   /// chosen one has been archived or removed since it was chosen.
-  String? _homeAccountId;
+  String? _accountFilterId;
   _PeriodSummary? _summary;
+
+  /// The same period with no account filter, for the things that have no
+  /// account to be about (ACC-7). Only the budgets read it, and only when an
+  /// account is chosen, so it is built at most once per change.
+  _PeriodSummary? _everyAccountSummary;
   bool _loaded = false;
 
   /// Whether [load] has finished at least once.
@@ -149,10 +154,10 @@ class TransactionProvider extends ChangeNotifier {
 
   /// The account Home is showing, or null for every account (ACC-6). An
   /// account archived or removed since it was chosen reads as null rather
-  /// than showing an empty Home with no way back, and [selectHomeAccount]
+  /// than showing an empty Home with no way back, and [selectAccountFilter]
   /// is what writes it.
-  String? get homeAccountId {
-    final id = _homeAccountId;
+  String? get accountFilterId {
+    final id = _accountFilterId;
     if (id == null) return null;
     final account = accountById(id);
     return account != null && account.archivedAt == null ? id : null;
@@ -161,9 +166,9 @@ class TransactionProvider extends ChangeNotifier {
   /// Show one account on Home, or every account with null (ACC-6). The whole
   /// of Home follows: the summary card, the day list, and each day's own
   /// totals (ACC-7).
-  void selectHomeAccount(String? id) {
-    if (id == _homeAccountId) return;
-    _homeAccountId = id;
+  void selectAccountFilter(String? id) {
+    if (id == _accountFilterId) return;
+    _accountFilterId = id;
     _changed();
   }
 
@@ -321,7 +326,7 @@ class TransactionProvider extends ChangeNotifier {
   String? defaultAccountId() {
     // Home showing one account is a stronger signal than the last one used:
     // an entry started from there almost always belongs to it (ACC-9).
-    final chosen = homeAccountId;
+    final chosen = accountFilterId;
     if (chosen != null) return chosen;
     ExpenseTransaction? newest;
     for (final tx in _transactions) {
@@ -1193,9 +1198,10 @@ class TransactionProvider extends ChangeNotifier {
       );
     }
 
-    final byCategory = expenseByCategory;
+    // Every account, never the chosen one: see [_everyAccount] (ACC-7).
+    final byCategory = _everyAccount.expenseByCategory;
     return [
-      ?statusFor(null, periodExpense),
+      ?statusFor(null, _everyAccount.expense),
       for (final category in [
         ...categoriesFor(TransactionType.expense),
         ...archivedCategoriesFor(TransactionType.expense),
@@ -1519,12 +1525,33 @@ class TransactionProvider extends ChangeNotifier {
 
   void _changed() {
     _summary = null;
+    _everyAccountSummary = null;
     notifyListeners();
+  }
+
+  /// The period across every account, whatever [accountFilterId] is set to.
+  /// A budget is a limit on a category and has no account (BUD-1), so
+  /// measuring one account's spending against it would report a limit nobody
+  /// set -- on a card with no groceries on it, "0% used" of a grocery budget
+  /// that is in fact more than half gone (ACC-7).
+  _PeriodSummary get _everyAccount {
+    if (accountFilterId == null) return _current;
+    final today = _today;
+    final cached = _everyAccountSummary;
+    if (cached != null && cached.today == today) return cached;
+    return _everyAccountSummary = _PeriodSummary(
+      _period,
+      today,
+      _transactions,
+      _transfers,
+      _accounts,
+      null,
+    );
   }
 
   _PeriodSummary get _current {
     final today = _today;
-    final account = homeAccountId;
+    final account = accountFilterId;
     final cached = _summary;
     if (cached != null &&
         cached.today == today &&

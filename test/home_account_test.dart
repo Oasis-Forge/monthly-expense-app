@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
+import 'package:monthly_expense_app/screens/insights_screen.dart';
 
 import 'helpers.dart';
 
@@ -57,7 +59,7 @@ void main() {
       () async {
         final provider = await loaded(twoAccounts());
 
-        expect(provider.homeAccountId, isNull);
+        expect(provider.accountFilterId, isNull);
         expect(provider.periodExpense, money(37));
         expect(provider.periodIncome, money(200));
       },
@@ -66,9 +68,9 @@ void main() {
     test('one account leaves the other one out of the totals', () async {
       final provider = await loaded(twoAccounts());
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
-      expect(provider.homeAccountId, bank);
+      expect(provider.accountFilterId, bank);
       expect(provider.periodExpense, money(7));
       expect(provider.periodIncome, Money.zero);
     });
@@ -76,7 +78,7 @@ void main() {
     test('and out of the day list and each day\'s totals (ACC-7)', () async {
       final provider = await loaded(twoAccounts());
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
       final ids = [
         for (final day in provider.groupedByDay.values)
@@ -91,8 +93,8 @@ void main() {
       final provider = await loaded(twoAccounts());
 
       provider
-        ..selectHomeAccount(bank)
-        ..selectHomeAccount(null);
+        ..selectAccountFilter(bank)
+        ..selectAccountFilter(null);
 
       expect(provider.periodExpense, money(37));
     });
@@ -102,12 +104,12 @@ void main() {
       () async {
         final db = twoAccounts();
         final provider = await loaded(db);
-        provider.selectHomeAccount(bank);
+        provider.selectAccountFilter(bank);
         expect(provider.periodExpense, money(7));
 
         await provider.archiveAccount(bank);
 
-        expect(provider.homeAccountId, isNull);
+        expect(provider.accountFilterId, isNull);
         expect(provider.periodExpense, money(37));
       },
     );
@@ -115,9 +117,9 @@ void main() {
     test('an account that is not there at all falls back too', () async {
       final provider = await loaded(twoAccounts());
 
-      provider.selectHomeAccount('never-existed');
+      provider.selectAccountFilter('never-existed');
 
-      expect(provider.homeAccountId, isNull);
+      expect(provider.accountFilterId, isNull);
       expect(provider.periodExpense, money(37));
     });
   });
@@ -126,7 +128,7 @@ void main() {
     test('carries forward only that account\'s opening balance', () async {
       final provider = await loaded(twoAccounts());
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
       // Bank opened at 50 before September and spent 7 in it.
       expect(provider.carriedForward, money(50));
@@ -144,7 +146,7 @@ void main() {
           ),
         );
 
-        provider.selectHomeAccount(bank);
+        provider.selectAccountFilter(bank);
 
         // BAL-1: still no income, and the expense is unchanged.
         expect(provider.periodIncome, Money.zero);
@@ -163,7 +165,7 @@ void main() {
         ),
       );
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
       expect(provider.closingBalance, money(18));
     });
@@ -177,7 +179,7 @@ void main() {
         ),
       );
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
       expect(provider.carriedForward, money(75));
       expect(provider.closingBalance, money(68));
@@ -192,7 +194,7 @@ void main() {
         ),
       );
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
       expect(provider.closingBalance, money(43));
       // It is still listed, as upcoming.
@@ -224,7 +226,7 @@ void main() {
         ),
       );
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
       expect(provider.periodTransfers.map((t) => t.id), ['touches']);
     });
@@ -249,7 +251,7 @@ void main() {
       // The newest transaction is on Bank, so without a choice that wins.
       expect(provider.defaultAccountId(), bank);
 
-      provider.selectHomeAccount(cash);
+      provider.selectAccountFilter(cash);
 
       expect(provider.defaultAccountId(), cash);
     });
@@ -258,18 +260,65 @@ void main() {
       final provider = await loaded(twoAccounts());
 
       provider
-        ..selectHomeAccount(cash)
-        ..selectHomeAccount(null);
+        ..selectAccountFilter(cash)
+        ..selectAccountFilter(null);
 
       expect(provider.defaultAccountId(), bank);
     });
   });
 
   group('what the choice does not reach', () {
+    test('budgets keep measuring every account (ACC-7)', () async {
+      // A $50 food budget. All the food spending is on Cash; Bank Card has
+      // none of it. Found on the phone: with Bank Card chosen the card read
+      // "0% used" of a budget that is in fact 60% gone.
+      final db = FakeDB(
+        transactions: [
+          testTx('cash-food', expense, 30, DateTime(2026, 9, 10)),
+          testTx(
+            'bank-other',
+            expense,
+            7,
+            DateTime(2026, 9, 12),
+            accountId: bank,
+            categoryId: 'cat-transport',
+          ),
+        ],
+        accounts: [
+          testAccount(cash, opening: 100),
+          testAccount(bank, opening: 50),
+        ],
+        budgets: [
+          Budget(
+            id: 'b-food',
+            categoryId: 'cat-food',
+            limit: money(50),
+            effectiveFrom: DateTime(2026, 9),
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        ],
+      );
+      final provider = await loaded(db);
+
+      Money foodSpent() => provider.budgetStatuses
+          .firstWhere((s) => s.categoryId == 'cat-food')
+          .spent;
+
+      expect(foodSpent(), money(30));
+
+      provider.selectAccountFilter(bank);
+
+      // Home's own totals follow the account...
+      expect(provider.periodExpense, money(7));
+      // ...but the budget does not: the limit was never per-account.
+      expect(foodSpent(), money(30));
+    });
+
     test('the home-screen widget still shows the whole of the money', () async {
       final provider = await loaded(twoAccounts());
 
-      provider.selectHomeAccount(bank);
+      provider.selectAccountFilter(bank);
 
       final entry = provider.widgetTimeline().first;
       expect(entry.expense, money(37));
@@ -314,12 +363,54 @@ void main() {
       // ACC-6: the account's name stands in for the label.
       expect(find.text('Balance'), findsNothing);
       expect(find.text(bank), findsWidgets);
-      expect(provider.homeAccountId, bank);
+      expect(provider.accountFilterId, bank);
       // ACC-6: and it is saved, so the next launch opens on it.
-      expect(settings.homeAccountId, bank);
+      expect(settings.accountFilterId, bank);
       // ACC-7: the day list is that account's alone.
       expect(find.text('cash-spend'), findsNothing);
       expect(find.text('bank-spend'), findsOneWidget);
+    });
+
+    testWidgets('Insights names the account it is showing, and only then', (
+      tester,
+    ) async {
+      usePhoneScreen(tester);
+      final provider = await loaded(twoAccounts());
+      final settings = await testSettings();
+      await tester.pumpWidget(
+        testApp(provider, settings, const InsightsScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      // Every account: nothing is being hidden, so nothing is said.
+      expect(find.text(bank), findsNothing);
+      // The way to change it is there, because there are two accounts.
+      expect(
+        find.byIcon(Icons.account_balance_wallet_outlined),
+        findsOneWidget,
+      );
+
+      provider.selectAccountFilter(bank);
+      await tester.pumpAndSettle();
+
+      // ACC-6: now it has something to say, it says it.
+      expect(find.text(bank), findsWidgets);
+    });
+
+    testWidgets('with one account there is no control at all (ACC-6)', (
+      tester,
+    ) async {
+      usePhoneScreen(tester);
+      final provider = await loaded(
+        FakeDB(accounts: [testAccount(cash, opening: 100)]),
+      );
+      final settings = await testSettings();
+      await tester.pumpWidget(
+        testApp(provider, settings, const InsightsScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.account_balance_wallet_outlined), findsNothing);
     });
 
     test(
@@ -337,13 +428,13 @@ void main() {
   group('the choice is remembered on this device', () {
     test('a saved account comes back, and clearing it removes it', () async {
       final settings = await testSettings();
-      expect(settings.homeAccountId, isNull);
+      expect(settings.accountFilterId, isNull);
 
-      await settings.setHomeAccountId(bank);
-      expect(settings.homeAccountId, bank);
+      await settings.setAccountFilterId(bank);
+      expect(settings.accountFilterId, bank);
 
-      await settings.setHomeAccountId(null);
-      expect(settings.homeAccountId, isNull);
+      await settings.setAccountFilterId(null);
+      expect(settings.accountFilterId, isNull);
     });
   });
 }

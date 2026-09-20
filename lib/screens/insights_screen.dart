@@ -14,6 +14,7 @@ import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
+import 'account_filter_button.dart';
 import 'ad_slot.dart';
 import 'budget_progress.dart';
 import 'budgets_screen.dart';
@@ -57,6 +58,10 @@ class InsightsScreen extends StatelessWidget {
         appBar: AppBar(
           title: Text(l10n.insightsTitle),
           actions: [
+            // ACC-6: which account these three views are for. Insights names
+            // its own title, so a third action here doesn't squeeze anything
+            // the way it would on Home (NAV-6).
+            const AccountFilterAction(),
             IconButton(
               icon: const Icon(Icons.savings_outlined),
               tooltip: l10n.budgetsTooltip,
@@ -84,6 +89,11 @@ class InsightsScreen extends StatelessWidget {
         body: const Column(
           children: [
             PeriodSelector(),
+            // ACC-6: names the account while one is chosen, so a filtered
+            // chart is never read as the whole of the money. Nothing at all
+            // while every account is showing, so the usual case keeps the
+            // room for the charts.
+            AccountFilterBanner(),
             Divider(height: 1),
             Expanded(
               child: TabBarView(

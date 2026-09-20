@@ -29,7 +29,7 @@ class SettingsProvider extends ChangeNotifier {
        _startDay = _validStartDay(_prefs.getInt(_startDayKey)),
        _showCarriedForward = _prefs.getBool(_carriedForwardKey) ?? true,
        _summaryCollapsed = _prefs.getBool(_summaryCollapsedKey) ?? false,
-       _homeAccountId = _prefs.getString(_homeAccountKey),
+       _accountFilterId = _prefs.getString(_accountFilterKey),
        _weekStartDay = _validWeekDay(_prefs.getInt(_weekStartKey)),
        _backupReminder = _prefs.getBool(_backupReminderKey) ?? true,
        _lastBackupAt = _dateOrNull(_prefs.getString(_lastBackupKey)),
@@ -63,7 +63,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _startDayKey = 'month_start_day';
   static const _carriedForwardKey = 'show_carried_forward';
   static const _summaryCollapsedKey = 'summary_collapsed';
-  static const _homeAccountKey = 'home_account_id';
+  static const _accountFilterKey = 'account_filter_id';
   static const _weekStartKey = 'week_start_day';
   static const _backupReminderKey = 'backup_reminder';
   static const _lastBackupKey = 'last_backup_at';
@@ -88,7 +88,7 @@ class SettingsProvider extends ChangeNotifier {
   int _startDay;
   bool _showCarriedForward;
   bool _summaryCollapsed;
-  String? _homeAccountId;
+  String? _accountFilterId;
   int? _weekStartDay;
   bool _backupReminder;
   DateTime? _lastBackupAt;
@@ -132,16 +132,16 @@ class SettingsProvider extends ChangeNotifier {
   /// The account Home is showing, or null for every account (ACC-6). Like
   /// [summaryCollapsed] it is how this device is set up to look rather than a
   /// record of anything, so a backup doesn't carry it.
-  String? get homeAccountId => _homeAccountId;
+  String? get accountFilterId => _accountFilterId;
 
-  Future<void> setHomeAccountId(String? id) async {
-    if (id == _homeAccountId) return;
+  Future<void> setAccountFilterId(String? id) async {
+    if (id == _accountFilterId) return;
     if (id == null) {
-      await _prefs.remove(_homeAccountKey);
+      await _prefs.remove(_accountFilterKey);
     } else {
-      await _prefs.setString(_homeAccountKey, id);
+      await _prefs.setString(_accountFilterKey, id);
     }
-    _homeAccountId = id;
+    _accountFilterId = id;
     notifyListeners();
   }
 

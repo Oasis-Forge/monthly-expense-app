@@ -15,6 +15,7 @@ import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
+import 'account_filter_button.dart';
 import 'accounts_screen.dart';
 import 'ad_slot.dart';
 import 'add_transaction_screen.dart';
@@ -45,50 +46,6 @@ class HomeScreen extends StatefulWidget {
 
   static void _open(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
-
-  /// Chooses which account Home shows: one of them, or every one (ACC-6).
-  /// The view and the saved choice move together, so a relaunch opens on the
-  /// same account; archived ones are left out, since Home is the everyday
-  /// round and their history is on the Accounts screen (ACC-5).
-  static Future<void> _pickHomeAccount(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final provider = context.read<TransactionProvider>();
-    final settings = context.read<SettingsProvider>();
-    final accounts = provider.activeAccounts;
-    final chosen = provider.homeAccountId;
-    final picked = await showModalBottomSheet<({String? id})>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
-            ListTile(
-              leading: Icon(
-                chosen == null
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-              ),
-              title: Text(l10n.allAccountsFilter),
-              onTap: () => Navigator.of(sheetContext).pop((id: null)),
-            ),
-            for (final account in accounts)
-              ListTile(
-                leading: Icon(
-                  chosen == account.id
-                      ? Icons.radio_button_checked
-                      : Icons.radio_button_unchecked,
-                ),
-                title: Text(account.label(l10n)),
-                onTap: () => Navigator.of(sheetContext).pop((id: account.id)),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (picked == null) return;
-    provider.selectHomeAccount(picked.id);
-    await settings.setHomeAccountId(picked.id);
-  }
 
   /// Exports the selected period's transactions and transfers (BAK-5).
   static Future<void> _exportPeriod(
@@ -170,9 +127,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final currency = settings.currencyFormat(l10n.localeName);
     final selectedDay = provider.selectedDay;
     // ACC-6: the account Home is showing, null while it shows every one.
-    final chosenAccount = provider.homeAccountId == null
+    final chosenAccount = provider.accountFilterId == null
         ? null
-        : provider.accountById(provider.homeAccountId!);
+        : provider.accountById(provider.accountFilterId!);
     // DAY-7: the chosen day on its own, whether or not it holds anything.
     final days = selectedDay != null
         ? [selectedDay]
@@ -258,7 +215,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       // default account's name is translated, so it comes
                       // through label() like everywhere else (LANG-2).
                       accountName: chosenAccount?.label(l10n),
-                      onPickAccount: () => HomeScreen._pickHomeAccount(context),
+                      // ACC-6: with one account there is nothing to switch to.
+                      onPickAccount: provider.activeAccounts.length < 2
+                          ? null
+                          : () => pickAccountFilter(context),
                       scale: MediaQuery.textScalerOf(context)
                           .scale(1)
                           .clamp(1.0, 1.4),
@@ -717,7 +677,10 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
 
   /// The chosen account's name, or null for every account (ACC-6).
   final String? accountName;
-  final VoidCallback onPickAccount;
+
+  /// Null when there is only one account, so the card shows no switch it
+  /// cannot act on (ACC-6). The slot stays, keeping the label centred.
+  final VoidCallback? onPickAccount;
 
   /// The text scale, so bigger text gets a taller header rather than a
   /// clipped one (LANG-4).
@@ -796,7 +759,10 @@ class _SummaryCard extends StatelessWidget {
   /// stands in for the card's label so the figures are never read as the
   /// whole of the money by mistake (ACC-6).
   final String? accountName;
-  final VoidCallback onPickAccount;
+
+  /// Null when there is only one account, so the card shows no switch it
+  /// cannot act on (ACC-6). The slot stays, keeping the label centred.
+  final VoidCallback? onPickAccount;
 
   const _SummaryCard({
     required this.income,
@@ -868,15 +834,17 @@ class _SummaryCard extends StatelessWidget {
                         // centred, so the card is no taller for it.
                         SizedBox(
                           width: 24,
-                          child: InkWell(
-                            onTap: onPickAccount,
-                            customBorder: const CircleBorder(),
-                            child: Icon(
-                              Icons.account_balance_wallet_outlined,
-                              size: 20,
-                              semanticLabel: l10n.accountLabel,
-                            ),
-                          ),
+                          child: onPickAccount == null
+                              ? null
+                              : InkWell(
+                                  onTap: onPickAccount,
+                                  customBorder: const CircleBorder(),
+                                  child: Icon(
+                                    Icons.account_balance_wallet_outlined,
+                                    size: 20,
+                                    semanticLabel: l10n.accountLabel,
+                                  ),
+                                ),
                         ),
                         Expanded(
                           child: Text(
