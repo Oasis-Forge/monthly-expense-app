@@ -1,5 +1,5 @@
-// Adds, changes, or removes app messages in all 21 ARB files at once
-// (LANG-6), so nobody reads or edits 21 large files by hand.
+// Adds, changes, or removes app messages in every ARB file in lib/l10n at
+// once (LANG-6), so nobody reads or edits the large files by hand.
 //
 //   dart tool/add_messages.dart <messages.json>
 //
@@ -26,9 +26,16 @@
 import 'dart:convert';
 import 'dart:io';
 
-const languages = [
-  'en', 'ar', 'bn', 'zh', 'nl', 'fr', 'de', 'el', 'hi', 'id', 'it', //
-  'ja', 'ko', 'pl', 'pt', 'ru', 'es', 'th', 'tr', 'ur', 'vi', //
+/// Every language that has a `lib/l10n/app_<code>.arb` file, English first.
+final languages = [
+  'en',
+  ...(Directory('lib/l10n')
+      .listSync()
+      .map((file) => RegExp(r'app_(\w+)\.arb$').firstMatch(file.path)?[1])
+      .whereType<String>()
+      .where((language) => language != 'en')
+      .toList()
+    ..sort()),
 ];
 const metadataFields = {'description', 'placeholders'};
 
@@ -67,10 +74,22 @@ void main(List<String> args) {
     } else {
       added++;
     }
-    final metadata = {
-      for (final field in metadataFields)
-        if (message.containsKey(field)) field: message[field],
+    // Merge with the metadata already there. Built from the input alone, supplying
+    // only "description" replaced the whole @key block and took "placeholders" with
+    // it, so a message still using {count} lost its declaration and gen-l10n either
+    // failed or generated the method without its typed argument. A field set to
+    // null removes it.
+    final metadata = <String, dynamic>{
+      ...?(arbs['en']!['@$key'] as Map<String, dynamic>?),
     };
+    for (final field in metadataFields) {
+      if (!message.containsKey(field)) continue;
+      if (message[field] == null) {
+        metadata.remove(field);
+      } else {
+        metadata[field] = message[field];
+      }
+    }
     for (final language in languages) {
       arbs[language] = put(arbs[language]!, {
         key: message[language],
@@ -119,11 +138,15 @@ List<String> check(Map<String, dynamic> input, Map<String, dynamic> english) {
     if (after != null && !known.contains(after)) {
       problems.add('$key: "after" names $after, which is not a message');
     }
+    // An explicit null removes the declaration, so there is nothing left to check
+    // against; `??` alone would fall back to the ones being removed and demand the
+    // new text still use them.
     final placeholders =
-        (value['placeholders'] ??
-                (english['@$key'] as Map?)?['placeholders'] ??
-                const {})
-            as Map;
+        (value.containsKey('placeholders')
+                ? value['placeholders']
+                : (english['@$key'] as Map?)?['placeholders'])
+            as Map? ??
+        const {};
     for (final name in placeholders.keys) {
       final use = RegExp('\\{$name[},]');
       for (final language in languages) {
@@ -154,16 +177,26 @@ Map<String, dynamic> put(
       ? '@$after'
       : after;
   final result = <String, dynamic>{};
+  var placed = false;
   for (final MapEntry(key: k, value: v) in arb.entries) {
     if (k == key) {
       result.addAll(entries);
+      placed = true;
       continue;
     }
     if (entries.containsKey(k)) continue;
     result[k] = v;
-    if (k == anchor) result.addAll(entries);
+    if (k == anchor) {
+      result.addAll(entries);
+      placed = true;
+    }
   }
-  if (!exists && anchor == null) result.addAll(entries);
+  // "after" is checked against the English file, but this runs on every language,
+  // and a translation file that has drifted may not have that key at all. The
+  // anchor was then non-null and simply never matched, so the message was dropped
+  // from that file while the summary still counted it as added. Ending up at the
+  // end of one file is a cosmetic difference; losing the message is not.
+  if (!placed) result.addAll(entries);
   return result;
 }
 

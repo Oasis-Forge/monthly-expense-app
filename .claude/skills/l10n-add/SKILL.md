@@ -5,7 +5,7 @@ description: Add, change, or remove app messages in all 21 languages at once (LA
 
 There are 21 ARB files, 19–31 KB each, and the generated `app_localizations*.dart` are larger still: don't read them. To see an existing message, Grep its key with `path: lib/l10n`.
 
-1. Write the messages to a JSON file in the scratchpad. Each key needs all 21 codes (`en ar bn zh nl fr de el hi id it ja ko pl pt ru es th tr ur vi`); `description` and `placeholders` are optional and go into `app_en.arb` only; `after` puts a new key next to a related one. `null` removes a key.
+1. Write the messages to a JSON file in the scratchpad. Each key needs all 21 codes (`en ar bn zh nl fr de el hi id it ja ko pl pt ru es th tr ur vi`); `description` and `placeholders` are optional and go into `app_en.arb` only; `after` puts a new key next to a related one. `null` removes a key. Metadata is merged with what the message already has, so naming only `description` leaves its `placeholders` alone; a metadata field set to `null` removes just that field.
    ```json
    {
      "importDone": {

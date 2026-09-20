@@ -1,0 +1,3 @@
+# Files this app keeps its own version of. Listed on every kit run, with the
+# reason, so the divergence stays visible instead of being forgotten.
+.claude/skills/l10n-add/SKILL.md   # names all 21 language codes, both localisation test files, and cites LANG-5

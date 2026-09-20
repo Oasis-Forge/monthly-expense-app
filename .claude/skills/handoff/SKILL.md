@@ -18,7 +18,7 @@ metadata:
 **Stopped:** date; branch and its state (PR number, CI, merged or waiting on the user).
 **Next:** the one next step, specific enough to start without asking.
 **Waiting on the user:** questions or approvals asked and not answered yet.
-**Loose ends:** anything left on disk, on the emulator, or on GitHub.
+**Loose ends:** anything left on disk, on a device, or on GitHub.
 ```
 
 Leave out:
