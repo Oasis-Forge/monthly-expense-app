@@ -72,6 +72,10 @@ class MonthlyExpenseApp extends StatelessWidget {
   /// from outside the widget tree that the notification callback runs in.
   static final navigatorKey = GlobalKey<NavigatorState>();
 
+  /// Counts every screen opened towards the next full-screen ad
+  /// (ADS-12). One instance, so rebuilding the app does not replace it.
+  static final adActivity = AdActivityObserver();
+
   @override
   Widget build(BuildContext context) {
     final reminderService = reminders ?? DeviceReminderService();
@@ -120,6 +124,7 @@ class MonthlyExpenseApp extends StatelessWidget {
         child: Consumer<SettingsProvider>(
           builder: (context, settings, _) => MaterialApp(
             navigatorKey: navigatorKey,
+            navigatorObservers: [adActivity],
             onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,

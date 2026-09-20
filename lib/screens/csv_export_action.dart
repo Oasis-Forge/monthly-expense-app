@@ -28,7 +28,7 @@ Future<void> exportCsv(
   final ads = context.read<AdsProvider>();
   // The file dialog is time enough to fetch one for the seam that follows
   // (ADS-11, ADS-13).
-  unawaited(ads.primeInterstitial(provider.transactions.length));
+  unawaited(ads.primeInterstitial());
   final csv = buildCsv(
     transactions: transactions,
     transfers: transfers,
@@ -45,7 +45,7 @@ Future<void> exportCsv(
       // Saved, and the dialog has gone: a seam (ADS-11). The ad comes before
       // the confirmation, so dismissing it lands on that rather than hiding
       // it (ADS-14).
-      await ads.showAtSeam(AdSeam.exportedCsv, provider.transactions.length);
+      await ads.showAtSeam(AdSeam.exportedCsv);
       messenger.showSnackBar(SnackBar(content: Text(l10n.csvExported)));
     }
   } catch (_) {

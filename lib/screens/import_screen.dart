@@ -42,11 +42,7 @@ class _ImportScreenState extends State<ImportScreen> {
     super.initState();
     // An import is a job with an end, so the full-screen ad for that seam is
     // fetched while the file is chosen and looked over (ADS-11, ADS-13).
-    unawaited(
-      context.read<AdsProvider>().primeInterstitial(
-        context.read<TransactionProvider>().transactions.length,
-      ),
-    );
+    unawaited(context.read<AdsProvider>().primeInterstitial());
   }
 
   void _show(String message) {
@@ -164,7 +160,7 @@ class _ImportScreenState extends State<ImportScreen> {
       // The count, so the setup page knows an import brought data in (RUN-3).
       navigator.pop(written);
       // The rows are in and this screen has gone: a seam (ADS-11, ADS-14).
-      await ads.showAtSeam(AdSeam.importedCsv, provider.transactions.length);
+      await ads.showAtSeam(AdSeam.importedCsv);
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);

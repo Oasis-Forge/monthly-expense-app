@@ -59,16 +59,8 @@ class HomeScreen extends StatefulWidget {
     if (screen is! InsightsScreen) return;
     // The providers outlive the route, so the way back needs no context.
     final ads = context.read<AdsProvider>();
-    final transactions = context.read<TransactionProvider>();
-    unawaited(ads.primeInterstitial(transactions.transactions.length));
-    unawaited(
-      opened.then(
-        (_) => ads.showAtSeam(
-          AdSeam.leftInsights,
-          transactions.transactions.length,
-        ),
-      ),
-    );
+    unawaited(ads.primeInterstitial());
+    unawaited(opened.then((_) => ads.showAtSeam(AdSeam.leftInsights)));
   }
 
   /// Exports the selected period's transactions and transfers (BAK-5).

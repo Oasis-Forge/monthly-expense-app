@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -7,6 +9,7 @@ import '../l10n/labels.dart';
 import '../models/account.dart';
 import '../models/note.dart';
 import '../models/transaction.dart';
+import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'attachment_field.dart';
@@ -141,6 +144,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     final provider = context.read<TransactionProvider>();
     final settings = context.read<SettingsProvider>();
     final messenger = ScaffoldMessenger.of(context);
+    final ads = context.read<AdsProvider>();
     final currency = settings.currencyFormat(l10n.localeName);
     final locale = Localizations.localeOf(context);
     final amount = parsedAmount(currency)!;
@@ -194,6 +198,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       return;
     }
     _saving = false;
+    // ADD-4 or not, a saved entry is a thing done (ADS-12).
+    unawaited(ads.noteActivity());
     if (!mounted) return;
 
     if (addAnother) {
