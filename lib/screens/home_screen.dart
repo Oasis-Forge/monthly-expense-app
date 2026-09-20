@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:intl/intl.dart' hide TextDirection;
@@ -12,6 +14,7 @@ import '../models/money.dart';
 import '../models/period.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
+import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
@@ -44,8 +47,26 @@ class HomeScreen extends StatefulWidget {
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 
-  static void _open(BuildContext context, Widget screen) =>
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  /// Opens [screen]. When leaving it is a seam (ADS-11), the full-screen ad
+  /// is fetched on the way in — never waited for — and offered on the way
+  /// back, once the screen it belonged to has gone (ADS-13, ADS-14).
+  static void _open(BuildContext context, Widget screen) {
+    final opened = Navigator.of(context)
+        .push(MaterialPageRoute(builder: (_) => screen));
+    if (screen is! InsightsScreen) return;
+    // The providers outlive the route, so the way back needs no context.
+    final ads = context.read<AdsProvider>();
+    final transactions = context.read<TransactionProvider>();
+    unawaited(ads.primeInterstitial(transactions.transactions.length));
+    unawaited(
+      opened.then(
+        (_) => ads.showAtSeam(
+          AdSeam.leftInsights,
+          transactions.transactions.length,
+        ),
+      ),
+    );
+  }
 
   /// Exports the selected period's transactions and transfers (BAK-5).
   static Future<void> _exportPeriod(
@@ -591,9 +612,8 @@ class _BudgetsCard extends StatelessWidget {
             // The fuller picture, where the budgets sit above the spending by
             // category, as the drawer's row of the same name opens it.
             child: TextButton.icon(
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const InsightsScreen())),
+              onPressed: () =>
+                  HomeScreen._open(context, const InsightsScreen()),
               icon: const Icon(Icons.pie_chart_outline),
               label: Text(l10n.drawerSpending),
             ),

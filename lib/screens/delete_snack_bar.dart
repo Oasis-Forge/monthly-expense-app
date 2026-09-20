@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../providers/ads_provider.dart';
 import '../providers/transaction_provider.dart';
 
 /// Shows [message] with Undo for five seconds (DEL-2). If [onUndo] fails,
@@ -12,6 +13,9 @@ void showUndoSnackBar(
   required String failedMessage,
   required Future<void> Function() onUndo,
 }) {
+  // A seam in the next five seconds lets its ad go rather than cover this
+  // (ADS-11).
+  AdsProvider.noteUndoShown();
   messenger
     ..hideCurrentSnackBar()
     ..showSnackBar(

@@ -634,6 +634,7 @@ class FakeAdService implements AdService {
     this.fills = false,
     this.height = 50,
     this.privacyOptionsRequired = false,
+    this.interstitialFills = false,
   });
 
   /// What `start` answers: whether ads may be requested at all (ADS-4).
@@ -660,6 +661,24 @@ class FakeAdService implements AdService {
 
   @override
   Future<void> showPrivacyOptions() async => privacyOptionsShown++;
+
+  /// Whether a full-screen request comes back with one (ADS-13).
+  bool interstitialFills;
+
+  /// How many full-screen ads were asked for, shown, and let go unshown.
+  int interstitialsRequested = 0;
+  int interstitialsShown = 0;
+  int interstitialsDropped = 0;
+
+  @override
+  Future<LoadedInterstitial?> loadInterstitial() async {
+    interstitialsRequested++;
+    if (!canStart || !interstitialFills) return null;
+    return LoadedInterstitial(
+      show: () async => interstitialsShown++,
+      dispose: () async => interstitialsDropped++,
+    );
+  }
 
   @override
   Future<double?> bannerHeight(double width) async => canStart ? height : null;

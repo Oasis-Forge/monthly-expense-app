@@ -22,6 +22,22 @@ class LoadedBanner {
   final Future<void> Function() dispose;
 }
 
+/// A full-screen ad that has loaded and is waiting for its seam (ADS-11).
+///
+/// It is fetched ahead of time and kept, so reaching a seam costs no wait,
+/// and one that never loads is simply never shown (ADS-13).
+class LoadedInterstitial {
+  const LoadedInterstitial({required this.show, required this.dispose});
+
+  /// Puts it on screen and completes once the user has dismissed it, so the
+  /// seam knows it was really seen before it counts the day's one showing
+  /// (ADS-12, ADS-14).
+  final Future<void> Function() show;
+
+  /// Throws it away unshown.
+  final Future<void> Function() dispose;
+}
+
 /// What the app asks of the ad network, behind an interface so widget tests
 /// and the desktop builds never reach the SDK (ADS-1).
 ///
@@ -50,6 +66,11 @@ abstract interface class AdService {
   /// A banner for [placement] at [width] logical pixels, or null if none
   /// filled. A slot that gets null shows nothing at all (ADS-2).
   Future<LoadedBanner?> loadBanner(AdPlacement placement, double width);
+
+  /// Fetches the full-screen ad ahead of a seam (ADS-11), or null when none
+  /// came back. Null is not an error and is never retried: the seam it was
+  /// meant for passes in silence (ADS-13).
+  Future<LoadedInterstitial?> loadInterstitial();
 }
 
 /// The Windows, Linux and macOS builds, where there is no ad SDK at all: no
@@ -72,6 +93,9 @@ class NoAdService implements AdService {
   @override
   Future<LoadedBanner?> loadBanner(AdPlacement placement, double width) async =>
       null;
+
+  @override
+  Future<LoadedInterstitial?> loadInterstitial() async => null;
 }
 
 /// Set with `--dart-define=CONSENT_TEST_REGION=eea` (or `us`) to see the
@@ -221,5 +245,62 @@ class DeviceAdService implements AdService {
     );
     await banner.load();
     return loaded.future;
+  }
+
+  @override
+  Future<LoadedInterstitial?> loadInterstitial() async {
+    if (!_canRequest || !AdsConfig.interstitialConfigured) return null;
+
+    final loaded = Completer<LoadedInterstitial?>();
+    await InterstitialAd.load(
+      adUnitId: AdsConfig.interstitialUnitId,
+      // No targeting: the SDK is handed nothing the user typed (ADS-7).
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          if (loaded.isCompleted) {
+            ad.dispose();
+            return;
+          }
+          loaded.complete(_interstitial(ad));
+        },
+        // Nothing filled. The seam this was meant for passes in silence and
+        // nothing is asked for again (ADS-13).
+        onAdFailedToLoad: (error) {
+          if (!loaded.isCompleted) loaded.complete(null);
+        },
+      ),
+    );
+    return loaded.future;
+  }
+
+  /// Wraps a loaded ad so the seam can wait for it to be dismissed before
+  /// carrying on, which is what leaves the user exactly where they were
+  /// going (ADS-14).
+  LoadedInterstitial _interstitial(InterstitialAd ad) {
+    final gone = Completer<void>();
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        if (!gone.isCompleted) gone.complete();
+      },
+      // One that refuses to show is one the user never saw, so it costs
+      // them nothing and the day is not counted against them (ADS-12).
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        if (!gone.isCompleted) gone.complete();
+      },
+    );
+    return LoadedInterstitial(
+      show: () async {
+        await ad.show();
+        await gone.future;
+      },
+      dispose: () async {
+        if (gone.isCompleted) return;
+        gone.complete();
+        await ad.dispose();
+      },
+    );
   }
 }

@@ -29,6 +29,9 @@ class AdsConfig {
   static const _testAppIdIos = 'ca-app-pub-3940256099942544~1458002511';
   static const _testBannerAndroid = 'ca-app-pub-3940256099942544/6300978111';
   static const _testBannerIos = 'ca-app-pub-3940256099942544/2934735716';
+  static const _testInterstitialAndroid =
+      'ca-app-pub-3940256099942544/1033173712';
+  static const _testInterstitialIos = 'ca-app-pub-3940256099942544/4411468910';
 
   // The real units, from the AdMob console ("Monthly expense Tracker
   // android" and "… ios"). The app IDs also go in
@@ -36,8 +39,7 @@ class AdsConfig {
   // where the SDK reads them before Dart runs; keep all three in step, and
   // `test/ads_config_test.dart` fails if they drift. An empty set for a
   // platform means "not set up", and then that platform requests nothing.
-  // The account also has interstitial and native units; they are unused on
-  // purpose, since the app shows banners only (ADS-1).
+  // The account also has a native unit, unused on purpose (ADS-1).
   static const liveAppIdAndroid = 'ca-app-pub-8287765177319119~2977310217';
   static const liveAppIdIos = 'ca-app-pub-8287765177319119~8155905694';
   static const liveBannerHomeAndroid = 'ca-app-pub-8287765177319119/4783636897';
@@ -45,6 +47,13 @@ class AdsConfig {
       'ca-app-pub-8287765177319119/2157473555';
   static const liveBannerHomeIos = 'ca-app-pub-8287765177319119/3697785931';
   static const liveBannerInsightsIos = 'ca-app-pub-8287765177319119/5473902035';
+
+  /// The full-screen ad's own unit, so AdMob reports it apart from the
+  /// banners (ADS-16). The account has one already; fill it in from the
+  /// console, and until then a release asks for no full-screen ad at all
+  /// rather than asking with a placeholder.
+  static const liveInterstitialAndroid = '';
+  static const liveInterstitialIos = '';
 
   static bool get _live => kReleaseMode || liveAdsEverywhere;
 
@@ -74,6 +83,17 @@ class AdsConfig {
       (AdPlacement.insights, true) => liveBannerInsightsIos,
     };
   }
+
+  /// The unit the full-screen ad asks with, empty when this build has none
+  /// (ADS-16).
+  static String get interstitialUnitId {
+    if (!_live) return _isIos ? _testInterstitialIos : _testInterstitialAndroid;
+    return _isIos ? liveInterstitialIos : liveInterstitialAndroid;
+  }
+
+  /// Whether this build can ask for a full-screen ad at all (ADS-16).
+  static bool get interstitialConfigured =>
+      supportsAds && interstitialUnitId.isNotEmpty;
 
   /// True while the build is serving Google's test units, so a release that
   /// is quietly earning nothing is easy to spot.

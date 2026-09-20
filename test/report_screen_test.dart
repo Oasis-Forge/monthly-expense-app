@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:monthly_expense_app/models/report.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transaction_filter.dart';
+import 'package:provider/provider.dart';
+
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/report_screen.dart';
@@ -198,6 +201,50 @@ void main() {
 
     expect(find.text('Building the report'), findsNothing);
     expect(find.text('Report'), findsOneWidget);
+  });
+
+  testWidgets('closing the preview is a seam for the full-screen ad '
+      '(ADS-11)', (tester) async {
+    // A seam only shows one to someone past the first days who has recorded
+    // enough to be asked (ADS-12).
+    provider = TransactionProvider(
+      db: FakeDB(
+        transactions: [
+          for (var i = 0; i < 12; i++)
+            testTx('t$i', TransactionType.expense, 5, DateTime(2026, 9, 4)),
+        ],
+      ),
+      clock: () => DateTime(2026, 9, 15),
+    );
+    await provider.load();
+    settings = await testSettings({
+      'setup_done': true,
+      'walkthrough_seen': true,
+      'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+    });
+    final ads = FakeAdService(canStart: true, interstitialFills: true);
+    usePhoneScreen(tester);
+    await tester.pumpWidget(
+      testApp(provider, settings, const ReportScreen(), ads: ads),
+    );
+    await tester.pumpAndSettle();
+    // In the app the SDK started long ago; here the provider is built on
+    // its first read, so this is what a running app already has (ADS-4).
+    Provider.of<AdsProvider>(
+      tester.element(find.byType(ReportScreen)),
+      listen: false,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Create the report'));
+    await tester.pump();
+    await pumpUntil(tester, find.text('Report'));
+    expect(ads.interstitialsShown, 0, reason: 'not over the report itself');
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(ads.interstitialsShown, 1);
   });
 
   testWidgets('cancelling leaves you on the options, with no report '

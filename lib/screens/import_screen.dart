@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
@@ -7,6 +9,7 @@ import '../l10n/labels.dart';
 import '../models/csv_import.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart' show foldForSearch;
+import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/backup_service.dart';
@@ -33,6 +36,18 @@ class _ImportScreenState extends State<ImportScreen> {
   /// (IMP-7), by the name as the file wrote it.
   final Map<String, String> _categoryChoice = {};
   final Map<String, String> _accountChoice = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // An import is a job with an end, so the full-screen ad for that seam is
+    // fetched while the file is chosen and looked over (ADS-11, ADS-13).
+    unawaited(
+      context.read<AdsProvider>().primeInterstitial(
+        context.read<TransactionProvider>().transactions.length,
+      ),
+    );
+  }
 
   void _show(String message) {
     ScaffoldMessenger.of(context)
@@ -136,6 +151,7 @@ class _ImportScreenState extends State<ImportScreen> {
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
     final navigator = Navigator.of(context);
+    final ads = context.read<AdsProvider>();
     setState(() => _busy = true);
     try {
       final written = await provider.applyImport(
@@ -147,6 +163,8 @@ class _ImportScreenState extends State<ImportScreen> {
       _show(l10n.importDone(written));
       // The count, so the setup page knows an import brought data in (RUN-3).
       navigator.pop(written);
+      // The rows are in and this screen has gone: a seam (ADS-11, ADS-14).
+      await ads.showAtSeam(AdSeam.importedCsv, provider.transactions.length);
     } catch (_) {
       if (!mounted) return;
       setState(() => _busy = false);

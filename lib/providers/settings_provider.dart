@@ -34,6 +34,9 @@ class SettingsProvider extends ChangeNotifier {
        _backupReminder = _prefs.getBool(_backupReminderKey) ?? true,
        _lastBackupAt = _dateOrNull(_prefs.getString(_lastBackupKey)),
        _reminderSnoozedAt = _dateOrNull(_prefs.getString(_snoozedKey)),
+       _lastInterstitialAt = _dateOrNull(
+         _prefs.getString(_lastInterstitialKey),
+       ),
        _appLock = _prefs.getBool(_appLockKey) ?? false,
        _showWidgetAmounts = _prefs.getBool(_showWidgetAmountsKey) ?? false {
     final firstOpened = _dateOrNull(_prefs.getString(_firstOpenedKey));
@@ -66,6 +69,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _accountFilterKey = 'account_filter_id';
   static const _weekStartKey = 'week_start_day';
   static const _backupReminderKey = 'backup_reminder';
+  static const _lastInterstitialKey = 'last_interstitial';
   static const _lastBackupKey = 'last_backup_at';
   static const _snoozedKey = 'backup_reminder_snoozed_at';
   static const _firstOpenedKey = 'first_opened_at';
@@ -80,6 +84,13 @@ class SettingsProvider extends ChangeNotifier {
   /// The shortest gap between backup reminders (BAK-7).
   static const backupReminderInterval = Duration(days: 30);
 
+  /// How many transactions the app wants behind it before a full-screen ad
+  /// may appear (ADS-12).
+  static const interstitialThreshold = 10;
+
+  /// How long after first opening the app before one may appear (ADS-12).
+  static const interstitialWarmUp = Duration(days: 3);
+
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
   String? _languageCode;
@@ -93,6 +104,7 @@ class SettingsProvider extends ChangeNotifier {
   bool _backupReminder;
   DateTime? _lastBackupAt;
   DateTime? _reminderSnoozedAt;
+  DateTime? _lastInterstitialAt;
   late final DateTime _firstOpenedAt;
   bool _appLock;
   bool _showWidgetAmounts;
@@ -344,6 +356,32 @@ class SettingsProvider extends ChangeNotifier {
       (final backup, final snoozed) => backup ?? snoozed,
     };
     return last == null || now.difference(last) >= backupReminderInterval;
+  }
+
+  /// Whether a seam may show a full-screen ad now (ADS-12): at most one in
+  /// a day, counted by the device's own day, none before
+  /// [interstitialThreshold] transactions, and none within
+  /// [interstitialWarmUp] of first opening the app.
+  bool interstitialDue(int transactionCount) {
+    final now = _clock();
+    if (transactionCount < interstitialThreshold ||
+        now.difference(_firstOpenedAt) < interstitialWarmUp) {
+      return false;
+    }
+    // The device's own day, not the UTC one it was stored as.
+    final last = _lastInterstitialAt?.toLocal();
+    return last == null ||
+        last.year != now.year ||
+        last.month != now.month ||
+        last.day != now.day;
+  }
+
+  /// Counts the day's one showing. Called when an ad has really been on
+  /// screen, never when one was merely asked for (ADS-13).
+  Future<void> markInterstitialShown() async {
+    final now = _clock();
+    await _prefs.setString(_lastInterstitialKey, _stamp(now));
+    _lastInterstitialAt = now;
   }
 
   Future<void> setAppLock(bool on) async {
