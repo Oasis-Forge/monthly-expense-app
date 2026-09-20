@@ -1,20 +1,19 @@
-name: Release desktop
+name: Build desktop
 
-# Tag push (vX.Y.Z matching pubspec.yaml) builds the Linux archive that the
-# Flathub manifest installs, attached to a draft GitHub Release, and the Windows
-# MSIX for the Microsoft Store, kept as an artifact. Mac App Store builds come
-# with the desktop releases in Phase 4.
+# Manual only. Releases are made by hand, so nothing here is tied to a tag or a
+# GitHub Release: a run builds the Linux archive that the Flathub manifest
+# installs (with its sha256 in the run summary) and the Windows MSIX for the
+# Microsoft Store, and leaves both in the run's artifacts. Mac App Store builds
+# come with the desktop releases in Phase 4.
 
 on:
-  push:
-    tags: ['v*']
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: release-desktop-${{ github.ref }}
+  group: build-desktop-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -29,17 +28,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Check tag matches pubspec version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          pubspec_version=$(grep -E '^version:' pubspec.yaml | sed -E 's/^version: *([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-          if [ "v$pubspec_version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match pubspec.yaml version $pubspec_version"
-            exit 1
-          fi
-
-      # audioplayers_linux plays voice notes (ATT-4) through GStreamer, whose
-      # development packages the runner doesn't ship with.
       - name: Install Linux build tools
         run: |
           sudo apt-get update
@@ -78,15 +66,6 @@ jobs:
           name: linux-${{ github.ref_name }}
           path: monthly-expenses-linux-x64.tar.gz
           retention-days: 14
-
-      # Draft: the archive becomes downloadable, and usable by Flathub, once
-      # you publish the release.
-      - name: Attach the archive to a draft GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v3
-        with:
-          files: monthly-expenses-linux-x64.tar.gz
-          draft: true
 
   windows:
     name: Windows MSIX (Microsoft Store)

@@ -1,27 +1,25 @@
-name: Release Android
+name: Build Android
 
-# Every merge to main whose pubspec.yaml version (x.y.z+N) has no vX.Y.Z tag yet
-# builds the APK and AAB, tags the merge commit, and attaches the APK to a draft
-# GitHub Release with the CHANGELOG.md entry as notes. With signing and Play
-# secrets, the AAB also goes to Play internal testing as a draft. CI makes every
-# PR bump the version, so every merged PR gets its own APK. Manual runs outside
-# main only build artifacts.
+# Manual only. Releases are made by hand: the version is bumped on the branch,
+# the app is built locally, and the App Bundle is uploaded to Play Console by
+# the user. Nothing here tags a commit, creates a GitHub Release, or talks to
+# Play — this workflow exists for the times a clean build from a machine that
+# isn't the user's is wanted, and it leaves the APK and the App Bundle in the
+# run's artifacts. With the Android signing secrets set it signs with the
+# upload key; without them, with a throwaway debug key.
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: release-android-${{ github.ref }}
+  group: build-android-${{ github.ref }}
   cancel-in-progress: false
 
 env:
   FLUTTER_VERSION: 3.47.4
-  PACKAGE_NAME: com.oasisforge.monthlyexpenses
 
 jobs:
   version:
@@ -30,8 +28,6 @@ jobs:
     timeout-minutes: 5
     outputs:
       name: ${{ steps.read.outputs.name }}
-      tag: ${{ steps.read.outputs.tag }}
-      release: ${{ steps.read.outputs.release }}
     steps:
       - uses: actions/checkout@v7
 
@@ -43,28 +39,15 @@ jobs:
             echo "::error::pubspec.yaml version must look like x.y.z+N"
             exit 1
           fi
-          tag="v$name"
-          release=false
-          if [ "$GITHUB_REF" != refs/heads/main ]; then
-            echo "Not on main: building $tag without releasing it." >> "$GITHUB_STEP_SUMMARY"
-          elif git ls-remote --exit-code --tags origin "refs/tags/$tag" > /dev/null; then
-            echo "$tag is already released: nothing to release." >> "$GITHUB_STEP_SUMMARY"
-          else
-            release=true
-          fi
-          { echo "name=$name"; echo "tag=$tag"; echo "release=$release"; } >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
 
   build:
-    name: Build and publish
+    name: Build
     needs: version
-    if: needs.version.outputs.release == 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       NAME: ${{ needs.version.outputs.name }}
-      TAG: ${{ needs.version.outputs.tag }}
-      RELEASE: ${{ needs.version.outputs.release }}
-      HAS_PLAY_CREDENTIALS: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON != '' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -88,7 +71,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -z "$KEYSTORE_BASE64" ]; then
-            echo "::warning::ANDROID_KEYSTORE_BASE64 is not set: signing with a throwaway debug key and skipping Play."
+            echo "::warning::ANDROID_KEYSTORE_BASE64 is not set: signing with a throwaway debug key, so this build cannot go to Play."
             echo "signed=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -145,51 +128,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: android-${{ env.TAG }}
+          name: android-${{ env.NAME }}
           path: dist/
           retention-days: 14
 
-      - name: Write release notes
-        if: env.RELEASE == 'true'
-        env:
-          SIGNED: ${{ steps.signing.outputs.signed }}
-        run: |
-          awk -v heading="## [$NAME] - " '
-            index($0, heading) == 1 { found = 1; next }
-            found && /^## \[/ { exit }
-            found { print }
-          ' CHANGELOG.md > release-notes.md
-          if [ "$SIGNED" != true ]; then
-            printf '\n> This APK is signed with a throwaway debug key, so it cannot update an installed copy. Back up in the app, uninstall, install this APK, then restore.\n' >> release-notes.md
-          fi
-
-      # The tag records the release; CI's version check compares PRs against it.
-      # A draft release doesn't create its tag, so push it first.
-      - name: Tag the release
-        if: env.RELEASE == 'true'
-        run: |
-          if ! git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
-            git tag "$TAG" "$GITHUB_SHA"
-            git push origin "refs/tags/$TAG"
-          fi
-
-      # Draft: on a public repo the APK stays private until you publish the release.
-      - name: Attach APK to a draft GitHub Release
-        if: env.RELEASE == 'true'
-        uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ env.TAG }}
-          name: Monthly Expenses ${{ env.NAME }}
-          body_path: release-notes.md
-          files: dist/monthly-expenses-${{ env.NAME }}.apk
-          draft: true
-
-      - name: Upload to Play internal testing
-        if: env.RELEASE == 'true' && steps.signing.outputs.signed == 'true' && env.HAS_PLAY_CREDENTIALS == 'true'
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ env.PACKAGE_NAME }}
-          releaseFiles: dist/monthly-expenses-${{ env.NAME }}.aab
-          track: internal
-          status: draft
