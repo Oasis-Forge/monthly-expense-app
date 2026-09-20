@@ -80,13 +80,16 @@ class MonthlyExpenseApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) =>
               TransactionProvider(
-                startDay: settings.startDay,
-                reminders: reminderService,
-                attachments: attachmentService,
-              )..load(
-                appLockOn: settings.appLock,
-                locale: effectiveAppLocale(settings.locale),
-              ),
+                  startDay: settings.startDay,
+                  reminders: reminderService,
+                  attachments: attachmentService,
+                )
+                // ACC-6: open on the account Home was last left showing.
+                ..selectHomeAccount(settings.homeAccountId)
+                ..load(
+                  appLockOn: settings.appLock,
+                  locale: effectiveAppLocale(settings.locale),
+                ),
         ),
         Provider<BackupService>(create: (_) => backup ?? BackupService()),
         Provider<Authenticator>(

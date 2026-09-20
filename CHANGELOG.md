@@ -4,6 +4,12 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.17.2] - 2026-09-20
+
+### Added
+- Home can show one account instead of all of them. Tap the wallet on the summary card and pick it: the totals, the day list and each day's own income and expense are that account's alone, and the card's label says which one you are looking at. The choice is still there next time you open the app.
+- With one account showing, a new entry starts on it, so recording a card payment from your card's Home no longer means changing the account every time.
+
 ## [1.17.1] - 2026-09-20
 
 ### Added

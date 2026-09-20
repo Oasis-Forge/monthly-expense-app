@@ -46,6 +46,50 @@ class HomeScreen extends StatefulWidget {
   static void _open(BuildContext context, Widget screen) =>
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
 
+  /// Chooses which account Home shows: one of them, or every one (ACC-6).
+  /// The view and the saved choice move together, so a relaunch opens on the
+  /// same account; archived ones are left out, since Home is the everyday
+  /// round and their history is on the Accounts screen (ACC-5).
+  static Future<void> _pickHomeAccount(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final provider = context.read<TransactionProvider>();
+    final settings = context.read<SettingsProvider>();
+    final accounts = provider.activeAccounts;
+    final chosen = provider.homeAccountId;
+    final picked = await showModalBottomSheet<({String? id})>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            ListTile(
+              leading: Icon(
+                chosen == null
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked,
+              ),
+              title: Text(l10n.allAccountsFilter),
+              onTap: () => Navigator.of(sheetContext).pop((id: null)),
+            ),
+            for (final account in accounts)
+              ListTile(
+                leading: Icon(
+                  chosen == account.id
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_unchecked,
+                ),
+                title: Text(account.label(l10n)),
+                onTap: () => Navigator.of(sheetContext).pop((id: account.id)),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (picked == null) return;
+    provider.selectHomeAccount(picked.id);
+    await settings.setHomeAccountId(picked.id);
+  }
+
   /// Exports the selected period's transactions and transfers (BAK-5).
   static Future<void> _exportPeriod(
     BuildContext context,
@@ -125,6 +169,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final settings = context.watch<SettingsProvider>();
     final currency = settings.currencyFormat(l10n.localeName);
     final selectedDay = provider.selectedDay;
+    // ACC-6: the account Home is showing, null while it shows every one.
+    final chosenAccount = provider.homeAccountId == null
+        ? null
+        : provider.accountById(provider.homeAccountId!);
     // DAY-7: the chosen day on its own, whether or not it holds anything.
     final days = selectedDay != null
         ? [selectedDay]
@@ -206,6 +254,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       onToggle: () => settings.setSummaryCollapsed(
                         !settings.summaryCollapsed,
                       ),
+                      // ACC-6: null while Home shows every account. The
+                      // default account's name is translated, so it comes
+                      // through label() like everywhere else (LANG-2).
+                      accountName: chosenAccount?.label(l10n),
+                      onPickAccount: () => HomeScreen._pickHomeAccount(context),
                       scale: MediaQuery.textScalerOf(context)
                           .scale(1)
                           .clamp(1.0, 1.4),
@@ -647,6 +700,8 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
     required this.collapsedByHand,
     required this.onToggle,
     required this.scale,
+    required this.accountName,
+    required this.onPickAccount,
   });
 
   final Money income;
@@ -659,6 +714,10 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
   /// back on its own (BAL-6).
   final bool collapsedByHand;
   final VoidCallback onToggle;
+
+  /// The chosen account's name, or null for every account (ACC-6).
+  final String? accountName;
+  final VoidCallback onPickAccount;
 
   /// The text scale, so bigger text gets a taller header rather than a
   /// clipped one (LANG-4).
@@ -701,6 +760,8 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
             currency: currency,
             collapsed: collapsed,
             onToggle: onToggle,
+            accountName: accountName,
+            onPickAccount: onPickAccount,
           ),
         ),
       ),
@@ -714,6 +775,7 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
       old.balance != balance ||
       old.carriedForward != carriedForward ||
       old.collapsedByHand != collapsedByHand ||
+      old.accountName != accountName ||
       old.scale != scale;
 }
 
@@ -730,6 +792,12 @@ class _SummaryCard extends StatelessWidget {
   final bool collapsed;
   final VoidCallback onToggle;
 
+  /// The chosen account's name, or null while Home shows every account. It
+  /// stands in for the card's label so the figures are never read as the
+  /// whole of the money by mistake (ACC-6).
+  final String? accountName;
+  final VoidCallback onPickAccount;
+
   const _SummaryCard({
     required this.income,
     required this.expense,
@@ -738,6 +806,8 @@ class _SummaryCard extends StatelessWidget {
     required this.currency,
     required this.collapsed,
     required this.onToggle,
+    required this.accountName,
+    required this.onPickAccount,
   });
 
   @override
@@ -745,7 +815,11 @@ class _SummaryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final carried = carriedForward;
-    final label = carried == null ? l10n.periodNetLabel : l10n.balanceLabel;
+    // ACC-6: one account's name replaces the label rather than joining it, so
+    // the card is no taller and no text is pieced together (LANG-2).
+    final label =
+        accountName ??
+        (carried == null ? l10n.periodNetLabel : l10n.balanceLabel);
     final amountColor = balance.isNegative ? Colors.red : Colors.green;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -788,9 +862,22 @@ class _SummaryCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        // The same width as the chevron, so the label stays
-                        // in the middle of the card.
-                        const SizedBox(width: 24),
+                        // ACC-6: the switch between one account and every
+                        // account. It takes the room the chevron's opposite
+                        // number was already holding to keep the label
+                        // centred, so the card is no taller for it.
+                        SizedBox(
+                          width: 24,
+                          child: InkWell(
+                            onTap: onPickAccount,
+                            customBorder: const CircleBorder(),
+                            child: Icon(
+                              Icons.account_balance_wallet_outlined,
+                              size: 20,
+                              semanticLabel: l10n.accountLabel,
+                            ),
+                          ),
+                        ),
                         Expanded(
                           child: Text(
                             label,

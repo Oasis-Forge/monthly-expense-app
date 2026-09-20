@@ -91,6 +91,11 @@ class TransactionProvider extends ChangeNotifier {
   /// its own day again (DAY-6).
   DateTime? _selectedDay;
   Period? _daySelectionPeriod;
+
+  /// The account Home is showing on its own, null for every account (ACC-6).
+  /// Read through [homeAccountId], which falls back to every account when the
+  /// chosen one has been archived or removed since it was chosen.
+  String? _homeAccountId;
   _PeriodSummary? _summary;
   bool _loaded = false;
 
@@ -140,6 +145,26 @@ class TransactionProvider extends ChangeNotifier {
       _selectedDay = _period.contains(today) ? today : null;
     }
     return _selectedDay;
+  }
+
+  /// The account Home is showing, or null for every account (ACC-6). An
+  /// account archived or removed since it was chosen reads as null rather
+  /// than showing an empty Home with no way back, and [selectHomeAccount]
+  /// is what writes it.
+  String? get homeAccountId {
+    final id = _homeAccountId;
+    if (id == null) return null;
+    final account = accountById(id);
+    return account != null && account.archivedAt == null ? id : null;
+  }
+
+  /// Show one account on Home, or every account with null (ACC-6). The whole
+  /// of Home follows: the summary card, the day list, and each day's own
+  /// totals (ACC-7).
+  void selectHomeAccount(String? id) {
+    if (id == _homeAccountId) return;
+    _homeAccountId = id;
+    _changed();
   }
 
   /// The period that contains today; budget changes apply from it (BUD-5).
@@ -294,6 +319,10 @@ class TransactionProvider extends ChangeNotifier {
   /// The account of the most recently added transaction while it's active,
   /// or the first active account (ADD-3).
   String? defaultAccountId() {
+    // Home showing one account is a stronger signal than the last one used:
+    // an entry started from there almost always belongs to it (ACC-9).
+    final chosen = homeAccountId;
+    if (chosen != null) return chosen;
     ExpenseTransaction? newest;
     for (final tx in _transactions) {
       if (newest == null || tx.createdAt.isAfter(newest.createdAt)) {
@@ -1470,6 +1499,9 @@ class TransactionProvider extends ChangeNotifier {
       _transactions,
       _transfers,
       _accounts,
+      // The home-screen widget is not Home: it shows the whole of the money
+      // whatever account Home is filtered to (WID-1, ACC-6).
+      null,
     );
     final limit = limitFor(_budgets, null, period);
     return WidgetSummary(
@@ -1492,14 +1524,20 @@ class TransactionProvider extends ChangeNotifier {
 
   _PeriodSummary get _current {
     final today = _today;
+    final account = homeAccountId;
     final cached = _summary;
-    if (cached != null && cached.today == today) return cached;
+    if (cached != null &&
+        cached.today == today &&
+        cached.accountId == account) {
+      return cached;
+    }
     return _summary = _PeriodSummary(
       _period,
       today,
       _transactions,
       _transfers,
       _accounts,
+      account,
     );
   }
 
@@ -1523,10 +1561,12 @@ class _PeriodSummary {
     List<ExpenseTransaction> newestFirst,
     List<Transfer> newestTransfersFirst,
     List<Account> accounts,
+    this.accountId,
   ) {
     var openingBefore = Money.zero;
     var openingDuring = Money.zero;
     for (final account in accounts) {
+      if (accountId != null && account.id != accountId) continue;
       if (account.openingDate.isBefore(period.start)) {
         openingBefore += account.openingBalance;
       } else if (period.contains(account.openingDate) &&
@@ -1537,6 +1577,7 @@ class _PeriodSummary {
 
     var netBefore = Money.zero;
     for (final tx in newestFirst) {
+      if (accountId != null && tx.accountId != accountId) continue;
       final counts = !_dayOf(tx.date).isAfter(today);
       final isIncome = tx.type == TransactionType.income;
       if (period.contains(tx.date)) {
@@ -1562,19 +1603,43 @@ class _PeriodSummary {
       }
     }
 
+    // A transfer nets to zero across every account, which is why it is no
+    // part of income or expense (BAL-1). Within one account it is money in or
+    // out, exactly as that account's own balance counts it (ACC-4), so the
+    // carried-forward and closing figures have to take it in (ACC-8).
+    var transferBefore = Money.zero;
+    var transferDuring = Money.zero;
     for (final transfer in newestTransfersFirst) {
+      final into = transfer.toAccountId == accountId;
+      final outOf = transfer.fromAccountId == accountId;
+      if (accountId != null && !into && !outOf) continue;
       if (period.contains(transfer.date)) {
         transfers.add(transfer);
         transfersByDay
             .putIfAbsent(_dayOf(transfer.date), () => [])
             .add(transfer);
       }
+      if (accountId == null) continue;
+      // Upcoming transfers count nowhere until their date arrives (BAL-4).
+      if (_dayOf(transfer.date).isAfter(today)) continue;
+      // Both ends when an account transfers to itself, so it still nets zero.
+      var signed = Money.zero;
+      if (into) signed += transfer.amount;
+      if (outOf) signed -= transfer.amount;
+      if (period.contains(transfer.date)) {
+        transferDuring += signed;
+      } else if (transfer.date.isBefore(period.start)) {
+        transferBefore += signed;
+      }
     }
 
-    carriedForward = openingBefore + netBefore;
-    closingBalance = carriedForward + openingDuring + income - expense;
+    carriedForward = openingBefore + netBefore + transferBefore;
+    closingBalance =
+        carriedForward + openingDuring + income - expense + transferDuring;
   }
 
+  /// The account these totals are for, or null for every account (ACC-6).
+  final String? accountId;
   final DateTime today;
   final List<ExpenseTransaction> transactions = [];
   final Map<DateTime, List<ExpenseTransaction>> byDay = {};
