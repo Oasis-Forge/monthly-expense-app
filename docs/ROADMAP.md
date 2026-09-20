@@ -82,7 +82,7 @@ Decided 13 September 2026: these ship in v1. Languages come first. After that, e
 - [x] **Test "Remove ads" on the internal track:** the `remove_ads` product active in Play Console, bought with a licence-test account, then restored after a reinstall (PAY-1, PAY-5, PAY-8), and backing out of the payment sheet brings the price back. Progress: the product was created on 18 September 2026 as a one-time product with the purchase option `buy`; checked on a phone with 1.15.1 on 18 September 2026: buying, backing out of the sheet, and a reinstall that brought the purchase back.
 - [x] **Protect `main`:** a pull request with CI passing (format, analyze, tests, the Android and iOS builds) before anything merges, no force pushes and no deleting it, with no bypass, through the "Protect main" ruleset (checked 18 September 2026).
 - [x] Every PR carries its own version: CI requires a SemVer bump above `main` and a `CHANGELOG.md` entry. Until 20 September 2026 the merge also tagged `vX.Y.Z` and drafted a GitHub Release; releasing is by hand now, from a local build uploaded to the store.
-- [x] Play internal testing, uploaded by hand: started 18 September 2026 with 1.13.0, signed with the Oasis Forge upload key; 1.15.0 and 1.15.1 followed the same day. Signing and uploading from CI moved to After v1.
+- [x] Play internal testing, uploaded by hand: started 18 September 2026 with 1.13.0, signed with the Oasis Forge upload key; 1.15.0 and 1.15.1 followed the same day, and 1.17.2 on 20 September 2026. Signing and uploading from CI was dropped on 20 September 2026 — every build is made on the developer's machine and uploaded by hand.
 - [ ] Google Play: new personal developer accounts must run a closed test (at least 12 testers for 14 days) before production access. Confirm the current rule in Play Console and plan for the wait. Progress: the closed test started 18 September 2026.
 - [ ] Declare the EU trader status (Digital Services Act) in Play Console before production. Trader is the likely answer, since the app has ads and a paid purchase. It publishes an address, a phone number and an email on the EU listing, so choose ones that can be public first.
 - [ ] Play store listing in every language the app ships (screenshots, description, privacy policy URL, the data safety form including what the ad network collects (ADS-6)), then promote to production. Progress: the listing text, screenshots, feature graphics and store icon for all 23 Play languages were uploaded on 18 September 2026.
@@ -106,7 +106,6 @@ Kept apart from Google Play on 18 September 2026, and macOS joined it the same d
 ## After v1
 
 **Small items, moved here on 18 September 2026:**
-- CI signing and upload to Play: the Android keystore secrets, so CI signs every merge, and a Play service account, so `build-android.yml` uploads to internal testing on its own (`docs/RELEASING.md`). Until then, each `.aab` is built and uploaded by hand.
 - The Claude GitHub Action (`claude.yml`): set `CLAUDE_CODE_OAUTH_TOKEN` and try it once.
 - A details page for transfers (DET-7).
 - Keep or drop Android's ad Topics permission (`ACCESS_ADSERVICES_TOPICS`), once there is ad revenue to compare.
@@ -117,4 +116,4 @@ Kept apart from Google Play on 18 September 2026, and macOS joined it the same d
 
 **The bank connection (Plus, section 25, BANK-1–BANK-8).** A licensed provider, the bank's own sign-in, whole transactions arriving as proposals the user confirms. It joins Drive backup (Phase 5) as what Plus is sold for, and it is a service rather than a feature: a server of ours holding tokens and taking webhooks, an agent arrangement under the provider's licence in the UK and the EU, GDPR duties (retention, deletion on request, a processor agreement, breach reporting), per-connected-account fees, and the subscription plumbing for a yearly and a monthly product. It is the one place the app's data leaves the device (BANK-5), so the privacy policy, the Play data-safety form and the App Store labels all have to separate the free app from Plus, plainly.
 
-Then: a web version (needs a storage layer other than sqflite), subcategories, multiple currencies, and desktop widgets. Recurring reminders were dropped on 18 September 2026.
+Then: a web version (needs a storage layer other than sqflite), subcategories, multiple currencies, and desktop widgets. Recurring reminders were dropped on 18 September 2026, and CI signing and uploading to Play on 20 September 2026 — releasing is by hand now, so no keystore or Play credentials live on GitHub.

@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.17.4] - 2026-09-20
+
+### Changed
+- Nothing you can see in the app: a roadmap note, recording that 1.17.2 reached Play's internal testing and that signing and uploading from CI is not planned any more.
+
 ## [1.17.3] - 2026-09-20
 
 ### Changed
