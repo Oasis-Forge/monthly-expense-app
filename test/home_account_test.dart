@@ -561,25 +561,26 @@ void main() {
       expect(find.text(long), findsOneWidget);
     });
 
+
     testWidgets('the one line runs to its own edge (BAL-6)', (tester) async {
       usePhoneScreen(tester);
       final provider = await loaded(twoAccounts());
       final settings = await testSettings();
       await settings.setSummaryCollapsed(true);
-      provider.selectAccountFilter(bank);
       await tester.pumpWidget(testApp(provider, settings, const HomeScreen()));
       await tester.pumpAndSettle();
 
-      // Two flexible children would split the row between them, and a short
-      // name would leave the balance and the chevron stranded mid-card with a
-      // hole after them. The balance takes what it needs, the name what is
-      // left, and the chevron lands on the edge.
+      // A short label is the case that catches it: two flexible children
+      // would split the row between them, "Balance" would hand its half
+      // back, and the balance and the chevron would sit stranded mid-card
+      // with a hole after them. The balance takes what it needs, the label
+      // what is left, and the chevron lands on the edge.
       final row = tester.getRect(
-        find
-            .ancestor(of: find.text(bank), matching: find.byType(Row))
-            .first,
+        find.ancestor(of: find.text('Balance'), matching: find.byType(Row)).first,
       );
+      final label = tester.getRect(find.text('Balance'));
       final chevron = tester.getRect(find.byIcon(Icons.expand_more));
+      expect(label.left, moreOrLessEquals(row.left, epsilon: 0.5));
       expect(chevron.right, moreOrLessEquals(row.right, epsilon: 0.5));
     });
 
