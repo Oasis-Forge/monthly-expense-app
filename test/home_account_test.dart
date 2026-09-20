@@ -413,6 +413,97 @@ void main() {
       expect(find.byIcon(Icons.account_balance_wallet_outlined), findsNothing);
     });
 
+    testWidgets('and hands every account back again (ACC-6)', (tester) async {
+      usePhoneScreen(tester);
+      final provider = await loaded(
+        FakeDB(
+          transactions: [
+            testTx('cash-spend', expense, 30, today),
+            testTx('bank-spend', expense, 7, today, accountId: bank),
+          ],
+          accounts: [
+            testAccount(cash, opening: 100),
+            testAccount(bank, opening: 50),
+          ],
+        ),
+      );
+      final settings = await testSettings();
+      provider.selectAccountFilter(bank);
+      await settings.setAccountFilterId(bank);
+      await tester.pumpWidget(testApp(provider, settings, const HomeScreen()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.account_balance_wallet_outlined));
+      await tester.pumpAndSettle();
+      // The sheet says which account is chosen, to a screen reader as well
+      // as to the eye.
+      expect(
+        tester.widget<ListTile>(find.widgetWithText(ListTile, bank)).selected,
+        isTrue,
+      );
+      await tester.tap(find.text('All accounts'));
+      await tester.pumpAndSettle();
+
+      // ACC-6: back to the whole of the money, label and all, and the device
+      // forgets the choice rather than opening on it again.
+      expect(provider.accountFilterId, isNull);
+      expect(settings.accountFilterId, isNull);
+      expect(find.text('Balance'), findsOneWidget);
+      expect(find.text('cash-spend'), findsOneWidget);
+    });
+
+    testWidgets('Insights switches from its toolbar and its banner', (
+      tester,
+    ) async {
+      usePhoneScreen(tester);
+      final provider = await loaded(twoAccounts());
+      final settings = await testSettings();
+      await tester.pumpWidget(
+        testApp(provider, settings, const InsightsScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      // The toolbar's wallet opens the same sheet Home's does.
+      await tester.tap(find.byIcon(Icons.account_balance_wallet_outlined));
+      await tester.pumpAndSettle();
+      expect(find.text('All accounts'), findsOneWidget);
+      await tester.tap(find.text(bank).last);
+      await tester.pumpAndSettle();
+      expect(provider.accountFilterId, bank);
+      expect(settings.accountFilterId, bank);
+
+      // ACC-6: the banner naming the account is itself the way to change it,
+      // so a filtered screen never has to be left to undo the filter.
+      await tester.tap(find.byIcon(Icons.account_balance_wallet_outlined).last);
+      await tester.pumpAndSettle();
+      expect(find.text('All accounts'), findsOneWidget);
+      await tester.tap(find.text('All accounts'));
+      await tester.pumpAndSettle();
+      expect(provider.accountFilterId, isNull);
+    });
+
+    testWidgets('and the banner puts every account back in one tap', (
+      tester,
+    ) async {
+      usePhoneScreen(tester);
+      final provider = await loaded(twoAccounts());
+      final settings = await testSettings();
+      provider.selectAccountFilter(bank);
+      await settings.setAccountFilterId(bank);
+      await tester.pumpWidget(
+        testApp(provider, settings, const InsightsScreen()),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.close));
+      await tester.pumpAndSettle();
+
+      expect(provider.accountFilterId, isNull);
+      expect(settings.accountFilterId, isNull);
+      // ACC-6: with nothing hidden there is nothing to say, so the banner goes.
+      expect(find.byIcon(Icons.close), findsNothing);
+    });
+
     test(
       'the sheet offers every account that is not archived (ACC-5)',
       () async {

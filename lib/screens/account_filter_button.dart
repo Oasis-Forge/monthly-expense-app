@@ -28,6 +28,8 @@ Future<void> pickAccountFilter(BuildContext context) async {
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
             ),
+            // A screen reader hears which one is chosen, not just the list.
+            selected: chosen == null,
             title: Text(l10n.allAccountsFilter),
             onTap: () => Navigator.of(sheetContext).pop((id: null)),
           ),
@@ -38,6 +40,7 @@ Future<void> pickAccountFilter(BuildContext context) async {
                     ? Icons.radio_button_checked
                     : Icons.radio_button_unchecked,
               ),
+              selected: chosen == account.id,
               title: Text(account.label(l10n)),
               onTap: () => Navigator.of(sheetContext).pop((id: account.id)),
             ),
