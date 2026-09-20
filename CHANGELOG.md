@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.18.0] - 2026-09-20
+
+### Changed
+- A full-screen ad can now appear once a day, and only where something has just finished: leaving Insights, or after a report, an export or an import. It never interrupts an entry, never appears in the app's first three days, and never keeps you waiting for it.
+
 ## [1.17.4] - 2026-09-20
 
 ### Changed

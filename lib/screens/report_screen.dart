@@ -12,6 +12,7 @@ import '../l10n/labels.dart';
 import '../models/csv_export.dart' show isoDate;
 import '../models/report.dart';
 import '../models/transaction_filter.dart';
+import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/report_fonts.dart';
@@ -71,6 +72,7 @@ class _ReportScreenState extends State<ReportScreen> {
     final settings = context.read<SettingsProvider>();
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+    final ads = context.read<AdsProvider>();
     final locale = Localizations.localeOf(context);
     final (from, to) = _dates;
 
@@ -82,6 +84,10 @@ class _ReportScreenState extends State<ReportScreen> {
     }
 
     setState(() => _busy = true);
+    // Making a report is a job with an end, so the full-screen ad for the
+    // seam at the end of it is fetched while the pages are built, never
+    // waited for (ADS-11, ADS-13).
+    unawaited(ads.primeInterstitial(provider.transactions.length));
     final progress = ValueNotifier<double>(0);
     var cancelled = false;
     unawaited(
@@ -140,6 +146,9 @@ class _ReportScreenState extends State<ReportScreen> {
           ),
         ),
       );
+      // The report was made and its preview closed again: a seam (ADS-11),
+      // reached with nothing half-finished behind it (ADS-14).
+      await ads.showAtSeam(AdSeam.madeReport, provider.transactions.length);
     } on ReportCancelled {
       // The dialog already closed itself; nothing was produced (PDF-6).
     } catch (_) {

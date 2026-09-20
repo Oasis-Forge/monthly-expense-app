@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -6,6 +8,7 @@ import '../l10n/labels.dart';
 import '../models/csv_export.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
+import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/backup_service.dart';
@@ -22,6 +25,10 @@ Future<void> exportCsv(
   final l10n = AppLocalizations.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final provider = context.read<TransactionProvider>();
+  final ads = context.read<AdsProvider>();
+  // The file dialog is time enough to fetch one for the seam that follows
+  // (ADS-11, ADS-13).
+  unawaited(ads.primeInterstitial(provider.transactions.length));
   final csv = buildCsv(
     transactions: transactions,
     transfers: transfers,
@@ -35,6 +42,10 @@ Future<void> exportCsv(
       csv,
     );
     if (saved) {
+      // Saved, and the dialog has gone: a seam (ADS-11). The ad comes before
+      // the confirmation, so dismissing it lands on that rather than hiding
+      // it (ADS-14).
+      await ads.showAtSeam(AdSeam.exportedCsv, provider.transactions.length);
       messenger.showSnackBar(SnackBar(content: Text(l10n.csvExported)));
     }
   } catch (_) {

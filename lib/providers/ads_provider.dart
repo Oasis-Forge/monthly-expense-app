@@ -5,6 +5,23 @@ import '../services/ads_config.dart';
 import '../services/purchase_service.dart';
 import 'settings_provider.dart';
 
+/// Where a full-screen ad may appear (ADS-11): the moment a self-contained
+/// job has ended and the user is on their way out of it. There are four,
+/// and a screen cannot invent a fifth without a rule and a value here.
+enum AdSeam {
+  /// Back to Home from Insights.
+  leftInsights,
+
+  /// A PDF report has been made.
+  madeReport,
+
+  /// A CSV export has been written.
+  exportedCsv,
+
+  /// An import has finished.
+  importedCsv,
+}
+
 /// The one place that decides whether an ad slot fills (ADS-4, ADS-8,
 /// ADS-9), and the only route from "Remove ads" to the slots going away.
 ///
@@ -95,6 +112,69 @@ class AdsProvider extends ChangeNotifier {
     return _ads.loadBanner(placement, width);
   }
 
+  /// When an Undo was last put on screen (DEL-2). Static because the snack
+  /// bar is shown from screens that have no provider in hand, and there is
+  /// only ever one app.
+  static DateTime? _undoShownAt;
+
+  /// Told by [showUndoSnackBar] that an Undo is on screen, so a seam in the
+  /// next five seconds lets its ad go rather than cover the way back
+  /// (ADS-11). [at] is for tests.
+  static void noteUndoShown([DateTime? at]) =>
+      _undoShownAt = at ?? DateTime.now();
+
+  /// Forgets it, for tests that must not inherit another's Undo.
+  static void forgetUndo() => _undoShownAt = null;
+
+  static bool get _undoOnScreen {
+    final shown = _undoShownAt;
+    return shown != null &&
+        DateTime.now().difference(shown) < const Duration(seconds: 5);
+  }
+
+  LoadedInterstitial? _interstitial;
+  bool _fetching = false;
+
+  /// Whether one is in hand, so a test can say what a seam will do.
+  bool get interstitialReady => _interstitial != null;
+
+  /// Fetches the full-screen ad for a seam that is coming, so arriving at
+  /// it costs no wait (ADS-13). Safe to call again: it holds one at most,
+  /// and it asks for nothing on a day that is already spent (ADS-12).
+  Future<void> primeInterstitial(int transactionCount) async {
+    if (_interstitial != null || _fetching) return;
+    if (!_mayShowInterstitial(transactionCount)) return;
+    _fetching = true;
+    _interstitial = await _ads.loadInterstitial();
+    _fetching = false;
+  }
+
+  /// Shows the full-screen ad at [seam] if one is already in hand, and
+  /// counts the day's one showing only once it has really been seen
+  /// (ADS-12). A seam that finds nothing ready passes in silence, and
+  /// nothing is fetched to fill it (ADS-13).
+  Future<void> showAtSeam(AdSeam seam, int transactionCount) async {
+    final ad = _interstitial;
+    if (ad == null) return;
+    _interstitial = null;
+    // Bought away, locked, or the day spent since it was fetched: let it go
+    // rather than keep it for a moment that no longer allows one (ADS-15).
+    if (!_mayShowInterstitial(transactionCount)) {
+      await ad.dispose();
+      return;
+    }
+    await ad.show();
+    await _settings.markInterstitialShown();
+  }
+
+  /// Everything a banner has to satisfy (ADS-15), plus the day's own cap
+  /// (ADS-12) and a build with a unit to ask with (ADS-16).
+  bool _mayShowInterstitial(int transactionCount) =>
+      showAds &&
+      AdsConfig.interstitialConfigured &&
+      _settings.interstitialDue(transactionCount) &&
+      !_undoOnScreen;
+
   Future<void> showPrivacyOptions() async {
     await _ads.showPrivacyOptions();
     notifyListeners();
@@ -117,6 +197,7 @@ class AdsProvider extends ChangeNotifier {
     _purchases.removeListener(_onChanged);
     _settings.removeListener(_onSettingsChanged);
     _locked.removeListener(_onChanged);
+    _interstitial?.dispose();
     super.dispose();
   }
 }
