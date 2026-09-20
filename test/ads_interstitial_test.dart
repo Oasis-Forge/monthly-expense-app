@@ -57,16 +57,14 @@ void main() {
       expect(ads.interstitialsShown, 0);
     });
 
-    test('nothing in the first three days, however much is recorded', () async {
+    test('a first day is no obstacle once ten are recorded (ADS-12)', () async {
       final ads = filling();
-      final provider = await started(
-        await settled(firstOpened: now.subtract(const Duration(days: 2))),
-        ads,
-      );
+      final provider = await started(await settled(firstOpened: now), ads);
 
-      await provider.primeInterstitial(80);
+      await provider.primeInterstitial(10);
+      await provider.showAtSeam(AdSeam.leftInsights, 10);
 
-      expect(ads.interstitialsRequested, 0);
+      expect(ads.interstitialsShown, 1);
     });
 
     test('one a day, and the second seam gets nothing', () async {

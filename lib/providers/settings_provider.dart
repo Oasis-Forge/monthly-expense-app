@@ -114,9 +114,6 @@ class SettingsProvider extends ChangeNotifier {
   /// may appear (ADS-12).
   static const interstitialThreshold = 10;
 
-  /// How long after first opening the app before one may appear (ADS-12).
-  static const interstitialWarmUp = Duration(days: 3);
-
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
   String? _languageCode;
@@ -498,13 +495,11 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   /// Whether a seam may show a full-screen ad now (ADS-12): at most one in
-  /// a day, counted by the device's own day, none before
-  /// [interstitialThreshold] transactions, and none within
-  /// [interstitialWarmUp] of first opening the app.
+  /// a day, counted by the device's own day, and none before
+  /// [interstitialThreshold] transactions have been recorded.
   bool interstitialDue(int transactionCount) {
     final now = _clock();
-    if (transactionCount < interstitialThreshold ||
-        now.difference(_firstOpenedAt) < interstitialWarmUp) {
+    if (transactionCount < interstitialThreshold) {
       return false;
     }
     // The device's own day, not the UTC one it was stored as.
