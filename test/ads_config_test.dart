@@ -106,11 +106,13 @@ void main() {
       AdsConfig.liveAppIdAndroid,
       AdsConfig.liveBannerHomeAndroid,
       AdsConfig.liveBannerInsightsAndroid,
+      AdsConfig.liveInterstitialAndroid,
     ];
     const iosLive = [
       AdsConfig.liveAppIdIos,
       AdsConfig.liveBannerHomeIos,
       AdsConfig.liveBannerInsightsIos,
+      AdsConfig.liveInterstitialIos,
     ];
     for (final set in [live, iosLive]) {
       final filled = set.where((id) => id.isNotEmpty).length;

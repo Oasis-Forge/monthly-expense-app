@@ -49,11 +49,11 @@ class AdsConfig {
   static const liveBannerInsightsIos = 'ca-app-pub-8287765177319119/5473902035';
 
   /// The full-screen ad's own unit, so AdMob reports it apart from the
-  /// banners (ADS-16). The account has one already; fill it in from the
-  /// console, and until then a release asks for no full-screen ad at all
-  /// rather than asking with a placeholder.
-  static const liveInterstitialAndroid = '';
-  static const liveInterstitialIos = '';
+  /// banners (ADS-16). The account's native units stay unused on purpose:
+  /// nothing in this app is ever dressed as a row in a list (ADS-1).
+  static const liveInterstitialAndroid =
+      'ca-app-pub-8287765177319119/1171694942';
+  static const liveInterstitialIos = 'ca-app-pub-8287765177319119/7375720223';
 
   static bool get _live => kReleaseMode || liveAdsEverywhere;
 
