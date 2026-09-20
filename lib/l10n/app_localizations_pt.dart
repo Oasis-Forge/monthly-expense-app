@@ -1652,4 +1652,65 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Altere sua escolha sobre anúncios personalizados';
+
+  @override
+  String get dueEntryReminderTitle => 'Um lançamento venceu';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title venceu hoje e ainda está pendente.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Um lançamento recorrente venceu hoje e ainda está pendente.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lançamentos recorrentes venceram hoje.',
+      one: '1 lançamento recorrente venceu hoje.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Nada registrado hoje';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Adicione o que gastou enquanto ainda se lembra.';
+
+  @override
+  String get reminderLockedTitle => 'Algo está à espera';
+
+  @override
+  String get nudgeSettingsTitle => 'Lembrar-me em dias sem registro';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Um lembrete à noite, apenas em dias sem nenhum registro.';
+
+  @override
+  String get nudgeOfferTitle => 'Um lembrete nos dias que esquece?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Um lembrete no horário que você escolher, apenas em dias sem registro. Pode desativar quando quiser.';
+
+  @override
+  String get nudgeOfferYes => 'Sim, lembrar-me';
+
+  @override
+  String get nudgeOfferNo => 'Não';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Os lembretes pararam após três sem resposta. Reative-os quando quiser.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Ative as notificações nas configurações do sistema.';
 }

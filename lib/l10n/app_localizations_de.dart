@@ -1653,4 +1653,65 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Ändere deine Wahl zu personalisierter Werbung';
+
+  @override
+  String get dueEntryReminderTitle => 'Eintrag fällig';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title war heute fällig und wartet noch.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Ein wiederkehrender Eintrag war heute fällig und wartet noch.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wiederkehrende Einträge waren heute fällig.',
+      one: '1 wiederkehrender Eintrag war heute fällig.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Heute nichts erfasst';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Trage deine Ausgaben ein, solange du dich noch erinnerst.';
+
+  @override
+  String get reminderLockedTitle => 'Etwas wartet auf dich';
+
+  @override
+  String get nudgeSettingsTitle => 'An leeren Tagen erinnern';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Eine Erinnerung am Abend, nur an Tagen ohne Einträge.';
+
+  @override
+  String get nudgeOfferTitle => 'Erinnerung an Tagen, die du vergisst?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Eine Erinnerung zu einer Zeit deiner Wahl, nur an Tagen ohne Einträge. Jederzeit wieder abschaltbar.';
+
+  @override
+  String get nudgeOfferYes => 'Ja, erinnere mich';
+
+  @override
+  String get nudgeOfferNo => 'Nein danke';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Erinnerungen wurden nach drei unbeantworteten gestoppt. Schalte sie jederzeit wieder ein.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Aktiviere Benachrichtigungen in den Systemeinstellungen.';
 }

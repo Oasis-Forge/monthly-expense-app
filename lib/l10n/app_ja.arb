@@ -443,5 +443,20 @@
   "plusComingSoon": "近日公開",
   "plusBody": "銀行口座と連携し、取引を自動で取り込んで確認できる機能です。まだ開発中のため、購入はできません。",
   "privacyOptionsTitle": "プライバシー設定",
-  "privacyOptionsSubtitle": "パーソナライズ広告の設定を変更"
+  "privacyOptionsSubtitle": "パーソナライズ広告の設定を変更",
+  "dueEntryReminderTitle": "入力期限が来ました",
+  "dueEntryReminderOne": "{title}は本日期限でしたが、まだ未対応です。",
+  "dueEntryReminderUntitled": "定期入力の期限が今日でしたが、まだ未対応です。",
+  "dueEntryReminderMany": "{count, plural, =1{本日期限の定期入力が{count}件あります。} other{本日期限の定期入力が{count}件あります。}}",
+  "emptyDayReminderTitle": "今日は何も記録されていません",
+  "emptyDayReminderBody": "忘れないうちに支出を記録しましょう。",
+  "reminderLockedTitle": "何かが待っています",
+  "nudgeSettingsTitle": "記録がない日に通知する",
+  "nudgeSettingsSubtitle": "夜に一度だけ、何も記録がない日に通知します。",
+  "nudgeOfferTitle": "忘れがちな日に、ひと押ししましょうか？",
+  "nudgeOfferBody": "好きな時間に一度だけ、何も記録がない日に通知します。いつでもオフにできます。",
+  "nudgeOfferYes": "はい、通知してほしい",
+  "nudgeOfferNo": "いいえ、結構です",
+  "nudgeStoppedNotice": "3回応答がなかったため通知を停止しました。いつでも再開できます。",
+  "nudgePermissionDenied": "リマインダーには、設定で通知をオンにしてください。"
 }

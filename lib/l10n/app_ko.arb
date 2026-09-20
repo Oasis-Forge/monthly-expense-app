@@ -443,5 +443,20 @@
   "plusComingSoon": "출시 예정",
   "plusBody": "은행 계좌를 연결해 거래 내역을 가져와 확인할 수 있는 기능입니다. 아직 완성되지 않아 구매할 수 없습니다.",
   "privacyOptionsTitle": "개인정보 보호 옵션",
-  "privacyOptionsSubtitle": "맞춤 광고 설정 변경"
+  "privacyOptionsSubtitle": "맞춤 광고 설정 변경",
+  "dueEntryReminderTitle": "예정된 입력이 있었습니다",
+  "dueEntryReminderOne": "{title}이(가) 오늘 예정이었고 아직 대기 중입니다.",
+  "dueEntryReminderUntitled": "반복 항목이 오늘 예정이었고 아직 대기 중입니다.",
+  "dueEntryReminderMany": "{count, plural, =1{오늘 예정된 반복 항목이 {count}개 있습니다.} other{오늘 예정된 반복 항목이 {count}개 있습니다.}}",
+  "emptyDayReminderTitle": "오늘 기록된 내용이 없습니다",
+  "emptyDayReminderBody": "기억이 남아 있을 때 지출을 추가하세요.",
+  "reminderLockedTitle": "무언가가 기다리고 있습니다",
+  "nudgeSettingsTitle": "기록 없는 날에 알림",
+  "nudgeSettingsSubtitle": "저녁에 한 번, 기록이 전혀 없는 날에만 알려드려요.",
+  "nudgeOfferTitle": "잊어버리는 날에 알림을 보내드릴까요?",
+  "nudgeOfferBody": "원하는 시간에 한 번, 기록이 전혀 없는 날에만 알려드려요. 언제든 다시 끌 수 있어요.",
+  "nudgeOfferYes": "네, 알려주세요",
+  "nudgeOfferNo": "괜찮습니다",
+  "nudgeStoppedNotice": "세 번 응답이 없어 알림이 중지되었습니다. 언제든 다시 켤 수 있어요.",
+  "nudgePermissionDenied": "알림을 받으려면 시스템 설정에서 알림을 켜세요."
 }

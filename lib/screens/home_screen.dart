@@ -7,17 +7,20 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../l10n/languages.dart';
 import '../models/budget.dart';
 import '../models/csv_export.dart';
 import '../models/insights.dart';
 import '../models/money.dart';
 import '../models/period.dart';
+import '../models/reminders.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
+import '../services/reminder_service.dart';
 import 'account_filter_button.dart';
 import 'accounts_screen.dart';
 import 'ad_slot.dart';
@@ -263,6 +266,22 @@ class _HomeScreenState extends State<HomeScreen> {
                         text: l10n.notesDueNotice(dueNotesCount),
                         onTap: () =>
                             HomeScreen._open(context, const NotesScreen()),
+                      ),
+                    ),
+                  // NUDGE-3: offered once, to someone who has already
+                  // recorded on three separate days, and never again either
+                  // way.
+                  if (remindersSupported &&
+                      settings.nudgeOfferPending &&
+                      settings.nudgeOfferDue(provider.daysUsed.length))
+                    SliverToBoxAdapter(
+                      child: _Notice(
+                        icon: Icons.notifications_none,
+                        color: Theme.of(context).colorScheme.primary,
+                        text: l10n.nudgeOfferTitle,
+                        onTap: () => _acceptNudge(context),
+                        onDismiss: () =>
+                            context.read<SettingsProvider>().markNudgeOffered(),
                       ),
                     ),
                   if (settings.backupReminderDue(provider.transactions.length))
@@ -1234,4 +1253,27 @@ class _TransferTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Turns the empty-day nudge on from Home's offer (NUDGE-3), asking the
+/// phone for permission first (NUDGE-7). Either answer counts as the one
+/// offer, so this is the last time it is put in front of anyone.
+Future<void> _acceptNudge(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
+  final settings = context.read<SettingsProvider>();
+  final transactions = context.read<TransactionProvider>();
+  final reminders = context.read<ReminderService>();
+  final messenger = ScaffoldMessenger.of(context);
+  final allowed = await reminders.requestPermission();
+  await settings.markNudgeOffered();
+  if (!allowed) {
+    messenger.showSnackBar(SnackBar(content: Text(l10n.nudgePermissionDenied)));
+    return;
+  }
+  await settings.setEmptyDayNudge(true);
+  await transactions.rescheduleReminders(
+    appLockOn: settings.appLock,
+    locale: effectiveAppLocale(settings.locale),
+    nudge: settings.nudgeSettings,
+  );
 }

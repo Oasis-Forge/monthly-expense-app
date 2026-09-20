@@ -1635,4 +1635,65 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Thay đổi lựa chọn về quảng cáo được cá nhân hóa';
+
+  @override
+  String get dueEntryReminderTitle => 'Một mục đã đến hạn';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title đã đến hạn hôm nay và vẫn đang chờ.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Một mục lặp lại đã đến hạn hôm nay và vẫn đang chờ.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Có $count mục lặp lại đến hạn hôm nay.',
+      one: 'Có $count mục lặp lại đến hạn hôm nay.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Hôm nay chưa ghi gì';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Hãy thêm khoản chi trong khi bạn còn nhớ.';
+
+  @override
+  String get reminderLockedTitle => 'Có điều gì đó đang chờ';
+
+  @override
+  String get nudgeSettingsTitle => 'Nhắc tôi vào ngày trống';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Một lời nhắc vào buổi tối, chỉ khi ngày đó chưa ghi gì.';
+
+  @override
+  String get nudgeOfferTitle => 'Nhắc bạn vào những ngày bạn quên?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Một lời nhắc vào thời điểm bạn chọn, chỉ khi ngày đó chưa ghi gì. Có thể tắt bất cứ lúc nào.';
+
+  @override
+  String get nudgeOfferYes => 'Có, nhắc tôi nhé';
+
+  @override
+  String get nudgeOfferNo => 'Không';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Nhắc nhở đã dừng sau ba lần không phản hồi. Bật lại bất cứ khi nào bạn muốn.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Bật thông báo trong cài đặt hệ thống để nhận nhắc nhở.';
 }

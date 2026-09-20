@@ -2799,6 +2799,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change your choice about personalised ads'**
   String get privacyOptionsSubtitle;
+
+  /// No description provided for @dueEntryReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'An entry was due'**
+  String get dueEntryReminderTitle;
+
+  /// No description provided for @dueEntryReminderOne.
+  ///
+  /// In en, this message translates to:
+  /// **'{title} was due today and is still waiting.'**
+  String dueEntryReminderOne(String title);
+
+  /// No description provided for @dueEntryReminderUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'A repeating entry was due today and is still waiting.'**
+  String get dueEntryReminderUntitled;
+
+  /// No description provided for @dueEntryReminderMany.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 repeating entry was due today.} other{{count} repeating entries were due today.}}'**
+  String dueEntryReminderMany(int count);
+
+  /// No description provided for @emptyDayReminderTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded today'**
+  String get emptyDayReminderTitle;
+
+  /// No description provided for @emptyDayReminderBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add what you spent while you still remember it.'**
+  String get emptyDayReminderBody;
+
+  /// No description provided for @reminderLockedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Something is waiting'**
+  String get reminderLockedTitle;
+
+  /// No description provided for @nudgeSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind me on an empty day'**
+  String get nudgeSettingsTitle;
+
+  /// No description provided for @nudgeSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'One reminder in the evening, and only on a day with nothing recorded in it.'**
+  String get nudgeSettingsSubtitle;
+
+  /// No description provided for @nudgeOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A nudge on the days you forget?'**
+  String get nudgeOfferTitle;
+
+  /// No description provided for @nudgeOfferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'One reminder at a time you choose, only on a day with nothing recorded. Off again whenever you like.'**
+  String get nudgeOfferBody;
+
+  /// No description provided for @nudgeOfferYes.
+  ///
+  /// In en, this message translates to:
+  /// **'Yes, remind me'**
+  String get nudgeOfferYes;
+
+  /// No description provided for @nudgeOfferNo.
+  ///
+  /// In en, this message translates to:
+  /// **'No thanks'**
+  String get nudgeOfferNo;
+
+  /// No description provided for @nudgeStoppedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders stopped after three went unanswered. Turn them back on whenever you like.'**
+  String get nudgeStoppedNotice;
+
+  /// No description provided for @nudgePermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on notifications in system settings to get reminders.'**
+  String get nudgePermissionDenied;
 }
 
 class _AppLocalizationsDelegate

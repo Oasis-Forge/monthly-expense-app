@@ -1625,4 +1625,63 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'เปลี่ยนตัวเลือกเกี่ยวกับโฆษณาที่ปรับให้เหมาะกับคุณ';
+
+  @override
+  String get dueEntryReminderTitle => 'รายการถึงกำหนดแล้ว';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'รายการที่เกิดซ้ำถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'มีรายการที่เกิดซ้ำถึงกำหนดวันนี้ $count รายการ',
+      one: 'มีรายการที่เกิดซ้ำถึงกำหนดวันนี้ $count รายการ',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'วันนี้ยังไม่มีการบันทึก';
+
+  @override
+  String get emptyDayReminderBody => 'บันทึกค่าใช้จ่ายไว้ตอนที่ยังจำได้';
+
+  @override
+  String get reminderLockedTitle => 'มีบางอย่างกำลังรออยู่';
+
+  @override
+  String get nudgeSettingsTitle => 'เตือนฉันในวันที่ไม่มีการบันทึก';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'เตือนหนึ่งครั้งตอนเย็น เฉพาะวันที่ไม่มีการบันทึกเลย';
+
+  @override
+  String get nudgeOfferTitle => 'เตือนในวันที่คุณลืมไหม';
+
+  @override
+  String get nudgeOfferBody =>
+      'เตือนหนึ่งครั้งตามเวลาที่คุณเลือก เฉพาะวันที่ไม่มีการบันทึก ปิดได้ทุกเมื่อ';
+
+  @override
+  String get nudgeOfferYes => 'ใช่ เตือนฉันด้วย';
+
+  @override
+  String get nudgeOfferNo => 'ไม่ ขอบคุณ';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'การเตือนหยุดหลังไม่มีการตอบสนองสามครั้ง เปิดใหม่ได้ทุกเมื่อ';
+
+  @override
+  String get nudgePermissionDenied => 'เปิดการแจ้งเตือนในการตั้งค่าระบบ';
 }

@@ -1632,4 +1632,64 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'ذاتی نوعیت کے اشتہارات کے بارے میں اپنی پسند تبدیل کریں';
+
+  @override
+  String get dueEntryReminderTitle => 'ایک اندراج واجب تھا';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'ایک تکراری اندراج آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تکراری اندراجات آج واجب الادا تھے۔',
+      one: '1 تکراری اندراج آج واجب الادا تھا۔',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'آج کچھ بھی درج نہیں ہوا';
+
+  @override
+  String get emptyDayReminderBody => 'جب تک یاد ہے، اپنا خرچ درج کر لیں۔';
+
+  @override
+  String get reminderLockedTitle => 'کچھ آپ کا منتظر ہے';
+
+  @override
+  String get nudgeSettingsTitle => 'خالی دن مجھے یاد دلائیں';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'شام کو ایک یاد دہانی، اور صرف اس دن جب کچھ بھی درج نہ ہو۔';
+
+  @override
+  String get nudgeOfferTitle => 'جن دنوں آپ بھول جاتے ہیں، یاد دہانی؟';
+
+  @override
+  String get nudgeOfferBody =>
+      'آپ کے وقت پر ایک یاد دہانی، صرف خالی دن میں۔ جب چاہیں بند کر دیں۔';
+
+  @override
+  String get nudgeOfferYes => 'جی ہاں، یاد دلائیں';
+
+  @override
+  String get nudgeOfferNo => 'نہیں شکریہ';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'تین بار جواب نہ ملنے پر یاد دہانیاں بند ہو گئیں۔ جب چاہیں دوبارہ آن کریں۔';
+
+  @override
+  String get nudgePermissionDenied =>
+      'یاد دہانیاں پانے کے لیے سسٹم سیٹنگز میں اطلاعات آن کریں۔';
 }

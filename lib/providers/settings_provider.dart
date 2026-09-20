@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/reminders.dart';
+
 import '../l10n/languages.dart';
 import '../models/currencies.dart' show arabicCurrencySymbols;
 import '../models/period.dart';
@@ -34,6 +36,13 @@ class SettingsProvider extends ChangeNotifier {
        _backupReminder = _prefs.getBool(_backupReminderKey) ?? true,
        _lastBackupAt = _dateOrNull(_prefs.getString(_lastBackupKey)),
        _reminderSnoozedAt = _dateOrNull(_prefs.getString(_snoozedKey)),
+       _emptyDayNudge = _prefs.getBool(_nudgeOnKey) ?? false,
+       _nudgeHour = _awakeHour(_prefs.getInt(_nudgeHourKey)),
+       _nudgeMinute = _prefs.getInt(_nudgeMinuteKey) ?? 0,
+       _nudgeOffered = _prefs.getBool(_nudgeOfferedKey) ?? false,
+       _nudgeIgnored = _prefs.getInt(_nudgeIgnoredKey) ?? 0,
+       _nudgeStopped = _prefs.getBool(_nudgeStoppedKey) ?? false,
+       _nudgeCheckedAt = _dateOrNull(_prefs.getString(_nudgeCheckedKey)),
        _lastInterstitialAt = _dateOrNull(
          _prefs.getString(_lastInterstitialKey),
        ),
@@ -69,6 +78,13 @@ class SettingsProvider extends ChangeNotifier {
   static const _accountFilterKey = 'account_filter_id';
   static const _weekStartKey = 'week_start_day';
   static const _backupReminderKey = 'backup_reminder';
+  static const _nudgeOnKey = 'empty_day_nudge';
+  static const _nudgeHourKey = 'empty_day_nudge_hour';
+  static const _nudgeMinuteKey = 'empty_day_nudge_minute';
+  static const _nudgeOfferedKey = 'empty_day_nudge_offered';
+  static const _nudgeIgnoredKey = 'empty_day_nudge_ignored';
+  static const _nudgeStoppedKey = 'empty_day_nudge_stopped';
+  static const _nudgeCheckedKey = 'empty_day_nudge_checked';
   static const _lastInterstitialKey = 'last_interstitial';
   static const _lastBackupKey = 'last_backup_at';
   static const _snoozedKey = 'backup_reminder_snoozed_at';
@@ -84,12 +100,19 @@ class SettingsProvider extends ChangeNotifier {
   /// The shortest gap between backup reminders (BAK-7).
   static const backupReminderInterval = Duration(days: 30);
 
+  /// How many separate days a person has to have recorded on before the
+  /// empty-day nudge is offered at all (NUDGE-3).
+  static const nudgeOfferThreshold = 3;
+
+  /// How many go unanswered in a row before it stops itself (NUDGE-5).
+  static const nudgeGiveUpAfter = 3;
+
+  /// When it fires until the user says otherwise (NUDGE-4).
+  static const nudgeDefaultHour = 21;
+
   /// How many transactions the app wants behind it before a full-screen ad
   /// may appear (ADS-12).
   static const interstitialThreshold = 10;
-
-  /// How long after first opening the app before one may appear (ADS-12).
-  static const interstitialWarmUp = Duration(days: 3);
 
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
@@ -104,6 +127,13 @@ class SettingsProvider extends ChangeNotifier {
   bool _backupReminder;
   DateTime? _lastBackupAt;
   DateTime? _reminderSnoozedAt;
+  bool _emptyDayNudge;
+  int _nudgeHour;
+  int _nudgeMinute;
+  bool _nudgeOffered;
+  int _nudgeIgnored;
+  bool _nudgeStopped;
+  DateTime? _nudgeCheckedAt;
   DateTime? _lastInterstitialAt;
   late final DateTime _firstOpenedAt;
   bool _appLock;
@@ -358,14 +388,118 @@ class SettingsProvider extends ChangeNotifier {
     return last == null || now.difference(last) >= backupReminderInterval;
   }
 
+  // The empty-day nudge (NUDGE-3 to NUDGE-5).
+
+  /// Whether the app may say a day ended with nothing in it.
+  bool get emptyDayNudge => _emptyDayNudge;
+
+  int get nudgeHour => _nudgeHour;
+
+  int get nudgeMinute => _nudgeMinute;
+
+  /// What the empty-day nudge is set to, for the provider that schedules it
+  /// (NUDGE-4).
+  NudgeSettings get nudgeSettings =>
+      NudgeSettings(on: _emptyDayNudge, hour: _nudgeHour, minute: _nudgeMinute);
+
+  /// Whether it has already been offered once, however that went (NUDGE-3).
+  bool get nudgeOffered => _nudgeOffered;
+
+  /// Whether the offer is still to come, before counting anything (NUDGE-3).
+  bool get nudgeOfferPending => !_nudgeOffered && !_emptyDayNudge;
+
+  /// How many have gone unanswered in a row (NUDGE-5).
+  int get nudgeIgnored => _nudgeIgnored;
+
+  /// Whether it turned itself off, so Settings can say why (NUDGE-5).
+  bool get nudgeStopped => _nudgeStopped;
+
+  /// When the unanswered ones were last counted, so the same day is never
+  /// counted twice.
+  DateTime? get nudgeCheckedAt => _nudgeCheckedAt;
+
+  /// Whether Home should offer it (NUDGE-3): once only, and only to someone
+  /// who has recorded on [nudgeOfferThreshold] separate days, so it reaches
+  /// a person who has shown they want the habit.
+  bool nudgeOfferDue(int daysRecordedOn) =>
+      !_nudgeOffered &&
+      !_emptyDayNudge &&
+      daysRecordedOn >= nudgeOfferThreshold;
+
+  /// Turns it on or off. Turning it on is also an answer to a nudge that had
+  /// given up, so the count starts again (NUDGE-5).
+  Future<void> setEmptyDayNudge(bool on) async {
+    if (on == _emptyDayNudge) return;
+    _emptyDayNudge = on;
+    await _prefs.setBool(_nudgeOnKey, on);
+    if (on) {
+      _nudgeIgnored = 0;
+      _nudgeStopped = false;
+      await _prefs.setInt(_nudgeIgnoredKey, 0);
+      await _prefs.setBool(_nudgeStoppedKey, false);
+    }
+    notifyListeners();
+  }
+
+  /// The time of day it fires, kept inside the hours the app may speak in
+  /// (NUDGE-6), so a stored setting can never put one at three in the
+  /// morning.
+  Future<void> setNudgeTime(int hour, int minute) async {
+    final kept = _awakeHour(hour);
+    if (kept == _nudgeHour && minute == _nudgeMinute) return;
+    _nudgeHour = kept;
+    _nudgeMinute = minute;
+    await _prefs.setInt(_nudgeHourKey, kept);
+    await _prefs.setInt(_nudgeMinuteKey, minute);
+    notifyListeners();
+  }
+
+  /// Remembers that the offer was made, whatever the answer (NUDGE-3).
+  Future<void> markNudgeOffered() async {
+    if (_nudgeOffered) return;
+    _nudgeOffered = true;
+    await _prefs.setBool(_nudgeOfferedKey, true);
+    notifyListeners();
+  }
+
+  /// Records what [countIgnoredNudges] found, and stops the nudge once
+  /// [nudgeGiveUpAfter] have gone unanswered in a row (NUDGE-5).
+  Future<void> recordNudgesIgnored(int ignored, DateTime checkedAt) async {
+    _nudgeIgnored = ignored;
+    _nudgeCheckedAt = checkedAt;
+    await _prefs.setInt(_nudgeIgnoredKey, ignored);
+    await _prefs.setString(_nudgeCheckedKey, _stamp(checkedAt));
+    if (ignored >= nudgeGiveUpAfter && _emptyDayNudge) {
+      _emptyDayNudge = false;
+      _nudgeStopped = true;
+      await _prefs.setBool(_nudgeOnKey, false);
+      await _prefs.setBool(_nudgeStoppedKey, true);
+    }
+    notifyListeners();
+  }
+
+  /// A tap, or an entry on the day of one, is an answer (NUDGE-5).
+  Future<void> answerNudge() async {
+    if (_nudgeIgnored == 0) return;
+    _nudgeIgnored = 0;
+    await _prefs.setInt(_nudgeIgnoredKey, 0);
+    notifyListeners();
+  }
+
+  /// Keeps an hour inside the waking ones (NUDGE-6).
+  static int _awakeHour(int? hour) {
+    if (hour == null || hour < quietUntilHour || hour >= quietFromHour) {
+      return nudgeDefaultHour;
+    }
+    return hour;
+  }
+
   /// Whether a seam may show a full-screen ad now (ADS-12): at most one in
-  /// a day, counted by the device's own day, none before
-  /// [interstitialThreshold] transactions, and none within
-  /// [interstitialWarmUp] of first opening the app.
+  /// a day, counted by the device's own day, and none before
+  /// [interstitialThreshold] transactions have been recorded.
   bool interstitialDue(int transactionCount) {
     final now = _clock();
-    if (transactionCount < interstitialThreshold ||
-        now.difference(_firstOpenedAt) < interstitialWarmUp) {
+    if (transactionCount < interstitialThreshold) {
       return false;
     }
     // The device's own day, not the UTC one it was stored as.

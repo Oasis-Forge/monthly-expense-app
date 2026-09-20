@@ -1653,4 +1653,65 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Cambia tu elección sobre los anuncios personalizados';
+
+  @override
+  String get dueEntryReminderTitle => 'Un registro venció';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title vencía hoy y sigue pendiente.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Una entrada recurrente vencía hoy y sigue pendiente.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entradas recurrentes vencieron hoy.',
+      one: '1 entrada recurrente venció hoy.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Nada registrado hoy';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Añade lo que gastaste mientras aún lo recuerdas.';
+
+  @override
+  String get reminderLockedTitle => 'Algo está esperando';
+
+  @override
+  String get nudgeSettingsTitle => 'Recordarme en un día vacío';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Un recordatorio por la noche, solo en un día sin ningún registro.';
+
+  @override
+  String get nudgeOfferTitle => '¿Un recordatorio los días que olvidas?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Un recordatorio a la hora que elijas, solo en un día sin registro. Puedes desactivarlo cuando quieras.';
+
+  @override
+  String get nudgeOfferYes => 'Sí, recuérdamelo';
+
+  @override
+  String get nudgeOfferNo => 'No, gracias';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Los recordatorios se detuvieron tras tres sin respuesta. Actívalos cuando quieras.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Activa las notificaciones en la configuración del sistema.';
 }

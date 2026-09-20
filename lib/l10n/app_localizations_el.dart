@@ -1659,4 +1659,65 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Άλλαξε την επιλογή σου για εξατομικευμένες διαφημίσεις';
+
+  @override
+  String get dueEntryReminderTitle => 'Καταχώριση οφειλόταν';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return 'Το $title οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Μια επαναλαμβανόμενη καταχώριση οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count τακτικές καταχωρίσεις οφείλονταν σήμερα.',
+      one: '1 τακτική καταχώριση οφειλόταν σήμερα.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Καμία καταχώριση σήμερα';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Πρόσθεσε όσα ξόδεψες όσο τα θυμάσαι ακόμα.';
+
+  @override
+  String get reminderLockedTitle => 'Κάτι σε περιμένει';
+
+  @override
+  String get nudgeSettingsTitle => 'Υπενθύμισέ μου τις κενές ημέρες';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Μία υπενθύμιση το βράδυ, μόνο τις ημέρες χωρίς καμία καταχώριση.';
+
+  @override
+  String get nudgeOfferTitle => 'Μια υπενθύμιση τις ημέρες που ξεχνάς;';
+
+  @override
+  String get nudgeOfferBody =>
+      'Μία υπενθύμιση την ώρα που επιλέγεις, μόνο τις ημέρες χωρίς καταχώριση. Απενεργοποίησέ την όποτε θέλεις.';
+
+  @override
+  String get nudgeOfferYes => 'Ναι, υπενθύμισέ';
+
+  @override
+  String get nudgeOfferNo => 'Όχι';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Οι υπενθυμίσεις σταμάτησαν μετά από τρεις αναπάντητες. Ενεργοποίησέ τες ξανά όποτε θέλεις.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Ενεργοποίησε τις ειδοποιήσεις στις ρυθμίσεις συστήματος.';
 }

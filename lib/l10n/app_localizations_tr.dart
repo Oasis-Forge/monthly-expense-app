@@ -1630,4 +1630,63 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Kişiselleştirilmiş reklam tercihinizi değiştirin';
+
+  @override
+  String get dueEntryReminderTitle => 'Giriş vadesi geldi';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title bugün vadesi geldi ve hâlâ bekliyor.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Tekrarlanan bir kayıt bugün vadesi geldi ve hâlâ bekliyor.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tekrarlanan kayıt bugün vadesi geldi.',
+      one: '1 tekrarlanan kayıt bugün vadesi geldi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Bugün kayıt yok';
+
+  @override
+  String get emptyDayReminderBody => 'Hatırlarken harcamalarını ekle.';
+
+  @override
+  String get reminderLockedTitle => 'Seni bekleyen bir şey var';
+
+  @override
+  String get nudgeSettingsTitle => 'Boş günde bana hatırlat';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Akşam bir hatırlatma, yalnızca hiçbir kaydın olmadığı günlerde.';
+
+  @override
+  String get nudgeOfferTitle => 'Unuttuğun günlerde bir hatırlatma?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Seçtiğin saatte tek hatırlatma, yalnızca kaydın olmadığı günlerde. İstediğin an kapatabilirsin.';
+
+  @override
+  String get nudgeOfferYes => 'Evet, hatırlat';
+
+  @override
+  String get nudgeOfferNo => 'Hayır';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Üç kez yanıtsız kalınca hatırlatmalar durduruldu. İstediğin an tekrar açabilirsin.';
+
+  @override
+  String get nudgePermissionDenied => 'Bildirimleri sistem ayarlarından açın.';
 }

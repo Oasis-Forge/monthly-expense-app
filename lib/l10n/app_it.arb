@@ -443,5 +443,20 @@
   "plusComingSoon": "Prossimamente",
   "plusBody": "Un collegamento bancario che importa le tue transazioni da confermare. Non è ancora pronto, quindi per ora non c'è nulla da acquistare.",
   "privacyOptionsTitle": "Opzioni sulla privacy",
-  "privacyOptionsSubtitle": "Modifica la tua scelta sugli annunci personalizzati"
+  "privacyOptionsSubtitle": "Modifica la tua scelta sugli annunci personalizzati",
+  "dueEntryReminderTitle": "Una voce era scaduta",
+  "dueEntryReminderOne": "{title} era previsto per oggi ed è ancora in attesa.",
+  "dueEntryReminderUntitled": "Una voce ricorrente era prevista per oggi ed è ancora in attesa.",
+  "dueEntryReminderMany": "{count, plural, =1{1 voce ricorrente era prevista per oggi.} other{{count} voci ricorrenti erano previste per oggi.}}",
+  "emptyDayReminderTitle": "Nessuna registrazione oggi",
+  "emptyDayReminderBody": "Aggiungi le tue spese finché le ricordi ancora.",
+  "reminderLockedTitle": "C'è qualcosa in attesa",
+  "nudgeSettingsTitle": "Ricordamelo nei giorni vuoti",
+  "nudgeSettingsSubtitle": "Un promemoria alla sera, solo nei giorni senza alcuna registrazione.",
+  "nudgeOfferTitle": "Promemoria nei giorni che dimentichi?",
+  "nudgeOfferBody": "Un promemoria all'ora che scegli tu, solo nei giorni senza registrazioni. Disattivabile quando vuoi.",
+  "nudgeOfferYes": "Sì, ricordamelo",
+  "nudgeOfferNo": "No grazie",
+  "nudgeStoppedNotice": "I promemoria si sono fermati dopo tre senza risposta. Riattivali quando vuoi.",
+  "nudgePermissionDenied": "Attiva le notifiche nelle impostazioni di sistema."
 }

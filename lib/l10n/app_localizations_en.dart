@@ -1630,4 +1630,65 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Change your choice about personalised ads';
+
+  @override
+  String get dueEntryReminderTitle => 'An entry was due';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title was due today and is still waiting.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'A repeating entry was due today and is still waiting.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count repeating entries were due today.',
+      one: '1 repeating entry was due today.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Nothing recorded today';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Add what you spent while you still remember it.';
+
+  @override
+  String get reminderLockedTitle => 'Something is waiting';
+
+  @override
+  String get nudgeSettingsTitle => 'Remind me on an empty day';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'One reminder in the evening, and only on a day with nothing recorded in it.';
+
+  @override
+  String get nudgeOfferTitle => 'A nudge on the days you forget?';
+
+  @override
+  String get nudgeOfferBody =>
+      'One reminder at a time you choose, only on a day with nothing recorded. Off again whenever you like.';
+
+  @override
+  String get nudgeOfferYes => 'Yes, remind me';
+
+  @override
+  String get nudgeOfferNo => 'No thanks';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Reminders stopped after three went unanswered. Turn them back on whenever you like.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Turn on notifications in system settings to get reminders.';
 }

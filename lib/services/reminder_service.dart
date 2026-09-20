@@ -7,11 +7,28 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../l10n/app_localizations.dart';
 import '../models/note.dart';
+import '../models/reminders.dart';
 
 /// A note's reminder notification was tapped: the note's ID, or null when
 /// there's nothing pending. A top-level listener opens the note through the
 /// lock (NOTE-6, LOCK-2).
 final ValueNotifier<String?> tappedNoteId = ValueNotifier(null);
+
+/// A reminder the app sent on its own was tapped (NUDGE-1), or null when
+/// there is nothing pending. A top-level listener opens what it was about,
+/// through the lock (NUDGE-8, LOCK-2).
+final ValueNotifier<ReminderKind?> tappedReminder = ValueNotifier(null);
+
+/// Notification IDs for the app's own reminders. They sit at the top of the
+/// range, clear of the note IDs, which are folded hashes.
+const _nudgeIdBase = 0x7fff0000;
+
+/// How many are reserved, so replacing a plan always cancels all of the one
+/// before it (NUDGE-1).
+const _nudgeIdSlots = 8;
+
+/// Marks a payload as the app's own reminder rather than a note's.
+const _nudgePrefix = 'nudge:';
 
 /// A stable notification ID for [noteId]. Notification IDs are 32-bit ints,
 /// so this folds the UUID's hash into that range.
@@ -37,6 +54,15 @@ abstract class ReminderService {
 
   /// Cancels the note's reminder, if any.
   Future<void> cancel(Note note);
+
+  /// Replaces every reminder the app sends on its own with [plan], cancelling
+  /// whatever was scheduled before (NUDGE-1). With [appLockOn] they name
+  /// nothing but the app itself (NUDGE-8).
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+  });
 }
 
 /// Does nothing. [TransactionProvider]'s default, so building one without
@@ -57,6 +83,13 @@ class NoopReminderService implements ReminderService {
 
   @override
   Future<void> cancel(Note note) async {}
+
+  @override
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {}
 }
 
 /// Schedules real device notifications through `flutter_local_notifications`.
@@ -82,12 +115,12 @@ class DeviceReminderService implements ReminderService {
         linux: LinuxInitializationSettings(defaultActionName: 'Open'),
       ),
       onDidReceiveNotificationResponse: (response) =>
-          tappedNoteId.value = response.payload,
+          _deliver(response.payload),
     );
     // Catches a tap that launched the app from a terminated state.
     final launch = await _plugin.getNotificationAppLaunchDetails();
     if (launch?.didNotificationLaunchApp ?? false) {
-      tappedNoteId.value = launch?.notificationResponse?.payload;
+      _deliver(launch?.notificationResponse?.payload);
     }
     _initialized = true;
   }
@@ -160,5 +193,91 @@ class DeviceReminderService implements ReminderService {
   Future<void> cancel(Note note) async {
     await _ensureInitialized();
     await _plugin.cancel(id: reminderNotificationId(note.id));
+  }
+
+  /// Routes a tapped notification: the app's own reminders carry a marked
+  /// payload, and everything else is a note's ID (NOTE-6, NUDGE-1).
+  void _deliver(String? payload) {
+    if (payload == null) return;
+    if (payload.startsWith(_nudgePrefix)) {
+      final name = payload.substring(_nudgePrefix.length);
+      tappedReminder.value = ReminderKind.values
+          .where((kind) => kind.name == name)
+          .firstOrNull;
+      return;
+    }
+    tappedNoteId.value = payload;
+  }
+
+  @override
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    await _ensureInitialized();
+    // Every slot goes, not only the ones about to be filled: yesterday's
+    // plan must not survive into today's (NUDGE-1).
+    for (var slot = 0; slot < _nudgeIdSlots; slot++) {
+      await _plugin.cancel(id: _nudgeIdBase + slot);
+    }
+
+    final l10n = await AppLocalizations.delegate.load(locale);
+    final now = DateTime.now();
+    var slot = 0;
+    for (final reminder in plan) {
+      if (slot >= _nudgeIdSlots) break;
+      // The plan was made a moment ago, but a slow start could have carried
+      // it past one of its own times.
+      if (!reminder.at.isAfter(now)) continue;
+      await _plugin.zonedSchedule(
+        id: _nudgeIdBase + slot++,
+        title: appLockOn
+            ? l10n.reminderLockedTitle
+            : _nudgeTitle(l10n, reminder),
+        body: appLockOn ? null : _nudgeBody(l10n, reminder),
+        scheduledDate: tz.TZDateTime.from(reminder.at, tz.local),
+        notificationDetails: NotificationDetails(
+          // A channel each, so someone who wants the entries that fell due
+          // but not the empty days can say so in the phone's own settings
+          // and keep the rest (NUDGE-11).
+          android: AndroidNotificationDetails(
+            switch (reminder.kind) {
+              ReminderKind.dueEntry => 'due_entries',
+              ReminderKind.emptyDay => 'empty_days',
+            },
+            switch (reminder.kind) {
+              ReminderKind.dueEntry => 'Entries that fell due',
+              ReminderKind.emptyDay => 'Days with nothing recorded',
+            },
+            importance: Importance.defaultImportance,
+          ),
+          iOS: const DarwinNotificationDetails(),
+          macOS: const DarwinNotificationDetails(),
+          linux: const LinuxNotificationDetails(),
+        ),
+        // Inexact, so Play is never asked for the exact-alarm permission and
+        // the phone may deliver it a few minutes late (NUDGE-9).
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        payload: '$_nudgePrefix${reminder.kind.name}',
+      );
+    }
+  }
+
+  String _nudgeTitle(AppLocalizations l10n, PlannedReminder reminder) =>
+      switch (reminder.kind) {
+        ReminderKind.dueEntry => l10n.dueEntryReminderTitle,
+        ReminderKind.emptyDay => l10n.emptyDayReminderTitle,
+      };
+
+  String _nudgeBody(AppLocalizations l10n, PlannedReminder reminder) {
+    if (reminder.kind == ReminderKind.emptyDay) {
+      return l10n.emptyDayReminderBody;
+    }
+    if (reminder.count > 1) return l10n.dueEntryReminderMany(reminder.count);
+    final title = reminder.title;
+    return title == null || title.isEmpty
+        ? l10n.dueEntryReminderUntitled
+        : l10n.dueEntryReminderOne(title);
   }
 }

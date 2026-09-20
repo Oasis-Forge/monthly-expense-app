@@ -443,5 +443,20 @@
   "plusComingSoon": "जल्द आ रहा है",
   "plusBody": "एक बैंक कनेक्शन जो लेन-देन लाकर पुष्टि के लिए दिखाता है। यह अभी पूरा नहीं हुआ, इसलिए खरीदने के लिए कुछ नहीं है।",
   "privacyOptionsTitle": "गोपनीयता विकल्प",
-  "privacyOptionsSubtitle": "व्यक्तिगत विज्ञापनों के बारे में अपनी पसंद बदलें"
+  "privacyOptionsSubtitle": "व्यक्तिगत विज्ञापनों के बारे में अपनी पसंद बदलें",
+  "dueEntryReminderTitle": "एक प्रविष्टि बाकी थी",
+  "dueEntryReminderOne": "{title} आज देय था और अभी भी प्रतीक्षा में है।",
+  "dueEntryReminderUntitled": "एक आवर्ती प्रविष्टि आज देय थी और अभी भी प्रतीक्षा में है।",
+  "dueEntryReminderMany": "{count, plural, =1{1 आवर्ती प्रविष्टि आज देय थी।} other{{count} आवर्ती प्रविष्टियाँ आज देय थीं।}}",
+  "emptyDayReminderTitle": "आज कुछ भी दर्ज नहीं हुआ",
+  "emptyDayReminderBody": "जब तक याद है, अपना खर्च जोड़ लें।",
+  "reminderLockedTitle": "कुछ आपका इंतज़ार कर रहा है",
+  "nudgeSettingsTitle": "खाली दिन मुझे याद दिलाएं",
+  "nudgeSettingsSubtitle": "शाम को एक याद दिलाना, और केवल उस दिन जब कुछ भी दर्ज न हो।",
+  "nudgeOfferTitle": "जिन दिनों आप भूल जाते हैं, याद दिलाना?",
+  "nudgeOfferBody": "आपके चुने समय पर एक याद दिलाना, केवल उस दिन जब कुछ भी दर्ज न हो। जब चाहें बंद कर दें।",
+  "nudgeOfferYes": "हां, याद दिलाएं",
+  "nudgeOfferNo": "नहीं",
+  "nudgeStoppedNotice": "तीन बार अनुत्तरित रहने पर याद दिलाना बंद हो गया। जब चाहें फिर चालू करें।",
+  "nudgePermissionDenied": "याद दिलाने के लिए सिस्टम सेटिंग्स में सूचनाएं चालू करें।"
 }

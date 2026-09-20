@@ -1063,5 +1063,34 @@
   "privacyOptionsSubtitle": "Change your choice about personalised ads",
   "@privacyOptionsSubtitle": {
     "description": "Subtitle of the Privacy options row (ADS-5)."
-  }
+  },
+  "dueEntryReminderTitle": "An entry was due",
+  "dueEntryReminderOne": "{title} was due today and is still waiting.",
+  "@dueEntryReminderOne": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "dueEntryReminderUntitled": "A repeating entry was due today and is still waiting.",
+  "dueEntryReminderMany": "{count, plural, =1{1 repeating entry was due today.} other{{count} repeating entries were due today.}}",
+  "@dueEntryReminderMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emptyDayReminderTitle": "Nothing recorded today",
+  "emptyDayReminderBody": "Add what you spent while you still remember it.",
+  "reminderLockedTitle": "Something is waiting",
+  "nudgeSettingsTitle": "Remind me on an empty day",
+  "nudgeSettingsSubtitle": "One reminder in the evening, and only on a day with nothing recorded in it.",
+  "nudgeOfferTitle": "A nudge on the days you forget?",
+  "nudgeOfferBody": "One reminder at a time you choose, only on a day with nothing recorded. Off again whenever you like.",
+  "nudgeOfferYes": "Yes, remind me",
+  "nudgeOfferNo": "No thanks",
+  "nudgeStoppedNotice": "Reminders stopped after three went unanswered. Turn them back on whenever you like.",
+  "nudgePermissionDenied": "Turn on notifications in system settings to get reminders."
 }

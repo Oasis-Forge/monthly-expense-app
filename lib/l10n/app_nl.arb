@@ -443,5 +443,20 @@
   "plusComingSoon": "Binnenkort beschikbaar",
   "plusBody": "Een bankkoppeling die je transacties ophaalt zodat je ze kunt bevestigen. Nog niet klaar, dus er is nog niets te koop.",
   "privacyOptionsTitle": "Privacyopties",
-  "privacyOptionsSubtitle": "Wijzig je keuze over gepersonaliseerde advertenties"
+  "privacyOptionsSubtitle": "Wijzig je keuze over gepersonaliseerde advertenties",
+  "dueEntryReminderTitle": "Invoer vervallen",
+  "dueEntryReminderOne": "{title} was vandaag verschuldigd en wacht nog steeds.",
+  "dueEntryReminderUntitled": "Een terugkerende invoer was vandaag verschuldigd en wacht nog.",
+  "dueEntryReminderMany": "{count, plural, =1{1 vaste post stond vandaag open.} other{{count} vaste posten stonden vandaag open.}}",
+  "emptyDayReminderTitle": "Vandaag niets geregistreerd",
+  "emptyDayReminderBody": "Voeg toe wat je hebt uitgegeven terwijl je het nog weet.",
+  "reminderLockedTitle": "Er wacht iets op je",
+  "nudgeSettingsTitle": "Herinner me op een lege dag",
+  "nudgeSettingsSubtitle": "Eén herinnering 's avonds, en alleen op een dag zonder registraties.",
+  "nudgeOfferTitle": "Een duwtje op dagen dat je het vergeet?",
+  "nudgeOfferBody": "Eén herinnering op een tijdstip dat jij kiest, alleen op een dag zonder registraties. Weer uit te zetten wanneer je wilt.",
+  "nudgeOfferYes": "Ja, herinner me",
+  "nudgeOfferNo": "Nee",
+  "nudgeStoppedNotice": "Herinneringen zijn gestopt na drie keer zonder reactie. Zet ze weer aan wanneer je wilt.",
+  "nudgePermissionDenied": "Zet meldingen aan in systeeminstellingen voor herinneringen."
 }

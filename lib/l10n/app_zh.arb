@@ -443,5 +443,20 @@
   "plusComingSoon": "即将推出",
   "plusBody": "银行连接功能会导入你的交易记录供确认，目前尚未完成，暂时无法购买。",
   "privacyOptionsTitle": "隐私选项",
-  "privacyOptionsSubtitle": "更改你对个性化广告的选择"
+  "privacyOptionsSubtitle": "更改你对个性化广告的选择",
+  "dueEntryReminderTitle": "有一笔记录到期",
+  "dueEntryReminderOne": "{title}今天到期，仍在等待处理。",
+  "dueEntryReminderUntitled": "一笔重复记录今天到期，仍在等待处理。",
+  "dueEntryReminderMany": "{count, plural, =1{今天有 {count} 笔重复记录到期。} other{今天有 {count} 笔重复记录到期。}}",
+  "emptyDayReminderTitle": "今天没有记录",
+  "emptyDayReminderBody": "趁还记得，把花费记下来吧。",
+  "reminderLockedTitle": "有一项内容在等待",
+  "nudgeSettingsTitle": "空白日提醒我",
+  "nudgeSettingsSubtitle": "仅在晚上提醒一次，且仅限当天没有任何记录时。",
+  "nudgeOfferTitle": "在你忘记的日子提醒一下？",
+  "nudgeOfferBody": "在你选择的时间提醒一次，仅限当天没有任何记录时。随时可以关闭。",
+  "nudgeOfferYes": "好的，提醒我",
+  "nudgeOfferNo": "不用了，谢谢",
+  "nudgeStoppedNotice": "连续三次未响应后提醒已停止，可随时重新开启。",
+  "nudgePermissionDenied": "请在系统设置中开启通知以接收提醒。"
 }

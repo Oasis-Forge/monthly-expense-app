@@ -1645,4 +1645,65 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get privacyOptionsSubtitle =>
       'Modifiez votre choix concernant les publicités personnalisées';
+
+  @override
+  String get dueEntryReminderTitle => 'Une saisie était due';
+
+  @override
+  String dueEntryReminderOne(String title) {
+    return '$title était dû aujourd\'hui et attend toujours.';
+  }
+
+  @override
+  String get dueEntryReminderUntitled =>
+      'Une saisie récurrente était due aujourd\'hui et attend toujours.';
+
+  @override
+  String dueEntryReminderMany(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saisies récurrentes dues aujourd\'hui.',
+      one: '1 saisie récurrente due aujourd\'hui.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get emptyDayReminderTitle => 'Rien de noté aujourd\'hui';
+
+  @override
+  String get emptyDayReminderBody =>
+      'Ajoutez vos dépenses tant que vous vous en souvenez.';
+
+  @override
+  String get reminderLockedTitle => 'Quelque chose vous attend';
+
+  @override
+  String get nudgeSettingsTitle => 'Me le rappeler les jours vides';
+
+  @override
+  String get nudgeSettingsSubtitle =>
+      'Un seul rappel le soir, uniquement les jours sans aucune saisie.';
+
+  @override
+  String get nudgeOfferTitle => 'Un rappel les jours où vous oubliez ?';
+
+  @override
+  String get nudgeOfferBody =>
+      'Un rappel à l\'heure de votre choix, uniquement les jours sans saisie. Désactivable à tout moment.';
+
+  @override
+  String get nudgeOfferYes => 'Oui, rappelle-moi';
+
+  @override
+  String get nudgeOfferNo => 'Non merci';
+
+  @override
+  String get nudgeStoppedNotice =>
+      'Les rappels se sont arrêtés après trois sans réponse. Réactivez-les quand vous voulez.';
+
+  @override
+  String get nudgePermissionDenied =>
+      'Activez les notifications dans les paramètres système.';
 }
