@@ -205,8 +205,8 @@ void main() {
 
   testWidgets('closing the preview is a seam for the full-screen ad '
       '(ADS-11)', (tester) async {
-    // A seam only shows one to someone past the first days who has recorded
-    // enough to be asked (ADS-12).
+    // A seam shows one to someone who has done ten things today and did
+    // not install the app on this run (ADS-12).
     provider = TransactionProvider(
       db: FakeDB(
         transactions: [
@@ -221,6 +221,8 @@ void main() {
       'setup_done': true,
       'walkthrough_seen': true,
       'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+      'ad_activity': SettingsProvider.adActivityThreshold,
+      'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
     });
     final ads = FakeAdService(canStart: true, interstitialFills: true);
     usePhoneScreen(tester);

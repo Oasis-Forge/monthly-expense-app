@@ -1,5 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -10,17 +11,21 @@ import 'helpers.dart';
 void main() {
   final now = DateTime(2026, 9, 20, 12);
   final longBefore = DateTime(2026, 1, 1);
+  const earned = SettingsProvider.adActivityThreshold;
 
-  /// Someone past the first run (ADS-4) who first opened the app
-  /// [firstOpened] and last saw a full-screen ad at [lastShown].
+  /// Someone past the first run (ADS-4) who has done [activity] things on
+  /// [activityDay], and who did not install the app on this run unless
+  /// [firstRun] says so (ADS-12).
   Future<SettingsProvider> settled({
-    DateTime? firstOpened,
-    DateTime? lastShown,
+    int activity = earned,
+    DateTime? activityDay,
+    bool firstRun = false,
   }) => testSettings({
     'setup_done': true,
     'walkthrough_seen': true,
-    'first_opened_at': (firstOpened ?? longBefore).toUtc().toIso8601String(),
-    if (lastShown != null) 'last_interstitial': lastShown.toIso8601String(),
+    if (!firstRun) 'first_opened_at': longBefore.toUtc().toIso8601String(),
+    'ad_activity': activity,
+    'ad_activity_day': (activityDay ?? now).toUtc().toIso8601String(),
   }, () => now);
 
   Future<AdsProvider> started(
@@ -45,66 +50,117 @@ void main() {
   FakeAdService filling() =>
       FakeAdService(canStart: true, interstitialFills: true);
 
-  group('the day, and the days before it (ADS-12)', () {
-    test('nothing before ten transactions', () async {
+  group('earned by use, not by the calendar (ADS-12)', () {
+    test('nine things done is not enough', () async {
       final ads = filling();
-      final provider = await started(await settled(), ads);
+      final provider = await started(await settled(activity: 9), ads);
 
-      await provider.primeInterstitial(9);
-      await provider.showAtSeam(AdSeam.leftInsights, 9);
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
 
       expect(ads.interstitialsRequested, 0);
       expect(ads.interstitialsShown, 0);
     });
 
-    test('a first day is no obstacle once ten are recorded (ADS-12)', () async {
+    test('the tenth earns one', () async {
       final ads = filling();
-      final provider = await started(await settled(firstOpened: now), ads);
+      final provider = await started(await settled(activity: earned), ads);
 
-      await provider.primeInterstitial(10);
-      await provider.showAtSeam(AdSeam.leftInsights, 10);
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
 
       expect(ads.interstitialsShown, 1);
     });
 
-    test('one a day, and the second seam gets nothing', () async {
+    test('ten counted one at a time earn one too', () async {
       final ads = filling();
-      final provider = await started(await settled(), ads);
+      final provider = await started(await settled(activity: 0), ads);
 
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.leftInsights, 20);
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.madeReport, 20);
+      for (var i = 0; i < earned; i++) {
+        await provider.noteActivity();
+      }
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.madeReport);
 
       expect(ads.interstitialsShown, 1);
-      // The spent day is not even asked about again.
-      expect(ads.interstitialsRequested, 1);
     });
 
-    test('yesterday does not count against today', () async {
+    test('showing one starts the count again', () async {
+      final ads = filling();
+      final settings = await settled(activity: earned);
+      final provider = await started(settings, ads);
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
+
+      expect(settings.adActivity, 0);
+      expect(settings.adActivityEarned, isFalse);
+    });
+
+    test('and ten more earn another the same day', () async {
+      final ads = filling();
+      final provider = await started(await settled(activity: earned), ads);
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
+      for (var i = 0; i < earned; i++) {
+        await provider.noteActivity();
+      }
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.exportedCsv);
+
+      expect(ads.interstitialsShown, 2, reason: 'no ceiling on the day');
+    });
+
+    test("a count from yesterday is not today's", () async {
+      final ads = filling();
+      final settings = await settled(
+        activity: earned * 3,
+        activityDay: now.subtract(const Duration(days: 1)),
+      );
+      final provider = await started(settings, ads);
+
+      await provider.primeInterstitial();
+
+      expect(settings.adActivity, 0, reason: 'a light day does not carry');
+      expect(ads.interstitialsRequested, 0);
+    });
+
+    test('and today starts again from one, not from yesterday', () async {
+      final settings = await settled(
+        activity: earned * 3,
+        activityDay: now.subtract(const Duration(days: 1)),
+      );
+
+      await settings.noteAdActivity();
+
+      expect(settings.adActivity, 1);
+    });
+  });
+
+  group('never during the run that installed it (ADS-12)', () {
+    test('however much is done in it', () async {
       final ads = filling();
       final provider = await started(
-        await settled(lastShown: now.subtract(const Duration(days: 1))),
+        await settled(activity: earned * 5, firstRun: true),
         ads,
       );
 
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.exportedCsv, 20);
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.importedCsv);
 
-      expect(ads.interstitialsShown, 1);
-    });
-
-    test('an hour earlier the same day does', () async {
-      final ads = filling();
-      final provider = await started(
-        await settled(lastShown: now.subtract(const Duration(hours: 1))),
-        ads,
-      );
-
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.exportedCsv, 20);
-
+      expect(ads.interstitialsRequested, 0);
       expect(ads.interstitialsShown, 0);
+    });
+
+    test('the run after it is another matter', () async {
+      final ads = filling();
+      final provider = await started(await settled(activity: earned), ads);
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.importedCsv);
+
+      expect(ads.interstitialsShown, 1);
     });
   });
 
@@ -113,33 +169,34 @@ void main() {
       final ads = FakeAdService(canStart: true);
       final provider = await started(await settled(), ads);
 
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.importedCsv, 20);
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.importedCsv);
 
       expect(provider.interstitialReady, isFalse);
       expect(ads.interstitialsShown, 0);
     });
 
-    test('and does not spend the day it could not fill', () async {
+    test('and does not spend what it could not fill', () async {
       final ads = FakeAdService(canStart: true);
       final settings = await settled();
       final provider = await started(settings, ads);
 
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.importedCsv, 20);
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.importedCsv);
       // The network comes back later in the day.
       ads.interstitialFills = true;
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.madeReport, 20);
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.madeReport);
 
       expect(ads.interstitialsShown, 1);
+      expect(settings.adActivity, 0, reason: 'spent only once it was seen');
     });
 
     test('a seam fetches nothing of its own', () async {
       final ads = filling();
       final provider = await started(await settled(), ads);
 
-      await provider.showAtSeam(AdSeam.leftInsights, 20);
+      await provider.showAtSeam(AdSeam.leftInsights);
 
       expect(ads.interstitialsRequested, 0);
       expect(ads.interstitialsShown, 0);
@@ -149,8 +206,8 @@ void main() {
       final ads = filling();
       final provider = await started(await settled(), ads);
 
-      await provider.primeInterstitial(20);
-      await provider.primeInterstitial(20);
+      await provider.primeInterstitial();
+      await provider.primeInterstitial();
 
       expect(ads.interstitialsRequested, 1);
     });
@@ -161,7 +218,7 @@ void main() {
       final ads = filling();
       final provider = await started(await testSettings(), ads);
 
-      await provider.primeInterstitial(20);
+      await provider.primeInterstitial();
 
       expect(ads.interstitialsRequested, 0);
     });
@@ -174,7 +231,7 @@ void main() {
         purchases: FakePurchases(stage: PurchaseStage.owned),
       );
 
-      await provider.primeInterstitial(20);
+      await provider.primeInterstitial();
 
       expect(ads.interstitialsRequested, 0);
     });
@@ -187,7 +244,7 @@ void main() {
         locked: ValueNotifier(true),
       );
 
-      await provider.primeInterstitial(20);
+      await provider.primeInterstitial();
 
       expect(ads.interstitialsRequested, 0);
     });
@@ -201,10 +258,10 @@ void main() {
         purchases: purchases,
       );
 
-      await provider.primeInterstitial(20);
+      await provider.primeInterstitial();
       expect(provider.interstitialReady, isTrue);
       purchases.settle(PurchaseStage.owned);
-      await provider.showAtSeam(AdSeam.leftInsights, 20);
+      await provider.showAtSeam(AdSeam.leftInsights);
 
       expect(ads.interstitialsShown, 0);
       expect(ads.interstitialsDropped, 1);
@@ -215,9 +272,9 @@ void main() {
       final locked = ValueNotifier(false);
       final provider = await started(await settled(), ads, locked: locked);
 
-      await provider.primeInterstitial(20);
+      await provider.primeInterstitial();
       locked.value = true;
-      await provider.showAtSeam(AdSeam.leftInsights, 20);
+      await provider.showAtSeam(AdSeam.leftInsights);
 
       expect(ads.interstitialsShown, 0);
       expect(ads.interstitialsDropped, 1);
@@ -229,9 +286,9 @@ void main() {
       final ads = filling();
       final provider = await started(await settled(), ads);
 
-      await provider.primeInterstitial(20);
+      await provider.primeInterstitial();
       AdsProvider.noteUndoShown();
-      await provider.showAtSeam(AdSeam.leftInsights, 20);
+      await provider.showAtSeam(AdSeam.leftInsights);
 
       expect(ads.interstitialsShown, 0);
       expect(ads.interstitialsDropped, 1);
@@ -244,10 +301,48 @@ void main() {
       AdsProvider.noteUndoShown(
         DateTime.now().subtract(const Duration(seconds: 6)),
       );
-      await provider.primeInterstitial(20);
-      await provider.showAtSeam(AdSeam.leftInsights, 20);
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
 
       expect(ads.interstitialsShown, 1);
+    });
+  });
+
+  group('what counts as a thing done (ADS-12)', () {
+    testWidgets('every screen opened counts one, the app opening does not', (
+      tester,
+    ) async {
+      final settings = await settled(activity: 0);
+      final ads = AdsProvider(
+        settings,
+        ads: FakeAdService(),
+        purchases: FakePurchases(),
+      );
+      addTearDown(ads.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdsProvider>.value(
+          value: ads,
+          child: MaterialApp(
+            navigatorObservers: [AdActivityObserver()],
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const SizedBox()),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(settings.adActivity, 0, reason: 'the app opening is not a screen');
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(settings.adActivity, 1);
     });
   });
 

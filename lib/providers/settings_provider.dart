@@ -43,13 +43,15 @@ class SettingsProvider extends ChangeNotifier {
        _nudgeIgnored = _prefs.getInt(_nudgeIgnoredKey) ?? 0,
        _nudgeStopped = _prefs.getBool(_nudgeStoppedKey) ?? false,
        _nudgeCheckedAt = _dateOrNull(_prefs.getString(_nudgeCheckedKey)),
-       _lastInterstitialAt = _dateOrNull(
-         _prefs.getString(_lastInterstitialKey),
-       ),
+       _adActivity = _prefs.getInt(_adActivityKey) ?? 0,
+       _adActivityDay = _dateOrNull(_prefs.getString(_adActivityDayKey)),
        _appLock = _prefs.getBool(_appLockKey) ?? false,
        _showWidgetAmounts = _prefs.getBool(_showWidgetAmountsKey) ?? false {
     final firstOpened = _dateOrNull(_prefs.getString(_firstOpenedKey));
     _firstOpenedAt = firstOpened ?? _clock();
+    // ADS-12: whatever someone does on the run that installs the app,
+    // they are not interrupted during it.
+    _firstSession = firstOpened == null;
     if (firstOpened == null) {
       unawaited(_prefs.setString(_firstOpenedKey, _stamp(_firstOpenedAt)));
     }
@@ -85,7 +87,8 @@ class SettingsProvider extends ChangeNotifier {
   static const _nudgeIgnoredKey = 'empty_day_nudge_ignored';
   static const _nudgeStoppedKey = 'empty_day_nudge_stopped';
   static const _nudgeCheckedKey = 'empty_day_nudge_checked';
-  static const _lastInterstitialKey = 'last_interstitial';
+  static const _adActivityKey = 'ad_activity';
+  static const _adActivityDayKey = 'ad_activity_day';
   static const _lastBackupKey = 'last_backup_at';
   static const _snoozedKey = 'backup_reminder_snoozed_at';
   static const _firstOpenedKey = 'first_opened_at';
@@ -110,9 +113,9 @@ class SettingsProvider extends ChangeNotifier {
   /// When it fires until the user says otherwise (NUDGE-4).
   static const nudgeDefaultHour = 21;
 
-  /// How many transactions the app wants behind it before a full-screen ad
-  /// may appear (ADS-12).
-  static const interstitialThreshold = 10;
+  /// How many things done in a day earn a full-screen ad (ADS-12): an entry
+  /// saved, or a screen opened.
+  static const adActivityThreshold = 10;
 
   final SharedPreferences _prefs;
   final DateTime Function() _clock;
@@ -134,7 +137,12 @@ class SettingsProvider extends ChangeNotifier {
   int _nudgeIgnored;
   bool _nudgeStopped;
   DateTime? _nudgeCheckedAt;
-  DateTime? _lastInterstitialAt;
+  int _adActivity;
+  DateTime? _adActivityDay;
+
+  /// Whether this run is the one that installed the app: the only
+  /// launch with no `first_opened_at` behind it (ADS-12, RUN-5).
+  late final bool _firstSession;
   late final DateTime _firstOpenedAt;
   bool _appLock;
   bool _showWidgetAmounts;
@@ -494,28 +502,42 @@ class SettingsProvider extends ChangeNotifier {
     return hour;
   }
 
-  /// Whether a seam may show a full-screen ad now (ADS-12): at most one in
-  /// a day, counted by the device's own day, and none before
-  /// [interstitialThreshold] transactions have been recorded.
-  bool interstitialDue(int transactionCount) {
+  /// Whether a seam may show a full-screen ad now (ADS-12): ten things done
+  /// today, and not during the run that installed the app.
+  bool get adActivityEarned =>
+      !_firstSession && _activityToday >= adActivityThreshold;
+
+  /// How many things have been done today, for a test to read.
+  int get adActivity => _activityToday;
+
+  int get _activityToday {
+    final day = _adActivityDay;
+    if (day == null) return 0;
     final now = _clock();
-    if (transactionCount < interstitialThreshold) {
-      return false;
-    }
-    // The device's own day, not the UTC one it was stored as.
-    final last = _lastInterstitialAt?.toLocal();
-    return last == null ||
-        last.year != now.year ||
-        last.month != now.month ||
-        last.day != now.day;
+    final same =
+        day.toLocal().year == now.year &&
+        day.toLocal().month == now.month &&
+        day.toLocal().day == now.day;
+    return same ? _adActivity : 0;
   }
 
-  /// Counts the day's one showing. Called when an ad has really been on
-  /// screen, never when one was merely asked for (ADS-13).
-  Future<void> markInterstitialShown() async {
+  /// Counts one thing done — an entry saved, or a screen opened (ADS-12).
+  /// A count from another day starts again at one rather than adding to it.
+  Future<void> noteAdActivity() async {
     final now = _clock();
-    await _prefs.setString(_lastInterstitialKey, _stamp(now));
-    _lastInterstitialAt = now;
+    _adActivity = _activityToday + 1;
+    _adActivityDay = now;
+    await _prefs.setInt(_adActivityKey, _adActivity);
+    await _prefs.setString(_adActivityDayKey, _stamp(now));
+  }
+
+  /// Starts the count again, because an ad has just been on screen. Called
+  /// when one was really seen, never when one was merely asked for (ADS-13).
+  Future<void> spendAdActivity() async {
+    _adActivity = 0;
+    _adActivityDay = _clock();
+    await _prefs.setInt(_adActivityKey, 0);
+    await _prefs.setString(_adActivityDayKey, _stamp(_adActivityDay!));
   }
 
   Future<void> setAppLock(bool on) async {

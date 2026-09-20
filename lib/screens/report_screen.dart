@@ -87,7 +87,7 @@ class _ReportScreenState extends State<ReportScreen> {
     // Making a report is a job with an end, so the full-screen ad for the
     // seam at the end of it is fetched while the pages are built, never
     // waited for (ADS-11, ADS-13).
-    unawaited(ads.primeInterstitial(provider.transactions.length));
+    unawaited(ads.primeInterstitial());
     final progress = ValueNotifier<double>(0);
     var cancelled = false;
     unawaited(
@@ -148,7 +148,7 @@ class _ReportScreenState extends State<ReportScreen> {
       );
       // The report was made and its preview closed again: a seam (ADS-11),
       // reached with nothing half-finished behind it (ADS-14).
-      await ads.showAtSeam(AdSeam.madeReport, provider.transactions.length);
+      await ads.showAtSeam(AdSeam.madeReport);
     } on ReportCancelled {
       // The dialog already closed itself; nothing was produced (PDF-6).
     } catch (_) {

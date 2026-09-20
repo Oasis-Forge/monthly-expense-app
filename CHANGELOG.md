@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.21.0] - 2026-09-20
+
+### Changed
+- The full-screen ad is earned by using the app rather than by the clock. Ten things done in a day — an entry saved, or a screen opened — and the next natural break shows one, after which the count starts again. A quiet day passes without any, and nothing at all appears during the session that installs the app.
+
 ## [1.20.0] - 2026-09-20
 
 ### Changed

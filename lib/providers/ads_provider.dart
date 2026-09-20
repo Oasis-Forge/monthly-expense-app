@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 
 import '../services/ad_service.dart';
 import '../services/ads_config.dart';
@@ -135,15 +139,20 @@ class AdsProvider extends ChangeNotifier {
   LoadedInterstitial? _interstitial;
   bool _fetching = false;
 
+  /// Counts one thing done — an entry saved, or a screen opened — towards
+  /// the next full-screen ad (ADS-12). Everything that counts calls this,
+  /// so the count is in one place rather than spread over the screens.
+  Future<void> noteActivity() => _settings.noteAdActivity();
+
   /// Whether one is in hand, so a test can say what a seam will do.
   bool get interstitialReady => _interstitial != null;
 
   /// Fetches the full-screen ad for a seam that is coming, so arriving at
   /// it costs no wait (ADS-13). Safe to call again: it holds one at most,
   /// and it asks for nothing on a day that is already spent (ADS-12).
-  Future<void> primeInterstitial(int transactionCount) async {
+  Future<void> primeInterstitial() async {
     if (_interstitial != null || _fetching) return;
-    if (!_mayShowInterstitial(transactionCount)) return;
+    if (!_mayShowInterstitial()) return;
     _fetching = true;
     _interstitial = await _ads.loadInterstitial();
     _fetching = false;
@@ -153,26 +162,26 @@ class AdsProvider extends ChangeNotifier {
   /// counts the day's one showing only once it has really been seen
   /// (ADS-12). A seam that finds nothing ready passes in silence, and
   /// nothing is fetched to fill it (ADS-13).
-  Future<void> showAtSeam(AdSeam seam, int transactionCount) async {
+  Future<void> showAtSeam(AdSeam seam) async {
     final ad = _interstitial;
     if (ad == null) return;
     _interstitial = null;
     // Bought away, locked, or the day spent since it was fetched: let it go
     // rather than keep it for a moment that no longer allows one (ADS-15).
-    if (!_mayShowInterstitial(transactionCount)) {
+    if (!_mayShowInterstitial()) {
       await ad.dispose();
       return;
     }
     await ad.show();
-    await _settings.markInterstitialShown();
+    await _settings.spendAdActivity();
   }
 
   /// Everything a banner has to satisfy (ADS-15), plus the day's own cap
   /// (ADS-12) and a build with a unit to ask with (ADS-16).
-  bool _mayShowInterstitial(int transactionCount) =>
+  bool _mayShowInterstitial() =>
       showAds &&
       AdsConfig.interstitialConfigured &&
-      _settings.interstitialDue(transactionCount) &&
+      _settings.adActivityEarned &&
       !_undoOnScreen;
 
   Future<void> showPrivacyOptions() async {
@@ -199,5 +208,24 @@ class AdsProvider extends ChangeNotifier {
     _locked.removeListener(_onChanged);
     _interstitial?.dispose();
     super.dispose();
+  }
+}
+
+/// Counts every screen the user opens towards the next full-screen ad
+/// (ADS-12), so no screen has to remember to do it.
+///
+/// It reads the provider at the moment of the push rather than holding one,
+/// which lets it be a `const` in `navigatorObservers` and so survive every
+/// rebuild of the app above it.
+class AdActivityObserver extends NavigatorObserver {
+  AdActivityObserver();
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    // The very first route is the app opening, not a screen anyone chose.
+    if (previousRoute == null) return;
+    final context = navigator?.context;
+    if (context == null) return;
+    unawaited(Provider.of<AdsProvider>(context, listen: false).noteActivity());
   }
 }
