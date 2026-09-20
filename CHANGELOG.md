@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.17.3] - 2026-09-20
+
+### Changed
+- Nothing you can see in the app: releases are built and uploaded by hand now, so nothing is tagged, built or published automatically when a change lands.
+
 ## [1.17.2] - 2026-09-20
 
 ### Added

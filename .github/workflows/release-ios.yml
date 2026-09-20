@@ -1,12 +1,10 @@
 name: Release iOS
 
-# Tag push (vX.Y.Z matching pubspec.yaml) builds a signed IPA and uploads it to TestFlight.
-# Tag runs are skipped until the APPLE_TEAM_ID repository variable exists (saves macOS minutes).
-# Manual runs with upload=false do an unsigned compile check only.
+# Manual only, like the Android and desktop builds: releases are made by hand.
+# A run with upload=true builds a signed IPA and sends it to TestFlight (Apple, not GitHub).
+# With upload=false it is an unsigned compile check only.
 
 on:
-  push:
-    tags: ['v*']
   workflow_dispatch:
     inputs:
       upload:
@@ -29,22 +27,13 @@ env:
 jobs:
   build:
     name: Build and upload
-    if: github.event_name == 'workflow_dispatch' || vars.APPLE_TEAM_ID != ''
     runs-on: macos-latest
     timeout-minutes: 45
     env:
-      UPLOAD: ${{ github.event_name == 'push' || inputs.upload }}
+      UPLOAD: ${{ inputs.upload }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: Check tag matches pubspec version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          pubspec_version=$(grep -E '^version:' pubspec.yaml | sed -E 's/^version: *([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-          if [ "v$pubspec_version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match pubspec.yaml version $pubspec_version"
-            exit 1
-          fi
 
       - uses: subosito/flutter-action@v2
         with:

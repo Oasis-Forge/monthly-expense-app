@@ -1,13 +1,12 @@
 # Releasing
 
-Every PR merged to `main` is a release. The `version: x.y.z+N` line in `pubspec.yaml` is the source of truth: `x.y.z` is the version name, following [Semantic Versioning](https://semver.org) (major for breaking changes, minor for new features, patch for fixes and everything else), and `N` is the build number, which grows by one with every release because the stores require it to increase.
+Releasing is by hand. Nothing on GitHub tags a commit, drafts a Release, or uploads to a store: the build that ships is made locally and uploaded to the store by the developer. The `version: x.y.z+N` line in `pubspec.yaml` is the source of truth: `x.y.z` is the version name, following [Semantic Versioning](https://semver.org) (major for breaking changes, minor for new features, patch for fixes and everything else), and `N` is the build number, which grows by one with every release because the stores require it to increase.
 
-1. **Before merging**, bump the version on the branch with `/release [major|minor|patch]` in Claude Code, or by hand: edit `pubspec.yaml` and add a `## [x.y.z] - YYYY-MM-DD` entry to `CHANGELOG.md`. CI's `Format, analyze, test` check fails if the version isn't above the latest `vX.Y.Z` tag or has no changelog entry. Dependabot PRs are exempt and ship with the next release.
-2. **On merge**, `release-android.yml` builds the release APK and AAB, tags the merge commit `vX.Y.Z`, and attaches `monthly-expenses-X.Y.Z.apk` to a draft GitHub Release with the changelog entry as notes. With the signing and Play secrets, it also uploads the AAB to Play **internal testing** as a draft. A merge whose version is already tagged releases nothing.
+1. **On the branch**, bump the version with `/release [major|minor|patch]` in Claude Code, or by hand: edit `pubspec.yaml` and add a `## [x.y.z] - YYYY-MM-DD` entry to `CHANGELOG.md`. CI's `Format, analyze, test` check fails if the version isn't above the one on `main`, or has no changelog entry. Dependabot PRs are exempt and ride along with the next bump.
+2. **Build it locally**: `/release --build`, or `flutter build appbundle --release` for Play and `flutter build apk --release` for a phone. The artifacts go to `dist/` (gitignored) as `monthly-expenses-X.Y.Z.aab` and `monthly-expenses-X.Y.Z.apk`, signed with the upload key through `android/key.properties`.
+3. **Upload it by hand** in Play Console, and paste `store/play/release-notes/X.Y.Z.txt` into the release notes box on each track it goes to.
 
-Without the Android signing secrets, each APK is signed with a throwaway debug key and can't update an installed copy: back up in the app, uninstall, install the new APK, and restore. Add the secrets below to get APKs that update in place.
-
-Tags pushed by CI don't start other workflows, so iOS and desktop builds are manual. In the Actions tab, run **`release-ios.yml`** (signed IPA to TestFlight; for an unsigned compile check, set `upload: false`) or **`release-desktop.yml`** with the release tag as the ref, or run `gh workflow run release-desktop.yml --ref vX.Y.Z`. Both check that the tag matches `pubspec.yaml`.
+The three workflows in the Actions tab build the same artifacts on GitHub's runners, started by hand and never on their own: **`build-android.yml`** (APK and App Bundle in the run's artifacts), **`build-desktop.yml`** (the Linux archive for Flathub and the Windows MSIX) and **`release-ios.yml`** (an unsigned compile check, or a signed IPA to TestFlight with `upload: true`). They are there for a clean build from a machine that isn't yours. Without the Android signing secrets below, a `build-android.yml` APK is signed with a throwaway debug key and can't update an installed copy.
 
 ## GitHub secrets and variables
 
@@ -16,11 +15,10 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
 | Name | Kind | Used by | Value |
 |---|---|---|---|
 | `CLAUDE_CODE_OAUTH_TOKEN` | secret | `claude.yml` | Output of `claude setup-token` (or use `ANTHROPIC_API_KEY` and change the workflow input) |
-| `ANDROID_KEYSTORE_BASE64` | secret | `release-android.yml` | Base64 of `upload-keystore.jks` |
-| `ANDROID_KEYSTORE_PASSWORD` | secret | `release-android.yml` | Keystore password |
-| `ANDROID_KEY_ALIAS` | secret | `release-android.yml` | Key alias, e.g. `upload` |
-| `ANDROID_KEY_PASSWORD` | secret | `release-android.yml` | Key password |
-| `PLAY_SERVICE_ACCOUNT_JSON` | secret | `release-android.yml` | Google Cloud service-account JSON key with Play Console release access |
+| `ANDROID_KEYSTORE_BASE64` | secret | `build-android.yml` | Base64 of `upload-keystore.jks` |
+| `ANDROID_KEYSTORE_PASSWORD` | secret | `build-android.yml` | Keystore password |
+| `ANDROID_KEY_ALIAS` | secret | `build-android.yml` | Key alias, e.g. `upload` |
+| `ANDROID_KEY_PASSWORD` | secret | `build-android.yml` | Key password |
 | `IOS_DIST_CERT_P12_BASE64` | secret | `release-ios.yml` | Base64 of the Apple Distribution certificate (`.p12`) |
 | `IOS_DIST_CERT_PASSWORD` | secret | `release-ios.yml` | Password of the `.p12` |
 | `APPSTORE_ISSUER_ID` | secret | `release-ios.yml` | App Store Connect API issuer ID |
@@ -28,9 +26,11 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
 | `APPSTORE_PRIVATE_KEY` | secret | `release-ios.yml` | Full contents of the `.p8` API key |
 | `APPLE_TEAM_ID` | variable | `release-ios.yml` | 10-character Apple team ID |
 | `IOS_PROFILE_NAME` | variable (optional) | `release-ios.yml` | Provisioning profile name; defaults to `Monthly Expenses App Store` |
-| `MSIX_IDENTITY_NAME` | variable | `release-desktop.yml` | Partner Center → Product identity → Package/Identity/Name |
-| `MSIX_PUBLISHER` | variable | `release-desktop.yml` | Partner Center → Product identity → Package/Identity/Publisher (`CN=…`). Without it, CI builds a test-signed MSIX only |
-| `MSIX_PUBLISHER_DISPLAY_NAME` | variable | `release-desktop.yml` | Partner Center → Product identity → Package/Properties/PublisherDisplayName |
+| `MSIX_IDENTITY_NAME` | variable | `build-desktop.yml` | Partner Center → Product identity → Package/Identity/Name |
+| `MSIX_PUBLISHER` | variable | `build-desktop.yml` | Partner Center → Product identity → Package/Identity/Publisher (`CN=…`). Without it, CI builds a test-signed MSIX only |
+| `MSIX_PUBLISHER_DISPLAY_NAME` | variable | `build-desktop.yml` | Partner Center → Product identity → Package/Properties/PublisherDisplayName |
+
+No store credentials are needed here: every upload to Play, TestFlight, Partner Center and Flathub is done by hand.
 
 ## One-time setup: Android
 
@@ -50,8 +50,7 @@ Add them in GitHub → Settings → Secrets and variables → Actions, or with `
    storeFile=upload-keystore.jks
    ```
 4. In Play Console, create the app with package `com.oasisforge.monthlyexpenses` and keep Play App Signing enabled.
-5. **Upload the first AAB by hand** in Play Console → Testing → Internal testing. The API can't create an app's first release. Build it with `flutter build appbundle` (after step 3), or download it from a `release-android.yml` run that had the secrets.
-6. In Google Cloud, create a service account and a JSON key. In Play Console → Users and permissions, invite the service account with release permissions for this app. Save the JSON as `PLAY_SERVICE_ACCOUNT_JSON`.
+5. **Upload every AAB by hand** in Play Console → Testing → Internal testing. Build it with `flutter build appbundle --release` (after step 3).
 
 ## One-time setup: iOS
 
@@ -86,7 +85,7 @@ Run `/install-github-app` from a `claude` terminal. Or install the Claude GitHub
 The repo is public, so GitHub-hosted runners (macOS included) cost nothing. CI therefore compiles iOS and Android on every PR.
 
 - **Secrets stay safe:** GitHub masks secret values in logs, and the workflows never print them. CI uses `pull_request`, not `pull_request_target`, so PRs from forks run without secrets. `claude.yml` only runs for `haskalach`.
-- **Release APKs:** `release-android.yml` creates the GitHub Release as a **draft**, so nobody can download the APK until you publish it. Leave it as a draft if you only want store distribution.
+- **Nothing publishes itself:** no workflow tags a commit, creates a GitHub Release or uploads to a store. The draft releases from before 20 September 2026 (v1.12.0 to v1.17.2) stay drafts, so their APKs stay private.
 - **Fork PRs:** in Settings → Actions → General → "Approval for running fork pull request workflows", choose "Require approval for all external contributors".
 - **Commit emails are public.** To hide yours on future commits, use your noreply address from GitHub → Settings → Emails: `git config user.email "<id>+haskalach@users.noreply.github.com"`.
 - **License:** with no `LICENSE` file the code is "all rights reserved". People can view and fork it on GitHub but have no right to reuse it. Add a license only if you want to allow reuse.
@@ -122,11 +121,11 @@ dart run flutter_native_splash:create
 
 ## One-time setup: Windows (Microsoft Store)
 
-Building for Windows needs the ATL component for MSVC (Visual Studio Installer → Individual components → "C++ ATL for latest v143 build tools"); `flutter_local_notifications_windows` (note reminders, NOTE-6) needs it to compile. `ci.yml` and `release-desktop.yml` install it on the runner before building.
+Building for Windows needs the ATL component for MSVC (Visual Studio Installer → Individual components → "C++ ATL for latest v143 build tools"); `flutter_local_notifications_windows` (note reminders, NOTE-6) needs it to compile. `ci.yml` and `build-desktop.yml` install it on the runner before building.
 
 1. In Partner Center, reserve the name "Monthly Expenses".
 2. Under Product identity, copy Package/Identity/Name, Package/Identity/Publisher, and Package/Properties/PublisherDisplayName into the `MSIX_IDENTITY_NAME`, `MSIX_PUBLISHER`, and `MSIX_PUBLISHER_DISPLAY_NAME` variables.
-3. Run `release-desktop.yml` on the release tag, download the MSIX from the run, and upload it in a Partner Center submission. The Store signs it.
+3. Run `build-desktop.yml`, download the MSIX from the run, and upload it in a Partner Center submission. The Store signs it.
 4. For a local test install, `dart run msix:create` builds a test-signed package in `build/windows/x64/runner/Release/`.
 
 The package declares no capabilities, so it requests no internet access.
@@ -135,10 +134,10 @@ The package declares no capabilities, so it requests no internet access.
 
 Flathub checks that the publisher controls the app ID's domain. `io.github.monthly_expenses.MonthlyExpenses` is verified through a GitHub organization, so no personal name or domain appears in it.
 
-1. Create the GitHub organization `monthly-expenses`. If the name is taken, pick another and change the ID in `linux/CMakeLists.txt`, `linux/flatpak/`, and `release-desktop.yml` before the first submission.
+1. Create the GitHub organization `monthly-expenses`. If the name is taken, pick another and change the ID in `linux/CMakeLists.txt`, `linux/flatpak/`, and `build-desktop.yml` before the first submission.
 2. Flathub needs permission to redistribute the app. With no `LICENSE` file the code is all rights reserved, so add a license (or terms that allow redistribution) and update `project_license` in the metainfo file.
 3. Add screenshots and a `<release>` entry to `linux/flatpak/io.github.monthly_expenses.MonthlyExpenses.metainfo.xml`.
-4. Run `release-desktop.yml` on the release tag and publish the draft GitHub Release. Copy the archive's sha256 from the `release-desktop.yml` run summary into the manifest's `sha256`, and the tag into its `url`.
+4. Run `build-desktop.yml` and download the Linux archive from the run. Flathub fetches the tarball from a public URL, so put it somewhere it can reach — a GitHub Release published by hand is the simplest. Copy the archive's sha256 from the run summary into the manifest's `sha256`, and that URL into its `url`.
 5. Submit the manifest by following Flathub's submission guide (a pull request to `flathub/flathub`). Once it's accepted, verify the app through the organization in Flathub's developer portal.
 6. For each later release, update `url` and `sha256` in the app's Flathub repository.
 
