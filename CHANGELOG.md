@@ -4,13 +4,17 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.20.0] - 2026-09-20
+
+### Changed
+- The full-screen ad no longer waits three days after you install the app. Ten recorded entries is the only thing it waits for now.
+
 ## [1.19.0] - 2026-09-20
 
 ### Added
 - Reminders. The app can tell you when a repeating entry was due and is still waiting, and, if you ask it to, nudge you on a day you have recorded nothing at all. One reminder a day at most, never between ten at night and eight in the morning, and the nudge stops itself if three go unanswered.
 
 ### Changed
-- The full-screen ad no longer waits three days after you install the app; ten recorded entries is now the only thing it waits for.
 - Android no longer backs this app up to Google Drive on its own. Reinstalling the app now starts you with nothing, and the way to carry your data over is a backup you saved yourself. Moving to a new phone still brings it with you.
 
 ## [1.18.0] - 2026-09-20
