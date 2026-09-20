@@ -15,6 +15,7 @@ import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
+import 'account_filter_button.dart';
 import 'accounts_screen.dart';
 import 'ad_slot.dart';
 import 'add_transaction_screen.dart';
@@ -125,6 +126,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final settings = context.watch<SettingsProvider>();
     final currency = settings.currencyFormat(l10n.localeName);
     final selectedDay = provider.selectedDay;
+    // ACC-6: the account Home is showing, null while it shows every one.
+    final chosenAccount = provider.accountFilterId == null
+        ? null
+        : provider.accountById(provider.accountFilterId!);
     // DAY-7: the chosen day on its own, whether or not it holds anything.
     final days = selectedDay != null
         ? [selectedDay]
@@ -206,6 +211,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       onToggle: () => settings.setSummaryCollapsed(
                         !settings.summaryCollapsed,
                       ),
+                      // ACC-6: null while Home shows every account. The
+                      // default account's name is translated, so it comes
+                      // through label() like everywhere else (LANG-2).
+                      accountName: chosenAccount?.label(l10n),
+                      // ACC-6: with one account there is nothing to switch to.
+                      onPickAccount: provider.activeAccounts.length < 2
+                          ? null
+                          : () => pickAccountFilter(context),
                       scale: MediaQuery.textScalerOf(context)
                           .scale(1)
                           .clamp(1.0, 1.4),
@@ -647,6 +660,8 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
     required this.collapsedByHand,
     required this.onToggle,
     required this.scale,
+    required this.accountName,
+    required this.onPickAccount,
   });
 
   final Money income;
@@ -659,6 +674,13 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
   /// back on its own (BAL-6).
   final bool collapsedByHand;
   final VoidCallback onToggle;
+
+  /// The chosen account's name, or null for every account (ACC-6).
+  final String? accountName;
+
+  /// Null when there is only one account, so the card shows no switch it
+  /// cannot act on (ACC-6). The slot stays, keeping the label centred.
+  final VoidCallback? onPickAccount;
 
   /// The text scale, so bigger text gets a taller header rather than a
   /// clipped one (LANG-4).
@@ -701,6 +723,8 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
             currency: currency,
             collapsed: collapsed,
             onToggle: onToggle,
+            accountName: accountName,
+            onPickAccount: onPickAccount,
           ),
         ),
       ),
@@ -714,6 +738,7 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
       old.balance != balance ||
       old.carriedForward != carriedForward ||
       old.collapsedByHand != collapsedByHand ||
+      old.accountName != accountName ||
       old.scale != scale;
 }
 
@@ -730,6 +755,15 @@ class _SummaryCard extends StatelessWidget {
   final bool collapsed;
   final VoidCallback onToggle;
 
+  /// The chosen account's name, or null while Home shows every account. It
+  /// stands in for the card's label so the figures are never read as the
+  /// whole of the money by mistake (ACC-6).
+  final String? accountName;
+
+  /// Null when there is only one account, so the card shows no switch it
+  /// cannot act on (ACC-6). The slot stays, keeping the label centred.
+  final VoidCallback? onPickAccount;
+
   const _SummaryCard({
     required this.income,
     required this.expense,
@@ -738,6 +772,8 @@ class _SummaryCard extends StatelessWidget {
     required this.currency,
     required this.collapsed,
     required this.onToggle,
+    required this.accountName,
+    required this.onPickAccount,
   });
 
   @override
@@ -745,7 +781,11 @@ class _SummaryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final carried = carriedForward;
-    final label = carried == null ? l10n.periodNetLabel : l10n.balanceLabel;
+    // ACC-6: one account's name replaces the label rather than joining it, so
+    // the card is no taller and no text is pieced together (LANG-2).
+    final label =
+        accountName ??
+        (carried == null ? l10n.periodNetLabel : l10n.balanceLabel);
     final amountColor = balance.isNegative ? Colors.red : Colors.green;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -759,20 +799,44 @@ class _SummaryCard extends StatelessWidget {
                 padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
                 child: Row(
                   children: [
-                    Text(label, style: theme.textTheme.bodyMedium),
-                    const SizedBox(width: 12),
-                    // The balance keeps the room it needs in any language.
-                    Expanded(
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: Text(
-                          currency.format(balance.toDouble()),
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: amountColor,
-                          ),
+                    // ACC-6: the way back to every account, on the one line
+                    // too. This is the state a scroll leaves Home in, and the
+                    // state it opens in when that is how it was left (BAL-6),
+                    // so it is where the way out matters most. With every
+                    // account showing there is nothing to say and nothing is
+                    // shown, exactly as on Insights' banner.
+                    if (accountName != null && onPickAccount != null) ...[
+                      InkWell(
+                        onTap: onPickAccount,
+                        customBorder: const CircleBorder(),
+                        child: Icon(
+                          Icons.account_balance_wallet_outlined,
+                          size: 20,
+                          semanticLabel: l10n.accountLabel,
                         ),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    // The balance is laid out first and keeps the room it
+                    // needs in any language; the label takes what is left and
+                    // gives way with an ellipsis, since an account's name is
+                    // the user's own words (LANG-4). Two flexible children
+                    // would split the row between them instead and leave a
+                    // hole after the chevron.
+                    Expanded(
+                      child: Text(
+                        label,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      currency.format(balance.toDouble()),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: amountColor,
                       ),
                     ),
                     Icon(
@@ -788,9 +852,24 @@ class _SummaryCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        // The same width as the chevron, so the label stays
-                        // in the middle of the card.
-                        const SizedBox(width: 24),
+                        // ACC-6: the switch between one account and every
+                        // account. It takes the room the chevron's opposite
+                        // number was already holding to keep the label
+                        // centred, so the card is no taller for it.
+                        SizedBox(
+                          width: 24,
+                          child: onPickAccount == null
+                              ? null
+                              : InkWell(
+                                  onTap: onPickAccount,
+                                  customBorder: const CircleBorder(),
+                                  child: Icon(
+                                    Icons.account_balance_wallet_outlined,
+                                    size: 20,
+                                    semanticLabel: l10n.accountLabel,
+                                  ),
+                                ),
+                        ),
                         Expanded(
                           child: Text(
                             label,

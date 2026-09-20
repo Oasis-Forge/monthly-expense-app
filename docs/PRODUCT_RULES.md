@@ -41,7 +41,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - **ADD-1** Only amount and category are required. Title and note are optional. A list row shows the title, else the note, else the category name.
 - **ADD-2** The keypad supports `+` and `−` (`12.5+3`), shows the result live, and saves the result.
-- **ADD-3** A new transaction defaults to the day Home is showing (DAY-9), the chosen type, the last category used for that type, and the last account used.
+- **ADD-3** A new transaction defaults to the day Home is showing (DAY-9), the chosen type, the last category used for that type, and the last account used — or the account Home is showing, when it is showing one (ACC-9).
 - **ADD-4** "Save & add another" keeps the type, category, account, and date, clears the amount, title, and note, and focuses the amount.
 - **ADD-5** Recent categories show the last 5 used for the chosen type.
 - **ADD-6** The date arrows move one day back or forward; tapping the date opens a picker.
@@ -85,6 +85,14 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ACC-3** A transfer is one record with from and to accounts. It changes both account balances and is never income or expense.
 - **ACC-4** Account balance = opening balance (from its opening date) + income − expense − transfers out + transfers in, up to today (BAL-4). Transactions dated before the opening date still count, so the opening balance should be the balance on that date before them.
 - **ACC-5** An account with history can be archived, not deleted.
+- **ACC-6** The app can be pointed at one account instead of every one. It is one choice, shared by every screen that follows it, and **any screen that follows it has to say which account it is showing** — a filtered figure that looks like the whole of the money is worse than no filter at all. Home says it on the summary card, whose label names the chosen account in place of "Balance" or "Net" in both of the card's states (BAL-6), with the switch in the room already kept opposite the card's chevron, since the toolbar has no space for a third action (NAV-6) — and on the card's one line as well, but there only while one account is showing, since that is the state a scroll leaves Home in and the way back should never be behind opening the card first; Insights says it with a named button under the period. **With only one account the control is not shown at all**, on any screen: there is nothing to switch to, and an empty choice only raises a question with no answer. Archived accounts are not offered (ACC-5), and one archived or removed after it was chosen reads as every account again rather than leaving a screen empty with no way back. The choice is how this device is set up to look rather than a record, so it survives a relaunch and a backup doesn't carry it (BAL-6).
+- **ACC-7** It reaches the screens that are about *this period's money*: Home — the summary card, the day list, and each day's own income and expense — and all three views of Insights (INS-1–INS-3), so a chart and the total above it are never about different money. It reaches four things not at all:
+  - **Budgets**, on the card and in Insights. A budget is a limit on a category, across every account (BUD-1), so measuring one account against it reports a limit nobody set: on a card with no groceries on it, "0% used" of a grocery budget that is in fact more than half gone. Budgets always count every account.
+  - **The home-screen widget** (WID-1). It is not a screen, and a tile that quietly showed one account would be read as the whole of the money every time.
+  - **Search** (SRCH-2) and **the PDF report** (PDF-1), which each have an account filter of their own and would otherwise filter twice.
+  - **The CSV export** (BAK-5). An export is a record of the period, and a partial file that looks complete is worse than an extra step; export what you mean explicitly from Search.
+- **ACC-8** With one account showing, carried forward and closing are that account's own (ACC-4): its opening balance, its income and expense, and the transfers into and out of it. A transfer is still neither income nor expense (BAL-1) and still counts nowhere until its date arrives (BAL-4) — it moves the balance alone, and only here, because across every account it nets to zero.
+- **ACC-9** A new entry started while Home shows one account begins on that account, ahead of the last account used (ADD-3). With every account showing, the last one used wins as before.
 
 ## 7. Budgets
 
@@ -445,6 +453,14 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 31. Home's summary card can be one line (BAL-6), and scrolling the day list collapses it (BAL-7): on a phone the fixed header — period, day strip, summary, notices — was eating the list it sits above. The strip itself is now on every Home, the welcome included (DAY-2). And the trash finally holds transfers (DEL-5): deleting one offered Undo and nothing else, so a transfer deleted a minute earlier was already beyond recovery, and one deleted before a relaunch was forgotten entirely. Found by asking what the trash was tested for.
 
 32. The summary card moved inside the day list's scroll, as a pinned header (BAL-7). Sitting above the scroll view, collapsing it resized the list's viewport: measured, the entries lurched upward at twice the speed of the finger, and on a list with less than about 142px of slack the offset was corrected back below the threshold and the card sprang open again — which is why it seemed to work with the budgets card open and not with it closed, that card being worth about 144px. Inside the scroll there is nothing to resize and no state to oscillate. The budgets card folds on scroll the same way (BUD-9).
+
+## Decisions (20 September 2026)
+
+33. Home can show one account instead of every one (ACC-6–ACC-9). Accounts existed and every transaction belonged to one (ACC-1), but Home could only ever total all of them, so "how much is on the card this month" meant Search. The switch went on the summary card rather than the toolbar, which has no room for a third action (NAV-6), and the card's label names the chosen account in place of "Balance" so a filtered figure cannot be mistaken for the whole of the money — including when the card is its one line (BAL-6).
+
+34. The filter is the app's, not Home's, and every screen that follows it names it (ACC-6, ACC-7). It was built for Home alone, and driving it on the phone showed why that was wrong twice over: Insights was already following Home's choice, because it reads the same period totals — silently, with nothing on screen saying so, which is exactly the misreading the rule now forbids. Budgets were following it too, and there the number was simply false: with a card selected the card read "0% used" of a food budget that was 60% gone. Budgets now always count every account, and Insights names the account it is showing. A new entry started while one account is showing begins on that account (ACC-9), ahead of ADD-3's "last account used" — a filtered screen is a stronger signal of where the money went than whatever was typed last.
+
+35. One account's carried-forward and closing figures take in its transfers (ACC-8). Across every account a transfer nets to zero, which is why BAL-1 leaves it out of income and expense entirely; within one account it is money arriving or leaving, exactly as ACC-4 already counts it, so leaving it out would have shown a balance that disagreed with the Accounts screen.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:
