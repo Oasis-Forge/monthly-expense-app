@@ -1,6 +1,6 @@
 # Changelog
 
-Notable changes per release. Versions follow [Semantic Versioning](https://semver.org) and match `pubspec.yaml` and the `vX.Y.Z` git tags. Every merged PR is a release (see `docs/RELEASING.md`).
+Notable changes per release. Versions follow [Semantic Versioning](https://semver.org) and match `pubspec.yaml`. Every merged PR is a release (see `docs/RELEASING.md`).
 
 ## [Unreleased]
 

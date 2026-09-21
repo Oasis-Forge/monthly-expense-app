@@ -4,9 +4,20 @@ Releasing is by hand. Nothing on GitHub tags a commit, drafts a Release, or uplo
 
 1. **On the branch**, bump the version with `/release [major|minor|patch]` in Claude Code, or by hand: edit `pubspec.yaml` and add a `## [x.y.z] - YYYY-MM-DD` entry to `CHANGELOG.md`. CI's `Format, analyze, test` check fails if the version isn't above the one on `main`, or has no changelog entry. Dependabot PRs are exempt and ride along with the next bump.
 2. **Build it locally**: `/release --build`, or `flutter build appbundle --release` for Play and `flutter build apk --release` for a phone. The artifacts go to `dist/` (gitignored) as `monthly-expenses-X.Y.Z.aab` and `monthly-expenses-X.Y.Z.apk`, signed with the upload key through `android/key.properties`.
-3. **Upload it by hand** in Play Console, and paste `store/play/release-notes/X.Y.Z.txt` into the release notes box on each track it goes to.
+3. **Check the signer before every upload**, because the fall back to a debug key is silent: `keytool -printcert -jarfile dist/monthly-expenses-X.Y.Z.aab` must show your certificate, not `CN=Android Debug`. On Windows `keytool` may not be on PATH — call it as `"$JAVA_HOME/bin/keytool.exe"`, since a bare `keytool` prints nothing and reads as a pass.
+4. **Upload it by hand** in Play Console, and paste `store/play/release-notes/X.Y.Z.txt` into the release notes box on each track it goes to.
 
 The three workflows in the Actions tab build the same artifacts on GitHub's runners, started by hand and never on their own: **`build-android.yml`** (APK and App Bundle in the run's artifacts), **`build-desktop.yml`** (the Linux archive for Flathub and the Windows MSIX) and **`release-ios.yml`** (an unsigned compile check, or a signed IPA to TestFlight with `upload: true`). They are there for a clean build from a machine that isn't yours. Without the Android signing secrets below, a `build-android.yml` APK is signed with a throwaway debug key and can't update an installed copy.
+
+## When a release is bad
+
+Every merged PR is a release, so there will be a bad one. Decide none of this while it is happening.
+
+1. **Stop the spread first.** In Play Console, halt the rollout on the track it is on. A version code that has been published can never be reused or re-uploaded, and an app cannot be rolled back to an earlier release: the only way out is a higher version going out.
+2. **Fix forward, never backward.** `git revert` the merge and open a PR, and CI refuses it — the reverted tree's version is at or below `main`'s, which is exactly what the version check exists to catch. That is a stuck pipeline during the one hour it matters. If the fix *is* a revert, revert on a branch off a freshly pulled `main` **and** run `/release patch` on it, so the undo is itself a release with its own version and changelog entry.
+3. **Don't rewrite `main`'s history to undo it.** The version check reads the version off `origin/main`, so rewriting the commit that raised it makes the next check compare against the wrong thing. Go forward instead.
+4. **Say what happened in the changelog**, in the same user-facing words as everything else: what was wrong and what the new version does about it.
+5. **Read the crash before guessing.** Play symbolicates with the deobfuscation mapping carried inside the uploaded bundle, so the stack traces in Play Console are readable. Keep the bundle you uploaded: it is the only copy, since nothing on GitHub builds it.
 
 ## GitHub secrets and variables
 
