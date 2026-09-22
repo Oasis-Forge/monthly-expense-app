@@ -107,8 +107,31 @@ void main() {
       expect(provider.showAds, isFalse);
       expect(await provider.loadBanner(AdPlacement.home, 360), isNull);
       // Nobody who has paid is asked for consent to ads they won't see.
+      // This fake is born owned, which no device does; the test below is the
+      // one that covers a receipt arriving from the store.
       expect(ads.started, isFalse);
     });
+
+    test(
+      'a receipt the store only hands over when asked stops the SDK too',
+      () async {
+        final ads = FakeAdService(canStart: true, fills: true);
+        // Owned, but not until the store has been asked — the ordering every
+        // device produces, and the one that used to start the ad SDK and put a
+        // consent form in front of someone who had paid (ADS-8, PAY-5).
+        final purchases = FakePurchases(
+          stage: PurchaseStage.offered,
+          owns: true,
+        );
+        final provider = build(await settled(), ads: ads, purchases: purchases);
+
+        await provider.start();
+
+        expect(provider.adsRemoved, isTrue);
+        expect(provider.showAds, isFalse);
+        expect(ads.started, isFalse);
+      },
+    );
 
     test('buying stops the slots without a restart', () async {
       final ads = FakeAdService(canStart: true, fills: true);

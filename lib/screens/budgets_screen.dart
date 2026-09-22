@@ -43,14 +43,51 @@ class BudgetsScreen extends StatelessWidget {
             _BudgetTile(
               categoryId: category.id,
               name: category.label(l10n),
-              leading: Text(
-                category.icon,
-                style: const TextStyle(fontSize: 24),
+              leading: CircleAvatar(
+                backgroundColor: categoryTint(category),
+                child: Text(
+                  category.icon,
+                  style: const TextStyle(fontSize: 24),
+                ),
               ),
             ),
         ],
       ),
     );
+  }
+}
+
+/// The overall budget's own dialog, opened straight from Home's summary card
+/// so the first budget can be set where the want for one is felt (BUD-11).
+///
+/// [prefill] is what the box starts with — last period's spending, so the
+/// first budget is a correction rather than a guess. It saves through the
+/// provider and reports a failure the way the budgets screen does.
+Future<void> showOverallBudgetDialog(
+  BuildContext context, {
+  required Money? prefill,
+}) async {
+  final l10n = AppLocalizations.of(context);
+  final provider = context.read<TransactionProvider>();
+  final messenger = ScaffoldMessenger.of(context);
+  final currency = context.read<SettingsProvider>().currencyFormat(
+    l10n.localeName,
+  );
+  final change = await showDialog<({Money? limit})>(
+    context: context,
+    builder: (_) => _BudgetDialog(
+      name: l10n.overallBudget,
+      current: prefill,
+      currency: currency,
+    ),
+  );
+  if (change == null) return;
+  try {
+    // BUD-5: it starts from the current period, whichever period Home was
+    // showing when it was asked for.
+    await provider.setBudget(null, change.limit);
+  } catch (_) {
+    messenger.showSnackBar(SnackBar(content: Text(l10n.budgetSaveFailed)));
   }
 }
 

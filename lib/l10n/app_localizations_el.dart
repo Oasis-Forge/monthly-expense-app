@@ -534,6 +534,14 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String homeSpentPerDay(String amount, String perDay) {
+    return '$amount ξοδεύτηκαν · $perDay τη μέρα ως τώρα';
+  }
+
+  @override
+  String get homeSetBudget => 'Μηνιαίος προϋπολογισμός';
+
+  @override
   String budgetLeft(String remaining) {
     return '$remaining απομένουν';
   }

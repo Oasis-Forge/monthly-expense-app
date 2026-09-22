@@ -148,6 +148,8 @@
   "budgetSaveFailed": "Δεν ήταν δυνατή η αποθήκευση του προϋπολογισμού. Δοκιμάστε ξανά.",
   "budgetSpentOfLimit": "{spent} από {limit}",
   "budgetLeftPerDay": "{remaining} απομένουν · {perDay} τη μέρα",
+  "homeSpentPerDay": "{amount} ξοδεύτηκαν · {perDay} τη μέρα ως τώρα",
+  "homeSetBudget": "Μηνιαίος προϋπολογισμός",
   "budgetLeft": "{remaining} απομένουν",
   "budgetOverBy": "Υπέρβαση κατά {amount}",
   "budgetLimitReached": "Το όριο συμπληρώθηκε",

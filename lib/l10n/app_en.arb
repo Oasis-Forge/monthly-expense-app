@@ -375,6 +375,22 @@
       }
     }
   },
+  "homeSpentPerDay": "{amount} spent · {perDay} a day so far",
+  "@homeSpentPerDay": {
+    "description": "The summary card's lead line on Home when no overall budget is set.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "perDay": {
+        "type": "String"
+      }
+    }
+  },
+  "homeSetBudget": "Set a monthly budget",
+  "@homeSetBudget": {
+    "description": "Offered on Home's summary card when no overall budget is set; opens the overall budget."
+  },
   "budgetLeft": "{remaining} left",
   "@budgetLeft": {
     "placeholders": {

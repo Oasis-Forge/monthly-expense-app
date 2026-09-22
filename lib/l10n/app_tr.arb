@@ -148,6 +148,8 @@
   "budgetSaveFailed": "Bütçe kaydedilemedi. Tekrar deneyin.",
   "budgetSpentOfLimit": "{spent} / {limit}",
   "budgetLeftPerDay": "{remaining} kaldı · günde {perDay}",
+  "homeSpentPerDay": "{amount} harcandı · şimdiye kadar günde {perDay}",
+  "homeSetBudget": "Aylık bütçe belirle",
   "budgetLeft": "{remaining} kaldı",
   "budgetOverBy": "{amount} aşıldı",
   "budgetLimitReached": "Limite ulaşıldı",

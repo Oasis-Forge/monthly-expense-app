@@ -148,6 +148,8 @@
   "budgetSaveFailed": "Kan het budget niet opslaan. Probeer het opnieuw.",
   "budgetSpentOfLimit": "{spent} van {limit}",
   "budgetLeftPerDay": "{remaining} over · {perDay} per dag",
+  "homeSpentPerDay": "{amount} uitgegeven · {perDay} per dag tot nu",
+  "homeSetBudget": "Stel een maandbudget in",
   "budgetLeft": "{remaining} over",
   "budgetOverBy": "{amount} boven de limiet",
   "budgetLimitReached": "Limiet bereikt",

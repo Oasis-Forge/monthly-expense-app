@@ -220,8 +220,9 @@ class _ResultTile extends StatelessWidget {
     final color = isIncome ? Colors.green : Colors.red;
 
     return ListTile(
+      // The category's colour (CAT-6); the amount carries income and expense.
       leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.15),
+        backgroundColor: categoryTint(category),
         child: Text(category?.icon ?? '📦'),
       ),
       title: Text(transaction.label(category, l10n)),

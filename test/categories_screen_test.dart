@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
@@ -52,6 +53,37 @@ void main() {
     final added = provider.categoriesFor(TransactionType.expense).last;
     expect((added.name, added.icon), ('Coffee', '☕'));
     expect(find.text('Coffee'), findsOneWidget);
+  });
+
+  testWidgets('a category takes one of the sixteen colours (CAT-6)', (
+    tester,
+  ) async {
+    // The editor is icons and then colours; both fit on a phone but not on
+    // the 800x600 the tests start with.
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await showCategories(tester);
+
+    await tester.tap(find.byTooltip('Add category'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Coffee');
+    await tester.tap(find.text('☕'));
+    // Not the one the dialog opens on, so saving the default would fail it.
+    final chosen = categoryPalette[3];
+    final swatch = find.byWidgetPredicate(
+      (w) => w is CircleAvatar && w.backgroundColor == Color(chosen),
+    );
+    // The palette sits under the icons, past the fold of the dialog's own
+    // scroll.
+    await tester.ensureVisible(swatch);
+    await tester.pumpAndSettle();
+    await tester.tap(swatch);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final added = provider.categoriesFor(TransactionType.expense).last;
+    expect(added.color, chosen);
   });
 
   testWidgets('a name already in use is rejected', (tester) async {

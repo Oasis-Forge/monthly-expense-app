@@ -148,6 +148,8 @@
   "budgetSaveFailed": "予算を保存できませんでした。もう一度お試しください。",
   "budgetSpentOfLimit": "{limit}のうち{spent}",
   "budgetLeftPerDay": "残り{remaining}・1日あたり{perDay}",
+  "homeSpentPerDay": "これまでに{amount}使用・1日あたり{perDay}",
+  "homeSetBudget": "月の予算を設定",
   "budgetLeft": "残り{remaining}",
   "budgetOverBy": "{amount}超過",
   "budgetLimitReached": "上限に到達",

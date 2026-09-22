@@ -130,6 +130,88 @@ void main() {
       expect(status(100, timing: PeriodTiming.past).perDayAllowance, isNull);
     });
 
+    group('the line the summary card leads with (BAL-8)', () {
+      BudgetStatus overall(
+        int limit,
+        int spent, {
+        PeriodTiming timing = PeriodTiming.current,
+        int daysLeft = 10,
+      }) => BudgetStatus(
+        categoryId: null,
+        limit: Money(limit * 1000),
+        spent: Money(spent * 1000),
+        timing: timing,
+        daysLeft: daysLeft,
+      );
+
+      HeroLine lineFor(
+        BudgetStatus? status, {
+        int spent = 0,
+        int daysElapsed = 5,
+        PeriodTiming timing = PeriodTiming.current,
+      }) => HeroLine.of(
+        overall: status,
+        spent: Money(spent * 1000),
+        daysElapsed: daysElapsed,
+        timing: timing,
+      );
+
+      test('a budget still has room: what is left, and per day', () {
+        final line = lineFor(overall(300, 100));
+
+        expect(line.kind, HeroLineKind.leftToSpend);
+        expect(line.amount, const Money(200000));
+        // 200 left over ten days, today counted (BUD-3).
+        expect(line.perDay, const Money(20000));
+      });
+
+      test('past the limit: how much over, and no allowance (BUD-3)', () {
+        final line = lineFor(overall(300, 320));
+
+        expect(line.kind, HeroLineKind.overBudget);
+        expect(line.amount, const Money(20000));
+        expect(line.perDay, isNull);
+      });
+
+      test('exactly at the limit is reached, not over by nothing', () {
+        final line = lineFor(overall(300, 300));
+
+        expect(line.kind, HeroLineKind.limitReached);
+        expect(line.perDay, isNull);
+      });
+
+      test('a budget on a period that is not running (BUD-6)', () {
+        final line = lineFor(
+          overall(300, 100, timing: PeriodTiming.past, daysLeft: 0),
+          timing: PeriodTiming.past,
+        );
+
+        expect(line.kind, HeroLineKind.spentTotal);
+        expect(line.amount, const Money(100000));
+        expect(line.perDay, isNull);
+      });
+
+      test('no budget, mid-period: spent so far, and per day', () {
+        final line = lineFor(null, spent: 100, daysElapsed: 5);
+
+        expect(line.kind, HeroLineKind.spentSoFar);
+        expect(line.amount, const Money(100000));
+        expect(line.perDay, const Money(20000));
+      });
+
+      test('no budget, and no day to divide by', () {
+        final line = lineFor(
+          null,
+          spent: 100,
+          daysElapsed: 0,
+          timing: PeriodTiming.past,
+        );
+
+        expect(line.kind, HeroLineKind.spentTotal);
+        expect(line.perDay, isNull);
+      });
+    });
+
     group('the budgets card line (BUD-7)', () {
       BudgetStatus status(String? categoryId, int limit, int spent) =>
           BudgetStatus(

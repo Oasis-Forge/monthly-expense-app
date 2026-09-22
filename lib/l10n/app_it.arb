@@ -148,6 +148,8 @@
   "budgetSaveFailed": "Impossibile salvare il budget. Riprova.",
   "budgetSpentOfLimit": "{spent} di {limit}",
   "budgetLeftPerDay": "{remaining} rimanenti · {perDay} al giorno",
+  "homeSpentPerDay": "{amount} spesi · {perDay} al giorno finora",
+  "homeSetBudget": "Imposta un budget mensile",
   "budgetLeft": "{remaining} rimanenti",
   "budgetOverBy": "Superato di {amount}",
   "budgetLimitReached": "Limite raggiunto",

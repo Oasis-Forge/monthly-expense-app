@@ -269,3 +269,47 @@ Future<void> migrateToVersion9(DatabaseExecutor db) async {
   await db.execute('ALTER TABLE transactions ADD COLUMN photo_file TEXT');
   await db.execute('ALTER TABLE transactions ADD COLUMN voice_file TEXT');
 }
+
+/// Version 10: a colour per category (CAT-6). Every category that already
+/// exists is given one, by its place in the list, so an upgraded database
+/// looks chosen rather than half-filled. The column stays nullable: a backup
+/// written before this step restores without one, and the fallback in
+/// `labels.dart` covers it.
+///
+/// The sixteen values are written out here rather than read from
+/// `categoryPalette`: a merged step is frozen, and the palette the app offers
+/// is free to change without rewriting what this one did.
+Future<void> migrateToVersion10(DatabaseExecutor db) async {
+  const palette = [
+    0xFF6C5CE7,
+    0xFF00897B,
+    0xFFD84315,
+    0xFF1E88E5,
+    0xFFC2185B,
+    0xFF2E7D32,
+    0xFF8E24AA,
+    0xFF00838F,
+    0xFF5D4037,
+    0xFF3949AB,
+    0xFFE53935,
+    0xFF546E7A,
+    0xFFEF6C00,
+    0xFF00695C,
+    0xFF4527A0,
+    0xFFAD1457,
+  ];
+  await db.execute('ALTER TABLE categories ADD COLUMN color INTEGER');
+  final rows = await db.query(
+    'categories',
+    columns: ['id'],
+    orderBy: 'sort_order, id',
+  );
+  for (var i = 0; i < rows.length; i++) {
+    await db.update(
+      'categories',
+      {'color': palette[i % palette.length]},
+      where: 'id = ?',
+      whereArgs: [rows[i]['id']],
+    );
+  }
+}

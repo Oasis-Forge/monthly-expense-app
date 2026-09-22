@@ -1024,6 +1024,18 @@ abstract class AppLocalizations {
   /// **'{remaining} left · {perDay} a day'**
   String budgetLeftPerDay(String remaining, String perDay);
 
+  /// The summary card's lead line on Home when no overall budget is set.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} spent · {perDay} a day so far'**
+  String homeSpentPerDay(String amount, String perDay);
+
+  /// Offered on Home's summary card when no overall budget is set; opens the overall budget.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a monthly budget'**
+  String get homeSetBudget;
+
   /// No description provided for @budgetLeft.
   ///
   /// In en, this message translates to:

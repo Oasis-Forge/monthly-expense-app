@@ -46,6 +46,13 @@ abstract class PurchaseService extends ChangeNotifier {
   /// Asks the store what this costs and what is already owned. Called at
   /// every launch, so a refund or a family-shared purchase lands without a
   /// reinstall (PAY-5).
+  ///
+  /// It does not return until the store has answered, so that whoever reads
+  /// [adsRemoved] afterwards reads a settled answer rather than "nothing, so
+  /// far". [AdsProvider.start] reads it immediately, and starting the ad SDK
+  /// on someone who has paid asks them for consent to ads they will never see
+  /// (ADS-8). An implementation that cannot get an answer gives up rather
+  /// than hanging.
   Future<void> start();
 
   Future<void> buy();
@@ -79,11 +86,20 @@ class NoPurchases extends PurchaseService {
 
 /// The real thing, over `in_app_purchase`.
 class DevicePurchaseService extends PurchaseService {
-  DevicePurchaseService({InAppPurchase? store})
-    : _store = store ?? InAppPurchase.instance;
+  DevicePurchaseService({InAppPurchase? store, Duration? answerGrace})
+    : _store = store ?? InAppPurchase.instance,
+      _answerGrace = answerGrace ?? const Duration(seconds: 3);
 
   final InAppPurchase _store;
   StreamSubscription<List<PurchaseDetails>>? _updates;
+
+  /// How long [start] waits for the store to say what is owned before giving
+  /// up on it. Only a store that answers with silence ever reaches it.
+  final Duration _answerGrace;
+
+  /// Completed by the first stream event after [start] — the store's answer
+  /// about what this account owns (PAY-5).
+  final _answered = Completer<void>();
   PurchaseStage _stage = PurchaseStage.checking;
   ProductDetails? _product;
   String? _lastError;
@@ -104,7 +120,11 @@ class DevicePurchaseService extends PurchaseService {
     // charge (PAY-8).
     _updates ??= _store.purchaseStream.listen(
       _onUpdates,
-      onError: (_) => _settle(PurchaseStage.unavailable),
+      onError: (_) {
+        // A stream that errors has answered too (ADS-8).
+        if (!_answered.isCompleted) _answered.complete();
+        _settle(PurchaseStage.unavailable);
+      },
     );
 
     if (!await _store.isAvailable()) return _settle(PurchaseStage.unavailable);
@@ -118,8 +138,23 @@ class DevicePurchaseService extends PurchaseService {
     _settle(PurchaseStage.offered);
 
     // What the store already knows about this account (PAY-5). Anything owned
-    // comes back through the stream.
-    await _store.restorePurchases();
+    // comes back through the stream, so the answer is not in hand when this
+    // returns — it is in hand when that event has been handled. Returning any
+    // earlier tells a paying user's app that nothing is owned, and the ad SDK
+    // starts and asks them for consent to ads they will never see (ADS-8).
+    try {
+      await _store.restorePurchases();
+    } catch (error) {
+      // A store that refuses the question has answered it as far as we are
+      // concerned: waiting longer would only hold the app back.
+      _lastError = '$error';
+      notifyListeners();
+      return;
+    }
+    // Android sends the restore's own result even when nothing is owned, so
+    // this normally completes on the next turn of the loop. The grace is for
+    // a store that answers with silence.
+    await _answered.future.timeout(_answerGrace, onTimeout: () {});
   }
 
   @override
@@ -156,6 +191,9 @@ class DevicePurchaseService extends PurchaseService {
   }
 
   Future<void> _onUpdates(List<PurchaseDetails> purchases) async {
+    // The store has answered. An empty list is an answer too: it is what
+    // Android sends back when the account owns nothing (ADS-8).
+    if (!_answered.isCompleted) _answered.complete();
     for (final purchase in purchases) {
       // Android reports a sheet that closed with no purchase in it — backed
       // out of, declined, or already owned — with no product ID at all. Only

@@ -25,19 +25,6 @@ import 'transaction_detail_screen.dart';
 import 'transaction_row_menu.dart';
 import 'transfer_screen.dart';
 
-const List<Color> _chartColors = [
-  Color(0xFF6C5CE7),
-  Color(0xFF00B894),
-  Color(0xFFE17055),
-  Color(0xFF0984E3),
-  Color(0xFFFDCB6E),
-  Color(0xFFD63031),
-  Color(0xFF00CEC9),
-  Color(0xFFE84393),
-  Color(0xFF636E72),
-  Color(0xFFA29BFE),
-];
-
 /// Charts for the selected period: spending or income by category with
 /// budgets, a calendar of daily totals, and the trend over recent periods
 /// (INS-1–INS-3).
@@ -140,6 +127,12 @@ class _CategoriesTabState extends State<_CategoriesTab> {
         : const <BudgetStatus>[];
     final entries = byCategory.entries.toList()
       ..sort((a, b) => b.value.thousandths.compareTo(a.value.thousandths));
+    // Resolved once: the slice and its line in the list below must read the
+    // same colour, or the chart and the legend disagree (CAT-6).
+    final swatches = [
+      for (final entry in entries)
+        categorySwatch(provider.categoryById(entry.key)),
+    ];
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -189,7 +182,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
                   for (var i = 0; i < entries.length; i++)
                     PieChartSectionData(
                       value: entries[i].value.toDouble(),
-                      color: _chartColors[i % _chartColors.length],
+                      color: swatches[i],
                       title:
                           '${(entries[i].value.thousandths / total.thousandths * 100).toStringAsFixed(0)}%',
                       radius: 70,
@@ -214,7 +207,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
           for (var i = 0; i < entries.length; i++)
             ListTile(
               leading: CircleAvatar(
-                backgroundColor: _chartColors[i % _chartColors.length],
+                backgroundColor: swatches[i],
                 child: Text(
                   provider.categoryById(entries[i].key)?.icon ?? '📦',
                   style: const TextStyle(fontSize: 16),
@@ -483,7 +476,10 @@ class _DayDetails extends StatelessWidget {
               final categoryName = category?.label(l10n) ?? '';
               final isIncome = tx.type == TransactionType.income;
               return ListTile(
-                leading: CircleAvatar(child: Text(category?.icon ?? '📦')),
+                leading: CircleAvatar(
+                  backgroundColor: categoryTint(category),
+                  child: Text(category?.icon ?? '📦'),
+                ),
                 title: Text(tx.label(category, l10n)),
                 subtitle: Text(
                   provider.isUpcoming(tx)

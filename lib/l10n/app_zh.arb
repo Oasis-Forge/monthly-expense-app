@@ -148,6 +148,8 @@
   "budgetSaveFailed": "无法保存该预算，请重试。",
   "budgetSpentOfLimit": "{spent} / {limit}",
   "budgetLeftPerDay": "剩余 {remaining} · 每天 {perDay}",
+  "homeSpentPerDay": "已花费 {amount} · 至今每天 {perDay}",
+  "homeSetBudget": "设置每月预算",
   "budgetLeft": "剩余 {remaining}",
   "budgetOverBy": "超支 {amount}",
   "budgetLimitReached": "已达限额",

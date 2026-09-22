@@ -77,9 +77,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                   ),
                   for (final category in archived)
                     ListTile(
-                      leading: Text(
-                        category.icon,
-                        style: const TextStyle(fontSize: 24),
+                      leading: CircleAvatar(
+                        backgroundColor: categoryTint(category),
+                        child: Text(
+                          category.icon,
+                          style: const TextStyle(fontSize: 18),
+                        ),
                       ),
                       title: Text(category.label(l10n)),
                       trailing: TextButton(
@@ -94,9 +97,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           for (var i = 0; i < active.length; i++)
             ListTile(
               key: ValueKey(active[i].id),
-              leading: Text(
-                active[i].icon,
-                style: const TextStyle(fontSize: 24),
+              leading: CircleAvatar(
+                backgroundColor: categoryTint(active[i]),
+                child: Text(
+                  active[i].icon,
+                  style: const TextStyle(fontSize: 18),
+                ),
               ),
               title: Text(active[i].label(l10n)),
               onTap: () => _edit(active[i]),
@@ -153,20 +159,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final provider = context.read<TransactionProvider>();
     final type = _type;
     final taken = _namesInUse(provider, type);
-    final result = await showDialog<(String, String)>(
+    final result = await showDialog<(String, String, int)>(
       context: context,
       builder: (_) => CategoryDialog(takenNames: taken),
     );
     if (result == null || !mounted) return;
-    final (name, icon) = result;
-    await _run(() => provider.addCategory(type: type, name: name, icon: icon));
+    final (name, icon, color) = result;
+    await _run(
+      () => provider.addCategory(
+        type: type,
+        name: name,
+        icon: icon,
+        color: color,
+      ),
+    );
   }
 
   Future<void> _edit(Category category) async {
     final provider = context.read<TransactionProvider>();
     final currentName = category.label(AppLocalizations.of(context));
     final taken = _namesInUse(provider, category.type, except: category.id);
-    final result = await showDialog<(String, String)>(
+    final result = await showDialog<(String, String, int)>(
       context: context,
       builder: (_) => CategoryDialog(
         category: category,
@@ -175,13 +188,14 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       ),
     );
     if (result == null || !mounted) return;
-    final (name, icon) = result;
+    final (name, icon, color) = result;
     await _run(
       () => provider.updateCategory(
         // An unchanged default name stays translated (CAT-1).
         category.copyWith(
           name: name == currentName ? category.name : name,
           icon: icon,
+          color: color,
         ),
       ),
     );
@@ -204,7 +218,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 }
 
-/// Name and icon for a new or edited category; pops `(name, icon)`.
+/// Name, icon and colour for a new or edited category; pops
+/// `(name, icon, color)`.
 class CategoryDialog extends StatefulWidget {
   const CategoryDialog({
     super.key,
@@ -234,6 +249,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.initialName);
   late String _icon = widget.category?.icon ?? _icons.first;
+  late int _color = widget.category?.color ?? categoryPalette.first;
 
   @override
   void dispose() {
@@ -243,7 +259,7 @@ class _CategoryDialogState extends State<CategoryDialog> {
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.of(context).pop((_name.text.trim(), _icon));
+    Navigator.of(context).pop((_name.text.trim(), _icon, _color));
   }
 
   @override
@@ -291,6 +307,31 @@ class _CategoryDialogState extends State<CategoryDialog> {
                         selected: icon == _icon,
                         showCheckmark: false,
                         onSelected: (_) => setState(() => _icon = icon),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // The sixteen the app offers, and only those, so every
+                // category stays legible against white (CAT-6).
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final color in categoryPalette)
+                      InkWell(
+                        onTap: () => setState(() => _color = color),
+                        customBorder: const CircleBorder(),
+                        child: CircleAvatar(
+                          radius: 16,
+                          backgroundColor: Color(color),
+                          child: color == _color
+                              ? const Icon(
+                                  Icons.check,
+                                  size: 18,
+                                  color: Colors.white,
+                                )
+                              : null,
+                        ),
                       ),
                   ],
                 ),

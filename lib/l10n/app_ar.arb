@@ -148,6 +148,8 @@
   "budgetSaveFailed": "تعذّر حفظ الميزانية. حاول مرة أخرى.",
   "budgetSpentOfLimit": "{spent} من {limit}",
   "budgetLeftPerDay": "المتبقي {remaining} · {perDay} يوميًا",
+  "homeSpentPerDay": "أُنفق {amount} · {perDay} يوميًا حتى الآن",
+  "homeSetBudget": "حدد ميزانية شهرية",
   "budgetLeft": "المتبقي {remaining}",
   "budgetOverBy": "تجاوز بمقدار {amount}",
   "budgetLimitReached": "تم بلوغ الحد",

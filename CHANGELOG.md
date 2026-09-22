@@ -1,8 +1,17 @@
 # Changelog
 
-Notable changes per release. Versions follow [Semantic Versioning](https://semver.org) and match `pubspec.yaml` and the `vX.Y.Z` git tags. Every merged PR is a release (see `docs/RELEASING.md`).
+Notable changes per release. Versions follow [Semantic Versioning](https://semver.org) and match `pubspec.yaml`. Every merged PR is a release (see `docs/RELEASING.md`).
 
 ## [Unreleased]
+
+## [1.22.0] - 2026-09-22
+
+### Added
+- Every category now has a colour of its own, one of sixteen you pick in the category editor. The spending chart, the list beside it and every row that shows a category all use it, so a category is recognised before it is read — and it keeps that colour whether or not it was your biggest expense this month.
+- The top of Home now leads with the number you open the app for. With a monthly budget it is what is left to spend and what that comes to a day; without one it is what you have spent so far and what that has come to a day, with a way to set a budget that starts from what you spent last month.
+
+### Fixed
+- If you had bought "Remove ads", the app could still start the ad service for a moment when it launched, and the first time it could ask you to agree to ads you were never going to see. It now waits to hear from the store before anything starts.
 
 ## [1.21.0] - 2026-09-20
 

@@ -148,6 +148,8 @@
   "budgetSaveFailed": "Anggaran gagal disimpan. Coba lagi.",
   "budgetSpentOfLimit": "{spent} dari {limit}",
   "budgetLeftPerDay": "Sisa {remaining} · {perDay} per hari",
+  "homeSpentPerDay": "Terpakai {amount} · {perDay} per hari sejauh ini",
+  "homeSetBudget": "Atur anggaran bulanan",
   "budgetLeft": "Sisa {remaining}",
   "budgetOverBy": "Kelebihan {amount}",
   "budgetLimitReached": "Batas tercapai",

@@ -83,7 +83,10 @@ class _TrashedTransaction extends StatelessWidget {
     final provider = context.read<TransactionProvider>();
     final category = provider.categoryById(transaction.categoryId);
     return ListTile(
-      leading: CircleAvatar(child: Text(category?.icon ?? '📦')),
+      leading: CircleAvatar(
+        backgroundColor: categoryTint(category),
+        child: Text(category?.icon ?? '📦'),
+      ),
       title: Text(transaction.label(category, l10n)),
       subtitle: Text(
         l10n.trashItemSubtitle(

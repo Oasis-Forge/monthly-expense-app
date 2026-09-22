@@ -527,6 +527,14 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String homeSpentPerDay(String amount, String perDay) {
+    return '$amount खर्च · अब तक $perDay/दिन';
+  }
+
+  @override
+  String get homeSetBudget => 'मासिक बजट सेट करें';
+
+  @override
   String budgetLeft(String remaining) {
     return '$remaining बचे';
   }

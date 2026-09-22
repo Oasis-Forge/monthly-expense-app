@@ -5,6 +5,7 @@ import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/db/db_helper.dart';
+import 'package:monthly_expense_app/db/migrations.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
@@ -414,9 +415,12 @@ void main() {
 
     test('a database from before the step upgrades and keeps rows', () async {
       final steps = DBHelper.schemaMigrations;
+      // Everything before the attachments step, named rather than counted
+      // back from the end: appending a later step must not quietly turn this
+      // into a test of that one instead.
       final before = helperAt(
         'upgraded.db',
-        steps.sublist(0, steps.length - 1),
+        steps.sublist(0, steps.indexOf(migrateToVersion9)),
       );
       // The old schema has no attachment columns: write the row the way
       // that version would have.
@@ -436,6 +440,95 @@ void main() {
       await upgraded.updateTransaction(stored.copyWith(photoFile: 'a.jpg'));
 
       expect((await upgraded.fetchTransactions()).single.photoFile, 'a.jpg');
+    });
+
+    test('the colour step leaves no category without one (CAT-6)', () async {
+      final steps = DBHelper.schemaMigrations;
+      final before = helperAt(
+        'colours.db',
+        steps.sublist(0, steps.indexOf(migrateToVersion10)),
+      );
+      await before.database;
+      await before.close();
+
+      final upgraded = helperAt('colours.db');
+      final categories = await upgraded.fetchCategories();
+
+      expect(categories, isNotEmpty);
+      expect(categories.where((c) => c.color == null), isEmpty);
+      // Only colours the app itself offers, so an upgraded database and a
+      // fresh one are picking from the same sixteen.
+      expect(
+        categories.where((c) => !categoryPalette.contains(c.color)),
+        isEmpty,
+      );
+      // Handed out in palette order, so the first screenful is not one
+      // colour repeated.
+      expect(categories.first.color, isNot(categories[1].color));
+    });
+
+    test('the colour step leaves everything else alone (CAT-6)', () async {
+      final steps = DBHelper.schemaMigrations;
+      final before = helperAt(
+        'keeps.db',
+        steps.sublist(0, steps.indexOf(migrateToVersion10)),
+      );
+      final made = DateTime.utc(2026, 9, 1);
+      // A category the user made and named themselves, with spending on it —
+      // an app that updates finds exactly this and must not disturb it.
+      final old = await before.database;
+      await old.insert('categories', {
+        'id': 'cat-coffee',
+        'type': 'expense',
+        'name': 'Coffee',
+        'icon': '☕',
+        'sort_order': 42,
+        'created_at': made.toIso8601String(),
+        'updated_at': made.toIso8601String(),
+      });
+      await before.insertTransaction(
+        testTx('t', expense, 7, DateTime(2026, 9, 2), categoryId: 'cat-coffee'),
+      );
+      final countBefore = (await before.fetchCategories()).length;
+      await before.close();
+
+      final upgraded = helperAt('keeps.db');
+      final categories = await upgraded.fetchCategories();
+      final coffee = categories.firstWhere((c) => c.id == 'cat-coffee');
+
+      expect(categories, hasLength(countBefore));
+      expect(coffee.name, 'Coffee');
+      expect(coffee.icon, '☕');
+      expect(coffee.sortOrder, 42);
+      expect(coffee.createdAt, made);
+      expect(coffee.color, isNotNull);
+      // And what was spent on it still points at it.
+      final stored = (await upgraded.fetchTransactions()).single;
+      expect(stored.categoryId, 'cat-coffee');
+      expect(stored.amount, const Money(7000));
+    });
+
+    test('a category keeps the colour it was given (CAT-6)', () async {
+      final helper = helperAt('app.db');
+      final now = DateTime.utc(2026, 9, 22);
+
+      await helper.insertCategory(
+        Category(
+          id: 'cat-coffee',
+          type: expense,
+          name: 'Coffee',
+          icon: '☕',
+          color: categoryPalette[3],
+          sortOrder: 99,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+
+      final stored = (await helper.fetchCategories()).firstWhere(
+        (c) => c.id == 'cat-coffee',
+      );
+      expect(stored.color, categoryPalette[3]);
     });
 
     test('purging old trash hands back only its own files', () async {

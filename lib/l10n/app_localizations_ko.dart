@@ -521,6 +521,14 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String homeSpentPerDay(String amount, String perDay) {
+    return '지금까지 $amount 지출 · 하루 $perDay';
+  }
+
+  @override
+  String get homeSetBudget => '월별 예산 설정';
+
+  @override
   String budgetLeft(String remaining) {
     return '$remaining 남음';
   }

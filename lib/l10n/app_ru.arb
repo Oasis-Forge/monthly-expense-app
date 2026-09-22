@@ -148,6 +148,8 @@
   "budgetSaveFailed": "Не удалось сохранить бюджет. Попробуйте ещё раз.",
   "budgetSpentOfLimit": "{spent} из {limit}",
   "budgetLeftPerDay": "Осталось {remaining} · {perDay} в день",
+  "homeSpentPerDay": "Потрачено {amount} · {perDay} в день пока",
+  "homeSetBudget": "Задать месячный бюджет",
   "budgetLeft": "Осталось {remaining}",
   "budgetOverBy": "Превышение на {amount}",
   "budgetLimitReached": "Лимит достигнут",

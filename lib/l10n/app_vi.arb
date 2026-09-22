@@ -148,6 +148,8 @@
   "budgetSaveFailed": "Không thể lưu ngân sách. Vui lòng thử lại.",
   "budgetSpentOfLimit": "{spent} trên {limit}",
   "budgetLeftPerDay": "Còn {remaining} · {perDay} mỗi ngày",
+  "homeSpentPerDay": "Đã chi {amount} · {perDay} mỗi ngày cho đến nay",
+  "homeSetBudget": "Đặt ngân sách hàng tháng",
   "budgetLeft": "Còn {remaining}",
   "budgetOverBy": "Vượt {amount}",
   "budgetLimitReached": "Đã đạt hạn mức",
