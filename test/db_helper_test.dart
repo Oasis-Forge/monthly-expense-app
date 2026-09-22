@@ -467,6 +467,47 @@ void main() {
       expect(categories.first.color, isNot(categories[1].color));
     });
 
+    test('the colour step leaves everything else alone (CAT-6)', () async {
+      final steps = DBHelper.schemaMigrations;
+      final before = helperAt(
+        'keeps.db',
+        steps.sublist(0, steps.indexOf(migrateToVersion10)),
+      );
+      final made = DateTime.utc(2026, 9, 1);
+      // A category the user made and named themselves, with spending on it —
+      // an app that updates finds exactly this and must not disturb it.
+      final old = await before.database;
+      await old.insert('categories', {
+        'id': 'cat-coffee',
+        'type': 'expense',
+        'name': 'Coffee',
+        'icon': '☕',
+        'sort_order': 42,
+        'created_at': made.toIso8601String(),
+        'updated_at': made.toIso8601String(),
+      });
+      await before.insertTransaction(
+        testTx('t', expense, 7, DateTime(2026, 9, 2), categoryId: 'cat-coffee'),
+      );
+      final countBefore = (await before.fetchCategories()).length;
+      await before.close();
+
+      final upgraded = helperAt('keeps.db');
+      final categories = await upgraded.fetchCategories();
+      final coffee = categories.firstWhere((c) => c.id == 'cat-coffee');
+
+      expect(categories, hasLength(countBefore));
+      expect(coffee.name, 'Coffee');
+      expect(coffee.icon, '☕');
+      expect(coffee.sortOrder, 42);
+      expect(coffee.createdAt, made);
+      expect(coffee.color, isNotNull);
+      // And what was spent on it still points at it.
+      final stored = (await upgraded.fetchTransactions()).single;
+      expect(stored.categoryId, 'cat-coffee');
+      expect(stored.amount, const Money(7000));
+    });
+
     test('a category keeps the colour it was given (CAT-6)', () async {
       final helper = helperAt('app.db');
       final now = DateTime.utc(2026, 9, 22);

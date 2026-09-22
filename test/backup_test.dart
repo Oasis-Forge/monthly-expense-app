@@ -271,6 +271,40 @@ void main() {
     );
   });
 
+  test('a backup from before colours comes back with them (CAT-6)', () async {
+    final service = testBackupService(helperAt('app.db'));
+
+    final restored = await service.read(
+      encode(
+        BackupData(
+          // The schema as 1.21.0 wrote it: categories, but no colour column.
+          schemaVersion: 9,
+          createdAt: DateTime.utc(2026, 9),
+          tables: {
+            'categories': [
+              Category(
+                id: 'cat-coffee',
+                type: expense,
+                name: 'Coffee',
+                icon: '☕',
+                sortOrder: 0,
+                createdAt: DateTime.utc(2026),
+                updatedAt: DateTime.utc(2026),
+              ).toMap()..remove('color'),
+            ],
+          },
+        ),
+      ),
+    );
+
+    final categories = restored.tables['categories']!;
+    expect(categories, hasLength(1));
+    // The user's own name and icon survive, and the step fills the colour in.
+    expect(categories.single['name'], 'Coffee');
+    expect(categories.single['icon'], '☕');
+    expect(categories.single['color'], isNotNull);
+  });
+
   test('a newer backup is refused; an older one is migrated (BAK-4)', () async {
     final service = testBackupService(helperAt('app.db'));
     final current = DBHelper().version;
