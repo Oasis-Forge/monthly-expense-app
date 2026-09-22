@@ -884,6 +884,7 @@ class TransactionProvider extends ChangeNotifier {
     required TransactionType type,
     required String name,
     required String icon,
+    int? color,
   }) async {
     final now = _clock().toUtc();
     var sortOrder = 0;
@@ -897,6 +898,10 @@ class TransactionProvider extends ChangeNotifier {
       type: type,
       name: name,
       icon: icon,
+      // Carrying on through the palette rather than starting over, so two
+      // categories added one after the other do not look alike (CAT-6).
+      color:
+          color ?? categoryPalette[_categories.length % categoryPalette.length],
       sortOrder: sortOrder,
       createdAt: now,
       updatedAt: now,
@@ -1231,6 +1236,35 @@ class TransactionProvider extends ChangeNotifier {
       ])
         ?statusFor(category.id, byCategory[category.id] ?? Money.zero),
     ];
+  }
+
+  /// The one number the summary card leads with (BAL-8).
+  ///
+  /// Every account, never the chosen one, because it is about the budget and
+  /// a budget counts them all (ACC-7). Home shows it only while every account
+  /// is on screen (BAL-9), so the two never sit side by side.
+  HeroLine get heroLine {
+    final today = _today;
+    final timing = _period.timingOn(today);
+    final start = DateTime.utc(
+      _period.start.year,
+      _period.start.month,
+      _period.start.day,
+    );
+    final daysElapsed = timing == PeriodTiming.current
+        ? DateTime.utc(
+                today.year,
+                today.month,
+                today.day,
+              ).difference(start).inDays +
+              1
+        : 0;
+    return HeroLine.of(
+      overall: budgetStatuses.where((s) => s.categoryId == null).firstOrNull,
+      spent: _everyAccount.expense,
+      daysElapsed: daysElapsed,
+      timing: timing,
+    );
   }
 
   /// The days anything was added on, at midnight local: when the person used

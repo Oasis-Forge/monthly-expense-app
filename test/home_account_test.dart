@@ -268,6 +268,26 @@ void main() {
   });
 
   group('what the choice does not reach', () {
+    testWidgets('the card\'s lead line goes while one account is on (BAL-9)', (
+      tester,
+    ) async {
+      final provider = await loaded(twoAccounts());
+      final settings = await testSettings();
+      await tester.pumpWidget(testApp(provider, settings, const HomeScreen()));
+      await tester.pumpAndSettle();
+      // Every account: the line is there, and so is its offer.
+      expect(find.text('Set a monthly budget'), findsOneWidget);
+
+      provider.selectAccountFilter(bank);
+      await settings.setAccountFilterId(bank);
+      await tester.pumpAndSettle();
+
+      // One account: gone entirely. A budget counts every account (ACC-7),
+      // so the figure would be every account's under a label naming one.
+      expect(find.text('Set a monthly budget'), findsNothing);
+      expect(find.textContaining('a day so far'), findsNothing);
+    });
+
     test('budgets keep measuring every account (ACC-7)', () async {
       // A $50 food budget. All the food spending is on Cash; Bank Card has
       // none of it. Found on the phone: with Bank Card chosen the card read

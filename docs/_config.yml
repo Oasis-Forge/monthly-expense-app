@@ -10,6 +10,7 @@ exclude:
   - PRODUCT_RULES.md
   - RELEASING.md
   - STACK_NOTES.md
+  - GROWTH_PLAN.md
   - research
 
 # Not a Jekyll setting: the list CI checks the folder against.

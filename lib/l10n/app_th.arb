@@ -148,6 +148,8 @@
   "budgetSaveFailed": "บันทึกงบประมาณไม่สำเร็จ ลองอีกครั้ง",
   "budgetSpentOfLimit": "{spent} จาก {limit}",
   "budgetLeftPerDay": "เหลือ {remaining} · วันละ {perDay}",
+  "homeSpentPerDay": "ใช้ไป {amount} · วันละ {perDay} จนถึงตอนนี้",
+  "homeSetBudget": "ตั้งงบประมาณรายเดือน",
   "budgetLeft": "เหลือ {remaining}",
   "budgetOverBy": "เกินวงเงิน {amount}",
   "budgetLimitReached": "ถึงวงเงินแล้ว",

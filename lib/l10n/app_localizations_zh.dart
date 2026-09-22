@@ -521,6 +521,14 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String homeSpentPerDay(String amount, String perDay) {
+    return '已花费 $amount · 至今每天 $perDay';
+  }
+
+  @override
+  String get homeSetBudget => '设置每月预算';
+
+  @override
   String budgetLeft(String remaining) {
     return '剩余 $remaining';
   }

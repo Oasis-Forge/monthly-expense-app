@@ -425,8 +425,23 @@ void main() {
       // the line under it, which stays in Insights.
       expect(find.text('\$12.50 of \$125.00   10%'), findsOneWidget);
       expect(find.text('\$12.50 of \$10.00   125%'), findsOneWidget);
-      expect(find.textContaining('left'), findsNothing);
-      expect(find.textContaining('Over by'), findsNothing);
+      // Inside this card only: the summary card above it leads with exactly
+      // this figure for the overall budget now, which is the one place on
+      // Home BUD-10 lets it appear.
+      expect(
+        find.descendant(
+          of: find.byType(BudgetProgress),
+          matching: find.textContaining('left'),
+        ),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(BudgetProgress),
+          matching: find.textContaining('Over by'),
+        ),
+        findsNothing,
+      );
 
       // The fuller picture: Insights, on the tab that lists the budgets
       // above the spending by category.
@@ -903,6 +918,122 @@ void main() {
       );
       expect(find.text('Lunch'), findsOneWidget);
       expect(provider.transactions, hasLength(2));
+    });
+  });
+
+  group('the line the card leads with (BAL-8, BUD-11)', () {
+    Budget overall(int amount) => Budget(
+      id: 'all',
+      categoryId: null,
+      limit: Money(amount * 1000),
+      effectiveFrom: DateTime(2026, 9),
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+
+    testWidgets('no budget: what has gone, per day, and an offer', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      // Lunch counts, the concert on the 18th does not yet (BAL-4), over the
+      // fifteen days of September so far.
+      expect(find.text('\$12.50 spent · \$0.83 a day so far'), findsOneWidget);
+      expect(find.text('Set a monthly budget'), findsOneWidget);
+    });
+
+    testWidgets('an overall budget: what is left, and no offer', (
+      tester,
+    ) async {
+      fake.budgets.add(overall(125));
+      await provider.load();
+
+      await showHome(tester);
+
+      // $112.50 left over the sixteen days to the end of the period (BUD-3).
+      expect(find.text('\$112.50 left · \$7.03 a day'), findsOneWidget);
+      expect(find.text('Set a monthly budget'), findsNothing);
+    });
+
+    testWidgets('past the limit it says how much over, not a share', (
+      tester,
+    ) async {
+      fake.budgets.add(overall(10));
+      await provider.load();
+
+      await showHome(tester);
+
+      expect(
+        find.descendant(
+          of: find.byType(Card),
+          matching: find.text('Over by \$2.50'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('it stays on the one line the card collapses to', (
+      tester,
+    ) async {
+      fake.budgets.add(overall(125));
+      await provider.load();
+      await showHome(tester);
+
+      await tester.tap(find.text('Balance'));
+      await tester.pumpAndSettle();
+
+      // The card is one line now, and the number is still on it: this is the
+      // state a scroll leaves Home in (BAL-7).
+      expect(find.text('Income'), findsNothing);
+      expect(find.text('\$112.50 left · \$7.03 a day'), findsOneWidget);
+    });
+
+    testWidgets('the offer opens the overall budget, not a fold', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.text('Set a monthly budget'));
+      await tester.pumpAndSettle();
+
+      // Its own target: the card's own tap would only have folded it (BAL-6).
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Overall'), findsOneWidget);
+      expect(find.text('Income'), findsOneWidget);
+    });
+
+    testWidgets('setting one from the offer turns the line around', (
+      tester,
+    ) async {
+      await showHome(tester);
+
+      await tester.tap(find.text('Set a monthly budget'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), '125');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      // BUD-5: the budget starts from the current period, and the line is
+      // about what is left from here rather than what has gone.
+      expect(provider.budgetLimit(null), const Money(125000));
+      expect(find.text('Set a monthly budget'), findsNothing);
+      expect(find.text('\$112.50 left · \$7.03 a day'), findsOneWidget);
+    });
+
+    testWidgets('a budget that will not save says so', (tester) async {
+      await showHome(tester);
+      fake.failWrites = true;
+
+      await tester.tap(find.text('Set a monthly budget'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), '125');
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text("Couldn't save the budget. Try again."), findsOneWidget);
+      expect(provider.budgetLimit(null), isNull);
+      // Still on offer, since there is still no budget.
+      expect(find.text('Set a monthly budget'), findsOneWidget);
     });
   });
 

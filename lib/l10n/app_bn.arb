@@ -148,6 +148,8 @@
   "budgetSaveFailed": "বাজেট সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
   "budgetSpentOfLimit": "{limit}-এর মধ্যে {spent}",
   "budgetLeftPerDay": "{remaining} বাকি · দিনে {perDay}",
+  "homeSpentPerDay": "{amount} খরচ · দিনে {perDay} এখন পর্যন্ত",
+  "homeSetBudget": "মাসিক বাজেট নির্ধারণ করুন",
   "budgetLeft": "{remaining} বাকি",
   "budgetOverBy": "{amount} বেশি খরচ",
   "budgetLimitReached": "সীমা শেষ",

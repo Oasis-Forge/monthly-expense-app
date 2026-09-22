@@ -72,7 +72,24 @@ class FakeStore implements InAppPurchase {
   Future<void> restorePurchases({String? applicationUserName}) async {
     if (restoreThrows != null) throw restoreThrows!;
     restores++;
+    // What the real Android plugin does: the query's own result goes to the
+    // stream once the query has come back, and an account that owns nothing
+    // gets an empty list rather than silence.
+    //
+    // On the event queue, not in this microtask: on a device the answer comes
+    // back over its own platform-channel message, a turn or more after this
+    // call returns. Adding it here instead would let a single `await` on
+    // `start()` collect it, and no test could tell the two orderings apart.
+    if (!answersRestores) return;
+    unawaited(Future(() => _updates.add([...owned])));
   }
+
+  /// What `restorePurchases` reports as already owned.
+  List<PurchaseDetails> owned = const [];
+
+  /// False for a store that takes the question and never answers it — iOS
+  /// with nothing to restore, or an outage.
+  bool answersRestores = true;
 
   @override
   Future<void> completePurchase(PurchaseDetails purchase) async =>
@@ -146,6 +163,66 @@ void main() {
       expect(service.price, 'US\$2.99');
       // What this account already owns is asked for at every launch.
       expect(store.restores, 1);
+    });
+
+    test(
+      'start knows what is owned before it returns (ADS-8, PAY-1)',
+      () async {
+        final store = FakeStore()..owned = [purchase(PurchaseStatus.restored)];
+        final service = DevicePurchaseService(store: store);
+
+        await service.start();
+
+        // The receipt lands on the stream a turn after restorePurchases
+        // returns. Until this was waited for, start() handed back "nothing is
+        // owned", and AdsProvider took it at its word: the SDK started and a
+        // paying user was asked for consent to ads they will never see.
+        expect(service.stage, PurchaseStage.owned);
+        expect(service.adsRemoved, isTrue);
+      },
+    );
+
+    test('owning nothing is an answer, not a silence (ADS-4)', () async {
+      final store = FakeStore();
+      final service = DevicePurchaseService(
+        store: store,
+        // Long enough that the test would time out if the empty list the
+        // store sends back were not treated as the answer it is.
+        answerGrace: const Duration(seconds: 30),
+      );
+
+      await service.start();
+
+      expect(service.stage, PurchaseStage.offered);
+      expect(service.adsRemoved, isFalse);
+    });
+
+    test('a store that answers with silence lets go (ADS-4)', () async {
+      final store = FakeStore()..answersRestores = false;
+      final service = DevicePurchaseService(
+        store: store,
+        answerGrace: const Duration(milliseconds: 20),
+      );
+
+      await service.start();
+
+      // Failing open: the free users the banners exist for are not made to
+      // wait out an outage.
+      expect(service.stage, PurchaseStage.offered);
+      expect(service.adsRemoved, isFalse);
+    });
+
+    test('a store that refuses the question is not fatal', () async {
+      final store = FakeStore()..restoreThrows = Exception('store is down');
+      final service = DevicePurchaseService(
+        store: store,
+        answerGrace: const Duration(milliseconds: 20),
+      );
+
+      await service.start();
+
+      expect(service.stage, PurchaseStage.offered);
+      expect(service.lastError, contains('store is down'));
     });
   });
 

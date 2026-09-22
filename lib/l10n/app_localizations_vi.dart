@@ -527,6 +527,14 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String homeSpentPerDay(String amount, String perDay) {
+    return 'Đã chi $amount · $perDay mỗi ngày cho đến nay';
+  }
+
+  @override
+  String get homeSetBudget => 'Đặt ngân sách hàng tháng';
+
+  @override
   String budgetLeft(String remaining) {
     return 'Còn $remaining';
   }

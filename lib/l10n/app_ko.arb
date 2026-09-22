@@ -148,6 +148,8 @@
   "budgetSaveFailed": "예산을 저장하지 못했어요. 다시 시도해 주세요.",
   "budgetSpentOfLimit": "{limit} 중 {spent}",
   "budgetLeftPerDay": "{remaining} 남음 · 하루 {perDay}",
+  "homeSpentPerDay": "지금까지 {amount} 지출 · 하루 {perDay}",
+  "homeSetBudget": "월별 예산 설정",
   "budgetLeft": "{remaining} 남음",
   "budgetOverBy": "{amount} 초과",
   "budgetLimitReached": "한도 도달",

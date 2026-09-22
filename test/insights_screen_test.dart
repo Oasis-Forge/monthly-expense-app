@@ -1,3 +1,5 @@
+import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
@@ -81,6 +83,42 @@ void main() {
       expect(find.text('September 2026'), findsOneWidget);
       expect(find.text('No expenses in this period yet.'), findsOneWidget);
       expect(find.text('Budgets'), findsNothing);
+    });
+
+    testWidgets('a slice takes its category\'s colour, not its rank (CAT-6)', (
+      tester,
+    ) async {
+      // Rent outspends food, so the ranking and the category order disagree.
+      // That is the whole of it: the colour used to come from the position in
+      // this sorted list, so a category changed colour when its month did.
+      await showInsights(tester, [
+        testTx('f', expense, 10, DateTime(2026, 9, 5)),
+        testTx('r', expense, 30, DateTime(2026, 9, 6), categoryId: 'cat-rent'),
+      ]);
+
+      final byId = {for (final c in testCategories()) c.id: c};
+      final sections = tester
+          .widget<PieChart>(find.byType(PieChart))
+          .data
+          .sections;
+
+      expect(sections, hasLength(2));
+      expect(sections.first.color, Color(byId['cat-rent']!.color!));
+      expect(sections[1].color, Color(byId['cat-food']!.color!));
+
+      // And the legend below reads the same colours in the same order, so the
+      // chart and its key cannot drift apart.
+      final circles = tester
+          .widgetList<CircleAvatar>(
+            find.descendant(
+              of: find.byType(ListTile, skipOffstage: false),
+              matching: find.byType(CircleAvatar, skipOffstage: false),
+            ),
+          )
+          .toList();
+      expect(circles, hasLength(2));
+      expect(circles.first.backgroundColor, sections.first.color);
+      expect(circles[1].backgroundColor, sections[1].color);
     });
 
     testWidgets('lists spending by category with the total', (tester) async {

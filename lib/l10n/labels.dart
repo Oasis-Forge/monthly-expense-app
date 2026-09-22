@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart' show IconData, Icons, TextDirection;
+import 'package:flutter/material.dart'
+    show Color, IconData, Icons, TextDirection;
 import 'package:intl/intl.dart' show DateFormat;
 
 import '../models/account.dart';
@@ -29,6 +30,32 @@ extension CategoryLabel on Category {
         _ => l10n.categoryOther,
       };
 }
+
+extension CategoryColor on Category {
+  /// The category's own colour (CAT-6). It belongs to the category, not to
+  /// its place in a list, so a category keeps it however the month turns out.
+  ///
+  /// A category made before colours existed, or restored from an older
+  /// backup, falls back to a palette entry picked by its position in the
+  /// list — stable for that category, and never nothing.
+  Color get swatch =>
+      Color(color ?? categoryPalette[sortOrder.abs() % categoryPalette.length]);
+}
+
+/// The colour to draw for a category that is no longer there. A transaction
+/// keeps its category id after the category is deleted (CAT-4), so this is
+/// the counterpart of the '📦' the screens already fall back to.
+const deletedCategorySwatch = Color(0xFF90A4AE);
+
+/// [Category.swatch], or [deletedCategorySwatch] when the category is gone.
+Color categorySwatch(Category? category) =>
+    category?.swatch ?? deletedCategorySwatch;
+
+/// The circle behind a category's icon in a list (CAT-6). The colour is the
+/// category's own, kept faint: a row is read for its title and its amount,
+/// and sixteen solid discs down the screen would drown both.
+Color categoryTint(Category? category) =>
+    categorySwatch(category).withValues(alpha: 0.18);
 
 extension AccountLabel on Account {
   /// The user's name for the account, or the translated default (ACC-2).

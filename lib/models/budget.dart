@@ -189,3 +189,79 @@ class BudgetSummary {
   final int count;
   final PeriodTiming timing;
 }
+
+/// Which of the four things the summary card on Home is leading with (BAL-8).
+enum HeroLineKind {
+  /// An overall budget, still inside it: what is left, and what that is a day.
+  leftToSpend,
+
+  /// An overall budget with nothing left in it, exactly (BUD-4).
+  limitReached,
+
+  /// An overall budget, past it: how much over (BUD-3).
+  overBudget,
+
+  /// No overall budget, in the current period: what has gone so far, and what
+  /// that has come to a day.
+  spentSoFar,
+
+  /// A period that has ended or has not begun, where there is no allowance to
+  /// work out and no day to divide by (BUD-6).
+  spentTotal,
+}
+
+/// The one number the summary card on Home leads with (BAL-8).
+///
+/// A value, decided from the period alone, so that what the card says can be
+/// tested without a card.
+class HeroLine {
+  const HeroLine({required this.kind, required this.amount, this.perDay});
+
+  final HeroLineKind kind;
+
+  /// What is left, what is over, or what was spent — whichever [kind] says.
+  final Money amount;
+
+  /// The figure beside it, or null for a period that cannot give one.
+  final Money? perDay;
+
+  /// The line for a period.
+  ///
+  /// [overall] is the overall budget's status (BUD-1), or null when none is
+  /// set. [spent] is the period's spending across every account, because a
+  /// budget counts every account (ACC-7). [daysElapsed] counts today.
+  static HeroLine of({
+    required BudgetStatus? overall,
+    required Money spent,
+    required int daysElapsed,
+    required PeriodTiming timing,
+  }) {
+    if (overall != null) {
+      final remaining = overall.remaining;
+      if (remaining.isNegative) {
+        return HeroLine(kind: HeroLineKind.overBudget, amount: -remaining);
+      }
+      final perDay = overall.perDayAllowance;
+      // No allowance to give: either the limit is exactly met, or the period
+      // is not the one running (BUD-3, BUD-6).
+      if (perDay == null) {
+        return remaining.isPositive
+            ? HeroLine(kind: HeroLineKind.spentTotal, amount: overall.spent)
+            : HeroLine(kind: HeroLineKind.limitReached, amount: overall.limit);
+      }
+      return HeroLine(
+        kind: HeroLineKind.leftToSpend,
+        amount: remaining,
+        perDay: perDay,
+      );
+    }
+    if (timing != PeriodTiming.current || daysElapsed <= 0) {
+      return HeroLine(kind: HeroLineKind.spentTotal, amount: spent);
+    }
+    return HeroLine(
+      kind: HeroLineKind.spentSoFar,
+      amount: spent,
+      perDay: Money(spent.thousandths ~/ daysElapsed),
+    );
+  }
+}

@@ -140,6 +140,9 @@ List<Category> testCategories() {
         type: defaults[i].$2,
         defaultKey: defaults[i].$3,
         icon: defaults[i].$4,
+        // As the schema step hands them out, so a category's colour and its
+        // place in the list are two different things in tests too (CAT-6).
+        color: categoryPalette[i],
         sortOrder: i,
         createdAt: _created,
         updatedAt: _created,
@@ -748,7 +751,14 @@ class FakePurchases extends PurchaseService {
     this.stage = PurchaseStage.unavailable,
     this.price,
     this.error,
+    this.owns = false,
   });
+
+  /// What the store turns out to know once it is actually asked: [start]
+  /// settles to owned before it returns, which is the only ordering a device
+  /// ever produces — a receipt is never in hand before the store answers
+  /// (PAY-5). Being born owned is the ordering no device has.
+  bool owns;
 
   @override
   PurchaseStage stage;
@@ -774,7 +784,12 @@ class FakePurchases extends PurchaseService {
   }
 
   @override
-  Future<void> start() async => started = true;
+  Future<void> start() async {
+    started = true;
+    // The contract on PurchaseService.start: it does not return until the
+    // store has answered (ADS-8).
+    if (owns) settle(PurchaseStage.owned);
+  }
 
   @override
   Future<void> buy() async => buys++;

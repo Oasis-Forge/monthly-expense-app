@@ -235,6 +235,32 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPickAccount: provider.activeAccounts.length < 2
                           ? null
                           : () => pickAccountFilter(context),
+                      // BAL-8: the number the app is opened to check. BAL-9:
+                      // nothing at all while one account is chosen, since a
+                      // budget counts every account (ACC-7) and the card is
+                      // naming one.
+                      heroLine: chosenAccount == null
+                          ? provider.heroLine
+                          : null,
+                      // BUD-11: offered only when there is no overall budget
+                      // to lead with, prefilled from the period before the
+                      // one on screen so the first budget is a correction.
+                      onSetBudget:
+                          chosenAccount == null &&
+                              provider.budgetLimit(null) == null
+                          ? () {
+                              final last = provider.trend(2).first.expense;
+                              // Nothing spent last period is nothing to learn
+                              // from: an empty box beats a prefilled zero,
+                              // which reads like a budget of none.
+                              unawaited(
+                                showOverallBudgetDialog(
+                                  context,
+                                  prefill: last.isPositive ? last : null,
+                                ),
+                              );
+                            }
+                          : null,
                       scale: MediaQuery.textScalerOf(context)
                           .scale(1)
                           .clamp(1.0, 1.4),
@@ -693,6 +719,8 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
     required this.scale,
     required this.accountName,
     required this.onPickAccount,
+    required this.heroLine,
+    required this.onSetBudget,
   });
 
   final Money income;
@@ -713,6 +741,14 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
   /// cannot act on (ACC-6). The slot stays, keeping the label centred.
   final VoidCallback? onPickAccount;
 
+  /// The number the card leads with, or null while one account is chosen
+  /// (BAL-8, BAL-9).
+  final HeroLine? heroLine;
+
+  /// Set only when there is no overall budget to lead with, in which case the
+  /// line offers to set one (BUD-11).
+  final VoidCallback? onSetBudget;
+
   /// The text scale, so bigger text gets a taller header rather than a
   /// clipped one (LANG-4).
   final double scale;
@@ -725,12 +761,20 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
   static const _line = 60.0;
   static const _card = 176.0;
 
-  @override
-  double get minExtent => _line * scale;
+  /// What the lead line adds to both states when there is one (BAL-8). It is
+  /// a known input rather than something measured, so the extents stay the
+  /// constants this delegate needs them to be.
+  static const _hero = 22.0;
+
+  double get _heroRoom => heroLine == null ? 0 : _hero;
 
   @override
-  double get maxExtent =>
-      collapsedByHand ? minExtent : _card * (1 + (scale - 1) * 1.7);
+  double get minExtent => (_line + _heroRoom) * scale;
+
+  @override
+  double get maxExtent => collapsedByHand
+      ? minExtent
+      : (_card + _heroRoom) * (1 + (scale - 1) * 1.7);
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlaps) {
@@ -756,6 +800,8 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
             onToggle: onToggle,
             accountName: accountName,
             onPickAccount: onPickAccount,
+            heroLine: heroLine,
+            onSetBudget: onSetBudget,
           ),
         ),
       ),
@@ -770,6 +816,12 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
       old.carriedForward != carriedForward ||
       old.collapsedByHand != collapsedByHand ||
       old.accountName != accountName ||
+      // BAL-8: without these two the lead line would render once and then
+      // never move again, with nothing to say so.
+      old.heroLine?.kind != heroLine?.kind ||
+      old.heroLine?.amount != heroLine?.amount ||
+      old.heroLine?.perDay != heroLine?.perDay ||
+      (old.onSetBudget == null) != (onSetBudget == null) ||
       old.scale != scale;
 }
 
@@ -805,13 +857,23 @@ class _SummaryCard extends StatelessWidget {
     required this.onToggle,
     required this.accountName,
     required this.onPickAccount,
+    required this.heroLine,
+    required this.onSetBudget,
   });
+
+  /// The number the card leads with (BAL-8), or null while one account is
+  /// chosen (BAL-9).
+  final HeroLine? heroLine;
+
+  /// Offers to set the first overall budget when there is none (BUD-11).
+  final VoidCallback? onSetBudget;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final carried = carriedForward;
+    final hero = heroLine;
     // ACC-6: one account's name replaces the label rather than joining it, so
     // the card is no taller and no text is pieced together (LANG-2).
     final label =
@@ -827,53 +889,68 @@ class _SummaryCard extends StatelessWidget {
         onTap: onToggle,
         child: collapsed
             ? Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
-                child: Row(
+                padding: const EdgeInsetsDirectional.fromSTEB(16, 8, 8, 8),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ACC-6: the way back to every account, on the one line
-                    // too. This is the state a scroll leaves Home in, and the
-                    // state it opens in when that is how it was left (BAL-6),
-                    // so it is where the way out matters most. With every
-                    // account showing there is nothing to say and nothing is
-                    // shown, exactly as on Insights' banner.
-                    if (accountName != null && onPickAccount != null) ...[
-                      InkWell(
-                        onTap: onPickAccount,
-                        customBorder: const CircleBorder(),
-                        child: Icon(
-                          Icons.account_balance_wallet_outlined,
-                          size: 20,
-                          semanticLabel: l10n.accountLabel,
+                    Row(
+                      children: [
+                        // ACC-6: the way back to every account, on the one line
+                        // too. This is the state a scroll leaves Home in, and the
+                        // state it opens in when that is how it was left (BAL-6),
+                        // so it is where the way out matters most. With every
+                        // account showing there is nothing to say and nothing is
+                        // shown, exactly as on Insights' banner.
+                        if (accountName != null && onPickAccount != null) ...[
+                          InkWell(
+                            onTap: onPickAccount,
+                            customBorder: const CircleBorder(),
+                            child: Icon(
+                              Icons.account_balance_wallet_outlined,
+                              size: 20,
+                              semanticLabel: l10n.accountLabel,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        // The balance is laid out first and keeps the room it
+                        // needs in any language; the label takes what is left and
+                        // gives way with an ellipsis, since an account's name is
+                        // the user's own words (LANG-4). Two flexible children
+                        // would split the row between them instead and leave a
+                        // hole after the chevron.
+                        Expanded(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    // The balance is laid out first and keeps the room it
-                    // needs in any language; the label takes what is left and
-                    // gives way with an ellipsis, since an account's name is
-                    // the user's own words (LANG-4). Two flexible children
-                    // would split the row between them instead and leave a
-                    // hole after the chevron.
-                    Expanded(
-                      child: Text(
-                        label,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                        const SizedBox(width: 12),
+                        Text(
+                          currency.format(balance.toDouble()),
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: amountColor,
+                          ),
+                        ),
+                        Icon(
+                          Icons.expand_more,
+                          semanticLabel: l10n.expandSummaryTooltip,
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      currency.format(balance.toDouble()),
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: amountColor,
+                    // BAL-8: it is on the one line too, because this is the
+                    // state a scroll leaves Home in and the state most people
+                    // see most of the time.
+                    if (hero != null)
+                      _HeroLine(
+                        line: hero,
+                        currency: currency,
+                        onSetBudget: onSetBudget,
                       ),
-                    ),
-                    Icon(
-                      Icons.expand_more,
-                      semanticLabel: l10n.expandSummaryTooltip,
-                    ),
                   ],
                 ),
               )
@@ -934,6 +1011,14 @@ class _SummaryCard extends StatelessWidget {
                           style: theme.textTheme.bodySmall,
                         ),
                       ),
+                    // BAL-8: under the balance, where the eye already is.
+                    if (hero != null)
+                      _HeroLine(
+                        line: hero,
+                        currency: currency,
+                        onSetBudget: onSetBudget,
+                        center: true,
+                      ),
                     const SizedBox(height: 12),
                     // Each side gets half the card, so long labels and large
                     // amounts fit at any text size and in every language
@@ -969,6 +1054,91 @@ class _SummaryCard extends StatelessWidget {
                 ),
               ),
       ),
+    );
+  }
+}
+
+/// The one number the summary card leads with and, when there is no budget to
+/// lead with, the offer to set one (BAL-8, BUD-11).
+class _HeroLine extends StatelessWidget {
+  const _HeroLine({
+    required this.line,
+    required this.currency,
+    required this.onSetBudget,
+    this.center = false,
+  });
+
+  final HeroLine line;
+  final NumberFormat currency;
+  final VoidCallback? onSetBudget;
+
+  /// The opened card centres its column; the one line reads from the start.
+  final bool center;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    String money(Money amount) => currency.format(amount.toDouble());
+    final perDay = line.perDay;
+    final text = switch (line.kind) {
+      HeroLineKind.leftToSpend => l10n.budgetLeftPerDay(
+        money(line.amount),
+        money(perDay!),
+      ),
+      HeroLineKind.limitReached => l10n.budgetLimitReached,
+      HeroLineKind.overBudget => l10n.budgetOverBy(money(line.amount)),
+      HeroLineKind.spentSoFar => l10n.homeSpentPerDay(
+        money(line.amount),
+        money(perDay!),
+      ),
+      HeroLineKind.spentTotal => l10n.totalSpent(money(line.amount)),
+    };
+    final over =
+        line.kind == HeroLineKind.overBudget ||
+        line.kind == HeroLineKind.limitReached;
+    final label = Text(
+      text,
+      maxLines: 1,
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: over ? Colors.red : null,
+        fontWeight: over ? FontWeight.bold : null,
+      ),
+    );
+    final setBudget = onSetBudget;
+    // One line in every language, whatever else is on it: a wrapped one would
+    // push the card past the room the header set aside for it, and this line
+    // carries an offer in some languages half again as long as the English
+    // (LANG-4, LANG-6).
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: center
+          ? Alignment.center
+          : AlignmentDirectional.centerStart.resolve(
+              Directionality.of(context),
+            ),
+      child: setBudget == null
+          ? label
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                label,
+                const SizedBox(width: 8),
+                // BUD-11: its own target. The card's own tap folds it away
+                // (BAL-6), so an offer without one would never be taken.
+                InkWell(
+                  onTap: setBudget,
+                  child: Text(
+                    l10n.homeSetBudget,
+                    maxLines: 1,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 }
@@ -1162,8 +1332,12 @@ class _TransactionTile extends StatelessWidget {
         return true;
       },
       child: ListTile(
+        // The category's colour, not the green or red of income and expense
+        // (CAT-6): the amount at the other end of the row already says which
+        // of the two this is, and saying it twice cost the row the one thing
+        // it could not otherwise show.
         leading: CircleAvatar(
-          backgroundColor: color.withValues(alpha: 0.15),
+          backgroundColor: categoryTint(category),
           child: Text(
             category?.icon ?? '📦',
             style: const TextStyle(fontSize: 18),

@@ -148,6 +148,8 @@
   "budgetSaveFailed": "بجٹ محفوظ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
   "budgetSpentOfLimit": "{limit} میں سے {spent}",
   "budgetLeftPerDay": "{remaining} باقی · {perDay} یومیہ",
+  "homeSpentPerDay": "{amount} خرچ ہوئے · اب تک روزانہ {perDay}",
+  "homeSetBudget": "ماہانہ بجٹ مقرر کریں",
   "budgetLeft": "{remaining} باقی",
   "budgetOverBy": "{amount} زیادہ خرچ ہوا",
   "budgetLimitReached": "حد پوری ہو گئی",

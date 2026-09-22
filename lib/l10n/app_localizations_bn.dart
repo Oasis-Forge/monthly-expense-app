@@ -529,6 +529,14 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String homeSpentPerDay(String amount, String perDay) {
+    return '$amount খরচ · দিনে $perDay এখন পর্যন্ত';
+  }
+
+  @override
+  String get homeSetBudget => 'মাসিক বাজেট নির্ধারণ করুন';
+
+  @override
   String budgetLeft(String remaining) {
     return '$remaining বাকি';
   }

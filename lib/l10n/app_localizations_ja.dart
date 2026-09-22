@@ -521,6 +521,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String homeSpentPerDay(String amount, String perDay) {
+    return 'これまでに$amount使用・1日あたり$perDay';
+  }
+
+  @override
+  String get homeSetBudget => '月の予算を設定';
+
+  @override
   String budgetLeft(String remaining) {
     return '残り$remaining';
   }
