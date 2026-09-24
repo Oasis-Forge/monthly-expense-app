@@ -32,6 +32,8 @@ import 'package:monthly_expense_app/services/backup_files.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
 import 'package:monthly_expense_app/services/purchase_service.dart';
 import 'package:monthly_expense_app/services/reminder_service.dart';
+import 'package:monthly_expense_app/services/review_service.dart';
+import 'package:monthly_expense_app/services/shortcut_service.dart';
 
 final _created = DateTime.utc(2026);
 
@@ -810,6 +812,7 @@ Widget testApp(
   AttachmentService? attachments,
   AdService? ads,
   PurchaseService? purchases,
+  ReviewService? reviews,
   ValueListenable<bool>? locked,
 }) {
   return MultiProvider(
@@ -835,6 +838,10 @@ Widget testApp(
       ),
       Provider<AttachmentService>.value(
         value: attachments ?? FakeAttachments(),
+      ),
+      // RATE-5: nothing asks for a rating unless a test says it may.
+      Provider<ReviewService>.value(
+        value: reviews ?? FakeReviews(supported: false),
       ),
     ],
     // Like the app, the language follows the settings (LANG-1).
@@ -1054,4 +1061,49 @@ List<String> captureHaptics() {
     () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
   );
   return asked;
+}
+
+/// The store's rating sheet, counted rather than shown (RATE-2). Unsupported
+/// by default, so a test only meets it when it asks to.
+class FakeReviews implements ReviewService {
+  FakeReviews({this.supported = true, this.appVersion = '1.0.0+1'});
+
+  @override
+  final bool supported;
+
+  /// What [version] answers, which is what "once per version" is counted
+  /// against (RATE-4).
+  final String appVersion;
+
+  /// How many times the sheet was asked for.
+  int asked = 0;
+
+  @override
+  Future<String> version() async => appVersion;
+
+  @override
+  Future<void> ask() async => asked++;
+}
+
+/// The app icon's long-press menu, kept in a list instead of on an icon
+/// (NAV-8).
+class FakeShortcuts implements ShortcutService {
+  FakeShortcuts({this.supported = true});
+
+  @override
+  final bool supported;
+
+  /// The menu as it was last written, newest set only.
+  List<Shortcut> items = const [];
+
+  void Function(String type)? _chosen;
+
+  @override
+  void onSelected(void Function(String type) handler) => _chosen = handler;
+
+  @override
+  Future<void> setItems(List<Shortcut> items) async => this.items = items;
+
+  /// Chooses one of them, as a long press on the icon would.
+  void choose(String type) => _chosen?.call(type);
 }

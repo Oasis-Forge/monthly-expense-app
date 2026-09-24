@@ -84,6 +84,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _nudgeHourKey = 'empty_day_nudge_hour';
   static const _nudgeMinuteKey = 'empty_day_nudge_minute';
   static const _nudgeOfferedKey = 'empty_day_nudge_offered';
+  static const _ratingAskedKey = 'rating_asked_version';
   static const _nudgeIgnoredKey = 'empty_day_nudge_ignored';
   static const _nudgeStoppedKey = 'empty_day_nudge_stopped';
   static const _nudgeCheckedKey = 'empty_day_nudge_checked';
@@ -468,6 +469,20 @@ class SettingsProvider extends ChangeNotifier {
     _nudgeOffered = true;
     await _prefs.setBool(_nudgeOfferedKey, true);
     notifyListeners();
+  }
+
+  /// When the app was first opened on this device, which is the week in
+  /// RATE-1 and the first session in ADS-12.
+  DateTime get firstOpenedAt => _firstOpenedAt;
+
+  /// The version this device was last asked to rate, or null for never
+  /// (RATE-4).
+  String? get ratingAskedVersion => _prefs.getString(_ratingAskedKey);
+
+  /// Remembers that [version] has now asked. Written before the sheet is
+  /// requested, because the store never says what became of it (RATE-4).
+  Future<void> markRatingAsked(String version) async {
+    await _prefs.setString(_ratingAskedKey, version);
   }
 
   /// Records what [countIgnoredNudges] found, and stops the nudge once
