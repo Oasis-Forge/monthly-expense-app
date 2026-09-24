@@ -33,6 +33,7 @@ class AppIconPainter extends CustomPainter {
     this.rounded = false,
     this.monochrome = false,
     this.glyph = true,
+    this.notification = false,
   });
 
   /// The glyph's size relative to the canvas; 1 makes the ring about three
@@ -52,6 +53,11 @@ class AppIconPainter extends CustomPainter {
 
   /// False for the background alone, behind Android's adaptive icon.
   final bool glyph;
+
+  /// The status bar's small icon, which Android draws from the alpha channel
+  /// alone and tints itself: solid white, no faded track, and no shadow,
+  /// because at 24dp a half-lit ring is a smudge and a shadow is noise.
+  final bool notification;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -97,12 +103,14 @@ class AppIconPainter extends CustomPainter {
       ..strokeWidth = width
       ..strokeCap = StrokeCap.round;
 
-    canvas.drawCircle(
-      center,
-      radius,
-      stroke()..color = Color(monochrome ? 0x66FFFFFF : 0x30FFFFFF),
-    );
-    if (!monochrome) {
+    if (!notification) {
+      canvas.drawCircle(
+        center,
+        radius,
+        stroke()..color = Color(monochrome ? 0x66FFFFFF : 0x30FFFFFF),
+      );
+    }
+    if (!monochrome && !notification) {
       canvas.drawArc(
         ring.shift(const Offset(0, 14)),
         start,
@@ -118,7 +126,7 @@ class AppIconPainter extends CustomPainter {
       start,
       sweep,
       false,
-      monochrome
+      monochrome || notification
           ? (stroke()..color = Colors.white)
           // Green where the ring starts, amber where it ends. The start's
           // rounded cap reaches back past the top, so the color wraps to
@@ -174,6 +182,31 @@ void main() {
     'splash.png': (768, AppIconPainter(scale: 0.9)),
     // Android 12 shows the splash icon inside a circle of two thirds.
     'splash_android12.png': (1152, AppIconPainter(scale: 0.6)),
+    // The status bar's small icon, one per density. It goes straight into the
+    // Android resources because flutter_launcher_icons does not make this
+    // one, and the launcher icon cannot stand in: Android keeps only the
+    // alpha of a small icon, so a full-colour square arrives as a blob. There
+    // is no safe zone to respect here, so the glyph fills the square.
+    'android/app/src/main/res/drawable-mdpi/ic_notification.png': (
+      24,
+      AppIconPainter(scale: 1, notification: true),
+    ),
+    'android/app/src/main/res/drawable-hdpi/ic_notification.png': (
+      36,
+      AppIconPainter(scale: 1, notification: true),
+    ),
+    'android/app/src/main/res/drawable-xhdpi/ic_notification.png': (
+      48,
+      AppIconPainter(scale: 1, notification: true),
+    ),
+    'android/app/src/main/res/drawable-xxhdpi/ic_notification.png': (
+      72,
+      AppIconPainter(scale: 1, notification: true),
+    ),
+    'android/app/src/main/res/drawable-xxxhdpi/ic_notification.png': (
+      96,
+      AppIconPainter(scale: 1, notification: true),
+    ),
   };
 
   testWidgets('renders the app icon and splash images', (tester) async {
@@ -200,7 +233,12 @@ void main() {
                 as RenderRepaintBoundary;
         final image = await render.toImage();
         final png = await image.toByteData(format: ui.ImageByteFormat.png);
-        File('assets/icon/$name').writeAsBytesSync(png!.buffer.asUint8List());
+        // A name with a path in it is written where it says; the rest are
+        // assets the icon generators read.
+        final path = name.contains('/') ? name : 'assets/icon/$name';
+        File(path)
+          ..parent.createSync(recursive: true)
+          ..writeAsBytesSync(png!.buffer.asUint8List());
       });
     }
   });

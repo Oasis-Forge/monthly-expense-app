@@ -348,6 +348,16 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                     ),
                   ),
                 ),
+                // NOTE-6: said here rather than discovered later. The app
+                // schedules inexact alarms on purpose, and somebody who is
+                // not told will read a late reminder as a broken one.
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 6, 12, 0),
+                  child: Text(
+                    l10n.reminderMayBeLate,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
               ],
             ],
             if (linkedTransactionId != null) ...[

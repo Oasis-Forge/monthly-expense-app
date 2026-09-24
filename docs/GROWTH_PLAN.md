@@ -82,10 +82,15 @@ from the previous period ("+12%" or "−40"), and the chart's header says "Spent
 month". Pure arithmetic on existing data; tests in `insights_test.dart` for the change, for a
 category with nothing last period, and for the first period ever.
 
-**B3. The monthly review.** On the first open in a new period, one card above the list, shown once
-and dismissable: last period's spent and income, the biggest category, the change against the period
-before, and Share, which reuses the PDF report for that period. No new renderer. A rule section of
-its own; a test for "shown once per period".
+**B3. The monthly review — built, then dropped on 24 September 2026.** Home already carries a
+balance card, a budgets card, three notices, a rating ask and an update ask; the review card made a
+ninth thing competing for the top of that screen, and it broke three existing tests by pushing the
+backup reminder, the Budgets header and the day list out of reach — which is the screen saying it is
+full. What it said was not new either: Insights already compares a period with the one before it
+(INS-6) and the trend already puts the months side by side, permanently and with charts, rather than
+once for a few seconds. Do not rebuild it. If "nobody opens Insights unprompted" turns out to be
+worth answering, answer it inside Insights or in the notice row that already exists, not with a card
+of its own.
 
 **B4. Bills, and what everything adds up to.** The Recurring screen gets a header: "X a month in
 bills", the monthly-normalised sum of recurring expenses, and "next: <name>, in 3 days". The Accounts
@@ -151,8 +156,7 @@ promise the app cannot keep offline. The answer to "what about X" is the review 
 | 7 | A4 dynamic colour and black | minor | 1.26.0 |
 | 8 | A5 empty states and A6 accessibility | minor | 1.26.0 |
 | 9 | C5 the update offer | minor | 1.26.0 |
-| 10 | B3 monthly review | minor | — |
-| 11 | D1, D2, D3 in order | minor each | — |
+| 10 | D1, D2, D3 in order | minor each | — |
 
 C3 fits after PR 5, when the screenshots have something new to show. The roadmap's own open items
 (the closed test on Play, the interstitial, reminders, Drive backup, the desktop and Apple stores)

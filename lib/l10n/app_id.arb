@@ -325,6 +325,7 @@
   "noteReminderToggle": "Ingatkan saya",
   "noteReminderTimeLabel": "Waktu pengingat",
   "noteReminderTimeUnset": "Pilih waktu",
+  "reminderMayBeLate": "Ponsel Anda bisa mengirim ini beberapa menit lebih lambat.",
   "noteCategoryOptionalLabel": "Kategori (opsional)",
   "noteCategoryNone": "Tidak ada",
   "recordNoteButton": "Catat sebagai transaksi",

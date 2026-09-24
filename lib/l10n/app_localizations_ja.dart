@@ -1155,6 +1155,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noteReminderTimeUnset => '時刻を選択';
 
   @override
+  String get reminderMayBeLate => 'お使いのスマホが数分遅れて届けることがあります。';
+
+  @override
   String get noteCategoryOptionalLabel => 'カテゴリー(任意)';
 
   @override

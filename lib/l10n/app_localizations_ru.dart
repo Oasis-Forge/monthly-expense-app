@@ -1219,6 +1219,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noteReminderTimeUnset => 'Выберите время';
 
   @override
+  String get reminderMayBeLate =>
+      'Телефон может задержать это на несколько минут.';
+
+  @override
   String get noteCategoryOptionalLabel => 'Категория (необязательно)';
 
   @override

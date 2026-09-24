@@ -325,6 +325,7 @@
   "noteReminderToggle": "আমাকে মনে করিয়ে দিন",
   "noteReminderTimeLabel": "রিমাইন্ডারের সময়",
   "noteReminderTimeUnset": "একটি সময় বেছে নিন",
+  "reminderMayBeLate": "আপনার ফোন এটি কয়েক মিনিট দেরিতে দিতে পারে।",
   "noteCategoryOptionalLabel": "ক্যাটাগরি (ঐচ্ছিক)",
   "noteCategoryNone": "কোনোটি না",
   "recordNoteButton": "লেনদেন হিসেবে রেকর্ড করুন",

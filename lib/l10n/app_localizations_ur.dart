@@ -1180,6 +1180,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get noteReminderTimeUnset => 'وقت منتخب کریں';
 
   @override
+  String get reminderMayBeLate => 'آپ کا فون یہ چند منٹ دیر سے بھیج سکتا ہے۔';
+
+  @override
   String get noteCategoryOptionalLabel => 'کیٹیگری (اختیاری)';
 
   @override

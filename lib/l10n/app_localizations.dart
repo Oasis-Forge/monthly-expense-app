@@ -2086,6 +2086,12 @@ abstract class AppLocalizations {
   /// **'Choose a time'**
   String get noteReminderTimeUnset;
 
+  /// A quiet helper line shown under a note's reminder time and under the empty-day reminder setting. The app schedules inexact alarms on purpose, so that it never has to ask for Android's exact-alarm permission; the cost is that Android batches delivery and a reminder can arrive a few minutes after the chosen time. Telling people this up front is kinder than letting them think the reminder failed (NOTE-6, NUDGE-9).
+  ///
+  /// In en, this message translates to:
+  /// **'Your phone may deliver this a few minutes late.'**
+  String get reminderMayBeLate;
+
   /// No description provided for @noteCategoryOptionalLabel.
   ///
   /// In en, this message translates to:

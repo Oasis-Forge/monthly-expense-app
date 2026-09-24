@@ -123,6 +123,10 @@ void main() {
 
       await tester.tap(find.text('Skip'));
       await tester.pumpAndSettle();
+      // Ending the walkthrough now asks about the empty-day reminder
+      // (NUDGE-3); this test is about what a launch opens, not about that.
+      await tester.tap(find.text('No thanks'));
+      await tester.pumpAndSettle();
 
       expect(find.text('Add your first transaction'), findsOne);
       expect(settings.walkthroughSeen, isTrue);
@@ -227,6 +231,8 @@ void main() {
       expect(find.text('Bring what you have'), findsOne);
 
       await tester.tap(find.text('Get started'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('No thanks'));
       await tester.pumpAndSettle();
 
       expect(find.text('Add your first transaction'), findsOne);
@@ -390,6 +396,8 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Get started'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('No thanks'));
       await tester.pumpAndSettle();
       expect(settings.walkthroughSeen, isTrue);
     });

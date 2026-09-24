@@ -325,6 +325,7 @@
   "noteReminderToggle": "Erinnern",
   "noteReminderTimeLabel": "Erinnerungszeit",
   "noteReminderTimeUnset": "Uhrzeit wählen",
+  "reminderMayBeLate": "Ihr Telefon kann dies ein paar Minuten später liefern.",
   "noteCategoryOptionalLabel": "Kategorie (optional)",
   "noteCategoryNone": "Keine",
   "recordNoteButton": "Als Transaktion erfassen",

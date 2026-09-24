@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/languages.dart';
 import '../models/backup.dart';
+import '../models/reminders.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/backup_service.dart';
+import '../services/reminder_service.dart';
 import 'import_screen.dart';
 
 /// Four pages on what the app does, after setup and before Home: quick
@@ -138,7 +141,65 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
       Navigator.of(context).pop();
       return;
     }
+    await _offerReminders();
+    if (!mounted) return;
     await context.read<SettingsProvider>().completeWalkthrough();
+  }
+
+  /// Asks whether the empty day is wanted (NUDGE-3), and only then asks the
+  /// phone for notifications (NUDGE-7).
+  ///
+  /// The app's own question first and Android's second, because they are not
+  /// the same kind of question: ours can be put again, and Android's cannot.
+  /// Its dialog is shown once for the life of the install, so it is spent on
+  /// somebody who has just said they want a reminder rather than on somebody
+  /// who has no idea yet. A "no thanks" therefore costs nothing at all: no
+  /// system prompt appears, and the one that matters is still unspent for the
+  /// day they set a reminder on a note or turn one on in Settings.
+  ///
+  /// Declined either way, the walkthrough still ends and everything else
+  /// still works.
+  Future<void> _offerReminders() async {
+    if (!remindersSupported) return;
+    final settings = context.read<SettingsProvider>();
+    final transactions = context.read<TransactionProvider>();
+    final reminders = context.read<ReminderService>();
+
+    final wanted = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.nudgeOfferTitle),
+          content: Text(l10n.nudgeOfferBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.nudgeOfferNo),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.nudgeOfferYes),
+            ),
+          ],
+        );
+      },
+    );
+    // Asked here, so Home never asks the same person again (NUDGE-3).
+    await settings.markNudgeOffered();
+    if (wanted != true || !mounted) return;
+
+    // Now the one system dialog is worth spending. Refused, the reminder
+    // stays off rather than being set to something the phone will swallow;
+    // Settings says the phone is not allowing them (NUDGE-7).
+    if (!await reminders.requestPermission()) return;
+
+    await settings.setEmptyDayNudge(true);
+    await transactions.rescheduleReminders(
+      appLockOn: settings.appLock,
+      locale: effectiveAppLocale(settings.locale),
+      nudge: settings.nudgeSettings,
+    );
   }
 
   Future<void> _next(int pageCount) async {

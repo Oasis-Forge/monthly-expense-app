@@ -325,6 +325,7 @@
   "noteReminderToggle": "Напомнить",
   "noteReminderTimeLabel": "Время напоминания",
   "noteReminderTimeUnset": "Выберите время",
+  "reminderMayBeLate": "Телефон может задержать это на несколько минут.",
   "noteCategoryOptionalLabel": "Категория (необязательно)",
   "noteCategoryNone": "Нет",
   "recordNoteButton": "Записать как операцию",

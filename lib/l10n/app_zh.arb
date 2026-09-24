@@ -325,6 +325,7 @@
   "noteReminderToggle": "提醒我",
   "noteReminderTimeLabel": "提醒时间",
   "noteReminderTimeUnset": "选择时间",
+  "reminderMayBeLate": "你的手机可能会晚几分钟送达。",
   "noteCategoryOptionalLabel": "分类（选填）",
   "noteCategoryNone": "无",
   "recordNoteButton": "记为交易",

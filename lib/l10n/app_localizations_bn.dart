@@ -1183,6 +1183,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get noteReminderTimeUnset => 'একটি সময় বেছে নিন';
 
   @override
+  String get reminderMayBeLate => 'আপনার ফোন এটি কয়েক মিনিট দেরিতে দিতে পারে।';
+
+  @override
   String get noteCategoryOptionalLabel => 'ক্যাটাগরি (ঐচ্ছিক)';
 
   @override

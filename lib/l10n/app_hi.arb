@@ -325,6 +325,7 @@
   "noteReminderToggle": "मुझे याद दिलाएं",
   "noteReminderTimeLabel": "रिमाइंडर का समय",
   "noteReminderTimeUnset": "समय चुनें",
+  "reminderMayBeLate": "आपका फ़ोन इसे कुछ मिनट देर से भेज सकता है।",
   "noteCategoryOptionalLabel": "श्रेणी (वैकल्पिक)",
   "noteCategoryNone": "कोई नहीं",
   "recordNoteButton": "लेनदेन के रूप में दर्ज करें",

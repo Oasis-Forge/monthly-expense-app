@@ -1154,6 +1154,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noteReminderTimeUnset => '시간을 선택하세요';
 
   @override
+  String get reminderMayBeLate => '휴대폰이 이를 몇 분 늦게 전달할 수 있습니다.';
+
+  @override
   String get noteCategoryOptionalLabel => '카테고리 (선택)';
 
   @override

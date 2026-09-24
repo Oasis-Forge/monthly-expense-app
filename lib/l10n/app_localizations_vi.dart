@@ -1183,6 +1183,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get noteReminderTimeUnset => 'Chọn giờ';
 
   @override
+  String get reminderMayBeLate =>
+      'Điện thoại của bạn có thể gửi việc này chậm vài phút.';
+
+  @override
   String get noteCategoryOptionalLabel => 'Danh mục (không bắt buộc)';
 
   @override

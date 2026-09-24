@@ -325,6 +325,7 @@
   "noteReminderToggle": "Ricordamelo",
   "noteReminderTimeLabel": "Orario del promemoria",
   "noteReminderTimeUnset": "Scegli un orario",
+  "reminderMayBeLate": "Il telefono può ritardarlo di qualche minuto.",
   "noteCategoryOptionalLabel": "Categoria (opzionale)",
   "noteCategoryNone": "Nessuna",
   "recordNoteButton": "Registra come transazione",

@@ -325,6 +325,7 @@
   "noteReminderToggle": "Herinner mij",
   "noteReminderTimeLabel": "Herinneringstijd",
   "noteReminderTimeUnset": "Kies een tijd",
+  "reminderMayBeLate": "Je telefoon kan dit een paar minuten te laat afleveren.",
   "noteCategoryOptionalLabel": "Categorie (optioneel)",
   "noteCategoryNone": "Geen",
   "recordNoteButton": "Vastleggen als transactie",

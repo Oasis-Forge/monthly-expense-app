@@ -109,7 +109,7 @@ class DeviceReminderService implements ReminderService {
     }
     await _plugin.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('@drawable/ic_notification'),
         iOS: DarwinInitializationSettings(),
         macOS: DarwinInitializationSettings(),
         linux: LinuxInitializationSettings(defaultActionName: 'Open'),

@@ -325,6 +325,7 @@
   "noteReminderToggle": "Bana hatırlat",
   "noteReminderTimeLabel": "Hatırlatma saati",
   "noteReminderTimeUnset": "Bir saat seçin",
+  "reminderMayBeLate": "Telefonunuz bunu birkaç dakika geç iletebilir.",
   "noteCategoryOptionalLabel": "Kategori (isteğe bağlı)",
   "noteCategoryNone": "Yok",
   "recordNoteButton": "İşlem olarak kaydet",
