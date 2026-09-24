@@ -4,6 +4,14 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.27.0] - 2026-09-24
+
+### Fixed
+- Reminders now actually arrive. Both the note reminder and the daily "nothing recorded today" nudge were being scheduled and then silently dropped on every Android phone, because the app was missing an Android setting reminders need in order to fire. Reminders now also survive a restart of the phone, and show the app's own icon instead of a blank outline.
+
+### Changed
+- The app now asks whether you want the daily reminder before it asks Android for notification permission, so saying no costs you nothing. It also now tells you plainly that your phone may deliver a reminder a few minutes late.
+
 ## [1.26.0] - 2026-09-24
 
 ### Added
