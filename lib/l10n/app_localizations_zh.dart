@@ -634,10 +634,12 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '每$count天',
-      one: '每天',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryDay => '每天';
 
   @override
   String scheduleWeeks(int count) {
@@ -645,10 +647,12 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '每$count周',
-      one: '每周',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryWeek => '每周';
 
   @override
   String scheduleMonths(int count) {
@@ -656,10 +660,12 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '每$count个月',
-      one: '每月',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryMonth => '每月';
 
   @override
   String scheduleYears(int count) {
@@ -667,10 +673,12 @@ class AppLocalizationsZh extends AppLocalizations {
       count,
       locale: localeName,
       other: '每$count年',
-      one: '每年',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryYear => '每年';
 
   @override
   String pausedSchedule(String schedule) {

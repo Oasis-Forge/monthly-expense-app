@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/db/db_helper.dart';
+import 'package:monthly_expense_app/l10n/app_localizations.dart';
+import 'package:monthly_expense_app/l10n/labels.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
@@ -403,6 +406,46 @@ void main() {
       ]);
 
       expect(provider.monthlyBills, const Money(60000));
+    });
+  });
+
+  group('how a schedule reads (RCR-1, LANG-7)', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    String label(RecurrenceFrequency frequency, int interval) => scheduleLabel(
+      testRule(
+        'r',
+        10,
+        DateTime(2026, 9),
+      ).copyWith(frequency: frequency, interval: interval),
+      l10n,
+    );
+
+    test('an interval of one has a wording of its own', () {
+      expect(label(RecurrenceFrequency.day, 1), 'Every day');
+      expect(label(RecurrenceFrequency.week, 1), 'Every week');
+      expect(label(RecurrenceFrequency.month, 1), 'Every month');
+      expect(label(RecurrenceFrequency.year, 1), 'Every year');
+    });
+
+    test(
+      'every other interval counts, including the ones Russian tripped on',
+      () {
+        expect(label(RecurrenceFrequency.day, 21), 'Every 21 days');
+        expect(label(RecurrenceFrequency.week, 2), 'Every 2 weeks');
+        expect(label(RecurrenceFrequency.month, 3), 'Every 3 months');
+        expect(label(RecurrenceFrequency.year, 31), 'Every 31 years');
+      },
+    );
+
+    test('a paused rule says so, whichever wording it took', () {
+      final paused = testRule(
+        'r',
+        10,
+        DateTime(2026, 9),
+      ).copyWith(pausedAt: today);
+
+      expect(scheduleLabel(paused, l10n), 'Every month · Paused');
     });
   });
 }

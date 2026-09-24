@@ -115,4 +115,46 @@ void main() {
       }
     }
   });
+
+  // The same trap as the today/tomorrow one above, in every message that
+  // counts something: `=1{1 result}` is compiled into the CLDR "one"
+  // category, which in Russian also holds 21 and 31, so a count of 21 came
+  // out as "1 результат". A message that carries its count cannot read the
+  // same at 21 as it does at 1.
+  test('a count of twenty-one never reads like a count of one', () {
+    final counted = <String, String Function(AppLocalizations, int)>{
+      'recurringDueNotice': (l, n) => l.recurringDueNotice(n),
+      'budgetsCardPlanned': (l, n) => l.budgetsCardPlanned(n),
+      'searchSummary': (l, n) => l.searchSummary(n, 'I', 'E'),
+      'trendMonths': (l, n) => l.trendMonths(n),
+      'backupSummary': (l, n) => l.backupSummary('D', n),
+      'restoredReplace': (l, n) => l.restoredReplace(n),
+      'notesDueNotice': (l, n) => l.notesDueNotice(n),
+      'importWillImport': (l, n) => l.importWillImport(n),
+      'importSkippedDate': (l, n) => l.importSkippedDate(n),
+      'importMoreRows': (l, n) => l.importMoreRows(n),
+      'importButton': (l, n) => l.importButton(n),
+      'importDone': (l, n) => l.importDone(n),
+      'dueEntryReminderMany': (l, n) => l.dueEntryReminderMany(n),
+      'scheduleDays': (l, n) => l.scheduleDays(n),
+      'scheduleWeeks': (l, n) => l.scheduleWeeks(n),
+      'scheduleMonths': (l, n) => l.scheduleMonths(n),
+      'scheduleYears': (l, n) => l.scheduleYears(n),
+    };
+
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l10n = lookupAppLocalizations(locale);
+      for (final entry in counted.entries) {
+        for (final count in [21, 31]) {
+          expect(
+            entry.value(l10n, count),
+            isNot(entry.value(l10n, 1)),
+            reason:
+                '${locale.languageCode} renders ${entry.key} at $count '
+                'exactly as it renders it at 1',
+          );
+        }
+      }
+    }
+  });
 }

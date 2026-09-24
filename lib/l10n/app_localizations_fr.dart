@@ -649,10 +649,12 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Tous les $count jours',
-      one: 'Tous les jours',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryDay => 'Tous les jours';
 
   @override
   String scheduleWeeks(int count) {
@@ -660,10 +662,12 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Toutes les $count semaines',
-      one: 'Toutes les semaines',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryWeek => 'Toutes les semaines';
 
   @override
   String scheduleMonths(int count) {
@@ -671,10 +675,12 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Tous les $count mois',
-      one: 'Tous les mois',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryMonth => 'Tous les mois';
 
   @override
   String scheduleYears(int count) {
@@ -682,10 +688,12 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Tous les $count ans',
-      one: 'Tous les ans',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryYear => 'Tous les ans';
 
   @override
   String pausedSchedule(String schedule) {
