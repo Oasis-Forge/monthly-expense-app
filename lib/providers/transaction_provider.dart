@@ -1343,11 +1343,19 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   /// What falls next and is still waiting: one due today, else the first of
-  /// the upcoming days (RCR-8). Anything overdue belongs to the due list.
+  /// the upcoming days (RCR-8).
+  ///
+  /// Null while anything is overdue, because the line would otherwise point
+  /// a week ahead over a list of things already waiting, and "next in seven
+  /// days" above six unhandled entries is a contradiction the reader has to
+  /// resolve. The due list is directly underneath and says it better.
   ScheduledOccurrence? get nextScheduled {
     final today = _today;
     for (final occurrence in dueOccurrences) {
       if (_isToday(occurrence.date, today)) return occurrence;
+      // Dated before today, and the list is oldest first, so anything left
+      // is older still.
+      return null;
     }
     final upcoming = upcomingOccurrences;
     return upcoming.isEmpty ? null : upcoming.first;

@@ -218,16 +218,22 @@ class _DueTile extends StatelessWidget {
     final category = provider.categoryById(rule.categoryId);
     final name = rule.label(category, l10n);
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: categoryTint(category),
-        child: Text(category?.icon ?? '📦'),
-      ),
-      title: Text(name),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+    // The buttons sit under the row rather than inside its subtitle. Inside,
+    // the tile ran three lines deep and ListTile centred the mark against
+    // all of them, so the mark, the name, the amount and the buttons each
+    // landed at a different height and the row read as a staircase. Out
+    // here the row is the same two lines as every other row on the screen,
+    // and the buttons line up under the text they belong to.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: categoryTint(category),
+            child: Text(category?.icon ?? '📦'),
+          ),
+          title: Text(name),
+          subtitle: Text(
             l10n.categoryAndDate(
               isolateLeftToRight(
                 _signedAmount(rule, currency),
@@ -236,9 +242,14 @@ class _DueTile extends StatelessWidget {
               DateFormat.yMMMd(l10n.localeName).format(occurrence.date),
             ),
           ),
-          // Under the text rather than trailing, so the buttons fit at any
-          // text size and in every language (LANG-6).
-          OverflowBar(
+          onTap: () => _postWithAmount(context, name),
+        ),
+        // Under the text rather than trailing, so they fit at any text size
+        // and in every language (LANG-6), and indented to the text's own
+        // margin rather than the screen's.
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(72, 0, 16, 8),
+          child: OverflowBar(
             alignment: MainAxisAlignment.end,
             spacing: 8,
             children: [
@@ -257,9 +268,8 @@ class _DueTile extends StatelessWidget {
               ),
             ],
           ),
-        ],
-      ),
-      onTap: () => _postWithAmount(context, name),
+        ),
+      ],
     );
   }
 }
@@ -280,15 +290,19 @@ class _OccurrenceTile extends StatelessWidget {
     final category = provider.categoryById(rule.categoryId);
 
     return ListTile(
-      leading: const Icon(Icons.event_outlined),
+      // The same circle the due rows and Home use, so the three lists on
+      // this screen share one left edge and a category is recognised by its
+      // colour wherever it appears (CAT-6). A bare icon here sat narrower
+      // than the circles below it and pulled the titles out of line.
+      leading: CircleAvatar(
+        backgroundColor: categoryTint(category),
+        child: Text(category?.icon ?? '📦'),
+      ),
       title: Text(rule.label(category, l10n)),
       subtitle: Text(
         DateFormat.yMMMEd(l10n.localeName).format(occurrence.date),
       ),
-      trailing: Text(
-        _signedAmount(rule, currency),
-        textDirection: TextDirection.ltr,
-      ),
+      trailing: Text(_signedAmount(rule, currency)),
     );
   }
 }
@@ -308,15 +322,18 @@ class _RuleTile extends StatelessWidget {
     final category = provider.categoryById(rule.categoryId);
 
     return ListTile(
+      // The category's own colour and mark, as everywhere else (CAT-6); a
+      // paused rule keeps the pause in its place, because that is the one
+      // thing about a rule worth seeing before its name.
       leading: CircleAvatar(
-        child: Icon(rule.isPaused ? Icons.pause : Icons.repeat),
+        backgroundColor: categoryTint(category),
+        child: rule.isPaused
+            ? const Icon(Icons.pause)
+            : Text(category?.icon ?? '📦'),
       ),
       title: Text(rule.label(category, l10n)),
       subtitle: Text(scheduleLabel(rule, l10n)),
-      trailing: Text(
-        _signedAmount(rule, currency),
-        textDirection: TextDirection.ltr,
-      ),
+      trailing: Text(_signedAmount(rule, currency)),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => RecurringRuleScreen(editing: rule)),
       ),

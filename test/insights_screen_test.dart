@@ -361,7 +361,7 @@ void main() {
 
       expect(find.text('Tap a day to see its transactions.'), findsOneWidget);
     });
-    testWidgets('a signed amount is laid out left to right (LANG-5)', (
+    testWidgets('the row leaves the amount its own direction (LANG-5)', (
       tester,
     ) async {
       await showInsights(tester, month);
@@ -369,10 +369,11 @@ void main() {
       await tester.tap(find.text('15'));
       await tester.pumpAndSettle();
 
-      // The sign is added outside the currency's own isolate, so the row
-      // has to say which way the piece runs or Arabic moves it to the end.
+      // The sign now travels inside the currency's own isolate, so the row
+      // must not force the line's direction: doing so would carry the symbol
+      // to the wrong side of the figures in Arabic (LANG-5).
       final amount = tester.widget<Text>(find.textContaining('\$').last);
-      expect(amount.textDirection, TextDirection.ltr);
+      expect(amount.textDirection, isNull);
     });
   });
 

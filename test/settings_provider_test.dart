@@ -99,7 +99,7 @@ void main() {
 
       final riyal = settings.currencyFormat('ar');
       expect(riyal.currencySymbol, 'ر.س.');
-      expect(riyal.format(46223.34), '\u206646,223.34\u00A0ر.س.\u2069');
+      expect(riyal.format(46223.34), '\u200F\u206646,223.34\u2069\u00A0ر.س.');
       expect(
         settings.compactCurrencyFormat('ar').format(1200),
         contains('ر.س.'),
@@ -112,21 +112,46 @@ void main() {
       expect(settings.currencyFormat('ar').format(1), contains('1.000'));
     });
 
+    test('the figures carry the sign, and the symbol is left where the '
+        'language puts it (LANG-5)', () async {
+      final settings = SettingsProvider(
+        await prefsWith({'currency_code': 'SAR'}),
+      );
+      // Arabic writes the figures first and the symbol after them, so only
+      // the figures are isolated and the symbol is left to right-to-left
+      // order, which carries it to the left of the line.
+      expect(
+        settings.currencyFormat('ar').format(-132),
+        '\u200F\u2066-132.00\u2069\u00A0ر.س.',
+      );
+
+      await settings.setCurrencyCode('USD');
+      // Urdu writes the symbol first, where it already falls on the left, so
+      // the whole amount travels as one piece.
+      expect(settings.currencyFormat('ur').format(-5), '\u2066-\$5.00\u2069');
+      // Left-to-right languages need no marks at all.
+      expect(settings.currencyFormat('en').format(-5), '-\$5.00');
+    });
+
     test(
-      'an amount is one left-to-right piece, sign included (LANG-5)',
+      'a symbol spelled in letters is kept off the digits (LANG-5)',
       () async {
         final settings = SettingsProvider(
-          await prefsWith({'currency_code': 'SAR'}),
+          await prefsWith({'currency_code': 'PKR'}),
         );
+        // CLDR's currencySpacing, which intl does not carry: `Rs12` and `Rp12`
+        // read as one word, so a no-break space goes between.
         expect(
-          settings.currencyFormat('ar').format(-132),
-          '\u2066-132.00\u00A0ر.س.\u2069',
+          settings.currencyFormat('ur').format(12),
+          contains('Rs\u00A012'),
         );
 
+        await settings.setCurrencyCode('IDR');
+        expect(settings.currencyFormat('id').format(12), 'Rp\u00A012');
+
+        // A sign needs none: the rule is for letters meeting digits.
         await settings.setCurrencyCode('USD');
-        expect(settings.currencyFormat('ur').format(-5), '\u2066-\$5.00\u2069');
-        // Left-to-right languages need no marks.
-        expect(settings.currencyFormat('en').format(-5), '-\$5.00');
+        expect(settings.currencyFormat('en').format(12), '\$12.00');
       },
     );
 
@@ -140,56 +165,35 @@ void main() {
       expect(report.format(5), isNot(contains('\u2066')));
     });
 
-    testWidgets('an amount looks the same in left-to-right and right-to-left '
-        'text (LANG-5)', (tester) async {
+    testWidgets('Arabic reads the figures first and the symbol after, so the '
+        'symbol sits on the left (LANG-5)', (tester) async {
       final settings = SettingsProvider(
         await prefsWith({'currency_code': 'SAR'}),
       );
-      final currency = settings.currencyFormat('ar');
+      final text = settings.currencyFormat('ar').format(-132);
 
-      // The characters as they sit on screen, from left to right.
-      String onScreen(String text, TextDirection direction) {
+      double leftOf(Pattern part) {
         final painter = TextPainter(
           text: TextSpan(text: text),
-          textDirection: direction,
+          textDirection: TextDirection.rtl,
         )..layout();
         addTearDown(painter.dispose);
-        final left = <int, double>{};
-        for (var i = 0; i < text.length; i++) {
-          final boxes = painter.getBoxesForSelection(
-            TextSelection(baseOffset: i, extentOffset: i + 1),
-          );
-          if (boxes.isNotEmpty && boxes.first.right > boxes.first.left) {
-            left[i] = boxes.first.left;
-          }
-        }
-        final order = left.keys.toList()
-          ..sort((a, b) => left[a]!.compareTo(left[b]!));
-        return order.map((i) => text[i]).join();
+        final at = text.indexOf(part);
+        return painter
+            .getBoxesForSelection(
+              TextSelection(baseOffset: at, extentOffset: at + 1),
+            )
+            .first
+            .left;
       }
 
-      // The summary and most screens show an amount inside Arabic text.
-      for (final amount in [46223.34, -132]) {
-        final text = currency.format(amount);
-        expect(
-          onScreen(text, TextDirection.rtl),
-          onScreen(text, TextDirection.ltr),
-          reason: text,
-        );
-      }
-      // The list draws its amounts left to right with its own sign in front,
-      // and must match a negative amount anywhere else.
-      expect(
-        onScreen('-${currency.format(132)}', TextDirection.ltr),
-        onScreen(currency.format(-132), TextDirection.rtl),
-      );
-      // Without the marks the order does change: the summary put the symbol
-      // on one side of the amount and the list on the other.
-      final unmarked = settings.currencyFormat('ar', isolated: false);
-      expect(
-        onScreen(unmarked.format(46223.34), TextDirection.rtl),
-        isNot(onScreen(unmarked.format(46223.34), TextDirection.ltr)),
-      );
+      // Read from the right, that is the figures and then the symbol, which
+      // is how Arabic writes an amount.
+      expect(leftOf('ر'), lessThan(leftOf('1')));
+      // The sign stays against its figures instead of being carried off to
+      // the far end of the line.
+      expect(leftOf('-'), lessThan(leftOf('1')));
+      expect(leftOf('-'), greaterThan(leftOf('ر')));
     });
   });
 

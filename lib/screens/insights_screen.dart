@@ -546,7 +546,6 @@ class _DayDetails extends StatelessWidget {
                     signedAmount(currency, tx.amount, isIncome: isIncome),
                     // The sign stays in front of the amount in Arabic
                     // (LANG-5, CUR-5).
-                    textDirection: TextDirection.ltr,
                     style: amountStyle().copyWith(
                       color: signedColor(context, isIncome: isIncome),
                       fontWeight: FontWeight.w600,

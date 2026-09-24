@@ -4,6 +4,12 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.27.1] - 2026-09-24
+
+### Fixed
+- In Arabic the currency symbol sat on the wrong side of the amount, in English order rather than Arabic. In Urdu and Indonesian the currency ran straight into the number: `Rs3,347,380` where it should read `Rs 3,347,380`.
+- The Recurring screen no longer contradicts itself: nothing is called "next" while something is already overdue. Its three lists now start at the same left edge and each row carries its category's colour, and the Skip and Post buttons have moved out from under the date, which had left the row looking like a staircase.
+
 ## [1.27.0] - 2026-09-24
 
 ### Fixed

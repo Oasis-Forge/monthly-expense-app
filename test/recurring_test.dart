@@ -363,7 +363,8 @@ void main() {
 
     test('what falls next is the first still waiting, in days', () async {
       final provider = await loaded([
-        testRule('Rent', 900, DateTime(2026, 9)),
+        // Nothing overdue, or the line says nothing at all (RCR-8).
+        testRule('Rent', 900, DateTime(2026, 10)),
         testRule('Gym', 30, DateTime(2026, 9, 20)),
       ]);
 
@@ -380,6 +381,20 @@ void main() {
 
       expect(provider.nextScheduled!.rule.id, 'Water');
       expect(provider.daysUntil(provider.nextScheduled!.date), 0);
+    });
+
+    test('nothing is named next while something is overdue (RCR-8)', () async {
+      // "Next: Gym, in 5 days" printed above a rent payment that has been
+      // waiting since the first of the month is a contradiction: the screen
+      // would say nothing is coming for five days and list something already
+      // waiting directly underneath.
+      final provider = await loaded([
+        testRule('Rent', 900, DateTime(2026, 9)),
+        testRule('Gym', 30, DateTime(2026, 9, 20)),
+      ]);
+
+      expect(provider.dueOccurrences, isNotEmpty);
+      expect(provider.nextScheduled, isNull);
     });
 
     test('with no rules there is no total and nothing next', () async {
