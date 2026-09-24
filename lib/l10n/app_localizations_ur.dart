@@ -642,10 +642,12 @@ class AppLocalizationsUr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'ہر $count دن',
-      one: 'ہر روز',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryDay => 'ہر روز';
 
   @override
   String scheduleWeeks(int count) {
@@ -653,10 +655,12 @@ class AppLocalizationsUr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'ہر $count ہفتے',
-      one: 'ہر ہفتہ',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryWeek => 'ہر ہفتہ';
 
   @override
   String scheduleMonths(int count) {
@@ -664,10 +668,12 @@ class AppLocalizationsUr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'ہر $count مہینے',
-      one: 'ہر مہینہ',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryMonth => 'ہر مہینہ';
 
   @override
   String scheduleYears(int count) {
@@ -675,10 +681,12 @@ class AppLocalizationsUr extends AppLocalizations {
       count,
       locale: localeName,
       other: 'ہر $count سال',
-      one: 'ہر سال',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryYear => 'ہر سال';
 
   @override
   String pausedSchedule(String schedule) {

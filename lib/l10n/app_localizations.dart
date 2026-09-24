@@ -1201,26 +1201,50 @@ abstract class AppLocalizations {
   /// No description provided for @scheduleDays.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Every day} other{Every {count} days}}'**
+  /// **'{count, plural, other{Every {count} days}}'**
   String scheduleDays(int count);
+
+  /// The wording for an interval of exactly one day, used instead of the =1 case removed from scheduleDays (RCR-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Every day'**
+  String get scheduleEveryDay;
 
   /// No description provided for @scheduleWeeks.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Every week} other{Every {count} weeks}}'**
+  /// **'{count, plural, other{Every {count} weeks}}'**
   String scheduleWeeks(int count);
+
+  /// The wording for an interval of exactly one week, used instead of the =1 case removed from scheduleWeeks (RCR-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Every week'**
+  String get scheduleEveryWeek;
 
   /// No description provided for @scheduleMonths.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Every month} other{Every {count} months}}'**
+  /// **'{count, plural, other{Every {count} months}}'**
   String scheduleMonths(int count);
+
+  /// The wording for an interval of exactly one month, used instead of the =1 case removed from scheduleMonths (RCR-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Every month'**
+  String get scheduleEveryMonth;
 
   /// No description provided for @scheduleYears.
   ///
   /// In en, this message translates to:
-  /// **'{count, plural, =1{Every year} other{Every {count} years}}'**
+  /// **'{count, plural, other{Every {count} years}}'**
   String scheduleYears(int count);
+
+  /// The wording for an interval of exactly one year, used instead of the =1 case removed from scheduleYears (RCR-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Every year'**
+  String get scheduleEveryYear;
 
   /// No description provided for @pausedSchedule.
   ///

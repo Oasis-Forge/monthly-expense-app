@@ -634,10 +634,12 @@ class AppLocalizationsKo extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count일마다',
-      one: '매일',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryDay => '매일';
 
   @override
   String scheduleWeeks(int count) {
@@ -645,10 +647,12 @@ class AppLocalizationsKo extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count주마다',
-      one: '매주',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryWeek => '매주';
 
   @override
   String scheduleMonths(int count) {
@@ -656,10 +660,12 @@ class AppLocalizationsKo extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count개월마다',
-      one: '매월',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryMonth => '매월';
 
   @override
   String scheduleYears(int count) {
@@ -667,10 +673,12 @@ class AppLocalizationsKo extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count년마다',
-      one: '매년',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryYear => '매년';
 
   @override
   String pausedSchedule(String schedule) {

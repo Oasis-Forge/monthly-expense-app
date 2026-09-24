@@ -477,7 +477,7 @@
   "frequencyWeeks": "Weeks",
   "frequencyMonths": "Months",
   "frequencyYears": "Years",
-  "scheduleDays": "{count, plural, =1{Every day} other{Every {count} days}}",
+  "scheduleDays": "{count, plural, other{Every {count} days}}",
   "@scheduleDays": {
     "placeholders": {
       "count": {
@@ -485,7 +485,11 @@
       }
     }
   },
-  "scheduleWeeks": "{count, plural, =1{Every week} other{Every {count} weeks}}",
+  "scheduleEveryDay": "Every day",
+  "@scheduleEveryDay": {
+    "description": "The wording for an interval of exactly one day, used instead of the =1 case removed from scheduleDays (RCR-1)."
+  },
+  "scheduleWeeks": "{count, plural, other{Every {count} weeks}}",
   "@scheduleWeeks": {
     "placeholders": {
       "count": {
@@ -493,7 +497,11 @@
       }
     }
   },
-  "scheduleMonths": "{count, plural, =1{Every month} other{Every {count} months}}",
+  "scheduleEveryWeek": "Every week",
+  "@scheduleEveryWeek": {
+    "description": "The wording for an interval of exactly one week, used instead of the =1 case removed from scheduleWeeks (RCR-1)."
+  },
+  "scheduleMonths": "{count, plural, other{Every {count} months}}",
   "@scheduleMonths": {
     "placeholders": {
       "count": {
@@ -501,13 +509,21 @@
       }
     }
   },
-  "scheduleYears": "{count, plural, =1{Every year} other{Every {count} years}}",
+  "scheduleEveryMonth": "Every month",
+  "@scheduleEveryMonth": {
+    "description": "The wording for an interval of exactly one month, used instead of the =1 case removed from scheduleMonths (RCR-1)."
+  },
+  "scheduleYears": "{count, plural, other{Every {count} years}}",
   "@scheduleYears": {
     "placeholders": {
       "count": {
         "type": "int"
       }
     }
+  },
+  "scheduleEveryYear": "Every year",
+  "@scheduleEveryYear": {
+    "description": "The wording for an interval of exactly one year, used instead of the =1 case removed from scheduleYears (RCR-1)."
   },
   "pausedSchedule": "{schedule} · Paused",
   "@pausedSchedule": {
