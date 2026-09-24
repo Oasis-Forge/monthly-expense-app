@@ -18,6 +18,7 @@ Traps:
 - The first tap after `launch` can be eaten while the app starts: `screen` again and retry before calling anything broken.
 - An icon button with no tooltip shows as `(no label)`; give it a tooltip (an accessibility fix too), or `tapxy` it.
 - `load` is a whole-machine rewind, not an undo of your data alone. It puts back the apps, their versions and their data as they were, so anything installed after the snapshot is gone and nothing says so. Check the version after every restore.
+- A snapshot load can also take the whole emulator down, not merely hang. Recovering means a cold boot, and a cold boot discards the live disk: the app, its data and anything installed since the base image go with it. So a restore that goes wrong costs the install, and the build has to be put on again afterwards — check the version before believing the phone is as you left it.
 - Loading a snapshot can hang, with `adb devices` showing `offline`. `stop`, then start it cold: `EMU_ARGS=-no-snapshot-load bash tool/emu.sh start`.
 - `screen` fails rather than printing a screen it could not read, so an error there means something is still animating: wait and run it again. It never shows the previous screen.
 - With a phone plugged in as well, every command stops and asks: set `ANDROID_SERIAL` to the emulator's id from `adb devices`.
