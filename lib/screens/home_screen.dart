@@ -1366,7 +1366,6 @@ class _TransactionTile extends StatelessWidget {
           amount: Text(
             signedAmount(currency, transaction.amount, isIncome: isIncome),
             // The sign stays in front of the amount in Arabic (LANG-5).
-            textDirection: TextDirection.ltr,
             style: amountStyle(
               TextStyle(color: color, fontWeight: FontWeight.w600),
             ),

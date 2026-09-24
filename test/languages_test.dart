@@ -306,7 +306,7 @@ void main() {
       expect(amount.textAlign, TextAlign.right);
     });
 
-    testWidgets('an imported row keeps its amount left to right', (
+    testWidgets('an imported row keeps its figures in one piece', (
       tester,
     ) async {
       await show(tester, 'ar', const ImportScreen(), backup: withSampleCsv());
@@ -316,7 +316,10 @@ void main() {
       await tester.pumpAndSettle();
 
       final amount = tester.widget<Text>(find.textContaining('12.50'));
-      expect(amount.textDirection, TextDirection.ltr);
+      // The sign now travels inside the currency's own isolate, so the row
+      // must not force the line's direction: doing so would carry the symbol
+      // to the wrong side of the figures in Arabic (LANG-5).
+      expect(amount.textDirection, isNull);
     });
 
     testWidgets('the trend starts with the newest period on the left, and '
@@ -358,13 +361,16 @@ void main() {
       expect(tester.getTopRight(find.byType(Drawer)).dx, 360);
     });
 
-    testWidgets('the amount on a transaction stays left to right', (
+    testWidgets('the amount on a transaction keeps its figures in one piece', (
       tester,
     ) async {
       await show(tester, 'ur', const TransactionDetailScreen(id: 'a'));
 
       final amount = tester.widget<Text>(find.textContaining('1,234.50'));
-      expect(amount.textDirection, TextDirection.ltr);
+      // The sign now travels inside the currency's own isolate, so the row
+      // must not force the line's direction: doing so would carry the symbol
+      // to the wrong side of the figures in Arabic (LANG-5).
+      expect(amount.textDirection, isNull);
     });
   });
 }

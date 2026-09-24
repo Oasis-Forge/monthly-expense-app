@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 
 import '../models/money.dart';
 
@@ -38,13 +39,29 @@ Color signedColor(BuildContext context, {required bool isIncome}) =>
 Color? balanceColor(BuildContext context, Money amount) =>
     amount.isNegative ? expenseColor(context) : null;
 
-/// `+12.50` or `-12.50` (CUR-5). The pieces stay together as one
-/// left-to-right run wherever the language runs the other way (LANG-5).
+/// `+12.50` or `-12.50` (CUR-5). The amount is formatted negative so that the
+/// language's own pattern decides where the sign belongs — before the symbol
+/// in English, against the figures in Arabic — and money coming in then takes
+/// a plus in that same place. Put in by hand it would sit outside the isolate
+/// the pattern draws (LANG-5) and a right-to-left line would carry it off to
+/// the far end, away from the figures it belongs to.
 String signedAmount(
   NumberFormat currency,
   Money amount, {
   required bool isIncome,
-}) => '${isIncome ? '+' : '-'}${currency.money(amount)}';
+}) {
+  final text = currency.money(-amount);
+  if (!isIncome) return text;
+  // A language's own minus may carry a direction mark in front of it, and a
+  // pattern of our own writes the plain one, so both are looked for.
+  for (final minus in [
+    numberFormatSymbols[currency.locale]?.MINUS_SIGN ?? '-',
+    '-',
+  ]) {
+    if (text.contains(minus)) return text.replaceFirst(minus, '+');
+  }
+  return '+$text';
+}
 
 /// [base] set in the app's figures (CUR-4).
 TextStyle amountStyle([TextStyle? base]) =>

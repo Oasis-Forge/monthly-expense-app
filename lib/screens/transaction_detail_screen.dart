@@ -192,7 +192,6 @@ class _Header extends StatelessWidget {
         Text(
           amount,
           // The sign stays in front of the amount in Arabic (LANG-5).
-          textDirection: TextDirection.ltr,
           style: amountStyle(theme.textTheme.headlineMedium)
               .copyWith(color: color, fontWeight: FontWeight.w600),
         ),

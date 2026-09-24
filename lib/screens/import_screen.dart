@@ -588,7 +588,6 @@ class _RowLine extends StatelessWidget {
                 ? '—'
                 : '${_sign(row.type)}${currency.money(amount)}',
             // The sign stays in front of the amount in Arabic (LANG-5).
-            textDirection: TextDirection.ltr,
             style: TextStyle(
               color: skipLine == null ? null : scheme.onSurfaceVariant,
             ),

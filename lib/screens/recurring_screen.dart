@@ -302,10 +302,7 @@ class _OccurrenceTile extends StatelessWidget {
       subtitle: Text(
         DateFormat.yMMMEd(l10n.localeName).format(occurrence.date),
       ),
-      trailing: Text(
-        _signedAmount(rule, currency),
-        textDirection: TextDirection.ltr,
-      ),
+      trailing: Text(_signedAmount(rule, currency)),
     );
   }
 }
@@ -336,10 +333,7 @@ class _RuleTile extends StatelessWidget {
       ),
       title: Text(rule.label(category, l10n)),
       subtitle: Text(scheduleLabel(rule, l10n)),
-      trailing: Text(
-        _signedAmount(rule, currency),
-        textDirection: TextDirection.ltr,
-      ),
+      trailing: Text(_signedAmount(rule, currency)),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => RecurringRuleScreen(editing: rule)),
       ),

@@ -247,24 +247,24 @@ class SettingsProvider extends ChangeNotifier {
   /// Formats amounts in the chosen currency for [locale], with that
   /// currency's decimals (CUR-2).
   ///
-  /// In Arabic and Urdu each amount is one left-to-right piece, sign and
-  /// symbol included, so it reads the same inside right-to-left text as on
-  /// its own (LANG-5). [isolated] false leaves that out, for the PDF report,
-  /// which lays out its own text.
+  /// The figures, and the sign in front of them, are isolated left to right
+  /// so bidi cannot part them; the symbol is left where the language puts it,
+  /// which in Arabic is before the figures (LANG-5). [isolated] false leaves
+  /// the isolate out, for the PDF report, which lays out its own text.
   NumberFormat currencyFormat(String locale, {bool isolated = true}) {
     final simple = NumberFormat.simpleCurrency(
       locale: locale,
       name: _currencyCode,
     );
-    final symbol = _localSymbol(locale);
-    final rtl = isolated && rightToLeftLanguages.contains(_language(locale));
-    if (symbol == null && !rtl) return simple;
+    final symbol = _localSymbol(locale) ?? simple.currencySymbol;
+    final pattern = _amountPattern(locale, symbol, isolated: isolated);
+    if (_localSymbol(locale) == null && pattern == null) return simple;
     return NumberFormat.currency(
       locale: locale,
       name: _currencyCode,
-      symbol: symbol ?? simple.currencySymbol,
+      symbol: symbol,
       decimalDigits: simple.decimalDigits,
-      customPattern: rtl ? _leftToRightPattern(locale) : null,
+      customPattern: pattern,
     );
   }
 
@@ -290,21 +290,65 @@ class SettingsProvider extends ChangeNotifier {
   String? _localSymbol(String locale) =>
       _language(locale) == 'ar' ? arabicCurrencySymbols[_currencyCode] : null;
 
-  /// [locale]'s currency pattern with each half, positive and negative,
-  /// isolated as left to right (U+2066 … U+2069). The marks intl puts in for
-  /// right-to-left text would reorder the amount around its sign and symbol.
-  static String _leftToRightPattern(String locale) {
-    final symbols =
+  /// The figures of a currency pattern, with the sign that belongs to them.
+  static final RegExp _figures = RegExp('[-+]?[#0][#0.,]*');
+
+  /// A symbol made of letters — `Rs`, `Rp` — rather than one of the signs,
+  /// `$` or `€`, that sit against a number without help.
+  static final RegExp _letters = RegExp(r'\p{L}', unicode: true);
+
+  /// [locale]'s currency pattern, mended in the two places intl leaves to
+  /// us, or null where it needs neither.
+  ///
+  /// The figures and their sign are isolated left to right (U+2066 … U+2069)
+  /// so that bidi cannot part them, but the symbol is left outside, where the
+  /// language puts it: CLDR writes Arabic as figures first, symbol after, and
+  /// in right-to-left text that reads with the symbol on the left (LANG-5).
+  static String? _amountPattern(
+    String locale,
+    String symbol, {
+    required bool isolated,
+  }) {
+    final cldr =
         numberFormatSymbols[Intl.verifiedLocale(
-          locale,
-          NumberFormat.localeExists,
-        )]!;
-    final halves = symbols.CURRENCY_PATTERN
-        .replaceAll(RegExp('[\u200E\u200F]'), '')
-        .split(';');
-    final positive = halves.first;
-    final negative = halves.length > 1 ? halves[1] : '-$positive';
-    return '\u2066$positive\u2069;\u2066$negative\u2069';
+              locale,
+              NumberFormat.localeExists,
+            )]!
+            .CURRENCY_PATTERN;
+    final spaced = _withCurrencySpacing(cldr, symbol);
+    final isolate =
+        isolated && rightToLeftLanguages.contains(_language(locale));
+    if (!isolate) return spaced == cldr ? null : spaced;
+    final halves = spaced.split(';');
+    // Where the symbol already stands in front of the figures, the whole
+    // amount is one left-to-right piece and the symbol falls on the left of
+    // its own accord. Where it follows them, as Arabic writes it, only the
+    // figures are isolated, so right-to-left order can carry the symbol over
+    // to the left where it belongs (LANG-5).
+    final symbolLeads =
+        halves.first.indexOf('\u00A4') < halves.first.indexOf(RegExp('[#0]'));
+    final negative = halves.length > 1
+        ? halves[1]
+        : symbolLeads
+        ? '-${halves.first}'
+        : halves.first.replaceFirstMapped(_figures, (m) => '-${m[0]}');
+    return [halves.first, negative]
+        .map(
+          (h) => symbolLeads
+              ? '\u2066$h\u2069'
+              : h.replaceFirstMapped(_figures, (m) => '\u2066${m[0]}\u2069'),
+        )
+        .join(';');
+  }
+
+  /// CLDR keeps a symbol made of letters off the digits with a no-break space
+  /// (`currencySpacing`), so PKR reads `Rs 12` and not `Rs12`. intl carries no
+  /// such rule, so the space is put in here.
+  static String _withCurrencySpacing(String pattern, String symbol) {
+    if (!_letters.hasMatch(symbol)) return pattern;
+    return pattern
+        .replaceAll(RegExp('\u00A4(?=[#0])'), '\u00A4\u00A0')
+        .replaceAll(RegExp('(?<=[#0])\u00A4'), '\u00A0\u00A4');
   }
 
   /// Changes the currency label only; stored amounts never change (CUR-3).
