@@ -11,6 +11,7 @@ import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/attachment_service.dart';
 import 'add_transaction_screen.dart';
+import 'amount_style.dart';
 import 'delete_snack_bar.dart';
 import 'note_form_screen.dart';
 
@@ -63,8 +64,7 @@ class TransactionDetailScreen extends StatelessWidget {
     final category = provider.categoryById(tx.categoryId);
     final account = provider.accountById(tx.accountId);
     final income = tx.type == TransactionType.income;
-    final color = income ? Colors.green.shade700 : Colors.red.shade700;
-    final sign = income ? '+' : '-';
+    final color = signedColor(context, isIncome: income);
     final linkedNote = provider.noteForTransaction(tx.id);
     final dates = DateFormat.yMMMMEEEEd(l10n.localeName);
     final stamps = DateFormat.yMMMd(l10n.localeName);
@@ -100,7 +100,7 @@ class TransactionDetailScreen extends StatelessWidget {
           _Header(
             label: tx.label(category, l10n),
             icon: category?.icon ?? '📦',
-            amount: '$sign${currency.format(tx.amount.toDouble())}',
+            amount: signedAmount(currency, tx.amount, isIncome: income),
             type: income ? l10n.incomeLabel : l10n.expenseLabel,
             upcoming: provider.isUpcoming(tx),
             color: color,
@@ -193,10 +193,8 @@ class _Header extends StatelessWidget {
           amount,
           // The sign stays in front of the amount in Arabic (LANG-5).
           textDirection: TextDirection.ltr,
-          style: theme.textTheme.headlineMedium?.copyWith(
-            color: color,
-            fontWeight: FontWeight.w600,
-          ),
+          style: amountStyle(theme.textTheme.headlineMedium)
+              .copyWith(color: color, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 4),
         Text(type, style: theme.textTheme.labelLarge),

@@ -76,6 +76,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **BAL-7** Scrolling the day list collapses the card, and coming back to the top opens it again, so the entries have the screen while they are being read. Scrolling never opens a card that was closed by hand, and never changes what was chosen. The card is a header inside the day list's own scroll, pinned above the entries: the room it gives up is taken from the scroll, never from the list's height, so the entries move with the finger and never further.
 - **BAL-8** The summary card leads with the number the app is opened to check. With an overall budget in the current period it is what is left to spend and what that comes to a day — "Left to spend $240 · $12 a day", the allowance BUD-3 already works out — and once the limit is passed it is the amount over instead, in red (BUD-4). Without a budget it is what has been spent so far and what that has come to a day, which is the same sentence about a month nobody has drawn a line under yet. A period that has ended or has not begun has no allowance to give (BUD-3, BUD-6), so the line says what was spent and nothing more. **It shows in both states of the card**, because the collapsed one is the state most people see most of the time (BAL-7).
 - **BAL-9** The line is not shown while a single account is chosen (ACC-6). A budget counts every account (ACC-7), so the figure would cover all of them under a label naming one, and a number read as one account's when it is every account's is the one thing this card must not get wrong.
+- **BAL-10** A figure that changes under the user's eyes moves to its new value rather than jumping to it: when an entry is saved, edited or removed, the summary card's number counts to where the money now stands, over about a third of a second (BAL-6, BAL-8). It is that one number — a list whose every row counted would be a screen that never settles — and it is decoration only: the value is right from the first frame, nothing waits for the motion to finish, and a phone asking for reduced motion is given the new figure at once.
 
 ## 6. Accounts and transfers
 
@@ -96,6 +97,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
   - **The CSV export** (BAK-5). An export is a record of the period, and a partial file that looks complete is worse than an extra step; export what you mean explicitly from Search.
 - **ACC-8** With one account showing, carried forward and closing are that account's own (ACC-4): its opening balance, its income and expense, and the transfers into and out of it. A transfer is still neither income nor expense (BAL-1) and still counts nowhere until its date arrives (BAL-4) — it moves the balance alone, and only here, because across every account it nets to zero.
 - **ACC-9** A new entry started while Home shows one account begins on that account, ahead of the last account used (ADD-3). With every account showing, the last one used wins as before.
+- **ACC-10** The Accounts screen says what the accounts come to: the active accounts' balances added up (ACC-4), below the last of them and above anything archived, so nobody has to add four rows in their head. Archived accounts stay out of it (ACC-5) — that is money already put away — and with a single account the line is not drawn at all, since it would only repeat the row above it. The app's chosen account (ACC-6) does not reach this screen: it is the one screen that is about every account by definition (ACC-7).
 
 ## 7. Budgets
 
@@ -128,6 +130,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **RCR-5** Editing a rule changes future occurrences only. Deleting a rule keeps the transactions it already posted.
 - **RCR-6** Occurrences due while a rule is paused are skipped, not caught up on resume.
 - **RCR-7** Upcoming shows the next 30 days. Notifications come later.
+- **RCR-8** The Recurring screen says what the rules come to in a month: each expense rule's amount times how often it falls in a year, divided by twelve, added together — 10 every week is 43.33 a month, 120 every year is 10, and every second month halves. Income rules are left out, because a figure mixing money going out with money coming in answers no question anybody asked; so are paused rules (RCR-6) and rules whose end has passed (RCR-1). The same line names what is next: the first of the upcoming occurrences (RCR-7) by its title, with today and tomorrow said in words and anything further off as a number of days. Nothing scheduled in the next thirty days leaves the total standing alone, and with no rules at all the screen keeps its empty state and the line is not shown. With rules but no expenses among them, the total is left out and the next line stands alone.
 
 ## 9. Delete, undo, and trash
 
@@ -170,6 +173,8 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **CUR-1** One currency for the whole app in v1, chosen from a searchable ISO list and preselected from the device locale.
 - **CUR-2** Amounts are formatted with `intl` for the device locale and the currency's decimals (JPY 0, USD 2, KWD 3).
 - **CUR-3** Changing the currency changes labels only, never values. The app warns before applying it.
+- **CUR-4** Amounts are set in figures of one width, so a column of them lines up digit under digit and a number that changes never nudges the text beside it. Amounts only: prose keeps the font's ordinary figures, which read better in a sentence.
+- **CUR-5** One convention for sign and colour, the same on every screen and in the PDF report (PDF-1): money coming in takes a plus in the income colour, money going out a minus in the expense colour, and a figure that can fall either way — a balance, a net, an account, a day's own total — takes no sign of its own and is coloured only when it is below zero. The two colours are the app's own rather than the theme's, and each clears 4.5:1 against the surface behind it in both light and dark, because an amount that cannot be read is the one thing on the screen that must not be wrong. Sign, figures and currency symbol travel as one left-to-right piece (LANG-5).
 
 ## 13. First run and trust
 
@@ -431,6 +436,17 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **NUDGE-10** Android and iOS only. The desktop builds schedule nothing, and Settings does not offer what they cannot do.
 - **NUDGE-11** Each kind is its own notification channel on Android, so someone who wants to hear about the entries that fell due but not about the empty days can say so in the phone's own settings and keep the rest.
 
+## 30. Touch feedback
+
+**They do:** the popular trackers tick under the finger on the keypad and give a firmer knock when an entry is saved, and several buzz on a swipe that is about to delete.
+
+**Learn:** the feeling is worth having where a tap has no other answer, and it has to stay quiet enough that fifty entries a week never make the phone feel busy. A tracker that buzzes at everything is uninstalled by the people who use it most.
+
+- **HAP-1** The keypad answers every key with the phone's lightest tick (ADD-2): a digit appearing is otherwise the only sign the tap landed at all. Backspace and the operators tick alike, and so does the key that puts the keypad away; a key that changes nothing — backspace with nothing left to delete — stays silent, because a tick that means nothing costs the others their meaning.
+- **HAP-2** Saving knocks once, a little firmer, as the record is written — the entry form, the transfer form, and a due recurring entry posted with a tap (RCR-2). Nothing else in the app knocks, so the feeling can be read as "it is written down".
+- **HAP-3** A swipe to delete ticks once, at the point where letting go would delete the row (DEL-2, ROW-4), and not again on the way back. It is the only feedback here that fires while a finger is still moving, and it is what turns a swipe from a guess into an action.
+- **HAP-4** All of it follows the phone and nothing else: no setting of the app's own, no row added to Settings, no permission asked for. A phone with vibration off, or without a motor at all, simply gets none of it and behaves no differently otherwise. It cannot be checked on an emulator, so a change to it is verified on a real phone or not at all.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -507,6 +523,14 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 41. Colour belongs to the category, not to its rank (CAT-6). The category chart had ten fixed colours handed out by position in a list sorted by amount, so a category changed colour whenever its spending changed rank — groceries were purple in a month they led and teal in a month they did not — and the pie agreed with its own legend only because both counted from the same end. Sixteen colours were chosen over a free picker because the percentage drawn inside a slice is white: a palette that always carries white text is worth more than letting someone choose a yellow they cannot read. The colour is stored per category rather than derived from the name or the icon, so that renaming a category does not recolour a year of history. Deriving it from the icon's own emoji was considered and dropped — two categories may share an icon, and the user can change one.
 
 42. The store is asked what is owned before the ad SDK is started, not alongside it (ADS-8, PAY-5). `PurchaseService.start` used to return as soon as the restore query had been *sent*, and the receipt arrived later on the billing stream — so on every launch by someone who had paid, the app briefly believed nothing was owned, started the ad SDK on that belief, and could put a consent form in front of the one person guaranteed never to see an ad. `start` now waits for the store's answer; Android sends one back even when the account owns nothing, so in the ordinary case this costs a single turn of the event loop. It gives up after three seconds and carries on as if nothing were owned, because failing the other way would turn an outage, or a phone with no Play Services, into a launch with no ads at all for the free users the banners exist for.
+
+## Decisions (24 September 2026)
+
+43. Money is written one way everywhere, in the app's own two colours (CUR-4, CUR-5, BAL-10). The signs were already consistent by habit — a plus on income, a minus on expense, on Home, in Insights, in Search and on the details page — but the colours were Flutter's stock green and red, chosen at eleven separate places in the code, and stock red on a dark surface does not clear 4.5:1: the amount, which is the whole point of a row, was the least readable thing on it. Putting it in one place rather than eleven is also what makes the accessibility pass later a change to a single file. Figures of one width came with it, because the alignment and the colour live on the same line of code, and a column of amounts that does not line up is the clearest sign of an app nobody looked at twice. The summary card's number counting to its new value belongs to the same idea and goes no further than that one number: saving an entry ought to be answered somewhere the eye is already resting.
+
+44. The app answers the finger (HAP-1–HAP-4). Ten keypad taps and a save is the shape of nearly every visit, and none of those taps had any answer but a number changing on the glass. The tick is the cheapest thing in this file — no permission, no setting, no string in twenty-one languages — and it is the one people feel without noticing. It stays at three moments on purpose: the keys, saving, and the swipe that is about to delete. Everything else in the app already answers some other way, and a phone that buzzes at every tap is a phone somebody switches the feature off on, which would take the three that matter with it.
+
+45. The screens that list things say what they come to (RCR-8, ACC-10). The Recurring screen listed rules without ever saying what they cost, and the Accounts screen listed balances without ever adding them up — which are the questions those two screens exist to answer. Both are arithmetic over data already loaded, with no schema and no new concept. The monthly figure normalises every frequency rather than showing the amounts as written, because a list mixing 10 a week with 120 a year cannot be added by eye; income rules stay out of it, since a total running in both directions at once answers nothing.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

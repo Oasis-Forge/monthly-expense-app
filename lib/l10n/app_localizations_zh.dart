@@ -382,6 +382,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get archivedHeader => '已归档';
 
   @override
+  String get accountsTotalLabel => '总计';
+
+  @override
   String get categorySaveFailed => '无法保存该分类，请重试。';
 
   @override
@@ -566,6 +569,23 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get rulesHeader => '规则';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '每月账单共 $amount';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '下一笔:$title,$days 天后',
+      one: '下一笔:$title,明天',
+      zero: '下一笔:$title,今天',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => '未来30天内没有安排。';

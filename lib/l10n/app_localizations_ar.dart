@@ -396,6 +396,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get archivedHeader => 'المؤرشفة';
 
   @override
+  String get accountsTotalLabel => 'الإجمالي';
+
+  @override
   String get categorySaveFailed => 'تعذّر حفظ الفئة. حاول مرة أخرى.';
 
   @override
@@ -583,6 +586,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get rulesHeader => 'القواعد';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '$amount شهريًا للفواتير';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'التالي: $title، خلال $days يوم',
+      many: 'التالي: $title، خلال $days يومًا',
+      few: 'التالي: $title، خلال $days أيام',
+      two: 'التالي: $title، خلال يومين',
+      one: 'التالي: $title، غدًا',
+      zero: 'التالي: $title، اليوم',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'لا شيء في الأيام الثلاثين القادمة.';

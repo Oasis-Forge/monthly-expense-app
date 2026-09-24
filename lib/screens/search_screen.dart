@@ -9,6 +9,7 @@ import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'amount_style.dart';
 import 'csv_export_action.dart';
 import 'report_screen.dart';
 import 'transaction_detail_screen.dart';
@@ -217,7 +218,7 @@ class _ResultTile extends StatelessWidget {
     final provider = context.watch<TransactionProvider>();
     final category = provider.categoryById(transaction.categoryId);
     final isIncome = transaction.type == TransactionType.income;
-    final color = isIncome ? Colors.green : Colors.red;
+    final color = signedColor(context, isIncome: isIncome);
 
     return ListTile(
       // The category's colour (CAT-6); the amount carries income and expense.
@@ -236,8 +237,10 @@ class _ResultTile extends StatelessWidget {
       trailing: TransactionRowTrailing(
         transaction: transaction,
         amount: Text(
-          '${isIncome ? '+' : '-'}${currency.format(transaction.amount.toDouble())}',
-          style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          signedAmount(currency, transaction.amount, isIncome: isIncome),
+          style: amountStyle(
+            TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
       onTap: () => Navigator.of(context).push(

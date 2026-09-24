@@ -778,6 +778,12 @@ abstract class AppLocalizations {
   /// **'Archived'**
   String get archivedHeader;
 
+  /// Row label under the account list on the Accounts screen, whose trailing figure is every active account's balance added up (ACC-10).
+  ///
+  /// In en, this message translates to:
+  /// **'Total'**
+  String get accountsTotalLabel;
+
   /// No description provided for @categorySaveFailed.
   ///
   /// In en, this message translates to:
@@ -1101,6 +1107,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Rules'**
   String get rulesHeader;
+
+  /// Header on the Recurring screen: what every active expense rule adds up to per month (RCR-8). {amount} arrives already formatted as currency.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} a month in bills'**
+  String billsPerMonth(String amount);
+
+  /// Second half of the Recurring header: which recurring entry falls next and when (RCR-8).
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =0{Next: {title}, today} =1{Next: {title}, tomorrow} other{Next: {title}, in {days} days}}'**
+  String nextBill(int days, String title);
 
   /// No description provided for @nothingUpcoming.
   ///

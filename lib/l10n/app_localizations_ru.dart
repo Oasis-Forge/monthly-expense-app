@@ -395,6 +395,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get archivedHeader => 'В архиве';
 
   @override
+  String get accountsTotalLabel => 'Итого';
+
+  @override
   String get categorySaveFailed =>
       'Не удалось сохранить категорию. Попробуйте ещё раз.';
 
@@ -586,6 +589,25 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get rulesHeader => 'Правила';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '$amount в месяц на счета';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Далее: $title, через $days дня',
+      many: 'Далее: $title, через $days дней',
+      few: 'Далее: $title, через $days дня',
+      one: 'Далее: $title, завтра',
+      zero: 'Далее: $title, сегодня',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'Ничего в ближайшие 30 дней.';

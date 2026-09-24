@@ -16,6 +16,7 @@ import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
 import 'account_filter_button.dart';
 import 'ad_slot.dart';
+import 'amount_style.dart';
 import 'budget_progress.dart';
 import 'budgets_screen.dart';
 import 'note_form_screen.dart';
@@ -216,7 +217,10 @@ class _CategoriesTabState extends State<_CategoriesTab> {
               title: Text(
                 provider.categoryById(entries[i].key)?.label(l10n) ?? '',
               ),
-              trailing: Text(currency.format(entries[i].value.toDouble())),
+              trailing: Text(
+                currency.format(entries[i].value.toDouble()),
+                style: amountStyle(),
+              ),
             ),
         ],
       ],
@@ -361,7 +365,7 @@ class _DayCell extends StatelessWidget {
       fit: BoxFit.scaleDown,
       child: Text(
         compact.format(value.toDouble()),
-        style: small?.copyWith(color: color),
+        style: amountStyle(small).copyWith(color: color),
       ),
     );
 
@@ -397,9 +401,9 @@ class _DayCell extends StatelessWidget {
                       ),
                       const Spacer(),
                       if (totals != null && totals.expense.isPositive)
-                        amount(totals.expense, Colors.red),
+                        amount(totals.expense, expenseColor(context)),
                       if (totals != null && totals.income.isPositive)
-                        amount(totals.income, Colors.green),
+                        amount(totals.income, incomeColor(context)),
                     ],
                   ),
                 ),
@@ -490,9 +494,9 @@ class _DayDetails extends StatelessWidget {
                 trailing: TransactionRowTrailing(
                   transaction: tx,
                   amount: Text(
-                    '${isIncome ? '+' : '-'}${money(tx.amount)}',
-                    style: TextStyle(
-                      color: isIncome ? Colors.green : Colors.red,
+                    signedAmount(currency, tx.amount, isIncome: isIncome),
+                    style: amountStyle().copyWith(
+                      color: signedColor(context, isIncome: isIncome),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -510,7 +514,7 @@ class _DayDetails extends StatelessWidget {
                 provider.accountById(transfer.toAccountId)?.label(l10n) ?? '',
               ),
             ),
-            trailing: Text(money(transfer.amount)),
+            trailing: Text(money(transfer.amount), style: amountStyle()),
             onTap: () => open(TransferScreen(editing: transfer)),
           ),
         // NOTE-5, INS-1: open notes due this day.
@@ -680,9 +684,11 @@ class _TrendTabState extends State<_TrendTab> {
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
                         currency.format(rod.toY),
-                        const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                        amountStyle(
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                 ),
@@ -709,7 +715,7 @@ class _TrendTabState extends State<_TrendTab> {
             ),
             trailing: Text(
               money(totals.net),
-              style: TextStyle(
+              style: amountStyle().copyWith(
                 fontWeight: FontWeight.w600,
                 color: totals.net.isNegative ? Colors.red : Colors.green,
               ),

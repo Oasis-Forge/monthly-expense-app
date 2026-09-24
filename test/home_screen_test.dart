@@ -1114,4 +1114,31 @@ void main() {
       expect(find.byType(DayStrip), findsOneWidget);
     });
   });
+
+  testWidgets('a swipe ticks as it passes the point of no return (HAP-3)', (
+    tester,
+  ) async {
+    usePhoneScreen(tester);
+    final haptics = captureHaptics();
+    await showHome(tester);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Lunch')),
+    );
+    await gesture.moveBy(const Offset(-40, 0));
+    await tester.pump();
+    expect(haptics, isEmpty);
+
+    await gesture.moveBy(const Offset(-160, 0));
+    await tester.pump();
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
+
+    // Nothing more on the way back, and nothing on the way out again.
+    await gesture.moveBy(const Offset(160, 0));
+    await tester.pump();
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
 }

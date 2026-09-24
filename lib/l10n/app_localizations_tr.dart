@@ -385,6 +385,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get archivedHeader => 'Arşivlenenler';
 
   @override
+  String get accountsTotalLabel => 'Toplam';
+
+  @override
   String get categorySaveFailed => 'Kategori kaydedilemedi. Tekrar deneyin.';
 
   @override
@@ -570,6 +573,23 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get rulesHeader => 'Kurallar';
+
+  @override
+  String billsPerMonth(String amount) {
+    return 'Aylık faturalarda $amount';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Sıradaki: $title, $days gün sonra',
+      one: 'Sıradaki: $title, yarın',
+      zero: 'Sıradaki: $title, bugün',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'Önümüzdeki 30 günde bir şey yok.';

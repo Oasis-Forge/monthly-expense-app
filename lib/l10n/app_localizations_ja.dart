@@ -382,6 +382,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get archivedHeader => 'アーカイブ済み';
 
   @override
+  String get accountsTotalLabel => '合計';
+
+  @override
   String get categorySaveFailed => 'カテゴリーを保存できませんでした。もう一度お試しください。';
 
   @override
@@ -566,6 +569,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get rulesHeader => 'ルール';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '月々の請求額 $amount';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '次回:$title、$days日後',
+      one: '次回:$title、明日',
+      zero: '次回:$title、今日',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => '今後30日間の予定はありません。';

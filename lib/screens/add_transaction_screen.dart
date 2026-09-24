@@ -15,6 +15,7 @@ import '../providers/transaction_provider.dart';
 import 'attachment_field.dart';
 import 'delete_snack_bar.dart';
 import 'form_fields.dart';
+import 'haptics.dart';
 import 'note_form_screen.dart';
 
 class AddTransactionScreen extends StatefulWidget {
@@ -198,6 +199,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       return;
     }
     _saving = false;
+    // HAP-2: one knock, and only once the record is written.
+    saveFeedback();
     // ADD-4 or not, a saved entry is a thing done (ADS-12).
     unawaited(ads.noteActivity());
     if (!mounted) return;

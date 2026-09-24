@@ -25,6 +25,7 @@ import 'account_filter_button.dart';
 import 'accounts_screen.dart';
 import 'ad_slot.dart';
 import 'add_transaction_screen.dart';
+import 'amount_style.dart';
 import 'backup_screen.dart';
 import 'budget_progress.dart';
 import 'budgets_screen.dart';
@@ -32,6 +33,7 @@ import 'categories_screen.dart';
 import 'csv_export_action.dart';
 import 'day_strip.dart';
 import 'delete_snack_bar.dart';
+import 'haptics.dart';
 import 'insights_screen.dart';
 import 'notes_screen.dart';
 import 'period_selector.dart';
@@ -879,7 +881,7 @@ class _SummaryCard extends StatelessWidget {
     final label =
         accountName ??
         (carried == null ? l10n.periodNetLabel : l10n.balanceLabel);
-    final amountColor = balance.isNegative ? Colors.red : Colors.green;
+    final amountColor = balanceColor(context, balance);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       elevation: 2,
@@ -929,12 +931,14 @@ class _SummaryCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Text(
-                          currency.format(balance.toDouble()),
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: amountColor,
-                          ),
+                        RollingAmount(
+                          amount: balance,
+                          currency: currency,
+                          style: amountStyle(theme.textTheme.titleLarge)
+                              .copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: amountColor,
+                              ),
                         ),
                         Icon(
                           Icons.expand_more,
@@ -991,12 +995,14 @@ class _SummaryCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Text(
-                      currency.format(balance.toDouble()),
-                      style: theme.textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: amountColor,
-                      ),
+                    RollingAmount(
+                      amount: balance,
+                      currency: currency,
+                      style: amountStyle(theme.textTheme.headlineMedium)
+                          .copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: amountColor,
+                          ),
                     ),
                     if (carried != null)
                       // One line, whatever the screen: a wrapped second line
@@ -1029,7 +1035,7 @@ class _SummaryCard extends StatelessWidget {
                           child: _AmountTile(
                             label: l10n.incomeLabel,
                             amount: income,
-                            color: Colors.green,
+                            color: incomeColor(context),
                             icon: Icons.arrow_downward,
                             currency: currency,
                           ),
@@ -1043,7 +1049,7 @@ class _SummaryCard extends StatelessWidget {
                           child: _AmountTile(
                             label: l10n.expenseLabel,
                             amount: expense,
-                            color: Colors.red,
+                            color: expenseColor(context),
                             icon: Icons.arrow_upward,
                             currency: currency,
                           ),
@@ -1101,7 +1107,7 @@ class _HeroLine extends StatelessWidget {
       text,
       maxLines: 1,
       style: theme.textTheme.bodySmall?.copyWith(
-        color: over ? Colors.red : null,
+        color: over ? expenseColor(context) : null,
         fontWeight: over ? FontWeight.bold : null,
       ),
     );
@@ -1182,8 +1188,8 @@ class _AmountTile extends StatelessWidget {
           fit: BoxFit.scaleDown,
           child: Text(
             currency.format(amount.toDouble()),
-            style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(color: color, fontWeight: FontWeight.w600),
+            style: amountStyle(Theme.of(context).textTheme.titleMedium)
+                .copyWith(color: color, fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -1236,7 +1242,7 @@ class _DaySection extends StatelessWidget {
               if (dayTotals.income.isPositive)
                 _DayTotal(
                   amount: dayTotals.income,
-                  color: Colors.green,
+                  color: incomeColor(context),
                   currency: currency,
                 ),
               if (dayTotals.income.isPositive && dayTotals.expense.isPositive)
@@ -1244,7 +1250,7 @@ class _DaySection extends StatelessWidget {
               if (dayTotals.expense.isPositive)
                 _DayTotal(
                   amount: dayTotals.expense,
-                  color: Colors.red,
+                  color: expenseColor(context),
                   currency: currency,
                 ),
             ],
@@ -1285,8 +1291,8 @@ class _DayTotal extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       currency.format(amount.toDouble()),
-      style: Theme.of(context).textTheme.labelLarge
-          ?.copyWith(color: color, fontWeight: FontWeight.w600),
+      style: amountStyle(Theme.of(context).textTheme.labelLarge)
+          .copyWith(color: color, fontWeight: FontWeight.w600),
     );
   }
 }
@@ -1312,13 +1318,14 @@ class _TransactionTile extends StatelessWidget {
     final category = provider.categoryById(transaction.categoryId);
     final categoryName = category?.label(l10n) ?? '';
     final isIncome = transaction.type == TransactionType.income;
-    final sign = isIncome ? '+' : '-';
-    final color = isIncome ? Colors.green : Colors.red;
+    final color = signedColor(context, isIncome: isIncome);
 
     return Dismissible(
       key: ValueKey(transaction.id),
       direction: DismissDirection.endToStart,
       background: _deleteBackground(),
+      // HAP-3: the swipe says when letting go would delete the row.
+      onUpdate: swipeUpdate,
       // Delete before the row animates away; if that fails, it slides back.
       confirmDismiss: (_) async {
         final messenger = ScaffoldMessenger.of(context);
@@ -1353,10 +1360,12 @@ class _TransactionTile extends StatelessWidget {
         trailing: TransactionRowTrailing(
           transaction: transaction,
           amount: Text(
-            '$sign${currency.format(transaction.amount.toDouble())}',
+            signedAmount(currency, transaction.amount, isIncome: isIncome),
             // The sign stays in front of the amount in Arabic (LANG-5).
             textDirection: TextDirection.ltr,
-            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+            style: amountStyle(
+              TextStyle(color: color, fontWeight: FontWeight.w600),
+            ),
           ),
         ),
         onTap: () => Navigator.of(context).push(
@@ -1388,6 +1397,8 @@ class _TransferTile extends StatelessWidget {
       key: ValueKey('transfer-${transfer.id}'),
       direction: DismissDirection.endToStart,
       background: _deleteBackground(),
+      // HAP-3: as on a transaction row.
+      onUpdate: swipeUpdate,
       confirmDismiss: (_) async {
         final messenger = ScaffoldMessenger.of(context);
         try {
@@ -1411,7 +1422,7 @@ class _TransferTile extends StatelessWidget {
         ),
         trailing: Text(
           currency.format(transfer.amount.toDouble()),
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: amountStyle(const TextStyle(fontWeight: FontWeight.w600)),
         ),
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => TransferScreen(editing: transfer)),

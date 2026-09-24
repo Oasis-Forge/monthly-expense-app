@@ -386,6 +386,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get archivedHeader => 'আর্কাইভ করা';
 
   @override
+  String get accountsTotalLabel => 'মোট';
+
+  @override
   String get categorySaveFailed =>
       'ক্যাটাগরি সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।';
 
@@ -574,6 +577,23 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get rulesHeader => 'নিয়ম';
+
+  @override
+  String billsPerMonth(String amount) {
+    return 'মাসে বিলে $amount';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'পরবর্তী: $title, $days দিনে',
+      one: 'পরবর্তী: $title, আগামীকাল',
+      zero: 'পরবর্তী: $title, আজ',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'আগামী 30 দিনে কিছু নেই।';

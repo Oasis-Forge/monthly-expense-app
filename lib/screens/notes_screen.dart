@@ -9,6 +9,7 @@ import '../models/transaction_filter.dart' show foldForSearch;
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'delete_snack_bar.dart';
+import 'haptics.dart';
 import 'note_form_screen.dart';
 
 enum _StatusFilter { open, done }
@@ -261,6 +262,8 @@ class _NoteTile extends StatelessWidget {
     return Dismissible(
       key: ValueKey('note-${note.id}'),
       direction: DismissDirection.endToStart,
+      // HAP-3: as on the day list's rows.
+      onUpdate: swipeUpdate,
       background: Container(
         color: Colors.red,
         alignment: AlignmentDirectional.centerEnd,

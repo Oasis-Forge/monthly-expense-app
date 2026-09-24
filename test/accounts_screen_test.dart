@@ -191,4 +191,23 @@ void main() {
 
     expect(find.byType(TransferScreen), findsOneWidget);
   });
+
+  testWidgets('the accounts add up under the list, past the first (ACC-10)', (
+    tester,
+  ) async {
+    await showAccounts(tester);
+
+    // One account has nothing to add up; the row would only repeat it.
+    expect(find.text('Total'), findsNothing);
+
+    await addBank();
+    await showAccounts(tester);
+
+    final total = find.widgetWithText(ListTile, 'Total');
+    expect(total, findsOneWidget);
+    expect(
+      find.descendant(of: total, matching: find.text('\$100.00')),
+      findsOneWidget,
+    );
+  });
 }

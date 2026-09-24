@@ -313,4 +313,77 @@ void main() {
       expect(provider.dueOccurrences, hasLength(1));
     });
   });
+
+  group('what the rules come to (RCR-8)', () {
+    Money monthly(RecurrenceFrequency frequency, int interval, num amount) =>
+        testRule(
+          'r',
+          amount,
+          DateTime(2026, 9),
+        ).copyWith(frequency: frequency, interval: interval).monthlyCost;
+
+    Future<TransactionProvider> loaded(List<RecurringRule> rules) async {
+      final provider = TransactionProvider(
+        db: FakeDB(rules: rules),
+        clock: () => today,
+      );
+      await provider.load();
+      return provider;
+    }
+
+    test('a rule is worked out per month, whatever it repeats on', () {
+      expect(monthly(RecurrenceFrequency.month, 1, 900), const Money(900000));
+      expect(monthly(RecurrenceFrequency.month, 2, 900), const Money(450000));
+      expect(monthly(RecurrenceFrequency.week, 1, 10), const Money(43333));
+      expect(monthly(RecurrenceFrequency.year, 1, 120), const Money(10000));
+      expect(monthly(RecurrenceFrequency.day, 1, 1), const Money(30417));
+    });
+
+    test('income, paused and finished rules stay out of the total', () async {
+      final provider = await loaded([
+        testRule('rent', 900, DateTime(2026, 9)),
+        testRule(
+          'salary',
+          2000,
+          DateTime(2026, 9),
+        ).copyWith(type: TransactionType.income),
+        testRule('gym', 30, DateTime(2026, 9)).copyWith(pausedAt: today),
+        testRule(
+          'old',
+          50,
+          DateTime(2026),
+        ).copyWith(endType: RecurrenceEnd.onDate, endDate: DateTime(2026, 6)),
+      ]);
+
+      expect(provider.monthlyBills, const Money(900000));
+    });
+
+    test('what falls next is the first still waiting, in days', () async {
+      final provider = await loaded([
+        testRule('Rent', 900, DateTime(2026, 9)),
+        testRule('Gym', 30, DateTime(2026, 9, 20)),
+      ]);
+
+      final next = provider.nextScheduled!;
+      expect(next.rule.id, 'Gym');
+      expect(provider.daysUntil(next.date), 5);
+    });
+
+    test('one due today comes before the days ahead', () async {
+      final provider = await loaded([
+        testRule('Water', 20, DateTime(2026, 9, 15)),
+        testRule('Gym', 30, DateTime(2026, 9, 20)),
+      ]);
+
+      expect(provider.nextScheduled!.rule.id, 'Water');
+      expect(provider.daysUntil(provider.nextScheduled!.date), 0);
+    });
+
+    test('with no rules there is no total and nothing next', () async {
+      final provider = await loaded([]);
+
+      expect(provider.monthlyBills, Money.zero);
+      expect(provider.nextScheduled, isNull);
+    });
+  });
 }

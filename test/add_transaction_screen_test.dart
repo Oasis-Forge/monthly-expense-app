@@ -576,4 +576,54 @@ void main() {
       expect(find.text('Discard changes?'), findsOneWidget);
     });
   });
+
+  group('what the phone says back (HAP-1, HAP-2)', () {
+    testWidgets('every keypad key that changes the amount ticks', (
+      tester,
+    ) async {
+      final haptics = captureHaptics();
+      await open(tester);
+
+      await tester.tap(find.widgetWithText(TextButton, '7'));
+      await tester.pump();
+      expect(haptics, ['HapticFeedbackType.selectionClick']);
+
+      // Backspace takes the 7 away, and then has nothing left to take.
+      haptics.clear();
+      await tester.tap(find.byTooltip('Backspace'));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Backspace'));
+      await tester.pump();
+      expect(haptics, ['HapticFeedbackType.selectionClick']);
+    });
+
+    testWidgets('saving knocks once, and only once it is written', (
+      tester,
+    ) async {
+      final haptics = captureHaptics();
+      await open(tester);
+      await enterAmount(tester, '12');
+      haptics.clear();
+
+      await tapButton(tester, 'Add Transaction');
+      await tester.pumpAndSettle();
+
+      expect(provider.transactions, hasLength(1));
+      expect(haptics, ['HapticFeedbackType.mediumImpact']);
+    });
+
+    testWidgets('a save that fails says nothing', (tester) async {
+      final haptics = captureHaptics();
+      await open(tester);
+      await enterAmount(tester, '12');
+      fake.failWrites = true;
+      haptics.clear();
+
+      await tapButton(tester, 'Add Transaction');
+      await tester.pumpAndSettle();
+
+      expect(provider.transactions, isEmpty);
+      expect(haptics, isEmpty);
+    });
+  });
 }
