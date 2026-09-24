@@ -20,6 +20,7 @@ import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -28,6 +29,7 @@ import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
+import 'package:monthly_expense_app/screens/recurring_screen.dart';
 import 'package:monthly_expense_app/services/attachment_service.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
@@ -39,7 +41,7 @@ import '../tool/render_app_icons_test.dart' show AppIconPainter;
 const _only = String.fromEnvironment('ONLY');
 
 const _purple = Color(0xFF6C5CE7);
-final _today = DateTime(2026, 9, 24, 10);
+final _today = DateTime(2026, 9, 24, 21);
 
 /// A Play listing language: its code, the app language it shows, the
 /// currency its sample data is in and how many of those make a dollar.
@@ -79,6 +81,8 @@ const _captions = <String, List<String>>{
     'See where your money goes',
     'Spot trends month by month',
     'Plan ahead with budgets',
+    'Know what your bills add up to',
+    'See which days cost you most',
     'No account. Your records stay on your phone.',
   ],
   'ar': [
@@ -87,6 +91,8 @@ const _captions = <String, List<String>>{
     'اعرف أين تذهب أموالك',
     'تابع الاتجاهات شهرًا بشهر',
     'خطّط مسبقًا بالميزانيات',
+    'اعرف مجموع فواتيرك',
+    'شاهد أكثر الأيام تكلفة',
     'بلا حساب. سجلاتك تبقى على هاتفك.',
   ],
   'bn-BD': [
@@ -95,6 +101,8 @@ const _captions = <String, List<String>>{
     'টাকা কোথায় যায় দেখুন',
     'মাসে মাসে প্রবণতা দেখুন',
     'বাজেট দিয়ে আগে থেকে পরিকল্পনা',
+    'আপনার বিলের মোট জেনে নিন',
+    'কোন দিনে খরচ বেশি দেখুন',
     'কোনো অ্যাকাউন্ট নেই। রেকর্ড থাকে আপনার ফোনেই।',
   ],
   'zh-CN': [
@@ -103,6 +111,8 @@ const _captions = <String, List<String>>{
     '看清钱的去向',
     '按月查看趋势',
     '用预算提前规划',
+    '账单总额一目了然',
+    '看清哪几天花得最多',
     '无需账户，记录只保存在你的手机上。',
   ],
   'nl-NL': [
@@ -111,6 +121,8 @@ const _captions = <String, List<String>>{
     'Zie waar je geld heen gaat',
     'Trends per maand',
     'Vooruit plannen met budgetten',
+    'Zie hoeveel je vaste lasten zijn',
+    'Zie welke dagen het meest kosten',
     'Geen account. Je transacties blijven op je telefoon.',
   ],
   'fr-FR': [
@@ -119,6 +131,8 @@ const _captions = <String, List<String>>{
     'Voyez où va votre argent',
     'Suivez les tendances mois par mois',
     'Anticipez avec des budgets',
+    'Sachez à combien s\'élèvent vos factures',
+    'Repérez vos jours les plus coûteux',
     'Sans compte. Vos opérations restent sur votre téléphone.',
   ],
   'de-DE': [
@@ -127,6 +141,8 @@ const _captions = <String, List<String>>{
     'Sieh, wohin dein Geld geht',
     'Trends Monat für Monat',
     'Vorausplanen mit Budgets',
+    'Behalte deine Rechnungen im Blick',
+    'Sieh, welche Tage am meisten kosten',
     'Kein Konto. Deine Einträge bleiben auf dem Handy.',
   ],
   'el-GR': [
@@ -135,6 +151,8 @@ const _captions = <String, List<String>>{
     'Δείτε πού πηγαίνουν τα χρήματά σας',
     'Τάσεις μήνα με μήνα',
     'Προγραμματίστε με προϋπολογισμούς',
+    'Δείτε πόσο βγαίνουν οι λογαριασμοί σας',
+    'Δείτε ποιες μέρες κοστίζουν περισσότερο',
     'Χωρίς λογαριασμό. Οι εγγραφές σας μένουν στο κινητό σας.',
   ],
   'hi-IN': [
@@ -143,6 +161,8 @@ const _captions = <String, List<String>>{
     'देखें पैसा कहाँ जाता है',
     'महीने-दर-महीने रुझान',
     'बजट के साथ पहले से योजना',
+    'जानें आपके बिल कितने बनते हैं',
+    'देखें किन दिनों में खर्च सबसे ज़्यादा हुआ',
     'कोई अकाउंट नहीं। रिकॉर्ड आपके फ़ोन पर ही।',
   ],
   'id': [
@@ -151,6 +171,8 @@ const _captions = <String, List<String>>{
     'Lihat ke mana uang Anda pergi',
     'Tren dari bulan ke bulan',
     'Rencanakan dengan anggaran',
+    'Ketahui total tagihan Anda',
+    'Lihat hari mana yang paling boros',
     'Tanpa akun. Catatan tetap di ponsel Anda.',
   ],
   'it-IT': [
@@ -159,6 +181,8 @@ const _captions = <String, List<String>>{
     'Scopri dove vanno i tuoi soldi',
     "L'andamento mese per mese",
     'Pianifica con i budget',
+    'Scopri a quanto ammontano le bollette',
+    'Scopri quali giorni ti costano di più',
     'Nessun account. I tuoi movimenti restano sul telefono.',
   ],
   'ja-JP': [
@@ -167,6 +191,8 @@ const _captions = <String, List<String>>{
     'お金の行き先を把握',
     '月ごとの推移をチェック',
     '予算で先を見越して計画',
+    '請求の合計をひと目で確認',
+    '出費が多い日をひと目で確認',
     'アカウント不要。記録はスマホの中だけ。',
   ],
   'ko-KR': [
@@ -175,6 +201,8 @@ const _captions = <String, List<String>>{
     '돈이 어디로 가는지 확인',
     '월별 추세 확인',
     '예산으로 미리 계획',
+    '고정 지출 총액을 한눈에',
+    '지출이 많은 날을 한눈에',
     '계정 없이, 기록은 휴대폰에만.',
   ],
   'pl-PL': [
@@ -183,6 +211,8 @@ const _captions = <String, List<String>>{
     'Zobacz, dokąd idą pieniądze',
     'Trendy miesiąc po miesiącu',
     'Planuj z budżetami',
+    'Sprawdź, ile wynoszą twoje rachunki',
+    'Zobacz, które dni kosztują najwięcej',
     'Bez konta. Twoje wpisy zostają na telefonie.',
   ],
   'pt-BR': [
@@ -191,6 +221,8 @@ const _captions = <String, List<String>>{
     'Veja para onde vai o seu dinheiro',
     'Tendências mês a mês',
     'Planeje com orçamentos',
+    'Saiba quanto somam suas contas',
+    'Veja quais dias custam mais',
     'Sem conta. Seus registros ficam no seu celular.',
   ],
   'pt-PT': [
@@ -199,6 +231,8 @@ const _captions = <String, List<String>>{
     'Veja para onde vai o seu dinheiro',
     'Tendências mês a mês',
     'Planeie com orçamentos',
+    'Saiba quanto somam as suas contas',
+    'Veja que dias custam mais',
     'Sem conta. Os seus registos ficam no seu telemóvel.',
   ],
   'ru-RU': [
@@ -207,6 +241,8 @@ const _captions = <String, List<String>>{
     'Узнайте, куда уходят деньги',
     'Динамика по месяцам',
     'Планируйте с бюджетами',
+    'Узнайте сумму ваших счетов',
+    'Узнайте, какие дни обходятся дороже',
     'Без аккаунта. Записи остаются на телефоне.',
   ],
   'es-ES': [
@@ -215,6 +251,8 @@ const _captions = <String, List<String>>{
     'Mira adónde va tu dinero',
     'Tendencias mes a mes',
     'Planifica con presupuestos',
+    'Descubre a cuánto suman tus facturas',
+    'Descubre qué días te cuestan más',
     'Sin cuenta. Tus registros quedan en tu móvil.',
   ],
   'es-419': [
@@ -223,6 +261,8 @@ const _captions = <String, List<String>>{
     'Mira adónde va tu dinero',
     'Tendencias mes a mes',
     'Planifica con presupuestos',
+    'Descubre a cuánto suman tus cuentas',
+    'Descubre qué días te cuestan más',
     'Sin cuenta. Tus registros quedan en tu celular.',
   ],
   'th': [
@@ -231,6 +271,8 @@ const _captions = <String, List<String>>{
     'ดูว่าเงินไปไหน',
     'แนวโน้มรายเดือน',
     'วางแผนล่วงหน้าด้วยงบประมาณ',
+    'รู้ยอดรวมค่าใช้จ่ายประจำ',
+    'ดูว่าวันไหนใช้จ่ายมากที่สุด',
     'ไม่ต้องมีบัญชี รายการอยู่ในโทรศัพท์ของคุณ',
   ],
   'tr-TR': [
@@ -239,6 +281,8 @@ const _captions = <String, List<String>>{
     'Paranızın nereye gittiğini görün',
     'Ay ay eğilimler',
     'Bütçelerle önceden planlayın',
+    'Faturalarınızın toplamını görün',
+    'Hangi günlerin daha pahalıya mal olduğunu görün',
     'Hesap yok. Kayıtlarınız telefonunuzda kalır.',
   ],
   'ur': [
@@ -247,6 +291,8 @@ const _captions = <String, List<String>>{
     'دیکھیں پیسہ کہاں جاتا ہے',
     'مہینہ بہ مہینہ رجحانات',
     'بجٹ کے ساتھ پہلے سے منصوبہ بندی',
+    'جانیں آپ کے بل کتنے بنتے ہیں',
+    'دیکھیں کن دنوں میں خرچ سب سے زیادہ ہوا',
     'کوئی اکاؤنٹ نہیں۔ ریکارڈ آپ کے فون پر۔',
   ],
   'vi': [
@@ -255,6 +301,8 @@ const _captions = <String, List<String>>{
     'Xem tiền của bạn đi đâu',
     'Xu hướng theo từng tháng',
     'Lên kế hoạch với ngân sách',
+    'Biết tổng các hóa đơn của bạn',
+    'Xem ngày nào tốn kém nhất',
     'Không cần tài khoản. Ghi chép lưu trên điện thoại.',
   ],
 };
@@ -300,7 +348,13 @@ final List<_Shot> _shots = [
   (name: '3-categories', dark: false, screen: const InsightsScreen()),
   (name: '4-trend', dark: false, screen: const InsightsScreen(initialTab: 2)),
   (name: '5-budgets', dark: false, screen: const BudgetsScreen()),
-  (name: '6-home-dark', dark: true, screen: const HomeScreen()),
+  (name: '6-recurring', dark: false, screen: const RecurringScreen()),
+  (
+    name: '7-calendar',
+    dark: false,
+    screen: const InsightsScreen(initialTab: 1),
+  ),
+  (name: '8-home-dark', dark: true, screen: const HomeScreen()),
 ];
 
 // ---------------------------------------------------------------- data ----
@@ -363,6 +417,8 @@ const _month = [
   (21, 'cat-transport', 22.0),
   (23, 'cat-groceries', 35.2),
   (24, 'cat-food', 15.5),
+  (24, 'cat-groceries', 41.8),
+  (24, 'cat-transport', 18.0),
 ];
 
 /// [dollars] in the store's currency, rounded the way prices are.
@@ -416,6 +472,51 @@ List<ExpenseTransaction> _transactions(_Store store) {
     }
   }
   return list;
+}
+
+/// The bills the Recurring screen exists to total up: rent and the utilities
+/// that arrive whether or not anybody thinks about them, a subscription, and
+/// the salary that pays for them. Dated so the next one is a few days out,
+/// which is what the header says (RCR-8).
+List<RecurringRule> _rules(_Store store) {
+  RecurringRule rule(
+    String id,
+    String category,
+    num dollars,
+    int day, {
+    TransactionType type = TransactionType.expense,
+    RecurrenceFrequency every = RecurrenceFrequency.month,
+  }) {
+    final start = DateTime(2026, 4, day);
+    return RecurringRule(
+      id: id,
+      amount: _money(dollars, store),
+      categoryId: category,
+      accountId: Account.cashId,
+      type: type,
+      frequency: every,
+      interval: 1,
+      startDate: start,
+      endType: RecurrenceEnd.never,
+      // Established rules, but nothing left waiting: a listing photograph of
+      // six months of unhandled bills sells nobody anything.
+      activeFrom: _today,
+      createdAt: _created,
+      updatedAt: _created,
+    );
+  }
+
+  return [
+    // The salary falls a day after the rent, so the line names a bill —
+    // the header above it is about bills.
+    rule('rule-salary', 'cat-salary', 3200, 2, type: TransactionType.income),
+    rule('rule-rent', 'cat-rent', 1100, 1),
+    rule('rule-bills', 'cat-bills', 85, 5),
+    // A different category, or the list shows the same word twice: the rows
+    // are named after their category, which is what gets translated.
+    rule('rule-insurance', 'cat-health', 45, 8),
+    rule('rule-streaming', 'cat-entertainment', 14.99, 7),
+  ];
 }
 
 List<Budget> _budgets(_Store store) => [
@@ -806,6 +907,7 @@ Future<(TransactionProvider, SettingsProvider)> _state(
     db: FakeDB(
       transactions: _transactions(store),
       categories: _categories(),
+      rules: _rules(store),
       accounts: [
         Account(
           id: Account.cashId,
@@ -829,6 +931,9 @@ Future<(TransactionProvider, SettingsProvider)> _state(
     'setup_done': true,
     'walkthrough_seen': true,
     'backup_reminder': false,
+    // The offer is a first-run notice, not something to photograph over the
+    // hero shot (NUDGE-3).
+    'empty_day_nudge_offered': true,
   }, () => _today);
   return (provider, settings);
 }

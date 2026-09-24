@@ -320,11 +320,56 @@ void main() {
 
   testWidgets('the screen says what the rules cost a month and what is next '
       '(RCR-8)', (tester) async {
+    // Rent moved off the first, so nothing is overdue: the next line stays
+    // silent while anything is waiting (RCR-8).
+    fake.rules
+      ..clear()
+      ..addAll([
+        testRule('Rent', 900, DateTime(2026, 10)),
+        testRule('Gym', 30, DateTime(2026, 9, 20)),
+      ]);
+    await provider.load();
     await showRecurring(tester);
 
     // Rent 900 a month and Gym 30 a month, with Gym falling on the 20th.
     expect(find.text('\$930 a month in bills'), findsOneWidget);
     expect(find.text('Next: Gym, in 5 days'), findsOneWidget);
+  });
+
+  testWidgets('every row on the screen starts at the same left edge (CAT-6)', (
+    tester,
+  ) async {
+    // Due, upcoming and rules are three lists on one screen. A bare icon in
+    // any of them sits narrower than a CircleAvatar, and ListTile insets its
+    // title from the leading widget, so one odd row pulls a whole list out
+    // of line with the others.
+    await showRecurring(tester);
+
+    final avatars = find.descendant(
+      of: find.byType(ListTile),
+      matching: find.byType(CircleAvatar),
+    );
+    expect(avatars, findsWidgets);
+
+    final lefts = tester
+        .widgetList<ListTile>(find.byType(ListTile))
+        .map((tile) => tile.leading.runtimeType)
+        .toSet();
+    expect(lefts, {
+      CircleAvatar,
+    }, reason: 'every row leads with the same shape, or the titles stagger');
+  });
+
+  testWidgets('nothing is named next while something is overdue (RCR-8)', (
+    tester,
+  ) async {
+    // The shared rules leave rent waiting since the first. "Next: Gym, in 5
+    // days" over a list of things already due is a contradiction.
+    await showRecurring(tester);
+
+    expect(find.text('Due'), findsOneWidget);
+    expect(find.text('\$930 a month in bills'), findsOneWidget);
+    expect(find.textContaining('Next:'), findsNothing);
   });
 
   testWidgets('rules that are all income leave the total out (RCR-8)', (

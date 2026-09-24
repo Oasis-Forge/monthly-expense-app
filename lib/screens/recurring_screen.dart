@@ -280,7 +280,14 @@ class _OccurrenceTile extends StatelessWidget {
     final category = provider.categoryById(rule.categoryId);
 
     return ListTile(
-      leading: const Icon(Icons.event_outlined),
+      // The same circle the due rows and Home use, so the three lists on
+      // this screen share one left edge and a category is recognised by its
+      // colour wherever it appears (CAT-6). A bare icon here sat narrower
+      // than the circles below it and pulled the titles out of line.
+      leading: CircleAvatar(
+        backgroundColor: categoryTint(category),
+        child: Text(category?.icon ?? '📦'),
+      ),
       title: Text(rule.label(category, l10n)),
       subtitle: Text(
         DateFormat.yMMMEd(l10n.localeName).format(occurrence.date),
@@ -308,8 +315,14 @@ class _RuleTile extends StatelessWidget {
     final category = provider.categoryById(rule.categoryId);
 
     return ListTile(
+      // The category's own colour and mark, as everywhere else (CAT-6); a
+      // paused rule keeps the pause in its place, because that is the one
+      // thing about a rule worth seeing before its name.
       leading: CircleAvatar(
-        child: Icon(rule.isPaused ? Icons.pause : Icons.repeat),
+        backgroundColor: categoryTint(category),
+        child: rule.isPaused
+            ? const Icon(Icons.pause)
+            : Text(category?.icon ?? '📦'),
       ),
       title: Text(rule.label(category, l10n)),
       subtitle: Text(scheduleLabel(rule, l10n)),
