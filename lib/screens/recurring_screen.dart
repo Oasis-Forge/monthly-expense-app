@@ -218,16 +218,22 @@ class _DueTile extends StatelessWidget {
     final category = provider.categoryById(rule.categoryId);
     final name = rule.label(category, l10n);
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: categoryTint(category),
-        child: Text(category?.icon ?? '📦'),
-      ),
-      title: Text(name),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
+    // The buttons sit under the row rather than inside its subtitle. Inside,
+    // the tile ran three lines deep and ListTile centred the mark against
+    // all of them, so the mark, the name, the amount and the buttons each
+    // landed at a different height and the row read as a staircase. Out
+    // here the row is the same two lines as every other row on the screen,
+    // and the buttons line up under the text they belong to.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ListTile(
+          leading: CircleAvatar(
+            backgroundColor: categoryTint(category),
+            child: Text(category?.icon ?? '📦'),
+          ),
+          title: Text(name),
+          subtitle: Text(
             l10n.categoryAndDate(
               isolateLeftToRight(
                 _signedAmount(rule, currency),
@@ -236,9 +242,14 @@ class _DueTile extends StatelessWidget {
               DateFormat.yMMMd(l10n.localeName).format(occurrence.date),
             ),
           ),
-          // Under the text rather than trailing, so the buttons fit at any
-          // text size and in every language (LANG-6).
-          OverflowBar(
+          onTap: () => _postWithAmount(context, name),
+        ),
+        // Under the text rather than trailing, so they fit at any text size
+        // and in every language (LANG-6), and indented to the text's own
+        // margin rather than the screen's.
+        Padding(
+          padding: const EdgeInsetsDirectional.fromSTEB(72, 0, 16, 8),
+          child: OverflowBar(
             alignment: MainAxisAlignment.end,
             spacing: 8,
             children: [
@@ -257,9 +268,8 @@ class _DueTile extends StatelessWidget {
               ),
             ],
           ),
-        ],
-      ),
-      onTap: () => _postWithAmount(context, name),
+        ),
+      ],
     );
   }
 }
