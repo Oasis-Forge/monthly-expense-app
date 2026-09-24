@@ -325,6 +325,7 @@
   "noteReminderToggle": "เตือนฉัน",
   "noteReminderTimeLabel": "เวลาที่แจ้งเตือน",
   "noteReminderTimeUnset": "เลือกเวลา",
+  "reminderMayBeLate": "โทรศัพท์ของคุณอาจส่งข้อความนี้ช้าไปสองสามนาที",
   "noteCategoryOptionalLabel": "หมวดหมู่ (ไม่บังคับ)",
   "noteCategoryNone": "ไม่มี",
   "recordNoteButton": "บันทึกเป็นรายการ",

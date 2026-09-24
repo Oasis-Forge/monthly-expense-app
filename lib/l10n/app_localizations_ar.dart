@@ -1214,6 +1214,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noteReminderTimeUnset => 'اختر وقتًا';
 
   @override
+  String get reminderMayBeLate => 'قد يوصّل هاتفك هذا متأخرًا ببضع دقائق.';
+
+  @override
   String get noteCategoryOptionalLabel => 'الفئة (اختياري)';
 
   @override

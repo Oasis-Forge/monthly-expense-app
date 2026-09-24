@@ -146,23 +146,24 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
     await context.read<SettingsProvider>().completeWalkthrough();
   }
 
-  /// The one time the app asks for notifications (NUDGE-7), and then the one
-  /// time it asks whether the empty day is wanted (NUDGE-3).
+  /// Asks whether the empty day is wanted (NUDGE-3), and only then asks the
+  /// phone for notifications (NUDGE-7).
   ///
-  /// Permission first and the question second: Android grants one dialog and
-  /// never another, so asking whether somebody wants a reminder the phone
-  /// will not deliver would spend the question on nothing. Skipped or
-  /// refused, the walkthrough still ends and everything else still works.
+  /// The app's own question first and Android's second, because they are not
+  /// the same kind of question: ours can be put again, and Android's cannot.
+  /// Its dialog is shown once for the life of the install, so it is spent on
+  /// somebody who has just said they want a reminder rather than on somebody
+  /// who has no idea yet. A "no thanks" therefore costs nothing at all: no
+  /// system prompt appears, and the one that matters is still unspent for the
+  /// day they set a reminder on a note or turn one on in Settings.
+  ///
+  /// Declined either way, the walkthrough still ends and everything else
+  /// still works.
   Future<void> _offerReminders() async {
     if (!remindersSupported) return;
     final settings = context.read<SettingsProvider>();
     final transactions = context.read<TransactionProvider>();
     final reminders = context.read<ReminderService>();
-
-    final allowed = await reminders.requestPermission();
-    // Asked here, so Home never asks the same person again (NUDGE-3).
-    await settings.markNudgeOffered();
-    if (!allowed || !mounted) return;
 
     final wanted = await showDialog<bool>(
       context: context,
@@ -184,7 +185,14 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
         );
       },
     );
+    // Asked here, so Home never asks the same person again (NUDGE-3).
+    await settings.markNudgeOffered();
     if (wanted != true || !mounted) return;
+
+    // Now the one system dialog is worth spending. Refused, the reminder
+    // stays off rather than being set to something the phone will swallow;
+    // Settings says the phone is not allowing them (NUDGE-7).
+    if (!await reminders.requestPermission()) return;
 
     await settings.setEmptyDayNudge(true);
     await transactions.rescheduleReminders(

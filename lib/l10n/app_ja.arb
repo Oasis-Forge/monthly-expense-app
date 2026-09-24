@@ -325,6 +325,7 @@
   "noteReminderToggle": "通知する",
   "noteReminderTimeLabel": "通知時刻",
   "noteReminderTimeUnset": "時刻を選択",
+  "reminderMayBeLate": "お使いのスマホが数分遅れて届けることがあります。",
   "noteCategoryOptionalLabel": "カテゴリー(任意)",
   "noteCategoryNone": "なし",
   "recordNoteButton": "取引として記録",

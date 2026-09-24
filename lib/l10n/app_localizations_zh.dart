@@ -1150,6 +1150,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noteReminderTimeUnset => '选择时间';
 
   @override
+  String get reminderMayBeLate => '你的手机可能会晚几分钟送达。';
+
+  @override
   String get noteCategoryOptionalLabel => '分类（选填）';
 
   @override

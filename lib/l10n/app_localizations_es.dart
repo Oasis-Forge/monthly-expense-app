@@ -1195,6 +1195,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noteReminderTimeUnset => 'Elegir una hora';
 
   @override
+  String get reminderMayBeLate =>
+      'Tu teléfono puede entregar esto con unos minutos de retraso.';
+
+  @override
   String get noteCategoryOptionalLabel => 'Categoría (opcional)';
 
   @override

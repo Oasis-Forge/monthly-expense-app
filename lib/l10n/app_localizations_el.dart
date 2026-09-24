@@ -1198,6 +1198,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noteReminderTimeUnset => 'Επιλέξτε ώρα';
 
   @override
+  String get reminderMayBeLate =>
+      'Το τηλέφωνό σας μπορεί να καθυστερήσει λίγα λεπτά.';
+
+  @override
   String get noteCategoryOptionalLabel => 'Κατηγορία (προαιρετικό)';
 
   @override

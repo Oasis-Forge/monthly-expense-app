@@ -325,6 +325,7 @@
   "noteReminderToggle": "ذكّرني",
   "noteReminderTimeLabel": "وقت التذكير",
   "noteReminderTimeUnset": "اختر وقتًا",
+  "reminderMayBeLate": "قد يوصّل هاتفك هذا متأخرًا ببضع دقائق.",
   "noteCategoryOptionalLabel": "الفئة (اختياري)",
   "noteCategoryNone": "بلا",
   "recordNoteButton": "تسجيل كمعاملة",

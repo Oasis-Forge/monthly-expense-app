@@ -1176,6 +1176,10 @@ class AppLocalizationsTh extends AppLocalizations {
   String get noteReminderTimeUnset => 'เลือกเวลา';
 
   @override
+  String get reminderMayBeLate =>
+      'โทรศัพท์ของคุณอาจส่งข้อความนี้ช้าไปสองสามนาที';
+
+  @override
   String get noteCategoryOptionalLabel => 'หมวดหมู่ (ไม่บังคับ)';
 
   @override

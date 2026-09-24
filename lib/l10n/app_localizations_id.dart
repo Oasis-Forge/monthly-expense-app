@@ -1181,6 +1181,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get noteReminderTimeUnset => 'Pilih waktu';
 
   @override
+  String get reminderMayBeLate =>
+      'Ponsel Anda bisa mengirim ini beberapa menit lebih lambat.';
+
+  @override
   String get noteCategoryOptionalLabel => 'Kategori (opsional)';
 
   @override

@@ -1194,6 +1194,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get noteReminderTimeUnset => 'Uhrzeit wählen';
 
   @override
+  String get reminderMayBeLate =>
+      'Ihr Telefon kann dies ein paar Minuten später liefern.';
+
+  @override
   String get noteCategoryOptionalLabel => 'Kategorie (optional)';
 
   @override

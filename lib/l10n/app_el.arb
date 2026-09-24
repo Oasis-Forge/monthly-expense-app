@@ -325,6 +325,7 @@
   "noteReminderToggle": "Υπενθύμισέ μου",
   "noteReminderTimeLabel": "Ώρα υπενθύμισης",
   "noteReminderTimeUnset": "Επιλέξτε ώρα",
+  "reminderMayBeLate": "Το τηλέφωνό σας μπορεί να καθυστερήσει λίγα λεπτά.",
   "noteCategoryOptionalLabel": "Κατηγορία (προαιρετικό)",
   "noteCategoryNone": "Καμία",
   "recordNoteButton": "Καταχώριση ως συναλλαγή",

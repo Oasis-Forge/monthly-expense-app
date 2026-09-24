@@ -1180,6 +1180,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noteReminderTimeUnset => 'Bir saat seçin';
 
   @override
+  String get reminderMayBeLate =>
+      'Telefonunuz bunu birkaç dakika geç iletebilir.';
+
+  @override
   String get noteCategoryOptionalLabel => 'Kategori (isteğe bağlı)';
 
   @override

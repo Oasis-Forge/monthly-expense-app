@@ -325,6 +325,7 @@
   "noteReminderToggle": "Recordármelo",
   "noteReminderTimeLabel": "Hora del recordatorio",
   "noteReminderTimeUnset": "Elegir una hora",
+  "reminderMayBeLate": "Tu teléfono puede entregar esto con unos minutos de retraso.",
   "noteCategoryOptionalLabel": "Categoría (opcional)",
   "noteCategoryNone": "Ninguna",
   "recordNoteButton": "Registrar como transacción",

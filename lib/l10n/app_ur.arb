@@ -325,6 +325,7 @@
   "noteReminderToggle": "مجھے یاد دلائیں",
   "noteReminderTimeLabel": "یاد دہانی کا وقت",
   "noteReminderTimeUnset": "وقت منتخب کریں",
+  "reminderMayBeLate": "آپ کا فون یہ چند منٹ دیر سے بھیج سکتا ہے۔",
   "noteCategoryOptionalLabel": "کیٹیگری (اختیاری)",
   "noteCategoryNone": "کوئی نہیں",
   "recordNoteButton": "ٹرانزیکشن کے طور پر ریکارڈ کریں",

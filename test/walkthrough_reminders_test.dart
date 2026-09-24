@@ -40,67 +40,74 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the walkthrough asks the phone, then asks the user, and a '
-      'yes turns the empty day on (NUDGE-3, NUDGE-7)', (tester) async {
-    final settings = await afterSetup();
+  testWidgets('the app asks first; a yes then asks the phone and turns the '
+      'empty day on (NUDGE-3, NUDGE-7)', (tester) async {
     await build();
+    final settings = await afterSetup();
 
     await reachTheEnd(tester, settings);
+    final plansBefore = reminders.nudgePlans;
 
-    expect(reminders.permissionRequests, 1);
+    // Ours before Android's: nothing has been asked of the phone yet.
     expect(find.text('A nudge on the days you forget?'), findsOneWidget);
+    expect(reminders.permissionRequests, 0);
 
     await tester.tap(find.text('Yes, remind me'));
     await tester.pumpAndSettle();
 
+    expect(reminders.permissionRequests, 1);
     expect(settings.emptyDayNudge, isTrue);
-    // The plan is scheduled at once, not left for the next launch.
-    expect(reminders.nudgePlans, greaterThan(0));
+    // Scheduled at once, not left for the next launch.
+    expect(reminders.nudgePlans, greaterThan(plansBefore));
   });
 
-  testWidgets('a no leaves it off, and Home never asks again (NUDGE-3)', (
-    tester,
-  ) async {
-    final settings = await afterSetup();
+  testWidgets('a no never troubles the phone at all (NUDGE-7)', (tester) async {
     await build();
+    final settings = await afterSetup();
 
     await reachTheEnd(tester, settings);
     await tester.tap(find.text('No thanks'));
     await tester.pumpAndSettle();
 
+    // Android shows its dialog once for the life of the install, so somebody
+    // who wants no reminder keeps it unspent for the day they do.
+    expect(reminders.permissionRequests, 0);
     expect(settings.emptyDayNudge, isFalse);
     // Asked once, here; the Home notice is for people this never reached.
     expect(settings.nudgeOfferPending, isFalse);
   });
 
-  testWidgets('a refused phone is asked nothing further (NUDGE-7)', (
+  testWidgets('a yes the phone refuses leaves the reminder off (NUDGE-7)', (
     tester,
   ) async {
-    final settings = await afterSetup();
     await build(granted: false);
+    final settings = await afterSetup();
 
     await reachTheEnd(tester, settings);
+    final plansBefore = reminders.nudgePlans;
+    await tester.tap(find.text('Yes, remind me'));
+    await tester.pumpAndSettle();
 
     expect(reminders.permissionRequests, 1);
-    // No point asking whether somebody wants a reminder the phone will not
-    // deliver.
-    expect(find.text('A nudge on the days you forget?'), findsNothing);
+    // Off rather than set to something the phone will swallow.
     expect(settings.emptyDayNudge, isFalse);
-    expect(settings.nudgeOfferPending, isFalse);
+    expect(reminders.nudgePlans, plansBefore);
   });
 
   testWidgets('either way the walkthrough ends (RUN-5)', (tester) async {
-    final settings = await afterSetup();
     await build(granted: false);
+    final settings = await afterSetup();
 
     await reachTheEnd(tester, settings);
+    await tester.tap(find.text('No thanks'));
+    await tester.pumpAndSettle();
 
     expect(settings.walkthroughSeen, isTrue);
   });
 
   testWidgets('a replay asks nothing at all (RUN-5)', (tester) async {
-    final settings = await afterSetup();
     await build();
+    final settings = await afterSetup();
 
     await tester.pumpWidget(
       testApp(

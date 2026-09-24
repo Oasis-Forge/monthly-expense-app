@@ -497,9 +497,13 @@ class _NudgeTile extends StatelessWidget {
           title: Text(l10n.nudgeSettingsTitle),
           // Off after giving up, the row says why rather than looking as
           // though the user turned it off themselves (NUDGE-5).
+          // NUDGE-9: while it is on, the row also owns up to the delay,
+          // because a reminder that lands at 9:04 is not a broken one.
           subtitle: Text(
             settings.nudgeStopped
                 ? l10n.nudgeStoppedNotice
+                : settings.emptyDayNudge
+                ? '${l10n.nudgeSettingsSubtitle} ${l10n.reminderMayBeLate}'
                 : l10n.nudgeSettingsSubtitle,
           ),
           value: settings.emptyDayNudge,

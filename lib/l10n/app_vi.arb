@@ -325,6 +325,7 @@
   "noteReminderToggle": "Nhắc tôi",
   "noteReminderTimeLabel": "Giờ nhắc",
   "noteReminderTimeUnset": "Chọn giờ",
+  "reminderMayBeLate": "Điện thoại của bạn có thể gửi việc này chậm vài phút.",
   "noteCategoryOptionalLabel": "Danh mục (không bắt buộc)",
   "noteCategoryNone": "Không có",
   "recordNoteButton": "Ghi thành giao dịch",

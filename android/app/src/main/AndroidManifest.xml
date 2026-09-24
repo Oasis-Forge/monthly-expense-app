@@ -4,6 +4,9 @@
          anywhere: entry, budgets, notes, reports, attachments and backups are
          all local, and the ad SDK is handed none of it (ADS-7). -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Reminders are rescheduled after a reboot, so the note due tomorrow
+         still arrives if the phone is restarted tonight (NUDGE-9, NOTE-6). -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <!-- BAK-8: the phone's own automatic backup is off, so Android never
          copies the records to Google Drive behind the user's back. -->
     <application
@@ -55,6 +58,32 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_medium_info" />
+        </receiver>
+        <!-- flutter_local_notifications ships these three but declares none
+             of them: its own manifest carries two permissions and nothing
+             else, so an app that does not declare them here schedules alarms
+             whose PendingIntent points at a component that does not exist.
+             Android then fires the alarm on time, the broadcast resolves to
+             nothing, and no notification is ever posted — silently, with no
+             log and no error. That is what kept every reminder from arriving
+             (NOTE-6, NUDGE-1). None is exported: they are ours alone. -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false"/>
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false"/>
+        <!-- Reminders are re-laid after a restart or an app update, or they
+             would be lost with the alarms the reboot cleared (NUDGE-9). -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
         </receiver>
         <!-- The AdMob app this build belongs to ("Monthly expense Tracker
              android"). The SDK reads it before Dart runs, so it cannot come
