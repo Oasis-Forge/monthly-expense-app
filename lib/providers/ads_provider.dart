@@ -147,6 +147,16 @@ class AdsProvider extends ChangeNotifier {
   /// Whether one is in hand, so a test can say what a seam will do.
   bool get interstitialReady => _interstitial != null;
 
+  /// Whether a full-screen ad has already interrupted this run of the app.
+  /// Nothing else may interrupt it afterwards — the rating sheet reads this
+  /// and stays away (RATE-3).
+  bool get interstitialShown => _interstitialShown;
+  bool _interstitialShown = false;
+
+  /// Whether the app is locked behind the lock screen (LOCK-1), which the
+  /// rating sheet must not appear over either (RATE-3).
+  bool get locked => _locked.value;
+
   /// Fetches the full-screen ad for a seam that is coming, so arriving at
   /// it costs no wait (ADS-13). Safe to call again: it holds one at most,
   /// and it asks for nothing on a day that is already spent (ADS-12).
@@ -173,6 +183,7 @@ class AdsProvider extends ChangeNotifier {
       return;
     }
     await ad.show();
+    _interstitialShown = true;
     await _settings.spendAdActivity();
   }
 

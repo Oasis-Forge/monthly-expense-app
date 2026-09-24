@@ -20,6 +20,7 @@ import 'screens/first_run_gate.dart';
 import 'screens/note_form_screen.dart';
 import 'screens/notes_screen.dart';
 import 'screens/recurring_screen.dart';
+import 'screens/transfer_screen.dart';
 import 'services/ad_service.dart';
 import 'services/ads_config.dart';
 import 'services/attachment_service.dart';
@@ -29,6 +30,8 @@ import 'services/home_widget_service.dart';
 import 'services/home_widget_updater.dart';
 import 'services/purchase_service.dart';
 import 'services/reminder_service.dart';
+import 'services/review_service.dart';
+import 'services/shortcut_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,8 +50,9 @@ Future<void> main() async {
 }
 
 class MonthlyExpenseApp extends StatelessWidget {
-  /// [backup], [authenticator], [reminders], [homeWidget], [ads], and
-  /// [purchases] default to the device implementations; tests pass their own.
+  /// [backup], [authenticator], [reminders], [homeWidget], [ads],
+  /// [purchases], and [reviews] default to the device implementations; tests
+  /// pass their own.
   const MonthlyExpenseApp({
     super.key,
     required this.settings,
@@ -58,6 +62,8 @@ class MonthlyExpenseApp extends StatelessWidget {
     this.homeWidget,
     this.ads,
     this.purchases,
+    this.reviews,
+    this.shortcuts,
   });
 
   final SettingsProvider settings;
@@ -67,6 +73,8 @@ class MonthlyExpenseApp extends StatelessWidget {
   final HomeWidgetService? homeWidget;
   final AdService? ads;
   final PurchaseService? purchases;
+  final ReviewService? reviews;
+  final ShortcutService? shortcuts;
 
   /// So a tapped reminder notification can open its note (NOTE-6, LOCK-2),
   /// from outside the widget tree that the notification callback runs in.
@@ -104,6 +112,8 @@ class MonthlyExpenseApp extends StatelessWidget {
         ),
         Provider<ReminderService>(create: (_) => reminderService),
         Provider<AttachmentService>.value(value: attachmentService),
+        // The store's rating sheet, and nothing at all on desktop (RATE-5).
+        Provider<ReviewService>(create: (_) => reviews ?? deviceOrNoReviews()),
         // The slots and the one purchase, in one place (ADS-8). `start`
         // waits for setup and the walkthrough by itself (ADS-4).
         ChangeNotifierProvider(
@@ -147,7 +157,11 @@ class MonthlyExpenseApp extends StatelessWidget {
               useMaterial3: true,
             ),
             builder: (context, child) => AppLock(
-              child: _NoteReminderTaps(child: _WidgetTaps(child: child!)),
+              child: _NoteReminderTaps(
+                child: _WidgetTaps(
+                  child: _ShortcutTaps(service: shortcuts, child: child!),
+                ),
+              ),
             ),
             home: const FirstRunGate(),
           ),
@@ -205,6 +219,83 @@ class _HomeWidgetSyncState extends State<_HomeWidgetSync> {
 
 /// Acts on a tap from the home-screen widget, through the lock (WID-3,
 /// LOCK-2), the same way a tapped reminder opens its note.
+
+/// The three things a long press on the app's icon offers (NAV-8), and what
+/// happens when one is chosen. The labels are the drawer's own and follow the
+/// app's language, so they are written again whenever that changes. The push
+/// happens straight away, exactly as a tapped reminder's does, so a locked
+/// app opens onto the form once it is unlocked and not before (LOCK-1).
+class _ShortcutTaps extends StatefulWidget {
+  const _ShortcutTaps({required this.service, required this.child});
+
+  /// The device implementation when null; tests pass their own.
+  final ShortcutService? service;
+  final Widget child;
+
+  static const addExpense = 'add_expense';
+  static const addIncome = 'add_income';
+  static const transfer = 'transfer';
+
+  @override
+  State<_ShortcutTaps> createState() => _ShortcutTapsState();
+}
+
+class _ShortcutTapsState extends State<_ShortcutTaps> {
+  // Built once here rather than in the parent's build, so a rebuild cannot
+  // leave a second menu talking to the same icon.
+  late final ShortcutService _service = widget.service ?? deviceOrNoShortcuts();
+
+  /// The language the menu is currently written in, so it is only written
+  /// again when that changes (LANG-1).
+  String? _written;
+
+  @override
+  void initState() {
+    super.initState();
+    _service.onSelected(_open);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_service.supported) return;
+    final l10n = AppLocalizations.of(context);
+    if (_written == l10n.localeName) return;
+    _written = l10n.localeName;
+    unawaited(
+      _service.setItems([
+        (type: _ShortcutTaps.addExpense, label: l10n.drawerAddExpense),
+        (type: _ShortcutTaps.addIncome, label: l10n.drawerAddIncome),
+        (type: _ShortcutTaps.transfer, label: l10n.transferTitle),
+      ]),
+    );
+  }
+
+  void _open(String type) {
+    final navigator = MonthlyExpenseApp.navigatorKey.currentState;
+    if (navigator == null) return;
+    // Whatever was open before is not what was asked for.
+    navigator.popUntil((route) => route.isFirst);
+    // A shortcut is a fresh start, so the form opens on the period the app
+    // is for today rather than wherever Home was last left (DAY-9).
+    navigator.context.read<TransactionProvider>().showCurrentPeriod();
+    navigator.push(
+      MaterialPageRoute(
+        builder: (_) => switch (type) {
+          _ShortcutTaps.addIncome => const AddTransactionScreen(
+            startAs: TransactionType.income,
+          ),
+          _ShortcutTaps.transfer => const TransferScreen(),
+          _ => const AddTransactionScreen(startAs: TransactionType.expense),
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
 class _WidgetTaps extends StatefulWidget {
   const _WidgetTaps({required this.child});
 

@@ -20,11 +20,15 @@ void main() {
   Future<void> startApp(
     WidgetTester tester, [
     Map<String, Object> values = const {},
+    FakeShortcuts? shortcuts,
   ]) async {
     await tester.pumpWidget(
       MonthlyExpenseApp(
         settings: await testSettings(values),
         homeWidget: const NoopHomeWidgetService(),
+        // Neither plugin exists in a test, and both would throw if asked.
+        reviews: FakeReviews(supported: false),
+        shortcuts: shortcuts ?? FakeShortcuts(),
       ),
     );
     await tester.pump();

@@ -333,6 +333,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **NAV-5** The drawer is for going somewhere and nothing else: no settings toggles, no account area, no ads (ADS-1).
 - **NAV-6** The toolbar carries two actions, Search and Settings, with Settings at the trailing edge. A third would squeeze the app's name, which is the same untranslated words in every language (LANG-6); Insights lost its toolbar icon to the gear and is named three times in the drawer instead.
 - **NAV-7** Nothing is more than two taps from Home: open the drawer, choose the row. Accounts and Categories are among those rows as well as in Settings, and adding one is the button on the list itself.
+- **NAV-8** Long-pressing the app's icon offers the three things the drawer's adding group offers and nothing else: add expense, add income, transfer (NAV-1). Each opens the app with that form already in front of the user, and one waiting behind a locked app opens it after the lock and not before (LOCK-1). The labels are the drawer's own, in the language the app is set to (LANG-1), and they change with it. Android and iOS only, where an icon has a long press to give.
 
 ## 24. Paying
 
@@ -448,6 +449,18 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **HAP-2** Saving knocks once, a little firmer, as the record is written — the entry form, the transfer form, and a due recurring entry posted with a tap (RCR-2). Nothing else in the app knocks, so the feeling can be read as "it is written down".
 - **HAP-3** A swipe to delete ticks once, at the point where letting go would delete the row (DEL-2, ROW-4), and not again on the way back. It is the only feedback here that fires while a finger is still moving, and it is what turns a swipe from a guess into an action.
 - **HAP-4** All of it follows the phone and nothing else: no setting of the app's own, no row added to Settings, no permission asked for. A phone with vibration off, or without a motor at all, simply gets none of it and behaves no differently otherwise. It cannot be checked on an emulator, so a change to it is verified on a real phone or not at all.
+
+## 31. Asking for a rating
+
+**They do:** most of the trackers ask inside the first week, two of them on a launch before anything has been recorded, and several keep a "rate us" row in Settings for ever.
+
+**Learn:** a prompt put in front of someone who has not used the app yet buys a one-star and an uninstall. The store's own sheet can only be shown a few times a year per person, so spending one badly is expensive, and there is no second chance to ask well.
+
+- **RATE-1** The app asks at most once for any version it is installed as, and only of someone who has recorded at least fifteen entries and has had it for a week. Under either line it says nothing: three entries is not an opinion, and a week is the shortest time in which the app can have been any use.
+- **RATE-2** It asks through the store's own sheet and never through a dialog of its own, so the rating goes where ratings count and nobody is sent out of the app to write one. There is no "rate us" row in Settings: a row that exists for ever is asked for ever.
+- **RATE-3** It asks in the moment after an entry has been saved, which is the one moment the app has just done the thing it is for. Never after anything failed, never while the app is locked (LOCK-1), and never in a session that has already shown a full-screen ad (ADS-11) — two interruptions in one visit is one too many, and the ad has already spent the goodwill.
+- **RATE-4** The store decides whether the sheet is really shown and tells the app nothing about what happened, so asking counts as spent whatever came of it. A version that has asked never asks again, and the count is kept on the device like every other setting.
+- **RATE-5** Android and iOS only. The desktop builds ask nothing and carry no review code that could reach a network (RUN-2).
 
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).

@@ -4,6 +4,12 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.25.0] - 2026-09-24
+
+### Added
+- Long-pressing the app's icon now offers the three things you are most likely to want: add expense, add income, transfer. They are worded in whatever language the app is set to.
+- Once you have been using the app for a while, it asks — once, through the store's own sheet — whether you would rate it. It never asks before you have fifteen entries and a week behind you, never twice for the same version, and never on top of anything else.
+
 ## [1.24.0] - 2026-09-24
 
 ### Added
