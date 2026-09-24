@@ -820,6 +820,22 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return 'На $amount больше, чем в прошлом месяце';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return 'На $amount меньше, чем в прошлом месяце';
+  }
+
+  @override
+  String get comparedSame => 'Так же, как в прошлом месяце';
+
+  @override
+  String get categoryNewLabel => 'новое';
+
+  @override
   String get calendarHint => 'Нажмите на день, чтобы увидеть операции.';
 
   @override

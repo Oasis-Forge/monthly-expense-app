@@ -788,6 +788,22 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '지난달보다 $amount 많음';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '지난달보다 $amount 적음';
+  }
+
+  @override
+  String get comparedSame => '지난달과 동일';
+
+  @override
+  String get categoryNewLabel => '신규';
+
+  @override
   String get calendarHint => '날짜를 탭하면 그날의 거래를 볼 수 있어요.';
 
   @override

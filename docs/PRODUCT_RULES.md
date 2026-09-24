@@ -199,6 +199,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **INS-3** The category chart works for any period and shows expense or income, with budget progress for expense (BUD-2).
 - **INS-4** Tapping the period label on Home opens Insights on the calendar for that period (INS-1). The arrows beside it still move between periods (PER-1), and inside Insights the label does nothing, since the calendar is already there.
 - **INS-5** The trend's amount axis labels only its gridlines, each on one line. The top of the axis, which is rarely a round amount, gets no label of its own, so no two labels overlap in any currency.
+- **INS-6** The category chart says how the period compares with the one before it. Under the total, one line: how much more or less than last month, or that it came to the same. On each category's line, the share it has risen or fallen by, beside its amount. A category with nothing in it last period is marked "new" rather than given a percentage, because there is nothing to divide by; a category that had something and now has nothing is not on the chart at all, and the line under the total is where its going shows. The earliest period on record has nothing behind it and shows neither the line nor the shares — an empty comparison is worse than none, since it reads as "you spent nothing last month". The comparison follows the chosen account exactly as the chart does (ACC-7) and counts what the period counts, so a future-dated entry is in neither side of it (BAL-4).
 
 ## 15. App lock
 

@@ -103,6 +103,10 @@ class TransactionProvider extends ChangeNotifier {
   /// account to be about (ACC-7). Only the budgets read it, and only when an
   /// account is chosen, so it is built at most once per change.
   _PeriodSummary? _everyAccountSummary;
+
+  /// The period before the selected one, for the category chart's comparison
+  /// (INS-6). Built only when that chart asks for it.
+  _PeriodSummary? _previousSummary;
   bool _loaded = false;
 
   /// Whether [load] has finished at least once.
@@ -1660,8 +1664,43 @@ class TransactionProvider extends ChangeNotifier {
   void _changed() {
     _summary = null;
     _everyAccountSummary = null;
+    _previousSummary = null;
     notifyListeners();
   }
+
+  /// The period before the selected one, for the comparison the category
+  /// chart draws (INS-6). It follows the chosen account exactly as the chart
+  /// does (ACC-7), and like the others it is built at most once per change.
+  _PeriodSummary get _previous {
+    final today = _today;
+    final account = accountFilterId;
+    final cached = _previousSummary;
+    if (cached != null &&
+        cached.today == today &&
+        cached.accountId == account) {
+      return cached;
+    }
+    return _previousSummary = _PeriodSummary(
+      _period.previous,
+      today,
+      _transactions,
+      _transfers,
+      _accounts,
+      account,
+    );
+  }
+
+  /// Last period's expense and income by category (INS-6).
+  Map<String, Money> get previousExpenseByCategory =>
+      _previous.expenseByCategory;
+  Map<String, Money> get previousIncomeByCategory => _previous.incomeByCategory;
+
+  /// Whether anything at all was recorded before the selected period. The
+  /// earliest period on record has nothing to compare itself with, and a
+  /// comparison against nothing reads as "you spent nothing last month"
+  /// (INS-6).
+  bool get hasEarlierRecords =>
+      _transactions.any((tx) => tx.date.isBefore(_period.start));
 
   /// The period across every account, whatever [accountFilterId] is set to.
   /// A budget is a limit on a category and has no account (BUD-1), so

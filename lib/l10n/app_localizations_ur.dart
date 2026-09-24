@@ -797,6 +797,22 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return 'پچھلے مہینے سے $amount زیادہ';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return 'پچھلے مہینے سے $amount کم';
+  }
+
+  @override
+  String get comparedSame => 'پچھلے مہینے جیسا';
+
+  @override
+  String get categoryNewLabel => 'نیا';
+
+  @override
   String get calendarHint => 'کسی دن کی ٹرانزیکشنز دیکھنے کے لیے اسے ٹیپ کریں۔';
 
   @override

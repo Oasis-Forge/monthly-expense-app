@@ -805,6 +805,22 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '$amount πάνω από τον προηγούμενο μήνα';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '$amount κάτω από τον προηγούμενο μήνα';
+  }
+
+  @override
+  String get comparedSame => 'Ίδιο με τον προηγούμενο μήνα';
+
+  @override
+  String get categoryNewLabel => 'νέο';
+
+  @override
   String get calendarHint =>
       'Πατήστε σε μια ημέρα για να δείτε τις συναλλαγές της.';
 

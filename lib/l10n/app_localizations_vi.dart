@@ -796,6 +796,22 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return 'nhiều hơn tháng trước $amount';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return 'ít hơn tháng trước $amount';
+  }
+
+  @override
+  String get comparedSame => 'Giống tháng trước';
+
+  @override
+  String get categoryNewLabel => 'mới';
+
+  @override
   String get calendarHint => 'Chạm vào một ngày để xem giao dịch của ngày đó.';
 
   @override

@@ -788,6 +788,22 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '先月より$amount多い';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '先月より$amount少ない';
+  }
+
+  @override
+  String get comparedSame => '先月と同じ';
+
+  @override
+  String get categoryNewLabel => '新';
+
+  @override
   String get calendarHint => '日付をタップすると、その日の取引が表示されます。';
 
   @override

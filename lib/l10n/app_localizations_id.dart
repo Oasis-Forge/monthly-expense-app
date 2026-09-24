@@ -795,6 +795,22 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '$amount lebih banyak dari bulan lalu';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '$amount lebih sedikit dari bulan lalu';
+  }
+
+  @override
+  String get comparedSame => 'Sama seperti bulan lalu';
+
+  @override
+  String get categoryNewLabel => 'baru';
+
+  @override
   String get calendarHint => 'Ketuk tanggal untuk melihat transaksinya.';
 
   @override

@@ -821,6 +821,22 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '$amount أكثر من الشهر الماضي';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '$amount أقل من الشهر الماضي';
+  }
+
+  @override
+  String get comparedSame => 'مثل الشهر الماضي';
+
+  @override
+  String get categoryNewLabel => 'جديد';
+
+  @override
   String get calendarHint => 'انقر على يوم لعرض معاملاته.';
 
   @override

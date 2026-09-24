@@ -803,6 +803,22 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '$amount meer dan vorige maand';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '$amount minder dan vorige maand';
+  }
+
+  @override
+  String get comparedSame => 'Hetzelfde als vorige maand';
+
+  @override
+  String get categoryNewLabel => 'nieuw';
+
+  @override
   String get calendarHint => 'Tik op een dag voor de transacties van die dag.';
 
   @override

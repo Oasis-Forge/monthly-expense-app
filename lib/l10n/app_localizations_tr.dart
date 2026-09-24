@@ -794,6 +794,22 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return 'geçen aydan $amount fazla';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return 'geçen aydan $amount az';
+  }
+
+  @override
+  String get comparedSame => 'Geçen ayla aynı';
+
+  @override
+  String get categoryNewLabel => 'yeni';
+
+  @override
   String get calendarHint => 'İşlemlerini görmek için bir güne dokunun.';
 
   @override

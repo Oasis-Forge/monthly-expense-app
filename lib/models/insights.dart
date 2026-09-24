@@ -23,3 +23,14 @@ class PeriodTotals {
 
   Money get net => income - expense;
 }
+
+/// How a category compares with the period before it, as a share of what it
+/// was then: 0.12 is an eighth more, -0.4 is two fifths less (INS-6).
+///
+/// Null when there was nothing there before. That is a category to mark as
+/// new rather than one to divide by nothing, and the two read differently to
+/// anybody looking: "new" is a habit that started, not one that grew.
+double? shareChange({required Money before, required Money now}) =>
+    before.thousandths == 0
+    ? null
+    : (now.thousandths - before.thousandths) / before.thousandths;

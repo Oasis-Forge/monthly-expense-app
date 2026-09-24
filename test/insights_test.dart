@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/insights.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
@@ -113,5 +114,95 @@ void main() {
       [for (final totals in trend) totals.expense],
       [const Money(10000), const Money(20000)],
     );
+  });
+
+  group('this period against the one before (INS-6)', () {
+    test('a share of what a category was, and nothing to divide by', () {
+      expect(
+        shareChange(before: const Money(100000), now: const Money(112000)),
+        closeTo(0.12, 0.0001),
+      );
+      expect(
+        shareChange(before: const Money(100000), now: const Money(60000)),
+        closeTo(-0.4, 0.0001),
+      );
+      expect(
+        shareChange(before: const Money(100000), now: const Money(100000)),
+        0,
+      );
+      // Nothing there before is a category to call new, not one to divide by.
+      expect(shareChange(before: Money.zero, now: const Money(5000)), isNull);
+    });
+
+    test('last period is counted the same way this one is', () async {
+      final provider = await providerWith([
+        // August: food 100, transport 40.
+        testTx('a', expense, 100, DateTime(2026, 8, 3)),
+        testTx(
+          'b',
+          expense,
+          40,
+          DateTime(2026, 8, 9),
+          categoryId: 'cat-transport',
+        ),
+        // September: food 60, and a transport entry still to come.
+        testTx('c', expense, 60, DateTime(2026, 9, 4)),
+        testTx(
+          'd',
+          expense,
+          25,
+          DateTime(2026, 9, 30),
+          categoryId: 'cat-transport',
+        ),
+      ]);
+
+      expect(
+        provider.previousExpenseByCategory['cat-food'],
+        const Money(100000),
+      );
+      expect(
+        provider.previousExpenseByCategory['cat-transport'],
+        const Money(40000),
+      );
+      // BAL-4: the 30th has not arrived, so it counts on neither side.
+      expect(provider.expenseByCategory['cat-food'], const Money(60000));
+      expect(provider.expenseByCategory['cat-transport'], isNull);
+    });
+
+    test('the earliest period on record has nothing behind it', () async {
+      final provider = await providerWith([
+        testTx('a', expense, 60, DateTime(2026, 9, 4)),
+      ]);
+
+      expect(provider.hasEarlierRecords, isFalse);
+
+      provider.nextPeriod();
+      expect(provider.hasEarlierRecords, isTrue);
+    });
+
+    test('income has a previous period of its own', () async {
+      final provider = await providerWith([
+        testTx(
+          'a',
+          income,
+          2000,
+          DateTime(2026, 8, 1),
+          categoryId: 'cat-salary',
+        ),
+        testTx(
+          'b',
+          income,
+          2500,
+          DateTime(2026, 9, 1),
+          categoryId: 'cat-salary',
+        ),
+      ]);
+
+      expect(
+        provider.previousIncomeByCategory['cat-salary'],
+        const Money(2000000),
+      );
+      expect(provider.incomeByCategory['cat-salary'], const Money(2500000));
+    });
   });
 }

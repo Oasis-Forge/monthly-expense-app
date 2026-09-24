@@ -563,6 +563,32 @@
       }
     }
   },
+  "comparedMore": "{amount} more than last month",
+  "@comparedMore": {
+    "description": "Under the total on the category chart: this period cost more than the one before it (INS-6). {amount} arrives already formatted as currency.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "comparedLess": "{amount} less than last month",
+  "@comparedLess": {
+    "description": "Under the total on the category chart: this period cost less than the one before it (INS-6).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "comparedSame": "The same as last month",
+  "@comparedSame": {
+    "description": "Under the total on the category chart when the two periods came to exactly the same figure (INS-6)."
+  },
+  "categoryNewLabel": "new",
+  "@categoryNewLabel": {
+    "description": "Shown on a category's line in place of a percentage when that category had nothing in the period before, so there is no figure to compare against (INS-6). Lower case: it sits beside the amount, not at the start of a sentence."
+  },
   "calendarHint": "Tap a day to see its transactions.",
   "dayEmpty": "Nothing on this day.",
   "trendMonths": "{count, plural, =1{1 month} other{{count} months}}",

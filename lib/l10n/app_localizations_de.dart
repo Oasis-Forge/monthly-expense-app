@@ -804,6 +804,22 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '$amount mehr als letzten Monat';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '$amount weniger als letzten Monat';
+  }
+
+  @override
+  String get comparedSame => 'Gleich wie letzten Monat';
+
+  @override
+  String get categoryNewLabel => 'neu';
+
+  @override
   String get calendarHint =>
       'Tippe auf einen Tag, um seine Buchungen zu sehen.';
 
