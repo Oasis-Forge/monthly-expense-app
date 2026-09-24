@@ -314,6 +314,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get themeDark => 'Gelap';
 
   @override
+  String get themeBlack => 'Hitam';
+
+  @override
   String get languageLabel => 'Bahasa';
 
   @override
@@ -607,6 +610,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get noRules => 'Belum ada transaksi berulang.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Transaksi berulang mencatat sewa, gaji, atau langganan sesuai jadwal yang Anda tentukan, dan menunggu satu ketukan untuk mengonfirmasi setiap transaksi.';
+
+  @override
+  String get addRecurringButton => 'Tambah transaksi berulang';
+
+  @override
   String get postButton => 'Catat';
 
   @override
@@ -844,6 +854,10 @@ class AppLocalizationsId extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'Rata-rata per periode · Pemasukan $income · Pengeluaran $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'Tren membutuhkan lebih dari satu periode. Kembali lagi bulan depan.';
 
   @override
   String get weekStartLabel => 'Hari pertama minggu';
@@ -1754,4 +1768,10 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'Aktifkan notifikasi di pengaturan sistem untuk pengingat.';
+
+  @override
+  String get updateDownloadedMessage => 'Pembaruan telah diunduh.';
+
+  @override
+  String get updateRestartButton => 'Mulai ulang';
 }

@@ -322,6 +322,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get themeDark => 'داكن';
 
   @override
+  String get themeBlack => 'أسود';
+
+  @override
   String get languageLabel => 'اللغة';
 
   @override
@@ -622,6 +625,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noRules => 'لا توجد معاملات متكررة بعد.';
 
   @override
+  String get recurringEmptyMessage =>
+      'تسجّل المعاملات المتكررة الإيجار أو الراتب أو الاشتراك في الموعد الذي تحدده، وتنتظر نقرة لتأكيد كل مرة.';
+
+  @override
+  String get addRecurringButton => 'إضافة معاملة متكررة';
+
+  @override
   String get postButton => 'تسجيل';
 
   @override
@@ -873,6 +883,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'المتوسط لكل فترة · الدخل $income · المصروفات $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'يحتاج الاتجاه إلى أكثر من فترة واحدة. عُد الشهر القادم.';
 
   @override
   String get weekStartLabel => 'أول يوم في الأسبوع';
@@ -1816,4 +1830,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'فعّل الإشعارات في إعدادات النظام لتلقي التذكيرات.';
+
+  @override
+  String get updateDownloadedMessage => 'تم تنزيل تحديث.';
+
+  @override
+  String get updateRestartButton => 'إعادة التشغيل';
 }

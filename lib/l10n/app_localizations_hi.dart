@@ -315,6 +315,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get themeDark => 'डार्क';
 
   @override
+  String get themeBlack => 'ब्लैक';
+
+  @override
   String get languageLabel => 'भाषा';
 
   @override
@@ -608,6 +611,13 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noRules => 'अभी तक कोई रिकरिंग लेनदेन नहीं।';
 
   @override
+  String get recurringEmptyMessage =>
+      'रिकरिंग लेनदेन आपके तय शेड्यूल पर किराया, वेतन या सब्सक्रिप्शन दर्ज करते हैं, और हर बार पुष्टि के लिए एक टैप का इंतज़ार करते हैं।';
+
+  @override
+  String get addRecurringButton => 'रिकरिंग लेनदेन जोड़ें';
+
+  @override
   String get postButton => 'पोस्ट करें';
 
   @override
@@ -844,6 +854,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'प्रति अवधि औसत · आय $income · खर्च $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'ट्रेंड के लिए एक से ज़्यादा अवधि चाहिए। अगले महीने वापस आएं।';
 
   @override
   String get weekStartLabel => 'हफ्ते का पहला दिन';
@@ -1748,4 +1762,10 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'याद दिलाने के लिए सिस्टम सेटिंग्स में सूचनाएं चालू करें।';
+
+  @override
+  String get updateDownloadedMessage => 'एक अपडेट डाउनलोड हो चुका है।';
+
+  @override
+  String get updateRestartButton => 'रीस्टार्ट करें';
 }

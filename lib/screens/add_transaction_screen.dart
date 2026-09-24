@@ -17,7 +17,7 @@ import 'delete_snack_bar.dart';
 import 'form_fields.dart';
 import 'haptics.dart';
 import 'note_form_screen.dart';
-import 'rating_prompt.dart';
+import 'after_save.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   /// Edits [editing] when set. Otherwise adds a new transaction, prefilled
@@ -205,10 +205,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     // ADD-4 or not, a saved entry is a thing done (ADS-12).
     unawaited(ads.noteActivity());
     if (!mounted) return;
-    // RATE-3: the app has just done the thing it is for, which is the only
-    // moment worth asking in. It comes to nothing unless the lines in
-    // RATE-1 have been crossed, and it never asks twice for a version.
-    unawaited(askForRatingIfDue(context));
+    // UPD-2, RATE-3: the app has just done the thing it is for, which is
+    // the only moment worth offering anything in. Both asks come to nothing
+    // unless their own lines have been crossed, and the update goes first.
+    unawaited(afterSave(context));
 
     if (addAnother) {
       // ADD-4: keep the type, category, account, and date.

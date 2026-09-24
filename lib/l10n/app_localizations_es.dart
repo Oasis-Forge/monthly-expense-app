@@ -318,6 +318,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get themeDark => 'Oscuro';
 
   @override
+  String get themeBlack => 'Negro';
+
+  @override
   String get languageLabel => 'Idioma';
 
   @override
@@ -615,6 +618,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get noRules => 'Aún no hay transacciones recurrentes.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Las transacciones recurrentes registran el alquiler, un salario o una suscripción según el calendario que definas, y esperan un toque para confirmar cada una.';
+
+  @override
+  String get addRecurringButton => 'Añadir una transacción recurrente';
+
+  @override
   String get postButton => 'Registrar';
 
   @override
@@ -853,6 +863,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'Media por periodo · Ingresos $income · Gastos $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'Una tendencia necesita más de un periodo. Vuelve el próximo mes.';
 
   @override
   String get weekStartLabel => 'Primer día de la semana';
@@ -1774,4 +1788,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'Activa las notificaciones en la configuración del sistema.';
+
+  @override
+  String get updateDownloadedMessage => 'Se ha descargado una actualización.';
+
+  @override
+  String get updateRestartButton => 'Reiniciar';
 }

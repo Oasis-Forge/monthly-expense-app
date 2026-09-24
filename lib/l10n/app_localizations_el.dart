@@ -318,6 +318,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get themeDark => 'Σκούρο';
 
   @override
+  String get themeBlack => 'Μαύρο';
+
+  @override
   String get languageLabel => 'Γλώσσα';
 
   @override
@@ -615,6 +618,13 @@ class AppLocalizationsEl extends AppLocalizations {
   String get noRules => 'Δεν υπάρχουν ακόμη επαναλαμβανόμενες συναλλαγές.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Οι επαναλαμβανόμενες συναλλαγές καταχωρίζουν ενοίκιο, μισθό ή συνδρομή σύμφωνα με το πρόγραμμα που ορίζεις, και περιμένουν ένα άγγιγμα για να επιβεβαιώσεις καθεμία.';
+
+  @override
+  String get addRecurringButton => 'Προσθήκη επαναλαμβανόμενης';
+
+  @override
   String get postButton => 'Καταχώριση';
 
   @override
@@ -855,6 +865,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'Μέσος όρος ανά περίοδο · Έσοδα $income · Έξοδα $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'Μια τάση χρειάζεται περισσότερες από μία περιόδους. Επέστρεψε τον επόμενο μήνα.';
 
   @override
   String get weekStartLabel => 'Πρώτη ημέρα της εβδομάδας';
@@ -1780,4 +1794,10 @@ class AppLocalizationsEl extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'Ενεργοποίησε τις ειδοποιήσεις στις ρυθμίσεις συστήματος.';
+
+  @override
+  String get updateDownloadedMessage => 'Έχει γίνει λήψη μιας ενημέρωσης.';
+
+  @override
+  String get updateRestartButton => 'Επανεκκίνηση';
 }

@@ -5,6 +5,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:quick_actions/quick_actions.dart';
 
 import 'package:monthly_expense_app/services/review_service.dart';
+import 'package:monthly_expense_app/services/update_service.dart';
 import 'package:monthly_expense_app/services/shortcut_service.dart';
 
 /// The plugin's own class, answered rather than reached.
@@ -113,6 +114,44 @@ void main() {
     });
   });
 
+  group('the update offer at the platform edge (UPD-5)', () {
+    test('Play flow on Android, nothing anywhere else', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      expect(deviceOrNoUpdates(), isA<DeviceUpdates>());
+      expect(const DeviceUpdates().supported, isTrue);
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      expect(deviceOrNoUpdates(), isA<NoUpdates>());
+
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      expect(deviceOrNoUpdates(), isA<NoUpdates>());
+      expect(const DeviceUpdates().supported, isFalse);
+
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    test('nothing at all is still an UpdateService', () async {
+      const service = NoUpdates();
+
+      expect(service.supported, isFalse);
+      expect(await service.available(), isFalse);
+      expect(await service.download(), isFalse);
+      await service.install();
+    });
+
+    test('a build Play knows nothing about is not offered an update', () async {
+      // Off a Play track the plugin throws rather than answering, and none
+      // of that is the app's business (UPD-1).
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      const service = DeviceUpdates();
+
+      expect(await service.available(), isFalse);
+      expect(await service.download(), isFalse);
+      await service.install();
+
+      debugDefaultTargetPlatformOverride = null;
+    });
+  });
   group('the icon menu at the platform edge (NAV-8)', () {
     test('a phone is given the three items and hears the choice', () async {
       await on(TargetPlatform.android, () async {

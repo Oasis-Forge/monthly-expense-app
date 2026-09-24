@@ -86,6 +86,7 @@
   "themeSystem": "跟随系统",
   "themeLight": "浅色",
   "themeDark": "深色",
+  "themeBlack": "黑色",
   "languageLabel": "语言",
   "languageSystem": "系统默认",
   "monthStartLabel": "每月起始日",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{下一笔:{title},{days} 天后}}",
   "nothingUpcoming": "未来30天内没有安排。",
   "noRules": "暂无周期交易。",
+  "recurringEmptyMessage": "周期交易会按你设置的时间安排自动记录房租、工资或订阅费,并等待你点一下确认每一笔。",
+  "addRecurringButton": "添加周期交易",
   "postButton": "记账",
   "skipButton": "跳过",
   "postFailed": "无法记账，请重试。",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1个月} other{{count}个月}}",
   "incomeExpenseLine": "收入 {income} · 支出 {expense}",
   "trendAverage": "每期平均 · 收入 {income} · 支出 {expense}",
+  "trendNeedsMorePeriods": "趋势需要一期以上的数据。下个月再来看看。",
   "weekStartLabel": "每周起始日",
   "weekStartDefault": "默认（{day}）",
   "firstRunTitle": "欢迎使用 Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "好的，提醒我",
   "nudgeOfferNo": "不用了，谢谢",
   "nudgeStoppedNotice": "连续三次未响应后提醒已停止，可随时重新开启。",
-  "nudgePermissionDenied": "请在系统设置中开启通知以接收提醒。"
+  "nudgePermissionDenied": "请在系统设置中开启通知以接收提醒。",
+  "updateDownloadedMessage": "已下载更新。",
+  "updateRestartButton": "重启"
 }

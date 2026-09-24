@@ -4,6 +4,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import 'empty_state.dart';
 import '../l10n/labels.dart';
 import '../models/budget.dart';
 import '../models/insights.dart';
@@ -614,6 +615,18 @@ class _TrendTabState extends State<_TrendTab> {
     final currency = settings.currencyFormat(locale);
     final compact = settings.compactCurrencyFormat(locale);
     final small = theme.textTheme.labelSmall;
+
+    // EMPTY-4: a trend needs a second period before it is a trend, and
+    // nothing the person can do here makes one. Only time does, so this
+    // says so and offers nothing.
+    if (!provider.hasEarlierRecords) {
+      return EmptyState(
+        icon: Icons.show_chart_outlined,
+        title: l10n.trendTab,
+        message: l10n.trendNeedsMorePeriods,
+      );
+    }
+
     final trend = provider.trend(_count);
     String money(Money amount) => currency.money(amount);
 

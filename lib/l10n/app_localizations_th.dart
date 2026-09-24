@@ -313,6 +313,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get themeDark => 'มืด';
 
   @override
+  String get themeBlack => 'ดำ';
+
+  @override
   String get languageLabel => 'ภาษา';
 
   @override
@@ -605,6 +608,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get noRules => 'ยังไม่มีรายการประจำ';
 
   @override
+  String get recurringEmptyMessage =>
+      'รายการประจำจะบันทึกค่าเช่า เงินเดือน หรือค่าสมัครสมาชิกตามกำหนดเวลาที่คุณตั้งไว้ และรอการแตะเพื่อยืนยันแต่ละรายการ';
+
+  @override
+  String get addRecurringButton => 'เพิ่มรายการประจำ';
+
+  @override
   String get postButton => 'บันทึกรายการ';
 
   @override
@@ -840,6 +850,10 @@ class AppLocalizationsTh extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'เฉลี่ยต่องวด · รายรับ $income · รายจ่าย $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'แนวโน้มต้องการมากกว่าหนึ่งงวด กลับมาดูใหม่เดือนหน้า';
 
   @override
   String get weekStartLabel => 'วันเริ่มต้นสัปดาห์';
@@ -1744,4 +1758,10 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get nudgePermissionDenied => 'เปิดการแจ้งเตือนในการตั้งค่าระบบ';
+
+  @override
+  String get updateDownloadedMessage => 'ดาวน์โหลดการอัปเดตแล้ว';
+
+  @override
+  String get updateRestartButton => 'รีสตาร์ท';
 }

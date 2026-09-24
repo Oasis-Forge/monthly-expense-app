@@ -311,6 +311,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get themeDark => '다크';
 
   @override
+  String get themeBlack => '블랙';
+
+  @override
   String get languageLabel => '언어';
 
   @override
@@ -602,6 +605,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get noRules => '아직 반복 거래가 없어요.';
 
   @override
+  String get recurringEmptyMessage =>
+      '반복 거래는 설정한 일정에 따라 집세, 급여, 구독료 등을 기록하고, 매번 확인을 위한 탭을 기다려요.';
+
+  @override
+  String get addRecurringButton => '반복 거래 추가';
+
+  @override
   String get postButton => '등록';
 
   @override
@@ -837,6 +847,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return '기간당 평균 · 수입 $income · 지출 $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      '추이를 보려면 기간이 두 개 이상 필요해요. 다음 달에 다시 확인해 보세요.';
 
   @override
   String get weekStartLabel => '매주 시작 요일';
@@ -1710,4 +1724,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get nudgePermissionDenied => '알림을 받으려면 시스템 설정에서 알림을 켜세요.';
+
+  @override
+  String get updateDownloadedMessage => '업데이트가 다운로드되었어요.';
+
+  @override
+  String get updateRestartButton => '다시 시작';
 }

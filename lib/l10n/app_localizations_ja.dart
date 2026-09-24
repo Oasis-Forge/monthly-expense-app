@@ -311,6 +311,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get themeDark => 'ダーク';
 
   @override
+  String get themeBlack => 'ブラック';
+
+  @override
   String get languageLabel => '言語';
 
   @override
@@ -602,6 +605,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noRules => '定期取引はまだありません。';
 
   @override
+  String get recurringEmptyMessage =>
+      '定期取引は、設定したスケジュールに沿って家賃、給与、サブスクリプションなどを記録し、確認のタップを待ちます。';
+
+  @override
+  String get addRecurringButton => '定期取引を追加';
+
+  @override
   String get postButton => '登録';
 
   @override
@@ -837,6 +847,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return '期間平均・収入 $income・支出 $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods => '推移には複数の期間が必要です。来月また来てください。';
 
   @override
   String get weekStartLabel => '週の開始日';
@@ -1710,4 +1723,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get nudgePermissionDenied => 'リマインダーには、設定で通知をオンにしてください。';
+
+  @override
+  String get updateDownloadedMessage => 'アップデートをダウンロードしました。';
+
+  @override
+  String get updateRestartButton => '再起動';
 }

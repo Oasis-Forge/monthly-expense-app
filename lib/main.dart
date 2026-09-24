@@ -3,6 +3,7 @@ import 'dart:async' show unawaited;
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -18,6 +19,7 @@ import 'screens/add_transaction_screen.dart';
 import 'screens/app_lock.dart';
 import 'screens/first_run_gate.dart';
 import 'screens/note_form_screen.dart';
+import 'screens/theme.dart';
 import 'screens/notes_screen.dart';
 import 'screens/recurring_screen.dart';
 import 'screens/transfer_screen.dart';
@@ -31,6 +33,7 @@ import 'services/home_widget_updater.dart';
 import 'services/purchase_service.dart';
 import 'services/reminder_service.dart';
 import 'services/review_service.dart';
+import 'services/update_service.dart';
 import 'services/shortcut_service.dart';
 
 Future<void> main() async {
@@ -51,7 +54,8 @@ Future<void> main() async {
 
 class MonthlyExpenseApp extends StatelessWidget {
   /// [backup], [authenticator], [reminders], [homeWidget], [ads],
-  /// [purchases], and [reviews] default to the device implementations; tests
+  /// [purchases], [reviews] and [updates] default to the device
+  /// implementations; tests
   /// pass their own.
   const MonthlyExpenseApp({
     super.key,
@@ -63,6 +67,7 @@ class MonthlyExpenseApp extends StatelessWidget {
     this.ads,
     this.purchases,
     this.reviews,
+    this.updates,
     this.shortcuts,
   });
 
@@ -74,6 +79,7 @@ class MonthlyExpenseApp extends StatelessWidget {
   final AdService? ads;
   final PurchaseService? purchases;
   final ReviewService? reviews;
+  final UpdateService? updates;
   final ShortcutService? shortcuts;
 
   /// So a tapped reminder notification can open its note (NOTE-6, LOCK-2),
@@ -114,6 +120,7 @@ class MonthlyExpenseApp extends StatelessWidget {
         Provider<AttachmentService>.value(value: attachmentService),
         // The store's rating sheet, and nothing at all on desktop (RATE-5).
         Provider<ReviewService>(create: (_) => reviews ?? deviceOrNoReviews()),
+        Provider<UpdateService>(create: (_) => updates ?? deviceOrNoUpdates()),
         // The slots and the one purchase, in one place (ADS-8). `start`
         // waits for setup and the walkthrough by itself (ADS-4).
         ChangeNotifierProvider(
@@ -131,39 +138,40 @@ class MonthlyExpenseApp extends StatelessWidget {
       ],
       child: _HomeWidgetSync(
         service: homeWidget,
-        child: Consumer<SettingsProvider>(
-          builder: (context, settings, _) => MaterialApp(
-            navigatorKey: navigatorKey,
-            navigatorObservers: [adActivity],
-            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            locale: settings.locale,
-            localeListResolutionCallback: (locales, _) =>
-                resolveAppLocale(locales),
-            debugShowCheckedModeBanner: false,
-            themeMode: settings.themeMode,
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF6C5CE7),
+        child: DynamicColorBuilder(
+          builder: (lightFromPhone, darkFromPhone) => Consumer<SettingsProvider>(
+            builder: (context, settings, _) => MaterialApp(
+              navigatorKey: navigatorKey,
+              navigatorObservers: [adActivity],
+              onGenerateTitle: (context) =>
+                  AppLocalizations.of(context).appTitle,
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              locale: settings.locale,
+              localeListResolutionCallback: (locales, _) =>
+                  resolveAppLocale(locales),
+              debugShowCheckedModeBanner: false,
+              themeMode: settings.themeMode,
+              // The wallpaper palette where the phone offers one, the app's own
+              // colour where it does not (THEME-2).
+              theme: appTheme(
+                fromPhone: lightFromPhone,
+                brightness: Brightness.light,
               ),
-              useMaterial3: true,
-            ),
-            darkTheme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: const Color(0xFF6C5CE7),
+              darkTheme: appTheme(
+                fromPhone: darkFromPhone,
                 brightness: Brightness.dark,
+                black: settings.blackBackground,
               ),
-              useMaterial3: true,
-            ),
-            builder: (context, child) => AppLock(
-              child: _NoteReminderTaps(
-                child: _WidgetTaps(
-                  child: _ShortcutTaps(service: shortcuts, child: child!),
+              builder: (context, child) => AppLock(
+                child: _NoteReminderTaps(
+                  child: _WidgetTaps(
+                    child: _ShortcutTaps(service: shortcuts, child: child!),
+                  ),
                 ),
               ),
+              home: const FirstRunGate(),
             ),
-            home: const FirstRunGate(),
           ),
         ),
       ),

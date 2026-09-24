@@ -315,6 +315,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get themeDark => 'Tối';
 
   @override
+  String get themeBlack => 'Đen';
+
+  @override
   String get languageLabel => 'Ngôn ngữ';
 
   @override
@@ -608,6 +611,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get noRules => 'Chưa có giao dịch định kỳ nào.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Giao dịch định kỳ ghi nhận tiền thuê nhà, lương hoặc gói đăng ký theo lịch bạn đặt, và chờ một lượt chạm để xác nhận từng giao dịch.';
+
+  @override
+  String get addRecurringButton => 'Thêm giao dịch định kỳ';
+
+  @override
   String get postButton => 'Ghi nhận';
 
   @override
@@ -845,6 +855,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'Trung bình mỗi kỳ · Thu $income · Chi $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'Xu hướng cần nhiều hơn một kỳ. Hãy quay lại vào tháng sau.';
 
   @override
   String get weekStartLabel => 'Ngày bắt đầu tuần';
@@ -1756,4 +1770,10 @@ class AppLocalizationsVi extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'Bật thông báo trong cài đặt hệ thống để nhận nhắc nhở.';
+
+  @override
+  String get updateDownloadedMessage => 'Đã tải xong bản cập nhật.';
+
+  @override
+  String get updateRestartButton => 'Khởi động lại';
 }

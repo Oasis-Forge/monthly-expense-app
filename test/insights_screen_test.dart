@@ -428,6 +428,9 @@ void main() {
     testWidgets('the top of the amount axis gets no label of its own '
         '(INS-5)', (tester) async {
       await showInsights(tester, [
+        // An earlier period, so a trend can be drawn at all (EMPTY-4). It
+        // sits before the six the chart shows, so it adds no bar of its own.
+        testTx('older', income, 1, DateTime(2026, 1, 5)),
         testTx('pay', income, 3650, DateTime(2026, 9, 15)),
       ]);
       await openTab(tester, 'Trend');

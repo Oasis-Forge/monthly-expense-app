@@ -33,6 +33,7 @@ import 'package:monthly_expense_app/services/backup_service.dart';
 import 'package:monthly_expense_app/services/purchase_service.dart';
 import 'package:monthly_expense_app/services/reminder_service.dart';
 import 'package:monthly_expense_app/services/review_service.dart';
+import 'package:monthly_expense_app/services/update_service.dart';
 import 'package:monthly_expense_app/services/shortcut_service.dart';
 
 final _created = DateTime.utc(2026);
@@ -813,6 +814,7 @@ Widget testApp(
   AdService? ads,
   PurchaseService? purchases,
   ReviewService? reviews,
+  UpdateService? updates,
   ValueListenable<bool>? locked,
 }) {
   return MultiProvider(
@@ -842,6 +844,9 @@ Widget testApp(
       // RATE-5: nothing asks for a rating unless a test says it may.
       Provider<ReviewService>.value(
         value: reviews ?? FakeReviews(supported: false),
+      ),
+      Provider<UpdateService>.value(
+        value: updates ?? FakeUpdates(supported: false),
       ),
     ],
     // Like the app, the language follows the settings (LANG-1).
@@ -1083,6 +1088,51 @@ class FakeReviews implements ReviewService {
 
   @override
   Future<void> ask() async => asked++;
+}
+
+/// Play's flexible update flow, answered from fields instead of from the
+/// store (UPD-1). Unsupported by default, so a test only meets it when it
+/// asks to.
+class FakeUpdates implements UpdateService {
+  FakeUpdates({
+    this.supported = true,
+    this.offered = false,
+    this.downloads = true,
+  });
+
+  @override
+  final bool supported;
+
+  /// Whether Play is holding a newer version.
+  final bool offered;
+
+  /// Whether the background download finishes, rather than being declined
+  /// or failing.
+  final bool downloads;
+
+  /// How many times Play was asked whether anything is waiting.
+  int checked = 0;
+
+  /// How many times the download was started.
+  int started = 0;
+
+  /// How many times the restart was asked for.
+  int installed = 0;
+
+  @override
+  Future<bool> available() async {
+    checked++;
+    return offered;
+  }
+
+  @override
+  Future<bool> download() async {
+    started++;
+    return downloads;
+  }
+
+  @override
+  Future<void> install() async => installed++;
 }
 
 /// The app icon's long-press menu, kept in a list instead of on an icon

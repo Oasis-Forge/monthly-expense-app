@@ -86,6 +86,7 @@
   "themeSystem": "Системная",
   "themeLight": "Светлая",
   "themeDark": "Тёмная",
+  "themeBlack": "Чёрная",
   "languageLabel": "Язык",
   "languageSystem": "Как в системе",
   "monthStartLabel": "Первый день месяца",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, one{Далее: {title}, через {days} день} few{Далее: {title}, через {days} дня} many{Далее: {title}, через {days} дней} other{Далее: {title}, через {days} дня}}",
   "nothingUpcoming": "Ничего в ближайшие 30 дней.",
   "noRules": "Повторяющихся операций пока нет.",
+  "recurringEmptyMessage": "Повторяющиеся операции проводят аренду, зарплату или подписку по расписанию, которое ты задаёшь, и ждут подтверждения нажатием для каждой.",
+  "addRecurringButton": "Добавить повторяющуюся операцию",
   "postButton": "Провести",
   "skipButton": "Пропустить",
   "postFailed": "Не удалось провести операцию. Попробуйте ещё раз.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, one{{count} месяц} few{{count} месяца} many{{count} месяцев} other{{count} месяцев}}",
   "incomeExpenseLine": "Доход {income} · Расход {expense}",
   "trendAverage": "В среднем за период · Доход {income} · Расход {expense}",
+  "trendNeedsMorePeriods": "Для динамики нужно больше одного периода. Загляни в следующем месяце.",
   "weekStartLabel": "Первый день недели",
   "weekStartDefault": "По умолчанию ({day})",
   "firstRunTitle": "Добро пожаловать в Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Да, напоминайте",
   "nudgeOfferNo": "Нет",
   "nudgeStoppedNotice": "Напоминания остановлены после трёх без ответа. Включите их снова, когда захотите.",
-  "nudgePermissionDenied": "Включите уведомления в настройках системы."
+  "nudgePermissionDenied": "Включите уведомления в настройках системы.",
+  "updateDownloadedMessage": "Обновление загружено.",
+  "updateRestartButton": "Перезапустить"
 }

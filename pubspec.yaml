@@ -59,6 +59,8 @@ dependencies:
   in_app_purchase: ^3.3.0
   in_app_review: ^2.0.12
   quick_actions: ^1.1.1
+  dynamic_color: ^1.7.0
+  in_app_update: ^4.2.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

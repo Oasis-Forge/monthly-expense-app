@@ -86,6 +86,7 @@
   "themeSystem": "Système",
   "themeLight": "Clair",
   "themeDark": "Sombre",
+  "themeBlack": "Noir",
   "languageLabel": "Langue",
   "languageSystem": "Langue du système",
   "monthStartLabel": "Premier jour du mois",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Prochain : {title}, dans {days} jours}}",
   "nothingUpcoming": "Rien dans les 30 prochains jours.",
   "noRules": "Aucune transaction récurrente pour l’instant.",
+  "recurringEmptyMessage": "Les transactions récurrentes enregistrent un loyer, un salaire ou un abonnement selon le calendrier que vous définissez, et attendent un appui pour confirmer chacune.",
+  "addRecurringButton": "Ajouter une transaction récurrente",
   "postButton": "Enregistrer",
   "skipButton": "Ignorer",
   "postFailed": "Impossible d’enregistrer la transaction. Réessayez.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 mois} other{{count} mois}}",
   "incomeExpenseLine": "Revenus {income} · Dépenses {expense}",
   "trendAverage": "Moyenne par période · Revenus {income} · Dépenses {expense}",
+  "trendNeedsMorePeriods": "Une tendance nécessite plus d’une période. Revenez le mois prochain.",
   "weekStartLabel": "Premier jour de la semaine",
   "weekStartDefault": "Par défaut ({day})",
   "firstRunTitle": "Bienvenue dans Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Oui, rappelle-moi",
   "nudgeOfferNo": "Non merci",
   "nudgeStoppedNotice": "Les rappels se sont arrêtés après trois sans réponse. Réactivez-les quand vous voulez.",
-  "nudgePermissionDenied": "Activez les notifications dans les paramètres système."
+  "nudgePermissionDenied": "Activez les notifications dans les paramètres système.",
+  "updateDownloadedMessage": "Une mise à jour a été téléchargée.",
+  "updateRestartButton": "Redémarrer"
 }

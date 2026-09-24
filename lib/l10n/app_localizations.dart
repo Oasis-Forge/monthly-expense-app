@@ -652,6 +652,12 @@ abstract class AppLocalizations {
   /// **'Dark'**
   String get themeDark;
 
+  /// A theme choice: dark with a true black background, for OLED screens (THEME-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Black'**
+  String get themeBlack;
+
   /// No description provided for @languageLabel.
   ///
   /// In en, this message translates to:
@@ -1144,6 +1150,18 @@ abstract class AppLocalizations {
   /// **'No recurring transactions yet.'**
   String get noRules;
 
+  /// Shown on the Recurring screen when no rules exist yet, under the heading, above the button that adds one (EMPTY-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transactions post rent, a salary or a subscription on the schedule you set, and wait for a tap to confirm each one.'**
+  String get recurringEmptyMessage;
+
+  /// Button on the empty Recurring screen that opens the form for a new rule (EMPTY-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Add a recurring transaction'**
+  String get addRecurringButton;
+
   /// No description provided for @postButton.
   ///
   /// In en, this message translates to:
@@ -1521,6 +1539,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Average per period · Income {income} · Expense {expense}'**
   String trendAverage(String income, String expense);
+
+  /// Shown on the Insights trend tab when only one period has any records, so no line can be drawn. There is no action offered, because only time fills it (EMPTY-4).
+  ///
+  /// In en, this message translates to:
+  /// **'A trend needs more than one period. Come back next month.'**
+  String get trendNeedsMorePeriods;
 
   /// No description provided for @weekStartLabel.
   ///
@@ -2979,6 +3003,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Turn on notifications in system settings to get reminders.'**
   String get nudgePermissionDenied;
+
+  /// Shown in a snack bar on Android after Google Play finishes downloading a new version in the background, next to a button that restarts the app to apply it (UPD-1).
+  ///
+  /// In en, this message translates to:
+  /// **'An update has been downloaded.'**
+  String get updateDownloadedMessage;
+
+  /// The action button next to updateDownloadedMessage; restarts the app to finish installing the downloaded update (UPD-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Restart'**
+  String get updateRestartButton;
 }
 
 class _AppLocalizationsDelegate

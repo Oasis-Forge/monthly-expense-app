@@ -86,6 +86,7 @@
   "themeSystem": "System",
   "themeLight": "Hell",
   "themeDark": "Dunkel",
+  "themeBlack": "Schwarz",
   "languageLabel": "Sprache",
   "languageSystem": "Systemsprache",
   "monthStartLabel": "Erster Tag des Monats",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Nächste: {title}, in {days} Tagen}}",
   "nothingUpcoming": "Nichts in den nächsten 30 Tagen.",
   "noRules": "Noch keine wiederkehrenden Buchungen.",
+  "recurringEmptyMessage": "Wiederkehrende Buchungen erfassen Miete, Gehalt oder ein Abo nach dem Zeitplan, den du festlegst, und warten auf ein Antippen zur Bestätigung jeder einzelnen.",
+  "addRecurringButton": "Wiederkehrende Buchung hinzufügen",
   "postButton": "Buchen",
   "skipButton": "Überspringen",
   "postFailed": "Die Buchung konnte nicht erstellt werden. Versuche es erneut.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 Monat} other{{count} Monate}}",
   "incomeExpenseLine": "Einnahmen {income} · Ausgaben {expense}",
   "trendAverage": "Durchschnitt pro Zeitraum · Einnahmen {income} · Ausgaben {expense}",
+  "trendNeedsMorePeriods": "Ein Verlauf braucht mehr als einen Zeitraum. Komm nächsten Monat wieder.",
   "weekStartLabel": "Erster Tag der Woche",
   "weekStartDefault": "Standard ({day})",
   "firstRunTitle": "Willkommen bei Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Ja, erinnere mich",
   "nudgeOfferNo": "Nein danke",
   "nudgeStoppedNotice": "Erinnerungen wurden nach drei unbeantworteten gestoppt. Schalte sie jederzeit wieder ein.",
-  "nudgePermissionDenied": "Aktiviere Benachrichtigungen in den Systemeinstellungen."
+  "nudgePermissionDenied": "Aktiviere Benachrichtigungen in den Systemeinstellungen.",
+  "updateDownloadedMessage": "Ein Update wurde heruntergeladen.",
+  "updateRestartButton": "Neu starten"
 }

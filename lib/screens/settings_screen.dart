@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/languages.dart';
+import '../models/app_theme.dart';
 import '../models/currencies.dart';
 import '../models/period.dart';
 import '../models/reminders.dart';
@@ -70,16 +71,19 @@ class SettingsScreen extends StatelessWidget {
             subtitle: Text(currencyName(settings.currencyCode)),
             onTap: () => _pickCurrency(context),
           ),
-          ChoiceTile<ThemeMode>(
+          // One row, four choices: black is dark with different surfaces
+          // rather than a switch of its own (THEME-1).
+          ChoiceTile<AppTheme>(
             icon: Icons.brightness_6_outlined,
             title: l10n.themeLabel,
-            value: settings.themeMode,
+            value: settings.appTheme,
             options: [
-              (ThemeMode.system, l10n.themeSystem),
-              (ThemeMode.light, l10n.themeLight),
-              (ThemeMode.dark, l10n.themeDark),
+              (AppTheme.system, l10n.themeSystem),
+              (AppTheme.light, l10n.themeLight),
+              (AppTheme.dark, l10n.themeDark),
+              (AppTheme.black, l10n.themeBlack),
             ],
-            onChanged: settings.setThemeMode,
+            onChanged: settings.setTheme,
           ),
           ChoiceTile<int>(
             icon: Icons.event_outlined,

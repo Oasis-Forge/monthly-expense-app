@@ -86,6 +86,7 @@
   "themeSystem": "Sistem",
   "themeLight": "Açık",
   "themeDark": "Koyu",
+  "themeBlack": "Siyah",
   "languageLabel": "Dil",
   "languageSystem": "Sistem varsayılanı",
   "monthStartLabel": "Ayın ilk günü",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Sıradaki: {title}, {days} gün sonra}}",
   "nothingUpcoming": "Önümüzdeki 30 günde bir şey yok.",
   "noRules": "Henüz tekrarlanan işlem yok.",
+  "recurringEmptyMessage": "Tekrarlanan işlemler, belirlediğin programa göre kira, maaş veya abonelik kaydeder ve her birini onaylamak için dokunmanı bekler.",
+  "addRecurringButton": "Tekrarlanan işlem ekle",
   "postButton": "İşle",
   "skipButton": "Atla",
   "postFailed": "İşlem kaydedilemedi. Tekrar deneyin.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 ay} other{{count} ay}}",
   "incomeExpenseLine": "Gelir {income} · Gider {expense}",
   "trendAverage": "Dönem başına ortalama · Gelir {income} · Gider {expense}",
+  "trendNeedsMorePeriods": "Eğilim için birden fazla döneme ihtiyaç var. Gelecek ay tekrar gel.",
   "weekStartLabel": "Haftanın ilk günü",
   "weekStartDefault": "Varsayılan ({day})",
   "firstRunTitle": "Monthly Expenses'a hoş geldiniz",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Evet, hatırlat",
   "nudgeOfferNo": "Hayır",
   "nudgeStoppedNotice": "Üç kez yanıtsız kalınca hatırlatmalar durduruldu. İstediğin an tekrar açabilirsin.",
-  "nudgePermissionDenied": "Bildirimleri sistem ayarlarından açın."
+  "nudgePermissionDenied": "Bildirimleri sistem ayarlarından açın.",
+  "updateDownloadedMessage": "Bir güncelleme indirildi.",
+  "updateRestartButton": "Yeniden başlat"
 }

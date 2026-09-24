@@ -1,6 +1,9 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart' show ChangeNotifier, Locale, ThemeMode;
+
+import '../models/app_theme.dart';
+
 import 'package:intl/intl.dart';
 import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,7 +30,7 @@ class SettingsProvider extends ChangeNotifier {
        _languageCode = _validLanguage(_prefs.getString(_languageKey)),
        _currencyCode =
            _prefs.getString(_currencyKey) ?? defaultCurrencyFor(deviceLocale),
-       _themeMode = _themeModeNamed(_prefs.getString(_themeKey)),
+       _theme = AppTheme.named(_prefs.getString(_themeKey)),
        _startDay = _validStartDay(_prefs.getInt(_startDayKey)),
        _showCarriedForward = _prefs.getBool(_carriedForwardKey) ?? true,
        _summaryCollapsed = _prefs.getBool(_summaryCollapsedKey) ?? false,
@@ -85,6 +88,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _nudgeMinuteKey = 'empty_day_nudge_minute';
   static const _nudgeOfferedKey = 'empty_day_nudge_offered';
   static const _ratingAskedKey = 'rating_asked_version';
+  static const _updateAskedKey = 'update_asked_on';
   static const _nudgeIgnoredKey = 'empty_day_nudge_ignored';
   static const _nudgeStoppedKey = 'empty_day_nudge_stopped';
   static const _nudgeCheckedKey = 'empty_day_nudge_checked';
@@ -122,7 +126,7 @@ class SettingsProvider extends ChangeNotifier {
   final DateTime Function() _clock;
   String? _languageCode;
   String _currencyCode;
-  ThemeMode _themeMode;
+  AppTheme _theme;
   int _startDay;
   bool _showCarriedForward;
   bool _summaryCollapsed;
@@ -160,7 +164,15 @@ class SettingsProvider extends ChangeNotifier {
   };
 
   String get currencyCode => _currencyCode;
-  ThemeMode get themeMode => _themeMode;
+
+  /// The choice the Theme row offers (THEME-1).
+  AppTheme get appTheme => _theme;
+
+  /// The brightness that choice asks for; black asks for dark.
+  ThemeMode get themeMode => _theme.themeMode;
+
+  /// Whether dark surfaces are true black (THEME-1).
+  bool get blackBackground => _theme.isBlack;
 
   /// 1–28, or [Period.lastDayOfMonth].
   int get startDay => _startDay;
@@ -320,10 +332,10 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setThemeMode(ThemeMode mode) async {
-    if (mode == _themeMode) return;
-    await _prefs.setString(_themeKey, mode.name);
-    _themeMode = mode;
+  Future<void> setTheme(AppTheme theme) async {
+    if (theme == _theme) return;
+    await _prefs.setString(_themeKey, theme.name);
+    _theme = theme;
     notifyListeners();
   }
 
@@ -485,6 +497,17 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setString(_ratingAskedKey, version);
   }
 
+  /// The day this device was last offered an update, or null for never
+  /// (UPD-4).
+  DateTime? get updateAskedOn => _dateOrNull(_prefs.getString(_updateAskedKey));
+
+  /// Remembers that [day] has now offered one. Written before Play is
+  /// given the chance to say no, because it never says what became of it
+  /// (UPD-4).
+  Future<void> markUpdateAsked(DateTime day) async {
+    await _prefs.setString(_updateAskedKey, _stamp(day));
+  }
+
   /// Records what [countIgnoredNudges] found, and stops the nudge once
   /// [nudgeGiveUpAfter] have gone unanswered in a row (NUDGE-5).
   Future<void> recordNudgesIgnored(int ignored, DateTime checkedAt) async {
@@ -591,7 +614,7 @@ class SettingsProvider extends ChangeNotifier {
   Map<String, Object?> get backupValues => {
     _languageKey: _languageCode,
     _currencyKey: _currencyCode,
-    _themeKey: _themeMode.name,
+    _themeKey: _theme.name,
     _startDayKey: _startDay,
     _carriedForwardKey: _showCarriedForward,
     _weekStartKey: _weekStartDay,
@@ -611,7 +634,7 @@ class SettingsProvider extends ChangeNotifier {
       await setCurrencyCode(currency);
     }
     final theme = values[_themeKey];
-    if (theme is String) await setThemeMode(_themeModeNamed(theme));
+    if (theme is String) await setTheme(AppTheme.named(theme));
     final startDay = values[_startDayKey];
     if (startDay is int && _validStartDay(startDay) == startDay) {
       await setStartDay(startDay);
@@ -624,13 +647,6 @@ class SettingsProvider extends ChangeNotifier {
         await setWeekStartDay(week as int?);
       }
     }
-  }
-
-  static ThemeMode _themeModeNamed(String? name) {
-    for (final mode in ThemeMode.values) {
-      if (mode.name == name) return mode;
-    }
-    return ThemeMode.system;
   }
 
   static int _validStartDay(int? day) =>

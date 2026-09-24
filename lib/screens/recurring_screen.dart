@@ -3,6 +3,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import 'empty_state.dart';
 import '../l10n/labels.dart';
 import '../models/money.dart';
 import '../models/recurring_rule.dart';
@@ -36,28 +37,38 @@ class RecurringScreen extends StatelessWidget {
         ).push(MaterialPageRoute(builder: (_) => const RecurringRuleScreen())),
         child: const Icon(Icons.add),
       ),
-      body: ListView(
-        padding: const EdgeInsets.only(bottom: 88),
-        children: [
-          // RCR-8: what the rules come to, and what falls next.
-          if (rules.isNotEmpty) const _BillsHeader(),
-          if (due.isNotEmpty) ...[
-            _Header(l10n.dueHeader),
-            for (final occurrence in due) _DueTile(occurrence: occurrence),
-          ],
-          _Header(l10n.upcomingHeader),
-          if (upcoming.isEmpty)
-            _Empty(l10n.nothingUpcoming)
-          else
-            for (final occurrence in upcoming)
-              _OccurrenceTile(occurrence: occurrence),
-          _Header(l10n.rulesHeader),
-          if (rules.isEmpty)
-            _Empty(l10n.noRules)
-          else
-            for (final rule in rules) _RuleTile(rule: rule),
-        ],
-      ),
+      // EMPTY-1: with no rules at all there is nothing to head, so the
+      // screen says what it is for and offers the one action that fills it.
+      body: rules.isEmpty
+          ? EmptyState(
+              icon: Icons.event_repeat_outlined,
+              title: l10n.noRules,
+              message: l10n.recurringEmptyMessage,
+              actionLabel: l10n.addRecurringButton,
+              onAction: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const RecurringRuleScreen()),
+              ),
+            )
+          : ListView(
+              padding: const EdgeInsets.only(bottom: 88),
+              children: [
+                // RCR-8: what the rules come to, and what falls next.
+                const _BillsHeader(),
+                if (due.isNotEmpty) ...[
+                  _Header(l10n.dueHeader),
+                  for (final occurrence in due)
+                    _DueTile(occurrence: occurrence),
+                ],
+                _Header(l10n.upcomingHeader),
+                if (upcoming.isEmpty)
+                  _Empty(l10n.nothingUpcoming)
+                else
+                  for (final occurrence in upcoming)
+                    _OccurrenceTile(occurrence: occurrence),
+                _Header(l10n.rulesHeader),
+                for (final rule in rules) _RuleTile(rule: rule),
+              ],
+            ),
     );
   }
 }

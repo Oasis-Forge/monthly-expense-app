@@ -86,6 +86,7 @@
   "themeSystem": "সিস্টেম",
   "themeLight": "লাইট",
   "themeDark": "ডার্ক",
+  "themeBlack": "ব্ল্যাক",
   "languageLabel": "ভাষা",
   "languageSystem": "সিস্টেম ডিফল্ট",
   "monthStartLabel": "মাসের প্রথম দিন",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{পরবর্তী: {title}, {days} দিনে}}",
   "nothingUpcoming": "আগামী 30 দিনে কিছু নেই।",
   "noRules": "এখনো কোনো পুনরাবৃত্ত লেনদেন নেই।",
+  "recurringEmptyMessage": "পুনরাবৃত্ত লেনদেন আপনার নির্ধারিত সময়সূচি অনুযায়ী ভাড়া, বেতন বা সাবস্ক্রিপশন যোগ করে এবং প্রতিটি নিশ্চিত করতে একটি ট্যাপের অপেক্ষা করে।",
+  "addRecurringButton": "পুনরাবৃত্ত লেনদেন যোগ করুন",
   "postButton": "পোস্ট করুন",
   "skipButton": "এড়িয়ে যান",
   "postFailed": "লেনদেন পোস্ট করা যায়নি। আবার চেষ্টা করুন।",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 মাস} other{{count} মাস}}",
   "incomeExpenseLine": "আয় {income} · ব্যয় {expense}",
   "trendAverage": "প্রতি মেয়াদে গড় · আয় {income} · ব্যয় {expense}",
+  "trendNeedsMorePeriods": "ট্রেন্ডের জন্য একাধিক মেয়াদ প্রয়োজন। পরের মাসে আবার আসুন।",
   "weekStartLabel": "সপ্তাহের প্রথম দিন",
   "weekStartDefault": "ডিফল্ট ({day})",
   "firstRunTitle": "Monthly Expenses-এ স্বাগতম",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "হ্যাঁ, মনে করান",
   "nudgeOfferNo": "না ধন্যবাদ",
   "nudgeStoppedNotice": "তিনটি অনুত্তরিত থাকার পর রিমাইন্ডার বন্ধ হয়েছে। যখন ইচ্ছা আবার চালু করুন।",
-  "nudgePermissionDenied": "রিমাইন্ডার পেতে সিস্টেম সেটিংসে বিজ্ঞপ্তি চালু করুন।"
+  "nudgePermissionDenied": "রিমাইন্ডার পেতে সিস্টেম সেটিংসে বিজ্ঞপ্তি চালু করুন।",
+  "updateDownloadedMessage": "একটি আপডেট ডাউনলোড হয়েছে।",
+  "updateRestartButton": "পুনরায় চালু করুন"
 }

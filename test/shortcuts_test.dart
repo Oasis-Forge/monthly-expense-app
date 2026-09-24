@@ -31,6 +31,7 @@ void main() {
         }),
         homeWidget: const NoopHomeWidgetService(),
         reviews: FakeReviews(supported: false),
+        updates: FakeUpdates(supported: false),
         shortcuts: shortcuts,
         // Without these the real ad SDK is built, and it leaves a timer
         // running long after the test that started it.

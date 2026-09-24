@@ -314,6 +314,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get themeDark => 'Koyu';
 
   @override
+  String get themeBlack => 'Siyah';
+
+  @override
   String get languageLabel => 'Dil';
 
   @override
@@ -606,6 +609,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get noRules => 'Henüz tekrarlanan işlem yok.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Tekrarlanan işlemler, belirlediğin programa göre kira, maaş veya abonelik kaydeder ve her birini onaylamak için dokunmanı bekler.';
+
+  @override
+  String get addRecurringButton => 'Tekrarlanan işlem ekle';
+
+  @override
   String get postButton => 'İşle';
 
   @override
@@ -843,6 +853,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'Dönem başına ortalama · Gelir $income · Gider $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'Eğilim için birden fazla döneme ihtiyaç var. Gelecek ay tekrar gel.';
 
   @override
   String get weekStartLabel => 'Haftanın ilk günü';
@@ -1749,4 +1763,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get nudgePermissionDenied => 'Bildirimleri sistem ayarlarından açın.';
+
+  @override
+  String get updateDownloadedMessage => 'Bir güncelleme indirildi.';
+
+  @override
+  String get updateRestartButton => 'Yeniden başlat';
 }
