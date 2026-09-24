@@ -1010,9 +1010,7 @@ class _SummaryCard extends StatelessWidget {
                       FittedBox(
                         fit: BoxFit.scaleDown,
                         child: Text(
-                          l10n.carriedForwardLine(
-                            currency.money(carried),
-                          ),
+                          l10n.carriedForwardLine(currency.money(carried)),
                           maxLines: 1,
                           style: theme.textTheme.bodySmall,
                         ),
