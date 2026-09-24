@@ -74,6 +74,39 @@ void main() {
     });
   });
 
+  testWidgets('a section empty for a reason stays a report (EMPTY-4)', (
+    tester,
+  ) async {
+    // A rule exists, so the screen is not empty, but nothing it produces
+    // falls inside the next thirty days. That is a report, not an
+    // invitation, and it keeps its small grey line.
+    final provider = await loaded(
+      rules: [testRule('r1', 1200, today.add(const Duration(days: 60)))],
+    );
+    await tester.pumpWidget(
+      testApp(provider, await testSettings(), const RecurringScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(EmptyState), findsNothing);
+    expect(find.text('Nothing in the next 30 days.'), findsOneWidget);
+  });
+
+  testWidgets('the add button opens the form when rules already exist', (
+    tester,
+  ) async {
+    final provider = await loaded(rules: [testRule('r1', 1200, today)]);
+    await tester.pumpWidget(
+      testApp(provider, await testSettings(), const RecurringScreen()),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(FloatingActionButton));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(RecurringRuleScreen), findsOneWidget);
+  });
+
   group('the trend (EMPTY-4)', () {
     testWidgets('with everything in one period it says a trend needs more, '
         'and offers nothing', (tester) async {
