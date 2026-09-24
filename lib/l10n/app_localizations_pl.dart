@@ -660,10 +660,15 @@ class AppLocalizationsPl extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Co $count dni',
-      one: 'Co dzień',
+      many: 'Co $count dni',
+      few: 'Co $count dni',
+      one: 'Co $count dzień',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryDay => 'Co dzień';
 
   @override
   String scheduleWeeks(int count) {
@@ -673,10 +678,13 @@ class AppLocalizationsPl extends AppLocalizations {
       other: 'Co $count tygodni',
       many: 'Co $count tygodni',
       few: 'Co $count tygodnie',
-      one: 'Co tydzień',
+      one: 'Co $count tydzień',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryWeek => 'Co tydzień';
 
   @override
   String scheduleMonths(int count) {
@@ -686,10 +694,13 @@ class AppLocalizationsPl extends AppLocalizations {
       other: 'Co $count miesięcy',
       many: 'Co $count miesięcy',
       few: 'Co $count miesiące',
-      one: 'Co miesiąc',
+      one: 'Co $count miesiąc',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryMonth => 'Co miesiąc';
 
   @override
   String scheduleYears(int count) {
@@ -699,10 +710,13 @@ class AppLocalizationsPl extends AppLocalizations {
       other: 'Co $count lat',
       many: 'Co $count lat',
       few: 'Co $count lata',
-      one: 'Co rok',
+      one: 'Co $count rok',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryYear => 'Co rok';
 
   @override
   String pausedSchedule(String schedule) {

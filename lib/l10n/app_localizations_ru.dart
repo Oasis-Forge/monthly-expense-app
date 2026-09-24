@@ -76,7 +76,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Пора провести $count повторяющихся операций',
       many: 'Пора провести $count повторяющихся операций',
       few: 'Пора провести $count повторяющиеся операции',
-      one: 'Пора провести 1 повторяющуюся операцию',
+      one: 'Пора провести $count повторяющуюся операцию',
     );
     return '$_temp0';
   }
@@ -89,7 +89,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Потрачено $percent · $over превышено',
       many: 'Потрачено $percent · $over превышено',
       few: 'Потрачено $percent · $over превышено',
-      one: 'Потрачено $percent · 1 превышен',
+      one: 'Потрачено $percent · $over превышен',
       zero: 'Потрачено $percent',
     );
     return '$_temp0';
@@ -103,7 +103,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count бюджетов задано',
       many: '$count бюджетов задано',
       few: '$count бюджета задано',
-      one: '1 бюджет задан',
+      one: '$count бюджет задан',
     );
     return '$_temp0';
   }
@@ -353,7 +353,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'удалится навсегда через $days дней',
       many: 'удалится навсегда через $days дней',
       few: 'удалится навсегда через $days дня',
-      one: 'удалится навсегда через 1 день',
+      one: 'удалится навсегда через $days день',
     );
     return '$amount · $_temp0';
   }
@@ -501,7 +501,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count результатов',
       many: '$count результатов',
       few: '$count результата',
-      one: '1 результат',
+      one: '$count результат',
     );
     return '$_temp0 · Доход $income · Расход $expense';
   }
@@ -660,10 +660,13 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Каждые $count дней',
       many: 'Каждые $count дней',
       few: 'Каждые $count дня',
-      one: 'Каждый день',
+      one: 'Каждый $count день',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryDay => 'Каждый день';
 
   @override
   String scheduleWeeks(int count) {
@@ -673,10 +676,13 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Каждые $count недель',
       many: 'Каждые $count недель',
       few: 'Каждые $count недели',
-      one: 'Каждую неделю',
+      one: 'Каждую $count неделю',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryWeek => 'Каждую неделю';
 
   @override
   String scheduleMonths(int count) {
@@ -686,10 +692,13 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Каждые $count месяцев',
       many: 'Каждые $count месяцев',
       few: 'Каждые $count месяца',
-      one: 'Каждый месяц',
+      one: 'Каждый $count месяц',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryMonth => 'Каждый месяц';
 
   @override
   String scheduleYears(int count) {
@@ -699,10 +708,13 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Каждые $count лет',
       many: 'Каждые $count лет',
       few: 'Каждые $count года',
-      one: 'Каждый год',
+      one: 'Каждый $count год',
     );
     return '$_temp0';
   }
+
+  @override
+  String get scheduleEveryYear => 'Каждый год';
 
   @override
   String pausedSchedule(String schedule) {
@@ -833,7 +845,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count месяцев',
       many: '$count месяцев',
       few: '$count месяца',
-      one: '1 месяц',
+      one: '$count месяц',
     );
     return '$_temp0';
   }
@@ -1027,7 +1039,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count операций',
       many: '$count операций',
       few: '$count операции',
-      one: '1 операция',
+      one: '$count операция',
     );
     return '$date · $_temp0';
   }
@@ -1087,7 +1099,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Восстановлено $count операций',
       many: 'Восстановлено $count операций',
       few: 'Восстановлено $count операции',
-      one: 'Восстановлена 1 операция',
+      one: 'Восстановлена $count операция',
     );
     return '$_temp0';
   }
@@ -1257,7 +1269,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Пора выполнить $count заметок',
       many: 'Пора выполнить $count заметок',
       few: 'Пора выполнить $count заметки',
-      one: 'Пора выполнить 1 заметку',
+      one: 'Пора выполнить $count заметку',
     );
     return '$_temp0';
   }
@@ -1486,7 +1498,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Импортировано $count строк',
       many: 'Импортировано $count строк',
       few: 'Импортировано $count строки',
-      one: 'Импортирована 1 строка',
+      one: 'Импортирована $count строка',
       zero: 'Ничего не будет импортировано',
     );
     return '$_temp0';
@@ -1500,7 +1512,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count строк — дата не распознана',
       many: '$count строк — дата не распознана',
       few: '$count строки — дата не распознана',
-      one: '1 строка — дата не распознана',
+      one: '$count строка — дата не распознана',
     );
     return '$_temp0';
   }
@@ -1513,7 +1525,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count строк — сумма не распознана',
       many: '$count строк — сумма не распознана',
       few: '$count строки — сумма не распознана',
-      one: '1 строка — сумма не распознана',
+      one: '$count строка — сумма не распознана',
     );
     return '$_temp0';
   }
@@ -1526,7 +1538,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count строк — без суммы',
       many: '$count строк — без суммы',
       few: '$count строки — без суммы',
-      one: '1 строка — без суммы',
+      one: '$count строка — без суммы',
     );
     return '$_temp0';
   }
@@ -1539,7 +1551,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count строк уже есть в приложении',
       many: '$count строк уже есть в приложении',
       few: '$count строки уже есть в приложении',
-      one: '1 строка уже есть в приложении',
+      one: '$count строка уже есть в приложении',
     );
     return '$_temp0';
   }
@@ -1552,7 +1564,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: '$count переводов указывают только один счёт',
       many: '$count переводов указывают только один счёт',
       few: '$count перевода указывают только один счёт',
-      one: '1 перевод указывает только один счёт',
+      one: '$count перевод указывает только один счёт',
     );
     return '$_temp0';
   }
@@ -1590,7 +1602,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'и ещё $count строк',
       many: 'и ещё $count строк',
       few: 'и ещё $count строки',
-      one: 'и ещё 1 строка',
+      one: 'и ещё $count строка',
     );
     return '$_temp0';
   }
@@ -1603,7 +1615,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Импортировать $count строк',
       many: 'Импортировать $count строк',
       few: 'Импортировать $count строки',
-      one: 'Импортировать 1 строку',
+      one: 'Импортировать $count строку',
       zero: 'Нечего импортировать',
     );
     return '$_temp0';
@@ -1617,7 +1629,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Импортировано $count записей',
       many: 'Импортировано $count записей',
       few: 'Импортировано $count записи',
-      one: 'Импортирована 1 запись',
+      one: 'Импортирована $count запись',
     );
     return '$_temp0';
   }
@@ -1748,7 +1760,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'У $count повторяющихся записей сегодня срок.',
       many: 'У $count повторяющихся записей сегодня срок.',
       few: 'У $count повторяющихся записей сегодня срок.',
-      one: 'У 1 повторяющейся записи сегодня срок.',
+      one: 'У $count повторяющейся записи сегодня срок.',
     );
     return '$_temp0';
   }

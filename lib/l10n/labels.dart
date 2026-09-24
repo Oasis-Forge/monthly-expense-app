@@ -92,12 +92,24 @@ extension RecurringRuleLabel on RecurringRule {
 
 /// "Every month", "Every 2 weeks", and so on, with "Paused" when paused.
 String scheduleLabel(RecurringRule rule, AppLocalizations l10n) {
-  final schedule = switch (rule.frequency) {
-    RecurrenceFrequency.day => l10n.scheduleDays(rule.interval),
-    RecurrenceFrequency.week => l10n.scheduleWeeks(rule.interval),
-    RecurrenceFrequency.month => l10n.scheduleMonths(rule.interval),
-    RecurrenceFrequency.year => l10n.scheduleYears(rule.interval),
-  };
+  // An interval of one has a wording of its own — "Every day" rather than
+  // "Every 1 days" — and it is a message rather than the plural's `=1` case:
+  // gen_l10n compiles an explicit case into the CLDR category of the same
+  // name, and Russian's "one" also holds 21 and 31, so a rule repeating
+  // every 21 days used to describe itself as "Every day" (RCR-1, LANG-6).
+  final schedule = rule.interval == 1
+      ? switch (rule.frequency) {
+          RecurrenceFrequency.day => l10n.scheduleEveryDay,
+          RecurrenceFrequency.week => l10n.scheduleEveryWeek,
+          RecurrenceFrequency.month => l10n.scheduleEveryMonth,
+          RecurrenceFrequency.year => l10n.scheduleEveryYear,
+        }
+      : switch (rule.frequency) {
+          RecurrenceFrequency.day => l10n.scheduleDays(rule.interval),
+          RecurrenceFrequency.week => l10n.scheduleWeeks(rule.interval),
+          RecurrenceFrequency.month => l10n.scheduleMonths(rule.interval),
+          RecurrenceFrequency.year => l10n.scheduleYears(rule.interval),
+        };
   return rule.isPaused ? l10n.pausedSchedule(schedule) : schedule;
 }
 
