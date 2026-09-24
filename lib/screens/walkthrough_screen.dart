@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/languages.dart';
 import '../models/backup.dart';
+import '../models/reminders.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/backup_service.dart';
+import '../services/reminder_service.dart';
 import 'import_screen.dart';
 
 /// Four pages on what the app does, after setup and before Home: quick
@@ -138,7 +141,57 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
       Navigator.of(context).pop();
       return;
     }
+    await _offerReminders();
+    if (!mounted) return;
     await context.read<SettingsProvider>().completeWalkthrough();
+  }
+
+  /// The one time the app asks for notifications (NUDGE-7), and then the one
+  /// time it asks whether the empty day is wanted (NUDGE-3).
+  ///
+  /// Permission first and the question second: Android grants one dialog and
+  /// never another, so asking whether somebody wants a reminder the phone
+  /// will not deliver would spend the question on nothing. Skipped or
+  /// refused, the walkthrough still ends and everything else still works.
+  Future<void> _offerReminders() async {
+    if (!remindersSupported) return;
+    final settings = context.read<SettingsProvider>();
+    final transactions = context.read<TransactionProvider>();
+    final reminders = context.read<ReminderService>();
+
+    final allowed = await reminders.requestPermission();
+    // Asked here, so Home never asks the same person again (NUDGE-3).
+    await settings.markNudgeOffered();
+    if (!allowed || !mounted) return;
+
+    final wanted = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final l10n = AppLocalizations.of(context);
+        return AlertDialog(
+          title: Text(l10n.nudgeOfferTitle),
+          content: Text(l10n.nudgeOfferBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.nudgeOfferNo),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.nudgeOfferYes),
+            ),
+          ],
+        );
+      },
+    );
+    if (wanted != true || !mounted) return;
+
+    await settings.setEmptyDayNudge(true);
+    await transactions.rescheduleReminders(
+      appLockOn: settings.appLock,
+      locale: effectiveAppLocale(settings.locale),
+      nudge: settings.nudgeSettings,
+    );
   }
 
   Future<void> _next(int pageCount) async {
