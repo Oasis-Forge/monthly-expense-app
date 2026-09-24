@@ -4,12 +4,16 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.27.1] - 2026-09-24
+
+### Fixed
+- In Arabic the currency symbol sat on the wrong side of the amount, in English order rather than Arabic. In Urdu and Indonesian the currency ran straight into the number: `Rs3,347,380` where it should read `Rs 3,347,380`.
+- The Recurring screen no longer contradicts itself: nothing is called "next" while something is already overdue. Its three lists now start at the same left edge and each row carries its category's colour, and the Skip and Post buttons have moved out from under the date, which had left the row looking like a staircase.
+
 ## [1.27.0] - 2026-09-24
 
 ### Fixed
 - Reminders now actually arrive. Both the note reminder and the daily "nothing recorded today" nudge were being scheduled and then silently dropped on every Android phone, because the app was missing an Android setting reminders need in order to fire. Reminders now also survive a restart of the phone, and show the app's own icon instead of a blank outline.
-- In Arabic the currency symbol sat on the wrong side of the amount, in English order rather than Arabic. In Urdu and Indonesian the currency ran straight into the number: `Rs3,347,380` where it should read `Rs 3,347,380`.
-- The Recurring screen no longer contradicts itself: nothing is called "next" while something is already overdue. Its three lists now start at the same left edge and each row carries its category's colour, and the Skip and Post buttons have moved out from under the date, which had left the row looking like a staircase.
 
 ### Changed
 - The app now asks whether you want the daily reminder before it asks Android for notification permission, so saying no costs you nothing. It also now tells you plainly that your phone may deliver a reminder a few minutes late.
