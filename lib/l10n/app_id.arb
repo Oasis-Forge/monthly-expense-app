@@ -86,6 +86,7 @@
   "themeSystem": "Sistem",
   "themeLight": "Terang",
   "themeDark": "Gelap",
+  "themeBlack": "Hitam",
   "languageLabel": "Bahasa",
   "languageSystem": "Bawaan sistem",
   "monthStartLabel": "Hari pertama bulan",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Berikutnya: {title}, dalam {days} hari}}",
   "nothingUpcoming": "Tidak ada apa pun dalam 30 hari ke depan.",
   "noRules": "Belum ada transaksi berulang.",
+  "recurringEmptyMessage": "Transaksi berulang mencatat sewa, gaji, atau langganan sesuai jadwal yang Anda tentukan, dan menunggu satu ketukan untuk mengonfirmasi setiap transaksi.",
+  "addRecurringButton": "Tambah transaksi berulang",
   "postButton": "Catat",
   "skipButton": "Lewati",
   "postFailed": "Transaksi gagal dicatat. Coba lagi.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 bulan} other{{count} bulan}}",
   "incomeExpenseLine": "Pemasukan {income} · Pengeluaran {expense}",
   "trendAverage": "Rata-rata per periode · Pemasukan {income} · Pengeluaran {expense}",
+  "trendNeedsMorePeriods": "Tren membutuhkan lebih dari satu periode. Kembali lagi bulan depan.",
   "weekStartLabel": "Hari pertama minggu",
   "weekStartDefault": "Bawaan ({day})",
   "firstRunTitle": "Selamat datang di Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Ya, ingatkan aku",
   "nudgeOfferNo": "Tidak",
   "nudgeStoppedNotice": "Pengingat berhenti setelah tiga kali tak dijawab. Aktifkan lagi kapan saja.",
-  "nudgePermissionDenied": "Aktifkan notifikasi di pengaturan sistem untuk pengingat."
+  "nudgePermissionDenied": "Aktifkan notifikasi di pengaturan sistem untuk pengingat.",
+  "updateDownloadedMessage": "Pembaruan telah diunduh.",
+  "updateRestartButton": "Mulai ulang"
 }

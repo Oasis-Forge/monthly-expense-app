@@ -86,6 +86,7 @@
   "themeSystem": "시스템",
   "themeLight": "라이트",
   "themeDark": "다크",
+  "themeBlack": "블랙",
   "languageLabel": "언어",
   "languageSystem": "시스템 기본값",
   "monthStartLabel": "매월 시작일",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{다음: {title}, {days}일 후}}",
   "nothingUpcoming": "앞으로 30일 안에는 없어요.",
   "noRules": "아직 반복 거래가 없어요.",
+  "recurringEmptyMessage": "반복 거래는 설정한 일정에 따라 집세, 급여, 구독료 등을 기록하고, 매번 확인을 위한 탭을 기다려요.",
+  "addRecurringButton": "반복 거래 추가",
   "postButton": "등록",
   "skipButton": "건너뛰기",
   "postFailed": "거래를 등록하지 못했어요. 다시 시도해 주세요.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1개월} other{{count}개월}}",
   "incomeExpenseLine": "수입 {income} · 지출 {expense}",
   "trendAverage": "기간당 평균 · 수입 {income} · 지출 {expense}",
+  "trendNeedsMorePeriods": "추이를 보려면 기간이 두 개 이상 필요해요. 다음 달에 다시 확인해 보세요.",
   "weekStartLabel": "매주 시작 요일",
   "weekStartDefault": "기본값 ({day})",
   "firstRunTitle": "Monthly Expenses에 오신 것을 환영해요",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "네, 알려주세요",
   "nudgeOfferNo": "괜찮습니다",
   "nudgeStoppedNotice": "세 번 응답이 없어 알림이 중지되었습니다. 언제든 다시 켤 수 있어요.",
-  "nudgePermissionDenied": "알림을 받으려면 시스템 설정에서 알림을 켜세요."
+  "nudgePermissionDenied": "알림을 받으려면 시스템 설정에서 알림을 켜세요.",
+  "updateDownloadedMessage": "업데이트가 다운로드되었어요.",
+  "updateRestartButton": "다시 시작"
 }

@@ -86,6 +86,7 @@
   "themeSystem": "ตามระบบ",
   "themeLight": "สว่าง",
   "themeDark": "มืด",
+  "themeBlack": "ดำ",
   "languageLabel": "ภาษา",
   "languageSystem": "ค่าเริ่มต้นของระบบ",
   "monthStartLabel": "วันเริ่มต้นเดือน",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{ถัดไป: {title}, อีก {days} วัน}}",
   "nothingUpcoming": "ไม่มีรายการในอีก 30 วันข้างหน้า",
   "noRules": "ยังไม่มีรายการประจำ",
+  "recurringEmptyMessage": "รายการประจำจะบันทึกค่าเช่า เงินเดือน หรือค่าสมัครสมาชิกตามกำหนดเวลาที่คุณตั้งไว้ และรอการแตะเพื่อยืนยันแต่ละรายการ",
+  "addRecurringButton": "เพิ่มรายการประจำ",
   "postButton": "บันทึกรายการ",
   "skipButton": "ข้าม",
   "postFailed": "บันทึกรายการไม่สำเร็จ ลองอีกครั้ง",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 เดือน} other{{count} เดือน}}",
   "incomeExpenseLine": "รายรับ {income} · รายจ่าย {expense}",
   "trendAverage": "เฉลี่ยต่องวด · รายรับ {income} · รายจ่าย {expense}",
+  "trendNeedsMorePeriods": "แนวโน้มต้องการมากกว่าหนึ่งงวด กลับมาดูใหม่เดือนหน้า",
   "weekStartLabel": "วันเริ่มต้นสัปดาห์",
   "weekStartDefault": "ค่าเริ่มต้น ({day})",
   "firstRunTitle": "ยินดีต้อนรับสู่ Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "ใช่ เตือนฉันด้วย",
   "nudgeOfferNo": "ไม่ ขอบคุณ",
   "nudgeStoppedNotice": "การเตือนหยุดหลังไม่มีการตอบสนองสามครั้ง เปิดใหม่ได้ทุกเมื่อ",
-  "nudgePermissionDenied": "เปิดการแจ้งเตือนในการตั้งค่าระบบ"
+  "nudgePermissionDenied": "เปิดการแจ้งเตือนในการตั้งค่าระบบ",
+  "updateDownloadedMessage": "ดาวน์โหลดการอัปเดตแล้ว",
+  "updateRestartButton": "รีสตาร์ท"
 }

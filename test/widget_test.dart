@@ -28,6 +28,7 @@ void main() {
         homeWidget: const NoopHomeWidgetService(),
         // Neither plugin exists in a test, and both would throw if asked.
         reviews: FakeReviews(supported: false),
+        updates: FakeUpdates(supported: false),
         shortcuts: shortcuts ?? FakeShortcuts(),
       ),
     );

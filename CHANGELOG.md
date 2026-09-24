@@ -4,6 +4,17 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.26.0] - 2026-09-24
+
+### Added
+- The Theme setting has a fourth choice, Black: dark with a true black background, for OLED screens.
+- On Android 12 and later, the app takes its colours from your phone's wallpaper, with no setting to turn on. Where the phone offers no palette, the app's own purple is used. The colours that carry meaning stay put: income stays green, expense stays red, and category colours stay themselves.
+- On Android, when Google Play has a newer version waiting, the app offers it after you save an entry: the update downloads in the background while you keep working, and a Restart button finishes it. At most once a day, and it never blocks the app.
+
+### Changed
+- The Recurring screen, when it has no rules yet, now says what the screen is for and offers the button that adds the first one. The Notes empty screen moved to the same shape.
+- The trend now says when it needs more than one period, instead of drawing a line through a single one.
+
 ## [1.25.0] - 2026-09-24
 
 ### Added

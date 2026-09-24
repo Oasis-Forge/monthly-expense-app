@@ -3,6 +3,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import 'empty_state.dart';
 import '../l10n/labels.dart';
 import '../models/money.dart';
 import '../models/note.dart';
@@ -189,47 +190,23 @@ class _Header extends StatelessWidget {
   );
 }
 
-/// The empty state before any note exists, with one clear action (NOTE-2).
+/// The empty state before any note exists, with one clear action (NOTE-2),
+/// in the shape every empty list shares (EMPTY-3).
 class _EmptyNotes extends StatelessWidget {
   const _EmptyNotes({required this.l10n});
 
   final AppLocalizations l10n;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.sticky_note_2_outlined,
-              size: 72,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.notesEmptyTitle,
-              style: theme.textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(l10n.notesEmptyMessage, textAlign: TextAlign.center),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const NoteFormScreen())),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addNoteButton),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => EmptyState(
+    icon: Icons.sticky_note_2_outlined,
+    title: l10n.notesEmptyTitle,
+    message: l10n.notesEmptyMessage,
+    actionLabel: l10n.addNoteButton,
+    onAction: () =>
+        Navigator.of(context)
+            .push(MaterialPageRoute(builder: (_) => const NoteFormScreen())),
+  );
 }
 
 class _NoteTile extends StatelessWidget {

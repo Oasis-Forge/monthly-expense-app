@@ -462,6 +462,52 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **RATE-4** The store decides whether the sheet is really shown and tells the app nothing about what happened, so asking counts as spent whatever came of it. A version that has asked never asks again, and the count is kept on the device like every other setting.
 - **RATE-5** Android and iOS only. The desktop builds ask nothing and carry no review code that could reach a network (RUN-2).
 
+## 32. The colours the app wears
+
+**They do:** none of the trackers studied follows the phone's palette; all of them paint their own brand over every screen, and two offer a paid "themes" pack.
+
+**Learn:** a palette is not a feature to sell. An app that looks like it belongs on the phone it is installed on looks made for that person, and it costs one dependency and no setting.
+
+- **THEME-1** The Theme row holds four choices and stays one row: follow the phone, light, dark, and black. Black is dark with true black behind everything, for screens where an unlit pixel costs nothing. It is a variant of dark and not a fifth mood: everything in the app that asks reads it as dark, and only the surfaces change.
+- **THEME-2** On Android 12 and later the palette is taken from the phone's wallpaper, with no setting of the app's own — the same rule already followed for language (LANG-1), for light and dark, and for the tick under the finger (HAP-4). Where the phone offers no palette, and on every other platform, the app's own purple is used.
+- **THEME-3** The purple stays the brand outside the app. The icon, the splash, the store listing and the home-screen widget are not repainted by anybody's wallpaper.
+- **THEME-4** The colours that carry meaning are the app's own under every choice: the income and expense inks (CUR-5), the category colours (CAT-6), and the budget bar keep their hues whatever the wallpaper is, and each clears 4.5:1 against the surface it sits on (A11Y-3). A palette is allowed to change what the app looks like, never what a colour means.
+- **THEME-5** The choice is remembered like every other setting and takes effect the moment it is made, without restarting the app.
+
+## 33. An empty screen offers its first action
+
+**They do:** most of the trackers show an empty list as an empty list, or as a drawing with a caption and nothing to press.
+
+**Learn:** the screen with nothing on it is the one a new person sees first, and it is the only screen where there is no doubt about what they should do next. A caption that says "no data" spends that moment on nothing.
+
+- **EMPTY-1** Every list that can be empty says in one sentence what the screen is for and offers the one action that fills it. Three lists can be: Home (RUN-1), Notes and Recurring. Budgets and Accounts cannot — Budgets lists every expense category whether or not it has a limit, and ACC-2 guarantees a Cash account — so neither carries an empty state, and writing one would be writing a screen nobody can reach.
+- **EMPTY-2** One sentence and one button, and nothing else. An empty screen is not a tour, a tip or a second chance at the walkthrough (RUN-4).
+- **EMPTY-3** They all take one shape, from one widget: an icon, a line of text, a button. A screen that invents its own is a screen that will drift.
+- **EMPTY-4** A list empty because of a filter, a search or a period is not an empty screen and gets no first action. It says nothing matched and offers to clear what is hiding the rows (SRCH-2) — offering to create something there would answer a question nobody asked. The trend with a single period belongs here too: it says a trend needs more than one period and offers nothing, because nothing but time fills it.
+
+## 34. Reaching everyone
+
+**They do:** two of the trackers studied break their own layout at large text, and one writes every amount in colour alone with no sign in front of it.
+
+**Learn:** the people who most need an expense tracker legible are the people who set their phone's text large. Text scaling is not an edge case on a screen made of numbers.
+
+- **A11Y-1** Every screen holds at 1.3x text with nothing clipped, overlapped or cut off: Home, Add, Insights and Settings are the four checked by test, because they hold the densest rows. A layout that only works at one text size is a layout that is not finished.
+- **A11Y-2** Every control that shows only an icon carries a label a screen reader can read, the keypad keys included (ADD-2). An icon button with no label is a button that does not exist for the people who cannot see it, and it also shows as `(no label)` to anything driving the screen.
+- **A11Y-3** Every pairing of text and its background clears 4.5:1, in all four theme choices (THEME-1). The amount colours (CUR-5) are the ones that matter most and the ones most easily lost on a dark surface.
+- **A11Y-4** Nothing in the app carries meaning by colour alone. Every amount has its sign in front of it (CUR-5), every budget state has its words, and a screen read in grey loses nothing but its warmth.
+
+## 35. A newer version waiting
+
+**They do:** several of the trackers put a version check of their own on launch, and one blocks the app behind it until the update is taken.
+
+**Learn:** the phone already updates apps by itself, so a prompt only reaches the people who turned that off. That makes it a nudge, never a gate: an offline expense tracker has no right to stop somebody reaching their own records.
+
+- **UPD-1** Android only, and only through Play's own flexible flow: the app asks Play whether a newer version exists and lets Play show it, download it in the background and offer the restart. The app never blocks, never nags a second time in a session and never shows an update sheet of its own making.
+- **UPD-2** It asks at a seam, in the same moment the rating ask uses (RATE-3): after an entry is saved, never mid-entry, never after anything failed and never while the app is locked (LOCK-1).
+- **UPD-3** Where the update ask and the rating ask both come due in the same moment, the update goes first and the rating waits for another day. A working app matters more than a star, and two sheets in one visit is one too many (ADS-11, RATE-3).
+- **UPD-4** It asks at most once a day, whatever came of it, and Play decides whether anything is really shown. The app learns nothing about the outcome and keeps only the day it last asked, on the device like every other setting.
+- **UPD-5** Nowhere else. iOS has no equivalent and asks nothing; the desktop builds carry no update code that could reach a network (RUN-2). Like the rating sheet (RATE-5) it cannot be seen on a debug build, so it is verified from a Play track or not at all.
+
 ## Decisions (13 September 2026)
 1. Title stays, as an optional field (ADD-1).
 2. Future-dated transactions count only once their date arrives (BAL-4).
@@ -548,6 +594,14 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 45. The screens that list things say what they come to (RCR-8, ACC-10). The Recurring screen listed rules without ever saying what they cost, and the Accounts screen listed balances without ever adding them up — which are the questions those two screens exist to answer. Both are arithmetic over data already loaded, with no schema and no new concept. The monthly figure normalises every frequency rather than showing the amounts as written, because a list mixing 10 a week with 120 a year cannot be added by eye; income rules stay out of it, since a total running in both directions at once answers nothing.
 
 46. Money shows decimals only where it has any (CUR-2). Every amount in the app carried the currency's decimals whether or not there was anything in them, so a screen of round numbers was a screen of `.00`. It was the new bills total that made the case — "$930.00 a month in bills" is a line meant to be taken in at a glance, and two of its characters said nothing. The cost is real and was the reason the rule read as it did: in a list that mixes 930 with 12.50 the decimal points no longer line up, and only the digits themselves stay in their columns (CUR-4). The noise was judged the bigger problem of the two. A currency with no decimals is untouched, and an amount of 12.5 still reads 12.50 rather than 12.5 — the decimals exist there, so the currency's own number of them is shown.
+
+47. The app wears the phone's colours, and offers a black one (THEME-1–THEME-5). Material You has been on Android since 12 and the app had ignored it, painting the same purple over every phone. Taking the wallpaper palette costs one dependency and no setting, and it is the same instinct the app already follows for language, for light and dark, and for the tick under the finger: follow the phone unless there is a reason not to. Black is the one addition that is asked for rather than inferred — on an OLED screen a true black background is the difference between a dim room lit by a phone and not — and it goes in the Theme row as a fourth choice rather than a switch of its own, because it is dark with different surfaces and not a separate idea. What does not move is anything that carries meaning: income stays green, expense stays red, the sixteen category colours stay themselves (CAT-6, CUR-5). A wallpaper may change what the app looks like; it may not change what a colour says.
+
+48. Every empty list offers its first action (EMPTY-1–EMPTY-4). Home had this from the first release (RUN-1) and Notes grew it later, but Recurring still showed a bare line of small grey text — and Recurring is a screen a new person reaches by tapping something in the drawer to find out what it does. Writing the rule turned up that the plan had been wrong about two more screens: Budgets lists every expense category whether or not it carries a limit, and ACC-2 guarantees a Cash account, so neither can ever be empty and an empty state on either would have been a screen nobody could reach. What is left is one shared widget, so the three lists that can be empty cannot drift apart, and one distinction worth keeping: a period with no transactions, a search with no matches and a trend with a single period are not invitations to create something. They are reports that something — a filter, a period, or simply time — is why the screen is bare, and they keep saying exactly that.
+
+49. The app is checked at large text and read without colour (A11Y-1–A11Y-4). An expense tracker is a screen made of numbers, and the people most likely to set their phone's text large are the people who most need those numbers legible; a layout that only holds at one text size was never finished. The contrast half of this was mostly paid for already, when the amount colours moved into one file (decision 43), which is what made a pass over the whole app a change to a handful of places rather than fifty. Icon buttons without labels were the other half, and they cost nothing to fix and were already showing as unreachable to anything driving the screen.
+
+50. A newer version is offered, never forced (UPD-1–UPD-5). Android updates apps by itself, so this reaches only the people who turned that off — which is exactly why it is a nudge and not a gate. It uses Play's own flexible flow, so the app shows no sheet of its own and learns nothing about what happened, and it takes the same seam as the rating ask rather than opening a second one. Where both come due together the update wins and the rating waits: a working app matters more than a star. Like the rating sheet it cannot be seen on a debug build, which is stated plainly here so that a green test run is never mistaken for having checked it.
 
 ## Roadmap impact
 These schema changes land in Phase 1 of `docs/ROADMAP.md`, before any feature work and long before release:

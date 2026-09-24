@@ -86,6 +86,7 @@
   "themeSystem": "Theo hệ thống",
   "themeLight": "Sáng",
   "themeDark": "Tối",
+  "themeBlack": "Đen",
   "languageLabel": "Ngôn ngữ",
   "languageSystem": "Mặc định hệ thống",
   "monthStartLabel": "Ngày bắt đầu tháng",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Tiếp theo: {title}, sau {days} ngày}}",
   "nothingUpcoming": "Không có gì trong 30 ngày tới.",
   "noRules": "Chưa có giao dịch định kỳ nào.",
+  "recurringEmptyMessage": "Giao dịch định kỳ ghi nhận tiền thuê nhà, lương hoặc gói đăng ký theo lịch bạn đặt, và chờ một lượt chạm để xác nhận từng giao dịch.",
+  "addRecurringButton": "Thêm giao dịch định kỳ",
   "postButton": "Ghi nhận",
   "skipButton": "Bỏ qua",
   "postFailed": "Không thể ghi nhận giao dịch. Vui lòng thử lại.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 tháng} other{{count} tháng}}",
   "incomeExpenseLine": "Thu {income} · Chi {expense}",
   "trendAverage": "Trung bình mỗi kỳ · Thu {income} · Chi {expense}",
+  "trendNeedsMorePeriods": "Xu hướng cần nhiều hơn một kỳ. Hãy quay lại vào tháng sau.",
   "weekStartLabel": "Ngày bắt đầu tuần",
   "weekStartDefault": "Mặc định ({day})",
   "firstRunTitle": "Chào mừng đến với Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Có, nhắc tôi nhé",
   "nudgeOfferNo": "Không",
   "nudgeStoppedNotice": "Nhắc nhở đã dừng sau ba lần không phản hồi. Bật lại bất cứ khi nào bạn muốn.",
-  "nudgePermissionDenied": "Bật thông báo trong cài đặt hệ thống để nhận nhắc nhở."
+  "nudgePermissionDenied": "Bật thông báo trong cài đặt hệ thống để nhận nhắc nhở.",
+  "updateDownloadedMessage": "Đã tải xong bản cập nhật.",
+  "updateRestartButton": "Khởi động lại"
 }

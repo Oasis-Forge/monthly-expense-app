@@ -55,13 +55,19 @@ the emulator: say so in the PR.
 (`dynamic_color`) with today's purple as the fallback, and add a "Black background" choice for OLED
 screens. Both live inside the existing Theme row as choices, not as new rows.
 
-**A5. One action in every empty state.** Home has it (RUN-1). Budgets, Recurring, Notes, Accounts
-and the trend with a single period get the same shape: one sentence, one button. Widget tests per
-screen.
+**A5. One action in every empty state.** Home has it (RUN-1) and Notes grew it later. Recurring is
+the only other list that can be empty, and it gets the same shape from one shared widget. Budgets
+and Accounts cannot be empty at all — Budgets lists every expense category whether or not it
+carries a limit, and ACC-2 guarantees a Cash account — so neither gets one. The trend with a single
+period says a trend needs more than one and offers nothing, because only time fills it. Rules
+EMPTY-1 to EMPTY-4.
 
-**A6. Accessibility pass.** Text scaling at 1.3x without overflow on Home, Add and Insights;
-semantic labels on the keypad and every icon button; 4.5:1 contrast for the amount colours in both
-themes. A widget test at 1.3x text scale is the check that fails on the old code.
+**A6. Accessibility pass.** Largely already paid for: `test/languages_test.dart` holds seventeen
+screens at 1.3x text in all twenty-one languages, every icon button already carries a tooltip, and
+the amount colours moved into one file in 1.23.0. What was added is contrast cover for the two new
+themes — true black, and a wallpaper palette — and the check that colour alone never separates
+income from expense, since the two inks are all but the same brightness and the sign is what
+carries the meaning. Rules A11Y-1 to A11Y-4.
 
 ## Phase B: the numbers people open the app for
 
@@ -101,6 +107,10 @@ trust story (section 13). The screenshot tooling under `store/` exists. Not a co
 **C4. Keep what is planned, add no other monetisation.** Reminders (finish and tick), one
 interstitial a day at a seam (ADS-11 to ADS-16), Plus with Drive backup. Nothing else goes on sale.
 
+**C5. A newer version waiting.** Play's own flexible update flow at the seam after a save, once a
+day, never blocking, and it outranks the rating ask. Android only: iOS has no equivalent and the
+desktop builds make no network calls. Rules UPD-1 to UPD-5.
+
 ## Phase D: the flagship, entries the phone already knows about
 
 Section 25's ALERT-1 to ALERT-7 are written and unscheduled. They are the feature no offline tracker
@@ -136,12 +146,13 @@ promise the app cannot keep offline. The answer to "what about X" is the review 
 | 2 | B1 left to spend | minor | 1.22.0 |
 | 3 | A2 numbers and A3 haptics | minor | 1.23.0 |
 | 4 | B4 bills and totals | minor | 1.23.0 |
-| 5 | B2 this month against last | minor | — |
-| 6 | C1 rating prompt and C2 shortcuts | minor | — |
-| 7 | A4 dynamic colour and black | minor | — |
-| 8 | A5 empty states and A6 accessibility | minor | — |
-| 9 | B3 monthly review | minor | — |
-| 10 | D1, D2, D3 in order | minor each | — |
+| 5 | B2 this month against last | minor | 1.24.0 |
+| 6 | C1 rating prompt and C2 shortcuts | minor | 1.25.0 |
+| 7 | A4 dynamic colour and black | minor | 1.26.0 |
+| 8 | A5 empty states and A6 accessibility | minor | 1.26.0 |
+| 9 | C5 the update offer | minor | 1.26.0 |
+| 10 | B3 monthly review | minor | — |
+| 11 | D1, D2, D3 in order | minor each | — |
 
 C3 fits after PR 5, when the screenshots have something new to show. The roadmap's own open items
 (the closed test on Play, the interstitial, reminders, Drive backup, the desktop and Apple stores)

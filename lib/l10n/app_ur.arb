@@ -86,6 +86,7 @@
   "themeSystem": "سسٹم",
   "themeLight": "لائٹ",
   "themeDark": "ڈارک",
+  "themeBlack": "بلیک",
   "languageLabel": "زبان",
   "languageSystem": "سسٹم کی طے شدہ زبان",
   "monthStartLabel": "مہینے کا پہلا دن",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{اگلا: {title}، {days} دن میں}}",
   "nothingUpcoming": "اگلے 30 دنوں میں کچھ نہیں۔",
   "noRules": "ابھی تک کوئی تکراری ٹرانزیکشن نہیں۔",
+  "recurringEmptyMessage": "تکراری ٹرانزیکشنز آپ کے مقرر کردہ شیڈول پر کرایہ، تنخواہ یا سبسکرپشن درج کرتی ہیں، اور ہر ایک کی تصدیق کے لیے ٹیپ کا انتظار کرتی ہیں۔",
+  "addRecurringButton": "تکراری ٹرانزیکشن شامل کریں",
   "postButton": "پوسٹ کریں",
   "skipButton": "چھوڑیں",
   "postFailed": "ٹرانزیکشن پوسٹ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 مہینہ} other{{count} مہینے}}",
   "incomeExpenseLine": "آمدنی {income} · خرچ {expense}",
   "trendAverage": "فی مدت اوسط · آمدنی {income} · خرچ {expense}",
+  "trendNeedsMorePeriods": "ٹرینڈ کے لیے ایک سے زیادہ مدت درکار ہے۔ اگلے مہینے واپس آئیں۔",
   "weekStartLabel": "ہفتے کا پہلا دن",
   "weekStartDefault": "طے شدہ ({day})",
   "firstRunTitle": "Monthly Expenses میں خوش آمدید",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "جی ہاں، یاد دلائیں",
   "nudgeOfferNo": "نہیں شکریہ",
   "nudgeStoppedNotice": "تین بار جواب نہ ملنے پر یاد دہانیاں بند ہو گئیں۔ جب چاہیں دوبارہ آن کریں۔",
-  "nudgePermissionDenied": "یاد دہانیاں پانے کے لیے سسٹم سیٹنگز میں اطلاعات آن کریں۔"
+  "nudgePermissionDenied": "یاد دہانیاں پانے کے لیے سسٹم سیٹنگز میں اطلاعات آن کریں۔",
+  "updateDownloadedMessage": "ایک اپ ڈیٹ ڈاؤن لوڈ ہو چکا ہے۔",
+  "updateRestartButton": "دوبارہ شروع کریں"
 }

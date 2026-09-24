@@ -314,6 +314,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get themeDark => 'ডার্ক';
 
   @override
+  String get themeBlack => 'ব্ল্যাক';
+
+  @override
   String get languageLabel => 'ভাষা';
 
   @override
@@ -610,6 +613,13 @@ class AppLocalizationsBn extends AppLocalizations {
   String get noRules => 'এখনো কোনো পুনরাবৃত্ত লেনদেন নেই।';
 
   @override
+  String get recurringEmptyMessage =>
+      'পুনরাবৃত্ত লেনদেন আপনার নির্ধারিত সময়সূচি অনুযায়ী ভাড়া, বেতন বা সাবস্ক্রিপশন যোগ করে এবং প্রতিটি নিশ্চিত করতে একটি ট্যাপের অপেক্ষা করে।';
+
+  @override
+  String get addRecurringButton => 'পুনরাবৃত্ত লেনদেন যোগ করুন';
+
+  @override
   String get postButton => 'পোস্ট করুন';
 
   @override
@@ -846,6 +856,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'প্রতি মেয়াদে গড় · আয় $income · ব্যয় $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'ট্রেন্ডের জন্য একাধিক মেয়াদ প্রয়োজন। পরের মাসে আবার আসুন।';
 
   @override
   String get weekStartLabel => 'সপ্তাহের প্রথম দিন';
@@ -1753,4 +1767,10 @@ class AppLocalizationsBn extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'রিমাইন্ডার পেতে সিস্টেম সেটিংসে বিজ্ঞপ্তি চালু করুন।';
+
+  @override
+  String get updateDownloadedMessage => 'একটি আপডেট ডাউনলোড হয়েছে।';
+
+  @override
+  String get updateRestartButton => 'পুনরায় চালু করুন';
 }

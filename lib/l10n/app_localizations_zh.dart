@@ -311,6 +311,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get themeDark => '深色';
 
   @override
+  String get themeBlack => '黑色';
+
+  @override
   String get languageLabel => '语言';
 
   @override
@@ -602,6 +605,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noRules => '暂无周期交易。';
 
   @override
+  String get recurringEmptyMessage =>
+      '周期交易会按你设置的时间安排自动记录房租、工资或订阅费,并等待你点一下确认每一笔。';
+
+  @override
+  String get addRecurringButton => '添加周期交易';
+
+  @override
   String get postButton => '记账';
 
   @override
@@ -837,6 +847,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return '每期平均 · 收入 $income · 支出 $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods => '趋势需要一期以上的数据。下个月再来看看。';
 
   @override
   String get weekStartLabel => '每周起始日';
@@ -1701,4 +1714,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nudgePermissionDenied => '请在系统设置中开启通知以接收提醒。';
+
+  @override
+  String get updateDownloadedMessage => '已下载更新。';
+
+  @override
+  String get updateRestartButton => '重启';
 }

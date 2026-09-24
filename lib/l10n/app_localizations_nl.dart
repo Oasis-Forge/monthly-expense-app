@@ -318,6 +318,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get themeDark => 'Donker';
 
   @override
+  String get themeBlack => 'Zwart';
+
+  @override
   String get languageLabel => 'Taal';
 
   @override
@@ -615,6 +618,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get noRules => 'Nog geen terugkerende transacties.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Terugkerende transacties boeken huur, salaris of een abonnement op het schema dat je instelt, en wachten op een tik om elke keer te bevestigen.';
+
+  @override
+  String get addRecurringButton => 'Terugkerende transactie toevoegen';
+
+  @override
   String get postButton => 'Boeken';
 
   @override
@@ -852,6 +862,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'Gemiddeld per periode · Inkomsten $income · Uitgave $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'Een trend heeft meer dan één periode nodig. Kom volgende maand terug.';
 
   @override
   String get weekStartLabel => 'Eerste dag van de week';
@@ -1773,4 +1787,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'Zet meldingen aan in systeeminstellingen voor herinneringen.';
+
+  @override
+  String get updateDownloadedMessage => 'Er is een update gedownload.';
+
+  @override
+  String get updateRestartButton => 'Herstarten';
 }

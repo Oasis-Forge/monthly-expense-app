@@ -86,6 +86,7 @@
   "themeSystem": "Συστήματος",
   "themeLight": "Ανοιχτό",
   "themeDark": "Σκούρο",
+  "themeBlack": "Μαύρο",
   "languageLabel": "Γλώσσα",
   "languageSystem": "Προεπιλογή συστήματος",
   "monthStartLabel": "Πρώτη ημέρα του μήνα",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Επόμενο: {title}, σε {days} ημέρες}}",
   "nothingUpcoming": "Τίποτα τις επόμενες 30 ημέρες.",
   "noRules": "Δεν υπάρχουν ακόμη επαναλαμβανόμενες συναλλαγές.",
+  "recurringEmptyMessage": "Οι επαναλαμβανόμενες συναλλαγές καταχωρίζουν ενοίκιο, μισθό ή συνδρομή σύμφωνα με το πρόγραμμα που ορίζεις, και περιμένουν ένα άγγιγμα για να επιβεβαιώσεις καθεμία.",
+  "addRecurringButton": "Προσθήκη επαναλαμβανόμενης",
   "postButton": "Καταχώριση",
   "skipButton": "Παράλειψη",
   "postFailed": "Δεν ήταν δυνατή η καταχώριση της συναλλαγής. Δοκιμάστε ξανά.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 μήνας} other{{count} μήνες}}",
   "incomeExpenseLine": "Έσοδα {income} · Έξοδα {expense}",
   "trendAverage": "Μέσος όρος ανά περίοδο · Έσοδα {income} · Έξοδα {expense}",
+  "trendNeedsMorePeriods": "Μια τάση χρειάζεται περισσότερες από μία περιόδους. Επέστρεψε τον επόμενο μήνα.",
   "weekStartLabel": "Πρώτη ημέρα της εβδομάδας",
   "weekStartDefault": "Προεπιλογή ({day})",
   "firstRunTitle": "Καλώς ήρθατε στο Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Ναι, υπενθύμισέ",
   "nudgeOfferNo": "Όχι",
   "nudgeStoppedNotice": "Οι υπενθυμίσεις σταμάτησαν μετά από τρεις αναπάντητες. Ενεργοποίησέ τες ξανά όποτε θέλεις.",
-  "nudgePermissionDenied": "Ενεργοποίησε τις ειδοποιήσεις στις ρυθμίσεις συστήματος."
+  "nudgePermissionDenied": "Ενεργοποίησε τις ειδοποιήσεις στις ρυθμίσεις συστήματος.",
+  "updateDownloadedMessage": "Έχει γίνει λήψη μιας ενημέρωσης.",
+  "updateRestartButton": "Επανεκκίνηση"
 }

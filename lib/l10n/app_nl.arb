@@ -86,6 +86,7 @@
   "themeSystem": "Systeem",
   "themeLight": "Licht",
   "themeDark": "Donker",
+  "themeBlack": "Zwart",
   "languageLabel": "Taal",
   "languageSystem": "Systeemstandaard",
   "monthStartLabel": "Eerste dag van de maand",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Volgende: {title}, over {days} dagen}}",
   "nothingUpcoming": "Niets in de komende 30 dagen.",
   "noRules": "Nog geen terugkerende transacties.",
+  "recurringEmptyMessage": "Terugkerende transacties boeken huur, salaris of een abonnement op het schema dat je instelt, en wachten op een tik om elke keer te bevestigen.",
+  "addRecurringButton": "Terugkerende transactie toevoegen",
   "postButton": "Boeken",
   "skipButton": "Overslaan",
   "postFailed": "Kan de transactie niet boeken. Probeer het opnieuw.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 maand} other{{count} maanden}}",
   "incomeExpenseLine": "Inkomsten {income} · Uitgave {expense}",
   "trendAverage": "Gemiddeld per periode · Inkomsten {income} · Uitgave {expense}",
+  "trendNeedsMorePeriods": "Een trend heeft meer dan één periode nodig. Kom volgende maand terug.",
   "weekStartLabel": "Eerste dag van de week",
   "weekStartDefault": "Standaard ({day})",
   "firstRunTitle": "Welkom bij Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Ja, herinner me",
   "nudgeOfferNo": "Nee",
   "nudgeStoppedNotice": "Herinneringen zijn gestopt na drie keer zonder reactie. Zet ze weer aan wanneer je wilt.",
-  "nudgePermissionDenied": "Zet meldingen aan in systeeminstellingen voor herinneringen."
+  "nudgePermissionDenied": "Zet meldingen aan in systeeminstellingen voor herinneringen.",
+  "updateDownloadedMessage": "Er is een update gedownload.",
+  "updateRestartButton": "Herstarten"
 }

@@ -321,6 +321,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get themeDark => 'Тёмная';
 
   @override
+  String get themeBlack => 'Чёрная';
+
+  @override
   String get languageLabel => 'Язык';
 
   @override
@@ -625,6 +628,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get noRules => 'Повторяющихся операций пока нет.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Повторяющиеся операции проводят аренду, зарплату или подписку по расписанию, которое ты задаёшь, и ждут подтверждения нажатием для каждой.';
+
+  @override
+  String get addRecurringButton => 'Добавить повторяющуюся операцию';
+
+  @override
   String get postButton => 'Провести';
 
   @override
@@ -875,6 +885,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'В среднем за период · Доход $income · Расход $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'Для динамики нужно больше одного периода. Загляни в следующем месяце.';
 
   @override
   String get weekStartLabel => 'Первый день недели';
@@ -1818,4 +1832,10 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'Включите уведомления в настройках системы.';
+
+  @override
+  String get updateDownloadedMessage => 'Обновление загружено.';
+
+  @override
+  String get updateRestartButton => 'Перезапустить';
 }

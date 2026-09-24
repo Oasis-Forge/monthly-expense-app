@@ -86,6 +86,7 @@
   "themeSystem": "Sistema",
   "themeLight": "Claro",
   "themeDark": "Oscuro",
+  "themeBlack": "Negro",
   "languageLabel": "Idioma",
   "languageSystem": "Idioma del sistema",
   "monthStartLabel": "Primer día del mes",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{Próximo: {title}, en {days} días}}",
   "nothingUpcoming": "Nada en los próximos 30 días.",
   "noRules": "Aún no hay transacciones recurrentes.",
+  "recurringEmptyMessage": "Las transacciones recurrentes registran el alquiler, un salario o una suscripción según el calendario que definas, y esperan un toque para confirmar cada una.",
+  "addRecurringButton": "Añadir una transacción recurrente",
   "postButton": "Registrar",
   "skipButton": "Omitir",
   "postFailed": "No se pudo registrar la transacción. Inténtalo de nuevo.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 mes} other{{count} meses}}",
   "incomeExpenseLine": "Ingresos {income} · Gastos {expense}",
   "trendAverage": "Media por periodo · Ingresos {income} · Gastos {expense}",
+  "trendNeedsMorePeriods": "Una tendencia necesita más de un periodo. Vuelve el próximo mes.",
   "weekStartLabel": "Primer día de la semana",
   "weekStartDefault": "Predeterminado ({day})",
   "firstRunTitle": "Te damos la bienvenida a Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Sí, recuérdamelo",
   "nudgeOfferNo": "No, gracias",
   "nudgeStoppedNotice": "Los recordatorios se detuvieron tras tres sin respuesta. Actívalos cuando quieras.",
-  "nudgePermissionDenied": "Activa las notificaciones en la configuración del sistema."
+  "nudgePermissionDenied": "Activa las notificaciones en la configuración del sistema.",
+  "updateDownloadedMessage": "Se ha descargado una actualización.",
+  "updateRestartButton": "Reiniciar"
 }

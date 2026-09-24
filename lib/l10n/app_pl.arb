@@ -86,6 +86,7 @@
   "themeSystem": "Systemowy",
   "themeLight": "Jasny",
   "themeDark": "Ciemny",
+  "themeBlack": "Czarny",
   "languageLabel": "Język",
   "languageSystem": "Domyślny systemowy",
   "monthStartLabel": "Pierwszy dzień miesiąca",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, one{Następny: {title}, za {days} dzień} few{Następny: {title}, za {days} dni} many{Następny: {title}, za {days} dni} other{Następny: {title}, za {days} dni}}",
   "nothingUpcoming": "Nic w ciągu najbliższych 30 dni.",
   "noRules": "Brak cyklicznych transakcji.",
+  "recurringEmptyMessage": "Cykliczne transakcje księgują czynsz, wypłatę lub subskrypcję według ustalonego przez ciebie harmonogramu i czekają na dotknięcie, by potwierdzić każdą z nich.",
+  "addRecurringButton": "Dodaj cykliczną transakcję",
   "postButton": "Zaksięguj",
   "skipButton": "Pomiń",
   "postFailed": "Nie udało się zaksięgować transakcji. Spróbuj ponownie.",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1 miesiąc} few{{count} miesiące} many{{count} miesięcy} other{{count} miesięcy}}",
   "incomeExpenseLine": "Przychód {income} · Wydatek {expense}",
   "trendAverage": "Średnia na okres · Przychód {income} · Wydatek {expense}",
+  "trendNeedsMorePeriods": "Trend wymaga więcej niż jednego okresu. Wróć w przyszłym miesiącu.",
   "weekStartLabel": "Pierwszy dzień tygodnia",
   "weekStartDefault": "Domyślny ({day})",
   "firstRunTitle": "Witaj w Monthly Expenses",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "Tak, przypominaj",
   "nudgeOfferNo": "Nie",
   "nudgeStoppedNotice": "Przypomnienia zatrzymano po trzech bez odpowiedzi. Włącz je ponownie, kiedy chcesz.",
-  "nudgePermissionDenied": "Włącz powiadomienia w ustawieniach systemowych."
+  "nudgePermissionDenied": "Włącz powiadomienia w ustawieniach systemowych.",
+  "updateDownloadedMessage": "Pobrano aktualizację.",
+  "updateRestartButton": "Uruchom ponownie"
 }

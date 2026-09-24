@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:monthly_expense_app/models/app_theme.dart';
 import 'package:monthly_expense_app/models/period.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 
@@ -49,7 +50,7 @@ void main() {
     );
 
     await settings.setCurrencyCode('EUR');
-    await settings.setThemeMode(ThemeMode.light);
+    await settings.setTheme(AppTheme.light);
     await settings.setStartDay(Period.lastDayOfMonth);
     await settings.setShowCarriedForward(true);
 

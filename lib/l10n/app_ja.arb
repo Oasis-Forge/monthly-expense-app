@@ -86,6 +86,7 @@
   "themeSystem": "システム",
   "themeLight": "ライト",
   "themeDark": "ダーク",
+  "themeBlack": "ブラック",
   "languageLabel": "言語",
   "languageSystem": "システムの既定値",
   "monthStartLabel": "月の開始日",
@@ -168,6 +169,8 @@
   "nextBill": "{days, plural, other{次回:{title}、{days}日後}}",
   "nothingUpcoming": "今後30日間の予定はありません。",
   "noRules": "定期取引はまだありません。",
+  "recurringEmptyMessage": "定期取引は、設定したスケジュールに沿って家賃、給与、サブスクリプションなどを記録し、確認のタップを待ちます。",
+  "addRecurringButton": "定期取引を追加",
   "postButton": "登録",
   "skipButton": "スキップ",
   "postFailed": "取引を登録できませんでした。もう一度お試しください。",
@@ -231,6 +234,7 @@
   "trendMonths": "{count, plural, =1{1か月} other{{count}か月}}",
   "incomeExpenseLine": "収入 {income}・支出 {expense}",
   "trendAverage": "期間平均・収入 {income}・支出 {expense}",
+  "trendNeedsMorePeriods": "推移には複数の期間が必要です。来月また来てください。",
   "weekStartLabel": "週の開始日",
   "weekStartDefault": "既定({day})",
   "firstRunTitle": "Monthly Expensesへようこそ",
@@ -473,5 +477,7 @@
   "nudgeOfferYes": "はい、通知してほしい",
   "nudgeOfferNo": "いいえ、結構です",
   "nudgeStoppedNotice": "3回応答がなかったため通知を停止しました。いつでも再開できます。",
-  "nudgePermissionDenied": "リマインダーには、設定で通知をオンにしてください。"
+  "nudgePermissionDenied": "リマインダーには、設定で通知をオンにしてください。",
+  "updateDownloadedMessage": "アップデートをダウンロードしました。",
+  "updateRestartButton": "再起動"
 }

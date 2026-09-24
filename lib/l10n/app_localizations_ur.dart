@@ -315,6 +315,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get themeDark => 'ڈارک';
 
   @override
+  String get themeBlack => 'بلیک';
+
+  @override
   String get languageLabel => 'زبان';
 
   @override
@@ -609,6 +612,13 @@ class AppLocalizationsUr extends AppLocalizations {
   String get noRules => 'ابھی تک کوئی تکراری ٹرانزیکشن نہیں۔';
 
   @override
+  String get recurringEmptyMessage =>
+      'تکراری ٹرانزیکشنز آپ کے مقرر کردہ شیڈول پر کرایہ، تنخواہ یا سبسکرپشن درج کرتی ہیں، اور ہر ایک کی تصدیق کے لیے ٹیپ کا انتظار کرتی ہیں۔';
+
+  @override
+  String get addRecurringButton => 'تکراری ٹرانزیکشن شامل کریں';
+
+  @override
   String get postButton => 'پوسٹ کریں';
 
   @override
@@ -846,6 +856,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'فی مدت اوسط · آمدنی $income · خرچ $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'ٹرینڈ کے لیے ایک سے زیادہ مدت درکار ہے۔ اگلے مہینے واپس آئیں۔';
 
   @override
   String get weekStartLabel => 'ہفتے کا پہلا دن';
@@ -1752,4 +1766,10 @@ class AppLocalizationsUr extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'یاد دہانیاں پانے کے لیے سسٹم سیٹنگز میں اطلاعات آن کریں۔';
+
+  @override
+  String get updateDownloadedMessage => 'ایک اپ ڈیٹ ڈاؤن لوڈ ہو چکا ہے۔';
+
+  @override
+  String get updateRestartButton => 'دوبارہ شروع کریں';
 }

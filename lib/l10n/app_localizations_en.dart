@@ -314,6 +314,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get themeDark => 'Dark';
 
   @override
+  String get themeBlack => 'Black';
+
+  @override
   String get languageLabel => 'Language';
 
   @override
@@ -607,6 +610,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noRules => 'No recurring transactions yet.';
 
   @override
+  String get recurringEmptyMessage =>
+      'Recurring transactions post rent, a salary or a subscription on the schedule you set, and wait for a tap to confirm each one.';
+
+  @override
+  String get addRecurringButton => 'Add a recurring transaction';
+
+  @override
   String get postButton => 'Post';
 
   @override
@@ -843,6 +853,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String trendAverage(String income, String expense) {
     return 'Average per period · Income $income · Expense $expense';
   }
+
+  @override
+  String get trendNeedsMorePeriods =>
+      'A trend needs more than one period. Come back next month.';
 
   @override
   String get weekStartLabel => 'First day of the week';
@@ -1751,4 +1765,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get nudgePermissionDenied =>
       'Turn on notifications in system settings to get reminders.';
+
+  @override
+  String get updateDownloadedMessage => 'An update has been downloaded.';
+
+  @override
+  String get updateRestartButton => 'Restart';
 }
