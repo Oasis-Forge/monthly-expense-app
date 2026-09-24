@@ -134,6 +134,30 @@ class _CategoriesTabState extends State<_CategoriesTab> {
       for (final entry in entries)
         categorySwatch(provider.categoryById(entry.key)),
     ];
+    // INS-6: the same period a month back, counted the same way.
+    final previous = isExpense
+        ? provider.previousExpenseByCategory
+        : provider.previousIncomeByCategory;
+    final comparable = provider.hasEarlierRecords;
+    final difference =
+        total - previous.values.fold(Money.zero, (a, b) => a + b);
+    final percent = NumberFormat.percentPattern(l10n.localeName)
+      ..maximumFractionDigits = 0;
+
+    /// The share a category has risen or fallen by (INS-6): "new" where it
+    /// had nothing last period, and nothing at all where the change rounds
+    /// away, since the amounts beside it already say more than "0%" would.
+    String? changeLabel(String categoryId, Money now) {
+      if (!comparable) return null;
+      final share = shareChange(
+        before: previous[categoryId] ?? Money.zero,
+        now: now,
+      );
+      if (share == null) return l10n.categoryNewLabel;
+      final rounded = percent.format(share);
+      if (rounded == percent.format(0)) return null;
+      return share > 0 ? '+$rounded' : rounded;
+    }
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -204,6 +228,15 @@ class _CategoriesTabState extends State<_CategoriesTab> {
                 : l10n.totalIncome(currency.money(total)),
             style: theme.textTheme.titleMedium,
           ),
+          // INS-6: how the period compares with the one before it. The
+          // earliest period on record has nothing behind it, and a
+          // comparison against nothing would read as "you spent nothing".
+          if (comparable)
+            Text(switch (difference.thousandths) {
+              0 => l10n.comparedSame,
+              > 0 => l10n.comparedMore(currency.money(difference)),
+              _ => l10n.comparedLess(currency.money(-difference)),
+            }, style: theme.textTheme.bodySmall),
           const SizedBox(height: 12),
           for (var i = 0; i < entries.length; i++)
             ListTile(
@@ -217,9 +250,24 @@ class _CategoriesTabState extends State<_CategoriesTab> {
               title: Text(
                 provider.categoryById(entries[i].key)?.label(l10n) ?? '',
               ),
-              trailing: Text(
-                currency.money(entries[i].value),
-                style: amountStyle(),
+              trailing: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(currency.money(entries[i].value), style: amountStyle()),
+                  // INS-6: what it was doing last month, beside what it is
+                  // doing now. Left in the ordinary colour: red and green
+                  // already mean money out and money in (CUR-5), and a
+                  // second meaning for them would cost the first.
+                  if (changeLabel(entries[i].key, entries[i].value)
+                      case final change?)
+                    Text(
+                      change,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                ],
               ),
             ),
         ],

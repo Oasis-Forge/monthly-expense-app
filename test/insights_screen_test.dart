@@ -188,6 +188,46 @@ void main() {
 
       expect(find.byType(BudgetsScreen), findsOneWidget);
     });
+    testWidgets('the chart says how the period compares with the one before '
+        '(INS-6)', (tester) async {
+      await showInsights(tester, [
+        // August: food 100, transport 50.
+        testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 3)),
+        testTx(
+          'b',
+          TransactionType.expense,
+          50,
+          DateTime(2026, 8, 9),
+          categoryId: 'cat-transport',
+        ),
+        // September: food down to 60, and shopping out of nowhere.
+        testTx('c', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+        testTx(
+          'd',
+          TransactionType.expense,
+          20,
+          DateTime(2026, 9, 5),
+          categoryId: 'cat-shopping',
+        ),
+      ]);
+
+      // 150 last month against 80 this one.
+      expect(find.text('\$70 less than last month'), findsOneWidget);
+      // Food fell from 100 to 60; shopping had nothing to fall from.
+      expect(find.text('-40%'), findsOneWidget);
+      expect(find.text('new'), findsOneWidget);
+    });
+
+    testWidgets('the earliest period on record compares with nothing (INS-6)', (
+      tester,
+    ) async {
+      await showInsights(tester, [
+        testTx('a', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+      ]);
+
+      expect(find.textContaining('than last month'), findsNothing);
+      expect(find.text('new'), findsNothing);
+    });
   });
 
   group('calendar (INS-1)', () {

@@ -796,6 +796,22 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return '比上月多$amount';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return '比上月少$amount';
+  }
+
+  @override
+  String get comparedSame => '与上月相同';
+
+  @override
+  String get categoryNewLabel => '新';
+
+  @override
   String get calendarHint => '点按某天可查看当天的交易。';
 
   @override

@@ -799,6 +799,22 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return 'มากกว่าเดือนที่แล้ว $amount';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return 'น้อยกว่าเดือนที่แล้ว $amount';
+  }
+
+  @override
+  String get comparedSame => 'เท่ากับเดือนที่แล้ว';
+
+  @override
+  String get categoryNewLabel => 'ใหม่';
+
+  @override
   String get calendarHint => 'แตะวันที่เพื่อดูรายการ';
 
   @override

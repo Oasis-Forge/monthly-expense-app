@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.24.0] - 2026-09-24
+
+### Added
+- The spending chart now says how the month compares with the one before it: a line under the total saying how much more or less you have spent than last month, and, on each category, the share it has risen or fallen by. A category you had nothing in last month is marked "new" rather than given a percentage. Your first month has nothing to compare itself with and shows neither.
+
 ## [1.23.1] - 2026-09-24
 
 ### Fixed

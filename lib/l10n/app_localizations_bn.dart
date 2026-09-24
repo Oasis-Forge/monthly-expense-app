@@ -805,6 +805,22 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String comparedMore(String amount) {
+    return 'গত মাসের চেয়ে $amount বেশি';
+  }
+
+  @override
+  String comparedLess(String amount) {
+    return 'গত মাসের চেয়ে $amount কম';
+  }
+
+  @override
+  String get comparedSame => 'গত মাসের মতোই';
+
+  @override
+  String get categoryNewLabel => 'নতুন';
+
+  @override
   String get calendarHint => 'কোনো দিনের লেনদেন দেখতে সেটিতে ট্যাপ করুন।';
 
   @override

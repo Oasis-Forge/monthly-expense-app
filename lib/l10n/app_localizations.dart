@@ -1468,6 +1468,30 @@ abstract class AppLocalizations {
   /// **'Total income: {amount}'**
   String totalIncome(String amount);
 
+  /// Under the total on the category chart: this period cost more than the one before it (INS-6). {amount} arrives already formatted as currency.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} more than last month'**
+  String comparedMore(String amount);
+
+  /// Under the total on the category chart: this period cost less than the one before it (INS-6).
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} less than last month'**
+  String comparedLess(String amount);
+
+  /// Under the total on the category chart when the two periods came to exactly the same figure (INS-6).
+  ///
+  /// In en, this message translates to:
+  /// **'The same as last month'**
+  String get comparedSame;
+
+  /// Shown on a category's line in place of a percentage when that category had nothing in the period before, so there is no figure to compare against (INS-6). Lower case: it sits beside the amount, not at the start of a sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'new'**
+  String get categoryNewLabel;
+
   /// No description provided for @calendarHint.
   ///
   /// In en, this message translates to:
