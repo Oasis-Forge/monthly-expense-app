@@ -4,6 +4,18 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.23.0] - 2026-09-24
+
+### Added
+- The Recurring screen now opens with what your repeating expenses come to in a month — a weekly, monthly or yearly rule all worked out as a monthly figure — and which one falls next, in days.
+- The Accounts screen now ends with what all your accounts come to together.
+- The app answers your finger: the keypad ticks under each key, saving gives one firmer knock, and a swipe tells you the moment letting go would delete the row. It follows your phone's own vibration setting and adds nothing to switch on.
+
+### Changed
+- Amounts are now set in figures of one width, so a column of them lines up and a figure that changes no longer nudges the text beside it.
+- Money in and money out have new colours, chosen to stay readable on a light and a dark background alike — the old red was hard to read at night. A balance, a net or an account is now left plain unless it is below zero.
+- The number at the top of Home counts to its new value when an entry is saved, rather than cutting to it.
+
 ## [1.22.0] - 2026-09-22
 
 ### Added
