@@ -581,13 +581,21 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String nextBillToday(String title) {
+    return 'Berikutnya: $title, hari ini';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Berikutnya: $title, besok';
+  }
+
+  @override
   String nextBill(int days, String title) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
       other: 'Berikutnya: $title, dalam $days hari',
-      one: 'Berikutnya: $title, besok',
-      zero: 'Berikutnya: $title, hari ini',
     );
     return '$_temp0';
   }

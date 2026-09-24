@@ -1114,10 +1114,22 @@ abstract class AppLocalizations {
   /// **'{amount} a month in bills'**
   String billsPerMonth(String amount);
 
-  /// Second half of the Recurring header: which recurring entry falls next and when (RCR-8).
+  /// Recurring header when the next entry falls today (RCR-8).
   ///
   /// In en, this message translates to:
-  /// **'{days, plural, =0{Next: {title}, today} =1{Next: {title}, tomorrow} other{Next: {title}, in {days} days}}'**
+  /// **'Next: {title}, today'**
+  String nextBillToday(String title);
+
+  /// Recurring header when the next entry falls tomorrow (RCR-8).
+  ///
+  /// In en, this message translates to:
+  /// **'Next: {title}, tomorrow'**
+  String nextBillTomorrow(String title);
+
+  /// Recurring header when the next entry is two or more days off; today and tomorrow have messages of their own (RCR-8).
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, other{Next: {title}, in {days} days}}'**
   String nextBill(int days, String title);
 
   /// No description provided for @nothingUpcoming.

@@ -495,6 +495,9 @@ class _DayDetails extends StatelessWidget {
                   transaction: tx,
                   amount: Text(
                     signedAmount(currency, tx.amount, isIncome: isIncome),
+                    // The sign stays in front of the amount in Arabic
+                    // (LANG-5, CUR-5).
+                    textDirection: TextDirection.ltr,
                     style: amountStyle().copyWith(
                       color: signedColor(context, isIncome: isIncome),
                       fontWeight: FontWeight.w600,
@@ -717,7 +720,9 @@ class _TrendTabState extends State<_TrendTab> {
               money(totals.net),
               style: amountStyle().copyWith(
                 fontWeight: FontWeight.w600,
-                color: totals.net.isNegative ? Colors.red : Colors.green,
+                // CUR-5: a net can fall either way, so it is coloured only
+                // when it is below zero.
+                color: balanceColor(context, totals.net),
               ),
             ),
           ),

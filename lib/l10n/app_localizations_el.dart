@@ -589,13 +589,21 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String nextBillToday(String title) {
+    return 'Επόμενο: $title, σήμερα';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Επόμενο: $title, αύριο';
+  }
+
+  @override
   String nextBill(int days, String title) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
       other: 'Επόμενο: $title, σε $days ημέρες',
-      one: 'Επόμενο: $title, αύριο',
-      zero: 'Επόμενο: $title, σήμερα',
     );
     return '$_temp0';
   }

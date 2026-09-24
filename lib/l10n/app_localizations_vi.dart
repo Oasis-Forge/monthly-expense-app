@@ -582,13 +582,21 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String nextBillToday(String title) {
+    return 'Tiếp theo: $title, hôm nay';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Tiếp theo: $title, ngày mai';
+  }
+
+  @override
   String nextBill(int days, String title) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
       other: 'Tiếp theo: $title, sau $days ngày',
-      one: 'Tiếp theo: $title, ngày mai',
-      zero: 'Tiếp theo: $title, hôm nay',
     );
     return '$_temp0';
   }

@@ -596,6 +596,16 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String nextBillToday(String title) {
+    return 'Далее: $title, сегодня';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Далее: $title, завтра';
+  }
+
+  @override
   String nextBill(int days, String title) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -603,8 +613,7 @@ class AppLocalizationsRu extends AppLocalizations {
       other: 'Далее: $title, через $days дня',
       many: 'Далее: $title, через $days дней',
       few: 'Далее: $title, через $days дня',
-      one: 'Далее: $title, завтра',
-      zero: 'Далее: $title, сегодня',
+      one: 'Далее: $title, через $days день',
     );
     return '$_temp0';
   }

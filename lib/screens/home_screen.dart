@@ -818,6 +818,12 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
       old.carriedForward != carriedForward ||
       old.collapsedByHand != collapsedByHand ||
       old.accountName != accountName ||
+      // CUR-3 changes the labels and not the values, so a new currency or a
+      // new language reaches this card by the format alone: without it the
+      // pinned header keeps rendering the old symbol while the day rows
+      // below it have already changed.
+      old.currency.currencySymbol != currency.currencySymbol ||
+      old.currency.locale != currency.locale ||
       // BAL-8: without these two the lead line would render once and then
       // never move again, with nothing to say so.
       old.heroLine?.kind != heroLine?.kind ||

@@ -580,13 +580,21 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String nextBillToday(String title) {
+    return 'Sıradaki: $title, bugün';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Sıradaki: $title, yarın';
+  }
+
+  @override
   String nextBill(int days, String title) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
       other: 'Sıradaki: $title, $days gün sonra',
-      one: 'Sıradaki: $title, yarın',
-      zero: 'Sıradaki: $title, bugün',
     );
     return '$_temp0';
   }

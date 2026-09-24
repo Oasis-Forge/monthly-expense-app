@@ -576,13 +576,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String nextBillToday(String title) {
+    return '下一笔:$title,今天';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return '下一笔:$title,明天';
+  }
+
+  @override
   String nextBill(int days, String title) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
       locale: localeName,
       other: '下一笔:$title,$days 天后',
-      one: '下一笔:$title,明天',
-      zero: '下一笔:$title,今天',
     );
     return '$_temp0';
   }

@@ -84,6 +84,18 @@ class _Empty extends StatelessWidget {
       ListTile(title: Text(text, style: Theme.of(context).textTheme.bodySmall));
 }
 
+/// When the next entry falls (RCR-8). Today and tomorrow are messages of
+/// their own rather than `=0` and `=1` cases of the plural: gen_l10n compiles
+/// an explicit case into the CLDR category of the same name, and Russian's
+/// "one" category also holds 21 and 31 — which had a bill three weeks off
+/// announcing itself as "tomorrow".
+String _nextLine(AppLocalizations l10n, int days, String title) =>
+    switch (days) {
+      <= 0 => l10n.nextBillToday(title),
+      1 => l10n.nextBillTomorrow(title),
+      _ => l10n.nextBill(days, title),
+    };
+
 /// What the expense rules come to in a month, and what falls next (RCR-8).
 class _BillsHeader extends StatelessWidget {
   const _BillsHeader();
@@ -115,7 +127,8 @@ class _BillsHeader extends StatelessWidget {
             ),
           if (next != null)
             Text(
-              l10n.nextBill(
+              _nextLine(
+                l10n,
                 provider.daysUntil(next.date),
                 next.rule.label(
                   provider.categoryById(next.rule.categoryId),

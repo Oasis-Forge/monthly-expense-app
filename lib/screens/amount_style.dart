@@ -12,10 +12,10 @@ const List<FontFeature> tabularFigures = [FontFeature.tabularFigures()];
 
 /// Money coming in, and money going out (CUR-5). Each pair clears 4.5:1
 /// against the surface behind it, which Flutter's stock green and red do not.
-const _incomeLight = Color(0xFF1B6B3A);
-const _incomeDark = Color(0xFF7BDBA0);
-const _expenseLight = Color(0xFFB3261E);
-const _expenseDark = Color(0xFFFFB4AB);
+const _incomeLight = Color(incomeInkLight);
+const _incomeDark = Color(incomeInkDark);
+const _expenseLight = Color(expenseInkLight);
+const _expenseDark = Color(expenseInkDark);
 
 bool _isDark(BuildContext context) =>
     Theme.of(context).brightness == Brightness.dark;

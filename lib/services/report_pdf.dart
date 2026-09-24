@@ -13,6 +13,11 @@ import '../models/report.dart';
 import '../models/transaction.dart';
 import 'report_fonts.dart';
 
+/// The app's own two colours on the report's white page (CUR-5): the same
+/// pair the screens use, so income and expense read alike in both places.
+const _incomeInk = PdfColor.fromInt(incomeInkLight);
+const _expenseInk = PdfColor.fromInt(expenseInkLight);
+
 /// Raised when the caller cancelled the build (PDF-6).
 class ReportCancelled implements Exception {
   const ReportCancelled();
@@ -391,9 +396,9 @@ List<pw.Widget> _trend(ReportData data, ReportLabels labels) {
                   mainAxisAlignment: pw.MainAxisAlignment.center,
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    bar(point.income.thousandths, PdfColors.green400),
+                    bar(point.income.thousandths, _incomeInk),
                     pw.SizedBox(width: 1),
-                    bar(point.expense.thousandths, PdfColors.red400),
+                    bar(point.expense.thousandths, _expenseInk),
                   ],
                 ),
                 pw.SizedBox(height: 2),
@@ -411,9 +416,9 @@ List<pw.Widget> _trend(ReportData data, ReportLabels labels) {
     pw.SizedBox(height: 4),
     pw.Row(
       children: [
-        _key(PdfColors.green400, labels.l10n.incomeLabel),
+        _key(_incomeInk, labels.l10n.incomeLabel),
         pw.SizedBox(width: 12),
-        _key(PdfColors.red400, labels.l10n.expenseLabel),
+        _key(_expenseInk, labels.l10n.expenseLabel),
       ],
     ),
   ];

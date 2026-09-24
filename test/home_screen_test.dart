@@ -1141,4 +1141,20 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
   });
+
+  testWidgets('the pinned summary card follows a currency change (CUR-3)', (
+    tester,
+  ) async {
+    await showHome(tester);
+    expect(find.textContaining('\$'), findsWidgets);
+
+    await settings.setCurrencyCode('JPY');
+    await tester.pumpAndSettle();
+
+    // The card is a pinned header and rebuilds only when its delegate says
+    // to: without the currency in that comparison it kept the old symbol
+    // while the rows below it had already changed.
+    expect(find.textContaining('\$'), findsNothing);
+    expect(find.textContaining('¥'), findsWidgets);
+  });
 }

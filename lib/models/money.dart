@@ -54,3 +54,12 @@ extension MoneyFormat on NumberFormat {
     return format(amount.toDouble());
   }
 }
+
+/// The two colours money is written in (CUR-5), as plain values so that the
+/// screens and the PDF report draw from one pair rather than two. Each side
+/// clears 4.5:1 against the surface it sits on: the light pair on a light
+/// surface and on the report's white page, the dark pair on a dark one.
+const incomeInkLight = 0xFF1B6B3A;
+const incomeInkDark = 0xFF7BDBA0;
+const expenseInkLight = 0xFFB3261E;
+const expenseInkDark = 0xFFFFB4AB;

@@ -593,6 +593,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String nextBillToday(String title) {
+    return 'التالي: $title، اليوم';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'التالي: $title، غدًا';
+  }
+
+  @override
   String nextBill(int days, String title) {
     String _temp0 = intl.Intl.pluralLogic(
       days,
@@ -601,8 +611,6 @@ class AppLocalizationsAr extends AppLocalizations {
       many: 'التالي: $title، خلال $days يومًا',
       few: 'التالي: $title، خلال $days أيام',
       two: 'التالي: $title، خلال يومين',
-      one: 'التالي: $title، غدًا',
-      zero: 'التالي: $title، اليوم',
     );
     return '$_temp0';
   }

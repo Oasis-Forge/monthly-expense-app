@@ -49,8 +49,13 @@ void main() {
       final light = await themed(tester, Brightness.light);
       final lightIncome = incomeColor(light);
       final lightExpense = expenseColor(light);
-      expect(lightIncome, isNot(Colors.green));
-      expect(lightExpense, isNot(Colors.red));
+      // Not a matter of taste: the stock pair is what fails the bar the
+      // app's own pair has to clear, on the very surface it would sit on.
+      final surface = Theme.of(light).colorScheme.surface;
+      expect(contrast(Colors.green, surface), lessThan(4.5));
+      expect(contrast(Colors.red, surface), lessThan(4.5));
+      expect(contrast(lightIncome, surface), greaterThanOrEqualTo(4.5));
+      expect(contrast(lightExpense, surface), greaterThanOrEqualTo(4.5));
 
       final dark = await themed(tester, Brightness.dark);
       expect(incomeColor(dark), isNot(lightIncome));

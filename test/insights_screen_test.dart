@@ -321,6 +321,19 @@ void main() {
 
       expect(find.text('Tap a day to see its transactions.'), findsOneWidget);
     });
+    testWidgets('a signed amount is laid out left to right (LANG-5)', (
+      tester,
+    ) async {
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+      await tester.tap(find.text('15'));
+      await tester.pumpAndSettle();
+
+      // The sign is added outside the currency's own isolate, so the row
+      // has to say which way the piece runs or Arabic moves it to the end.
+      final amount = tester.widget<Text>(find.textContaining('\$').last);
+      expect(amount.textDirection, TextDirection.ltr);
+    });
   });
 
   group('trend (INS-2)', () {
@@ -383,6 +396,22 @@ void main() {
       // would sit on top of the $3.5K one.
       expect(find.text('\$3.65K'), findsNothing);
       expect(find.text('\$3K'), findsOneWidget);
+    });
+    testWidgets('a net is coloured only when it is below zero (CUR-5)', (
+      tester,
+    ) async {
+      await showInsights(tester, history);
+      await openTab(tester, 'Trend');
+
+      // A period that came out ahead keeps the ordinary text colour; only
+      // the one below zero is painted, and in the app's own red.
+      final ahead = tester.widget<Text>(find.text('\$70', skipOffstage: false));
+      expect(ahead.style?.color, isNull);
+
+      final behind = tester.widget<Text>(
+        find.text('-\$60', skipOffstage: false),
+      );
+      expect(behind.style?.color, const Color(expenseInkLight));
     });
   });
 

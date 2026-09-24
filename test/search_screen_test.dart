@@ -214,4 +214,16 @@ void main() {
     expect(provider.transactions, hasLength(2));
     expect(find.text('Transaction deleted'), findsOneWidget);
   });
+
+  testWidgets('a signed amount is laid out left to right (LANG-5)', (
+    tester,
+  ) async {
+    await showSearch(tester);
+    await tester.pumpAndSettle();
+
+    // The sign is added outside the currency's own isolate, so the row has
+    // to say which way the piece runs or Arabic moves it to the other end.
+    final amount = tester.widget<Text>(find.textContaining('-\$').first);
+    expect(amount.textDirection, TextDirection.ltr);
+  });
 }
