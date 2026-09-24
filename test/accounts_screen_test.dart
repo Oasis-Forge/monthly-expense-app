@@ -50,7 +50,7 @@ void main() {
 
     expect(find.text('acc-cash'), findsOneWidget);
     expect(find.text('Cash'), findsOneWidget);
-    expect(find.text('\$100.00'), findsOneWidget);
+    expect(find.text('\$100'), findsOneWidget);
   });
 
   testWidgets('adds an account with an opening balance (ACC-1)', (
@@ -72,7 +72,7 @@ void main() {
 
     expect(find.byType(AccountEditScreen), findsNothing);
     expect(find.text('Savings'), findsOneWidget);
-    expect(find.text('\$250.00'), findsOneWidget);
+    expect(find.text('\$250'), findsOneWidget);
     expect(provider.activeAccounts.last.type, AccountType.bank);
   });
 
@@ -206,7 +206,7 @@ void main() {
     final total = find.widgetWithText(ListTile, 'Total');
     expect(total, findsOneWidget);
     expect(
-      find.descendant(of: total, matching: find.text('\$100.00')),
+      find.descendant(of: total, matching: find.text('\$100')),
       findsOneWidget,
     );
   });

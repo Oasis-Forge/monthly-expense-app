@@ -74,7 +74,7 @@ void main() {
   ) async {
     await showSearch(tester);
     expect(
-      find.text('3 results · Income \$2,000.00 · Expense \$912.50'),
+      find.text('3 results · Income \$2,000 · Expense \$912.50'),
       findsOneWidget,
     );
 
@@ -83,7 +83,7 @@ void main() {
     expect(find.text('Café lunch'), findsOneWidget);
     expect(find.text('Flat'), findsNothing);
     expect(
-      find.text('1 result · Income \$0.00 · Expense \$12.50'),
+      find.text('1 result · Income \$0 · Expense \$12.50'),
       findsOneWidget,
     );
   });

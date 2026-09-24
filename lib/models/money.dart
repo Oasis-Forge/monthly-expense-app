@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// An amount of money in whole thousandths of a currency unit, so sums never
 /// drift (MONEY-1): `Money(12500)` is 12.5. Every ISO currency fits, and
 /// changing the currency never rescales stored values.
@@ -37,5 +39,18 @@ extension type const Money(int thousandths) {
         .padLeft(3, '0')
         .replaceFirst(RegExp(r'0+$'), '');
     return fraction.isEmpty ? '$whole' : '$whole.$fraction';
+  }
+}
+
+/// Money as people write it (CUR-2).
+extension MoneyFormat on NumberFormat {
+  /// [amount] with the currency's decimals when it has any to show, and with
+  /// none at all when it is whole: 930 reads as 930, 12.5 as 12.50, and a
+  /// currency that carries no decimals is unchanged.
+  String money(Money amount) {
+    minimumFractionDigits = amount.thousandths % 1000 == 0
+        ? 0
+        : maximumFractionDigits;
+    return format(amount.toDouble());
   }
 }

@@ -137,10 +137,10 @@ void main() {
 
       // On the way: neither where it was nor where it is going.
       expect(find.text(r'$12.50'), findsNothing);
-      expect(find.text(r'$20.00'), findsNothing);
+      expect(find.text(r'$20'), findsNothing);
 
       await tester.pumpAndSettle();
-      expect(find.text(r'$20.00'), findsOneWidget);
+      expect(find.text(r'$20'), findsOneWidget);
     });
 
     testWidgets('a phone asking for less motion is given it at once', (
@@ -150,7 +150,7 @@ void main() {
       await show(tester, const Money(20000), still: true);
       await tester.pump();
 
-      expect(find.text(r'$20.00'), findsOneWidget);
+      expect(find.text(r'$20'), findsOneWidget);
     });
   });
 }

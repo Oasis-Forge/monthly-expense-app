@@ -76,7 +76,7 @@ mixin AmountEntry<T extends StatefulWidget> on State<T> {
         border: const OutlineInputBorder(),
         prefixText: '${currency.currencySymbol} ',
         helperText: isAmountExpression(amountController.text) && result != null
-            ? l10n.amountResult(currency.format(result.toDouble()))
+            ? l10n.amountResult(currency.money(result))
             : null,
       ),
       validator: (value) {

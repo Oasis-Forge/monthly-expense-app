@@ -125,7 +125,7 @@ void main() {
       await showInsights(tester, spending);
 
       expect(
-        find.text('Total spent: \$40.00', skipOffstage: false),
+        find.text('Total spent: \$40', skipOffstage: false),
         findsOneWidget,
       );
       expect(find.text('Food', skipOffstage: false), findsOneWidget);
@@ -142,7 +142,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Total income: \$100.00', skipOffstage: false),
+        find.text('Total income: \$100', skipOffstage: false),
         findsOneWidget,
       );
       expect(find.text('Salary', skipOffstage: false), findsOneWidget);
@@ -174,10 +174,10 @@ void main() {
 
       expect(find.text('Budgets'), findsOneWidget);
       // September 15–30 is 16 days, today included.
-      expect(find.text('\$960.00 left · \$60.00 a day'), findsOneWidget);
-      expect(find.text('\$30.00 of \$46.00'), findsOneWidget);
-      expect(find.text('\$16.00 left · \$1.00 a day'), findsOneWidget);
-      expect(find.text('Over by \$5.00'), findsOneWidget);
+      expect(find.text('\$960 left · \$60 a day'), findsOneWidget);
+      expect(find.text('\$30 of \$46'), findsOneWidget);
+      expect(find.text('\$16 left · \$1 a day'), findsOneWidget);
+      expect(find.text('Over by \$5'), findsOneWidget);
     });
 
     testWidgets('the budgets button opens the budgets screen', (tester) async {
@@ -336,20 +336,20 @@ void main() {
       await openTab(tester, 'Trend');
 
       expect(
-        find.text('Average per period · Income \$50.00 · Expense \$15.00'),
+        find.text('Average per period · Income \$50 · Expense \$15'),
         findsOneWidget,
       );
       expect(
-        find.text('Income \$100.00 · Expense \$30.00', skipOffstage: false),
+        find.text('Income \$100 · Expense \$30', skipOffstage: false),
         findsOneWidget,
       );
-      expect(find.text('\$70.00', skipOffstage: false), findsOneWidget);
-      expect(find.text('-\$60.00', skipOffstage: false), findsOneWidget);
+      expect(find.text('\$70', skipOffstage: false), findsOneWidget);
+      expect(find.text('-\$60', skipOffstage: false), findsOneWidget);
 
       await tester.tap(find.text('12 months'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Average per period · Income \$25.00 · Expense \$7.50'),
+        find.text('Average per period · Income \$25 · Expense \$7.50'),
         findsOneWidget,
       );
     });
@@ -367,7 +367,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Average per period · Income \$75.00 · Expense \$22.50'),
+        find.text('Average per period · Income \$75 · Expense \$22.50'),
         findsOneWidget,
       );
     });
@@ -408,13 +408,13 @@ void main() {
 
       await tester.tap(find.byTooltip('Previous period'));
       await tester.pumpAndSettle();
-      expect(find.text('\$30.00 left'), findsOneWidget);
+      expect(find.text('\$30 left'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Next period'));
       await tester.tap(find.byTooltip('Next period'));
       await tester.pumpAndSettle();
-      expect(find.text('Limit \$50.00'), findsOneWidget);
-      expect(find.text('Limit \$10.00'), findsOneWidget);
+      expect(find.text('Limit \$50'), findsOneWidget);
+      expect(find.text('Limit \$10'), findsOneWidget);
     });
 
     testWidgets('upcoming entries in the day list are marked (BAL-4)', (

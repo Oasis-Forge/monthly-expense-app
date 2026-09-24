@@ -43,7 +43,7 @@ class BudgetProgress extends StatelessWidget {
       BudgetLevel.warning => Colors.orange,
       BudgetLevel.over => theme.colorScheme.error,
     };
-    String money(Money amount) => currency.format(amount.toDouble());
+    String money(Money amount) => currency.money(amount);
     final perDay = status.perDayAllowance;
     final detail = isFuture
         ? l10n.budgetLimitOnly(money(status.limit))

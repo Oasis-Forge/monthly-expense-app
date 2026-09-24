@@ -1011,7 +1011,7 @@ class _SummaryCard extends StatelessWidget {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           l10n.carriedForwardLine(
-                            currency.format(carried.toDouble()),
+                            currency.money(carried),
                           ),
                           maxLines: 1,
                           style: theme.textTheme.bodySmall,
@@ -1085,7 +1085,7 @@ class _HeroLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    String money(Money amount) => currency.format(amount.toDouble());
+    String money(Money amount) => currency.money(amount);
     final perDay = line.perDay;
     final text = switch (line.kind) {
       HeroLineKind.leftToSpend => l10n.budgetLeftPerDay(
@@ -1187,7 +1187,7 @@ class _AmountTile extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            currency.format(amount.toDouble()),
+            currency.money(amount),
             style: amountStyle(Theme.of(context).textTheme.titleMedium)
                 .copyWith(color: color, fontWeight: FontWeight.w600),
           ),
@@ -1290,7 +1290,7 @@ class _DayTotal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      currency.format(amount.toDouble()),
+      currency.money(amount),
       style: amountStyle(Theme.of(context).textTheme.labelLarge)
           .copyWith(color: color, fontWeight: FontWeight.w600),
     );
@@ -1421,7 +1421,7 @@ class _TransferTile extends StatelessWidget {
               : description,
         ),
         trailing: Text(
-          currency.format(transfer.amount.toDouble()),
+          currency.money(transfer.amount),
           style: amountStyle(const TextStyle(fontWeight: FontWeight.w600)),
         ),
         onTap: () => Navigator.of(context).push(

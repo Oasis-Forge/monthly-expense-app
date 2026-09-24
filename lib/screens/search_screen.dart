@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/csv_export.dart';
+import '../models/money.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../providers/settings_provider.dart';
@@ -182,8 +183,8 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Text(
                 l10n.searchSummary(
                   result.transactions.length,
-                  currency.format(result.income.toDouble()),
-                  currency.format(result.expense.toDouble()),
+                  currency.money(result.income),
+                  currency.money(result.expense),
                 ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),

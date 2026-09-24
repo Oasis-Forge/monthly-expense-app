@@ -43,7 +43,7 @@ class ReportLabels {
   final String? accountFilterName;
 
   String get localeName => l10n.localeName;
-  String money(Money amount) => currency.format(amount.toDouble());
+  String money(Money amount) => currency.money(amount);
   String day(DateTime date) => DateFormat.MMMd(localeName).format(date);
   String fullDay(DateTime date) => DateFormat.yMMMd(localeName).format(date);
   String month(DateTime date) => DateFormat.yMMM(localeName).format(date);

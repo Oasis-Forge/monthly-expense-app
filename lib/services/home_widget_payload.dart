@@ -2,6 +2,7 @@ import 'package:intl/intl.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/money.dart';
 import '../models/widget_summary.dart';
 
 /// Everything the home-screen widget draws, ready formatted.
@@ -52,11 +53,11 @@ Map<String, Object?> buildHomeWidgetPayload({
           {
             'from': entry.from.millisecondsSinceEpoch,
             'period': periodLabel(entry.period, l10n),
-            'income': currency.format(entry.income.toDouble()),
-            'expense': currency.format(entry.expense.toDouble()),
-            'balance': currency.format(entry.balance.toDouble()),
+            'income': currency.money(entry.income),
+            'expense': currency.money(entry.expense),
+            'balance': currency.money(entry.balance),
             if (entry.budgetLeft case final left?) ...{
-              'budgetLeft': currency.format(left.toDouble()),
+              'budgetLeft': currency.money(left),
               'overBudget': entry.isOverBudget,
             },
           },

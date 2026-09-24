@@ -323,7 +323,7 @@ void main() {
     await showRecurring(tester);
 
     // Rent 900 a month and Gym 30 a month, with Gym falling on the 20th.
-    expect(find.text('\$930.00 a month in bills'), findsOneWidget);
+    expect(find.text('\$930 a month in bills'), findsOneWidget);
     expect(find.text('Next: Gym, in 5 days'), findsOneWidget);
   });
 

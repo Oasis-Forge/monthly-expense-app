@@ -12,6 +12,7 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 - The app answers your finger: the keypad ticks under each key, saving gives one firmer knock, and a swipe tells you the moment letting go would delete the row. It follows your phone's own vibration setting and adds nothing to switch on.
 
 ### Changed
+- Amounts no longer carry `.00` when there is nothing after the point: a round figure now reads $930 rather than $930.00, while $12.50 is unchanged.
 - Amounts are now set in figures of one width, so a column of them lines up and a figure that changes no longer nudges the text beside it.
 - Money in and money out have new colours, chosen to stay readable on a light and a dark background alike — the old red was hard to read at night. A balance, a net or an account is now left plain unless it is below zero.
 - The number at the top of Home counts to its new value when an entry is saved, rather than cutting to it.

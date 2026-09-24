@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/money.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
@@ -90,7 +91,7 @@ class _TrashedTransaction extends StatelessWidget {
       title: Text(transaction.label(category, l10n)),
       subtitle: Text(
         l10n.trashItemSubtitle(
-          currency.format(transaction.amount.toDouble()),
+          currency.money(transaction.amount),
           provider.trashDaysLeft(transaction),
         ),
       ),
@@ -123,7 +124,7 @@ class _TrashedTransfer extends StatelessWidget {
       ),
       subtitle: Text(
         l10n.trashItemSubtitle(
-          currency.format(transfer.amount.toDouble()),
+          currency.money(transfer.amount),
           provider.trashDaysLeftForTransfer(transfer),
         ),
       ),

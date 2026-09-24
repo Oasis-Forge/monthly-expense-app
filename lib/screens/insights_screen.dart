@@ -200,8 +200,8 @@ class _CategoriesTabState extends State<_CategoriesTab> {
           const SizedBox(height: 24),
           Text(
             isExpense
-                ? l10n.totalSpent(currency.format(total.toDouble()))
-                : l10n.totalIncome(currency.format(total.toDouble())),
+                ? l10n.totalSpent(currency.money(total))
+                : l10n.totalIncome(currency.money(total)),
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
@@ -218,7 +218,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
                 provider.categoryById(entries[i].key)?.label(l10n) ?? '',
               ),
               trailing: Text(
-                currency.format(entries[i].value.toDouble()),
+                currency.money(entries[i].value),
                 style: amountStyle(),
               ),
             ),
@@ -446,7 +446,7 @@ class _DayDetails extends StatelessWidget {
         provider.groupedByDay[day] ?? const <ExpenseTransaction>[];
     final transfers = provider.transfersByDay[day] ?? const <Transfer>[];
     final totals = provider.dailyTotals[day];
-    String money(Money amount) => currency.format(amount.toDouble());
+    String money(Money amount) => currency.money(amount);
 
     void open(Widget screen) =>
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
@@ -564,7 +564,7 @@ class _TrendTabState extends State<_TrendTab> {
     final compact = settings.compactCurrencyFormat(locale);
     final small = theme.textTheme.labelSmall;
     final trend = provider.trend(_count);
-    String money(Money amount) => currency.format(amount.toDouble());
+    String money(Money amount) => currency.money(amount);
 
     // Periods that haven't started don't pull the averages down (INS-2).
     final started = [
@@ -683,7 +683,7 @@ class _TrendTabState extends State<_TrendTab> {
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
-                        currency.format(rod.toY),
+                        currency.money(Money((rod.toY * 1000).round())),
                         amountStyle(
                           const TextStyle(
                             color: Colors.white,

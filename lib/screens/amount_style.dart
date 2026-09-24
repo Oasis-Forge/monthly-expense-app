@@ -44,7 +44,7 @@ String signedAmount(
   NumberFormat currency,
   Money amount, {
   required bool isIncome,
-}) => '${isIncome ? '+' : '-'}${currency.format(amount.toDouble())}';
+}) => '${isIncome ? '+' : '-'}${currency.money(amount)}';
 
 /// [base] set in the app's figures (CUR-4).
 TextStyle amountStyle([TextStyle? base]) =>
@@ -76,8 +76,13 @@ class RollingAmount extends StatelessWidget {
       tween: Tween<double>(end: amount.toDouble()),
       duration: still ? Duration.zero : _roll,
       curve: Curves.easeOutCubic,
-      builder: (context, value, _) =>
-          Text(currency.format(value), style: style, textAlign: textAlign),
+      builder: (context, value, _) => Text(
+        // Mid-count the figure is a fraction of the way there, so it
+        // carries decimals until it lands on a whole one (CUR-2).
+        currency.money(Money((value * 1000).round())),
+        style: style,
+        textAlign: textAlign,
+      ),
     );
   }
 }

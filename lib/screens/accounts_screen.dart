@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/account.dart';
+import '../models/money.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'account_edit_screen.dart';
@@ -83,7 +84,7 @@ class _AccountTile extends StatelessWidget {
       title: Text(account.label(l10n)),
       subtitle: Text(accountTypeLabel(account.type, l10n)),
       trailing: Text(
-        currency.format(balance.toDouble()),
+        currency.money(balance),
         style: amountStyle(
           TextStyle(
             fontWeight: FontWeight.w600,
@@ -121,7 +122,7 @@ class _AccountsTotal extends StatelessWidget {
             style: theme.textTheme.titleSmall,
           ),
           trailing: Text(
-            currency.format(total.toDouble()),
+            currency.money(total),
             style: amountStyle(theme.textTheme.titleMedium).copyWith(
               fontWeight: FontWeight.w700,
               color: balanceColor(context, total),

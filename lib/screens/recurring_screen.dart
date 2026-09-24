@@ -108,7 +108,7 @@ class _BillsHeader extends StatelessWidget {
         children: [
           if (bills.isPositive)
             Text(
-              l10n.billsPerMonth(currency.format(bills.toDouble())),
+              l10n.billsPerMonth(currency.money(bills)),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
