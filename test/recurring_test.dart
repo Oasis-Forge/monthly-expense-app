@@ -385,5 +385,24 @@ void main() {
       expect(provider.monthlyBills, Money.zero);
       expect(provider.nextScheduled, isNull);
     });
+
+    test('a rule counts until its last occurrence has gone by', () async {
+      final provider = await loaded([
+        // June, July, August: the third and last is behind us.
+        testRule(
+          'instalments',
+          100,
+          DateTime(2026, 6),
+        ).copyWith(endType: RecurrenceEnd.afterCount, endCount: 3),
+        // August, September, October: one still to come.
+        testRule(
+          'course',
+          60,
+          DateTime(2026, 8),
+        ).copyWith(endType: RecurrenceEnd.afterCount, endCount: 3),
+      ]);
+
+      expect(provider.monthlyBills, const Money(60000));
+    });
   });
 }
