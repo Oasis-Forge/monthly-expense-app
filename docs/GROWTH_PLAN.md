@@ -28,9 +28,8 @@ allowance, recurring rules, notes, calendar and trend insights, a PDF report, CS
 backup and restore, photo and voice attachments, app lock, a home-screen widget with add buttons,
 21 languages including right-to-left, ads with a one-time "Remove ads", and a Plus tier planned
 around Drive backup and, later, a bank connection. Home opens on today with a week strip, a summary
-that collapses to the balance, a budgets card and the day's entries. Version 1.21.0, on Play's
-internal track. Reminders are in the code (nudge and recurring-due notices) although the roadmap
-rows are still unticked; tick or finish them before anything below.
+that collapses to the balance, a budgets card and the day's entries. Version 1.23.0, on Play's
+internal track, with the closed test running since 18 September 2026.
 
 It already does more than most free trackers. What it lacks is not features but the few numbers and
 touches that make people say "this one gets me": a colour per category, one hero number, a
@@ -131,18 +130,18 @@ promise the app cannot keep offline. The answer to "what about X" is the review 
 
 ## Suggested order
 
-| # | PR | Version |
-|---|---|---|
-| 1 | A1 category colours, with the kit-update merge | minor |
-| 2 | B1 left to spend | minor |
-| 3 | A2 numbers and A3 haptics | minor |
-| 4 | B4 bills and totals | minor |
-| 5 | B2 this month against last | minor |
-| 6 | C1 rating prompt and C2 shortcuts | minor |
-| 7 | A4 dynamic colour and black | minor |
-| 8 | A5 empty states and A6 accessibility | minor |
-| 9 | B3 monthly review | minor |
-| 10 | D1, D2, D3 in order | minor each |
+| # | PR | Version | Shipped |
+|---|---|---|---|
+| 1 | A1 category colours, with the kit-update merge | minor | 1.22.0 |
+| 2 | B1 left to spend | minor | 1.22.0 |
+| 3 | A2 numbers and A3 haptics | minor | 1.23.0 |
+| 4 | B4 bills and totals | minor | 1.23.0 |
+| 5 | B2 this month against last | minor | — |
+| 6 | C1 rating prompt and C2 shortcuts | minor | — |
+| 7 | A4 dynamic colour and black | minor | — |
+| 8 | A5 empty states and A6 accessibility | minor | — |
+| 9 | B3 monthly review | minor | — |
+| 10 | D1, D2, D3 in order | minor each | — |
 
 C3 fits after PR 5, when the screenshots have something new to show. The roadmap's own open items
 (the closed test on Play, the interstitial, reminders, Drive backup, the desktop and Apple stores)
