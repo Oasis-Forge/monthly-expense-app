@@ -975,7 +975,13 @@ Future<void> _typeAmount(WidgetTester tester) async {
   if (groceries.evaluate().isNotEmpty) {
     await tester.tap(groceries.first);
   }
-  for (var f = 0; f < 4; f++) {
+  // Put the keypad away before the picture is taken: half the form is
+  // behind it, and the shot is meant to show the form, not the keys.
+  final hide = find.byIcon(Icons.keyboard_hide_outlined);
+  if (hide.evaluate().isNotEmpty) {
+    await tester.tap(hide.first);
+  }
+  for (var f = 0; f < 6; f++) {
     await tester.pump(const Duration(milliseconds: 300));
   }
 }
