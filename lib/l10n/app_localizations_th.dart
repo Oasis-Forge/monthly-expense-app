@@ -385,6 +385,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get archivedHeader => 'เก็บถาวรแล้ว';
 
   @override
+  String get accountsTotalLabel => 'รวม';
+
+  @override
   String get categorySaveFailed => 'บันทึกหมวดหมู่ไม่สำเร็จ ลองอีกครั้ง';
 
   @override
@@ -569,6 +572,31 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get rulesHeader => 'กฎ';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '$amount ต่อเดือนสำหรับบิล';
+  }
+
+  @override
+  String nextBillToday(String title) {
+    return 'ถัดไป: $title, วันนี้';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'ถัดไป: $title, พรุ่งนี้';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'ถัดไป: $title, อีก $days วัน',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'ไม่มีรายการในอีก 30 วันข้างหน้า';

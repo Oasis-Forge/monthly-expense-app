@@ -16,6 +16,7 @@ import '../providers/transaction_provider.dart';
 import '../services/ads_config.dart';
 import 'account_filter_button.dart';
 import 'ad_slot.dart';
+import 'amount_style.dart';
 import 'budget_progress.dart';
 import 'budgets_screen.dart';
 import 'note_form_screen.dart';
@@ -199,8 +200,8 @@ class _CategoriesTabState extends State<_CategoriesTab> {
           const SizedBox(height: 24),
           Text(
             isExpense
-                ? l10n.totalSpent(currency.format(total.toDouble()))
-                : l10n.totalIncome(currency.format(total.toDouble())),
+                ? l10n.totalSpent(currency.money(total))
+                : l10n.totalIncome(currency.money(total)),
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
@@ -216,7 +217,10 @@ class _CategoriesTabState extends State<_CategoriesTab> {
               title: Text(
                 provider.categoryById(entries[i].key)?.label(l10n) ?? '',
               ),
-              trailing: Text(currency.format(entries[i].value.toDouble())),
+              trailing: Text(
+                currency.money(entries[i].value),
+                style: amountStyle(),
+              ),
             ),
         ],
       ],
@@ -361,7 +365,7 @@ class _DayCell extends StatelessWidget {
       fit: BoxFit.scaleDown,
       child: Text(
         compact.format(value.toDouble()),
-        style: small?.copyWith(color: color),
+        style: amountStyle(small).copyWith(color: color),
       ),
     );
 
@@ -397,9 +401,9 @@ class _DayCell extends StatelessWidget {
                       ),
                       const Spacer(),
                       if (totals != null && totals.expense.isPositive)
-                        amount(totals.expense, Colors.red),
+                        amount(totals.expense, expenseColor(context)),
                       if (totals != null && totals.income.isPositive)
-                        amount(totals.income, Colors.green),
+                        amount(totals.income, incomeColor(context)),
                     ],
                   ),
                 ),
@@ -442,7 +446,7 @@ class _DayDetails extends StatelessWidget {
         provider.groupedByDay[day] ?? const <ExpenseTransaction>[];
     final transfers = provider.transfersByDay[day] ?? const <Transfer>[];
     final totals = provider.dailyTotals[day];
-    String money(Money amount) => currency.format(amount.toDouble());
+    String money(Money amount) => currency.money(amount);
 
     void open(Widget screen) =>
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
@@ -490,9 +494,12 @@ class _DayDetails extends StatelessWidget {
                 trailing: TransactionRowTrailing(
                   transaction: tx,
                   amount: Text(
-                    '${isIncome ? '+' : '-'}${money(tx.amount)}',
-                    style: TextStyle(
-                      color: isIncome ? Colors.green : Colors.red,
+                    signedAmount(currency, tx.amount, isIncome: isIncome),
+                    // The sign stays in front of the amount in Arabic
+                    // (LANG-5, CUR-5).
+                    textDirection: TextDirection.ltr,
+                    style: amountStyle().copyWith(
+                      color: signedColor(context, isIncome: isIncome),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -510,7 +517,7 @@ class _DayDetails extends StatelessWidget {
                 provider.accountById(transfer.toAccountId)?.label(l10n) ?? '',
               ),
             ),
-            trailing: Text(money(transfer.amount)),
+            trailing: Text(money(transfer.amount), style: amountStyle()),
             onTap: () => open(TransferScreen(editing: transfer)),
           ),
         // NOTE-5, INS-1: open notes due this day.
@@ -560,7 +567,7 @@ class _TrendTabState extends State<_TrendTab> {
     final compact = settings.compactCurrencyFormat(locale);
     final small = theme.textTheme.labelSmall;
     final trend = provider.trend(_count);
-    String money(Money amount) => currency.format(amount.toDouble());
+    String money(Money amount) => currency.money(amount);
 
     // Periods that haven't started don't pull the averages down (INS-2).
     final started = [
@@ -679,10 +686,12 @@ class _TrendTabState extends State<_TrendTab> {
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
-                        currency.format(rod.toY),
-                        const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
+                        currency.money(Money((rod.toY * 1000).round())),
+                        amountStyle(
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                 ),
@@ -709,9 +718,11 @@ class _TrendTabState extends State<_TrendTab> {
             ),
             trailing: Text(
               money(totals.net),
-              style: TextStyle(
+              style: amountStyle().copyWith(
                 fontWeight: FontWeight.w600,
-                color: totals.net.isNegative ? Colors.red : Colors.green,
+                // CUR-5: a net can fall either way, so it is coloured only
+                // when it is below zero.
+                color: balanceColor(context, totals.net),
               ),
             ),
           ),

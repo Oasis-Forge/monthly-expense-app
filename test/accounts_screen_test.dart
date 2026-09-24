@@ -50,7 +50,7 @@ void main() {
 
     expect(find.text('acc-cash'), findsOneWidget);
     expect(find.text('Cash'), findsOneWidget);
-    expect(find.text('\$100.00'), findsOneWidget);
+    expect(find.text('\$100'), findsOneWidget);
   });
 
   testWidgets('adds an account with an opening balance (ACC-1)', (
@@ -72,7 +72,7 @@ void main() {
 
     expect(find.byType(AccountEditScreen), findsNothing);
     expect(find.text('Savings'), findsOneWidget);
-    expect(find.text('\$250.00'), findsOneWidget);
+    expect(find.text('\$250'), findsOneWidget);
     expect(provider.activeAccounts.last.type, AccountType.bank);
   });
 
@@ -190,5 +190,24 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(TransferScreen), findsOneWidget);
+  });
+
+  testWidgets('the accounts add up under the list, past the first (ACC-10)', (
+    tester,
+  ) async {
+    await showAccounts(tester);
+
+    // One account has nothing to add up; the row would only repeat it.
+    expect(find.text('Total'), findsNothing);
+
+    await addBank();
+    await showAccounts(tester);
+
+    final total = find.widgetWithText(ListTile, 'Total');
+    expect(total, findsOneWidget);
+    expect(
+      find.descendant(of: total, matching: find.text('\$100')),
+      findsOneWidget,
+    );
   });
 }

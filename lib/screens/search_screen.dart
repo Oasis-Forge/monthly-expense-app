@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/csv_export.dart';
+import '../models/money.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'amount_style.dart';
 import 'csv_export_action.dart';
 import 'report_screen.dart';
 import 'transaction_detail_screen.dart';
@@ -181,8 +183,8 @@ class _SearchScreenState extends State<SearchScreen> {
               child: Text(
                 l10n.searchSummary(
                   result.transactions.length,
-                  currency.format(result.income.toDouble()),
-                  currency.format(result.expense.toDouble()),
+                  currency.money(result.income),
+                  currency.money(result.expense),
                 ),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
@@ -217,7 +219,7 @@ class _ResultTile extends StatelessWidget {
     final provider = context.watch<TransactionProvider>();
     final category = provider.categoryById(transaction.categoryId);
     final isIncome = transaction.type == TransactionType.income;
-    final color = isIncome ? Colors.green : Colors.red;
+    final color = signedColor(context, isIncome: isIncome);
 
     return ListTile(
       // The category's colour (CAT-6); the amount carries income and expense.
@@ -236,8 +238,12 @@ class _ResultTile extends StatelessWidget {
       trailing: TransactionRowTrailing(
         transaction: transaction,
         amount: Text(
-          '${isIncome ? '+' : '-'}${currency.format(transaction.amount.toDouble())}',
-          style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          signedAmount(currency, transaction.amount, isIncome: isIncome),
+          // The sign stays in front of the amount in Arabic (LANG-5, CUR-5).
+          textDirection: TextDirection.ltr,
+          style: amountStyle(
+            TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
         ),
       ),
       onTap: () => Navigator.of(context).push(

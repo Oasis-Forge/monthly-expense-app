@@ -386,6 +386,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get archivedHeader => 'Đã lưu trữ';
 
   @override
+  String get accountsTotalLabel => 'Tổng';
+
+  @override
   String get categorySaveFailed => 'Không thể lưu danh mục. Vui lòng thử lại.';
 
   @override
@@ -572,6 +575,31 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get rulesHeader => 'Quy tắc';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '$amount mỗi tháng tiền hóa đơn';
+  }
+
+  @override
+  String nextBillToday(String title) {
+    return 'Tiếp theo: $title, hôm nay';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Tiếp theo: $title, ngày mai';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Tiếp theo: $title, sau $days ngày',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'Không có gì trong 30 ngày tới.';

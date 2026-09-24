@@ -386,6 +386,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get archivedHeader => 'آرکائیو شدہ';
 
   @override
+  String get accountsTotalLabel => 'کل';
+
+  @override
   String get categorySaveFailed =>
       'کیٹیگری محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔';
 
@@ -573,6 +576,31 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get rulesHeader => 'قواعد';
+
+  @override
+  String billsPerMonth(String amount) {
+    return 'بلوں میں ماہانہ $amount';
+  }
+
+  @override
+  String nextBillToday(String title) {
+    return 'اگلا: $title، آج';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'اگلا: $title، کل';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'اگلا: $title، $days دن میں',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'اگلے 30 دنوں میں کچھ نہیں۔';

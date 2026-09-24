@@ -89,4 +89,30 @@ void main() {
       }
     });
   }
+
+  // A plural case written as `=1` is compiled into the CLDR category of the
+  // same name, and several languages put more than the literal value in it:
+  // Russian's "one" holds 21 and 31 as well, so a bill three weeks off once
+  // announced itself as "tomorrow". Today and tomorrow are their own
+  // messages now, and this is the guard that keeps them that way (RCR-8).
+  test('a day count never renders as today or tomorrow', () {
+    for (final locale in AppLocalizations.supportedLocales) {
+      final l10n = lookupAppLocalizations(locale);
+      final today = l10n.nextBillToday('X');
+      final tomorrow = l10n.nextBillTomorrow('X');
+      for (final days in [2, 3, 5, 11, 21, 22, 30]) {
+        final line = l10n.nextBill(days, 'X');
+        expect(
+          line,
+          isNot(today),
+          reason: '${locale.languageCode} says "today" at $days days',
+        );
+        expect(
+          line,
+          isNot(tomorrow),
+          reason: '${locale.languageCode} says "tomorrow" at $days days',
+        );
+      }
+    }
+  });
 }

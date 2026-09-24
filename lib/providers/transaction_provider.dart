@@ -361,6 +361,16 @@ class TransactionProvider extends ChangeNotifier {
   /// The account's balance today: its opening balance from the opening date,
   /// plus income, minus expense, minus transfers out, plus transfers in
   /// (ACC-4). Future-dated entries don't count yet (BAL-4).
+  /// What the active accounts come to together (ACC-10). Archived accounts
+  /// are money already put away and stay out of it (ACC-5).
+  Money get accountsTotal {
+    var total = Money.zero;
+    for (final account in activeAccounts) {
+      total += accountBalance(account.id);
+    }
+    return total;
+  }
+
   Money accountBalance(String id) {
     final account = accountById(id);
     var balance = account != null && !isUpcomingDate(account.openingDate)
@@ -1313,6 +1323,41 @@ class TransactionProvider extends ChangeNotifier {
       from: DateTime(today.year, today.month, today.day + 1),
       to: DateTime(today.year, today.month, today.day + upcomingDays),
     );
+  }
+
+  /// What the expense rules come to in a month, added up (RCR-8). Income
+  /// rules are left out: a figure running both ways at once answers nothing.
+  Money get monthlyBills {
+    final today = _today;
+    var total = Money.zero;
+    for (final rule in _rules) {
+      if (rule.type != TransactionType.expense) continue;
+      if (!rule.isActiveOn(today)) continue;
+      total += rule.monthlyCost;
+    }
+    return total;
+  }
+
+  /// What falls next and is still waiting: one due today, else the first of
+  /// the upcoming days (RCR-8). Anything overdue belongs to the due list.
+  ScheduledOccurrence? get nextScheduled {
+    final today = _today;
+    for (final occurrence in dueOccurrences) {
+      if (_isToday(occurrence.date, today)) return occurrence;
+    }
+    final upcoming = upcomingOccurrences;
+    return upcoming.isEmpty ? null : upcoming.first;
+  }
+
+  /// Whole days from today to [date], so a screen can say when something
+  /// falls without a clock of its own.
+  int daysUntil(DateTime date) {
+    final today = _today;
+    return DateTime.utc(
+      date.year,
+      date.month,
+      date.day,
+    ).difference(DateTime.utc(today.year, today.month, today.day)).inDays;
   }
 
   List<ScheduledOccurrence> _scheduled({

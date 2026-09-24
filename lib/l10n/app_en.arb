@@ -284,6 +284,10 @@
   "unarchiveAction": "Unarchive",
   "deleteAction": "Delete",
   "archivedHeader": "Archived",
+  "accountsTotalLabel": "Total",
+  "@accountsTotalLabel": {
+    "description": "Row label under the account list on the Accounts screen, whose trailing figure is every active account's balance added up (ACC-10)."
+  },
   "categorySaveFailed": "Couldn't save the category. Try again.",
   "accountsTitle": "Accounts",
   "accountCash": "Cash",
@@ -423,6 +427,45 @@
   "dueHeader": "Due",
   "upcomingHeader": "Next 30 days",
   "rulesHeader": "Rules",
+  "billsPerMonth": "{amount} a month in bills",
+  "@billsPerMonth": {
+    "description": "Header on the Recurring screen: what every active expense rule adds up to per month (RCR-8). {amount} arrives already formatted as currency.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "nextBillToday": "Next: {title}, today",
+  "@nextBillToday": {
+    "description": "Recurring header when the next entry falls today (RCR-8).",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "nextBillTomorrow": "Next: {title}, tomorrow",
+  "@nextBillTomorrow": {
+    "description": "Recurring header when the next entry falls tomorrow (RCR-8).",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "nextBill": "{days, plural, other{Next: {title}, in {days} days}}",
+  "@nextBill": {
+    "description": "Recurring header when the next entry is two or more days off; today and tomorrow have messages of their own (RCR-8).",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "nothingUpcoming": "Nothing in the next 30 days.",
   "noRules": "No recurring transactions yet.",
   "postButton": "Post",

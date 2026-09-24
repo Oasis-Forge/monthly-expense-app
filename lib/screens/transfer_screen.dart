@@ -10,6 +10,7 @@ import '../providers/transaction_provider.dart';
 import 'account_edit_screen.dart';
 import 'delete_snack_bar.dart';
 import 'form_fields.dart';
+import 'haptics.dart';
 
 /// Adds or edits a transfer between two accounts (ACC-3).
 class TransferScreen extends StatefulWidget {
@@ -107,6 +108,8 @@ class _TransferScreenState extends State<TransferScreen>
       return;
     }
     _saving = false;
+    // HAP-2: the same knock as the entry form, for the same reason.
+    saveFeedback();
     if (mounted) Navigator.of(context).pop();
   }
 

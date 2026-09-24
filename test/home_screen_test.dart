@@ -128,7 +128,7 @@ void main() {
     // day still carries a total of its own (DAY-7), so 12.50 shows twice: in
     // the summary and on lunch's day.
     expect(find.text('\$12.50'), findsNWidgets(2));
-    expect(find.text('\$40.00'), findsOneWidget);
+    expect(find.text('\$40'), findsOneWidget);
   });
 
   testWidgets('the balance carries forward from earlier periods (BAL-2)', (
@@ -142,7 +142,7 @@ void main() {
     await showHome(tester);
 
     expect(find.text('Balance'), findsOneWidget);
-    expect(find.text('Carried forward \$100.00'), findsOneWidget);
+    expect(find.text('Carried forward \$100'), findsOneWidget);
     expect(find.text('\$87.50'), findsOneWidget);
   });
 
@@ -423,8 +423,8 @@ void main() {
       expect(find.byType(BudgetProgress), findsNWidgets(2));
       // Each bar with what's spent of its limit and the share used, but not
       // the line under it, which stays in Insights.
-      expect(find.text('\$12.50 of \$125.00   10%'), findsOneWidget);
-      expect(find.text('\$12.50 of \$10.00   125%'), findsOneWidget);
+      expect(find.text('\$12.50 of \$125   10%'), findsOneWidget);
+      expect(find.text('\$12.50 of \$10   125%'), findsOneWidget);
       // Inside this card only: the summary card above it leads with exactly
       // this figure for the overall budget now, which is the one place on
       // Home BUD-10 lets it appear.
@@ -471,7 +471,7 @@ void main() {
       await tester.tap(find.text('Budgets'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Limit \$10.00'), findsOneWidget);
+      expect(find.text('Limit \$10'), findsOneWidget);
       expect(find.textContaining('%'), findsNothing);
     });
 
@@ -663,7 +663,7 @@ void main() {
     await showHome(tester);
 
     expect(find.text('acc-cash → bank'), findsOneWidget);
-    expect(find.text('\$50.00'), findsOneWidget);
+    expect(find.text('\$50'), findsOneWidget);
     // The summary's expense and lunch's own day total (DAY-7); the transfer
     // counts in neither.
     expect(find.text('\$12.50'), findsNWidgets(2));
@@ -797,7 +797,7 @@ void main() {
       await showHome(tester);
 
       // Each side twice: once in the summary, once on the day (DAY-7, DAY-8).
-      expect(find.text('\$30.00'), findsNWidgets(2));
+      expect(find.text('\$30'), findsNWidgets(2));
       expect(find.text('\$12.50'), findsNWidgets(2));
     });
 
@@ -1113,5 +1113,48 @@ void main() {
       expect(find.text('Welcome to Monthly Expenses'), findsOneWidget);
       expect(find.byType(DayStrip), findsOneWidget);
     });
+  });
+
+  testWidgets('a swipe ticks as it passes the point of no return (HAP-3)', (
+    tester,
+  ) async {
+    usePhoneScreen(tester);
+    final haptics = captureHaptics();
+    await showHome(tester);
+
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Lunch')),
+    );
+    await gesture.moveBy(const Offset(-40, 0));
+    await tester.pump();
+    expect(haptics, isEmpty);
+
+    await gesture.moveBy(const Offset(-160, 0));
+    await tester.pump();
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
+
+    // Nothing more on the way back, and nothing on the way out again.
+    await gesture.moveBy(const Offset(160, 0));
+    await tester.pump();
+    expect(haptics, ['HapticFeedbackType.selectionClick']);
+
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('the pinned summary card follows a currency change (CUR-3)', (
+    tester,
+  ) async {
+    await showHome(tester);
+    expect(find.textContaining('\$'), findsWidgets);
+
+    await settings.setCurrencyCode('JPY');
+    await tester.pumpAndSettle();
+
+    // The card is a pinned header and rebuilds only when its delegate says
+    // to: without the currency in that comparison it kept the old symbol
+    // while the rows below it had already changed.
+    expect(find.textContaining('\$'), findsNothing);
+    expect(find.textContaining('¥'), findsWidgets);
   });
 }

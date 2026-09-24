@@ -382,6 +382,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get archivedHeader => '보관됨';
 
   @override
+  String get accountsTotalLabel => '합계';
+
+  @override
   String get categorySaveFailed => '카테고리를 저장하지 못했어요. 다시 시도해 주세요.';
 
   @override
@@ -566,6 +569,31 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get rulesHeader => '규칙';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '월 청구액 $amount';
+  }
+
+  @override
+  String nextBillToday(String title) {
+    return '다음: $title, 오늘';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return '다음: $title, 내일';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '다음: $title, $days일 후',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => '앞으로 30일 안에는 없어요.';

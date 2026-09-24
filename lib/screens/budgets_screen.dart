@@ -135,9 +135,7 @@ class _BudgetTile extends StatelessWidget {
     return ListTile(
       leading: leading,
       title: Text(name),
-      trailing: Text(
-        limit == null ? l10n.noBudget : currency.format(limit.toDouble()),
-      ),
+      trailing: Text(limit == null ? l10n.noBudget : currency.money(limit)),
       onTap: () => _edit(context, limit),
     );
   }

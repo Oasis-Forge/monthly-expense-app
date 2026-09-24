@@ -67,6 +67,34 @@ class RecurringRule {
 
   bool get isPaused => pausedAt != null;
 
+  /// Whether the rule still has an occurrence to come on [today] or after it:
+  /// a paused rule has none for now (RCR-6), and one whose end has gone by
+  /// has none ever again (RCR-1).
+  bool isActiveOn(DateTime today) {
+    if (isPaused) return false;
+    return switch (endType) {
+      RecurrenceEnd.never => true,
+      RecurrenceEnd.onDate => !endDate!.isBefore(today),
+      RecurrenceEnd.afterCount => switch (occurrence((endCount ?? 0) - 1)) {
+        null => false,
+        final last => !last.isBefore(today),
+      },
+    };
+  }
+
+  /// What the rule comes to in a month, whatever it repeats on: the amount
+  /// times how often it falls in a year, over twelve (RCR-8). Ten a week is
+  /// 43.33 a month; 120 a year is 10; every second month halves.
+  Money get monthlyCost {
+    final perYear = switch (frequency) {
+      RecurrenceFrequency.day => 365 / interval,
+      RecurrenceFrequency.week => 52 / interval,
+      RecurrenceFrequency.month => 12 / interval,
+      RecurrenceFrequency.year => 1 / interval,
+    };
+    return Money((amount.thousandths * perYear / 12).round());
+  }
+
   /// The occurrence at [index] (0 is [startDate]), or null once the rule has
   /// ended.
   DateTime? occurrence(int index) {

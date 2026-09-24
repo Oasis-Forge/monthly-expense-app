@@ -317,4 +317,32 @@ void main() {
       expect(provider.recurringRuleById('Gym')!.isPaused, isFalse);
     });
   });
+
+  testWidgets('the screen says what the rules cost a month and what is next '
+      '(RCR-8)', (tester) async {
+    await showRecurring(tester);
+
+    // Rent 900 a month and Gym 30 a month, with Gym falling on the 20th.
+    expect(find.text('\$930 a month in bills'), findsOneWidget);
+    expect(find.text('Next: Gym, in 5 days'), findsOneWidget);
+  });
+
+  testWidgets('rules that are all income leave the total out (RCR-8)', (
+    tester,
+  ) async {
+    fake.rules
+      ..clear()
+      ..add(
+        testRule(
+          'Salary',
+          2000,
+          DateTime(2026, 9, 20),
+        ).copyWith(type: TransactionType.income),
+      );
+    await provider.load();
+    await showRecurring(tester);
+
+    expect(find.textContaining('a month in bills'), findsNothing);
+    expect(find.text('Next: Salary, in 5 days'), findsOneWidget);
+  });
 }

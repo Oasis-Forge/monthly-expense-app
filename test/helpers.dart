@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1035,4 +1035,23 @@ class FakeAttachments implements AttachmentService {
   @override
   Future<int> totalBytes() async =>
       stored.values.fold<int>(0, (total, bytes) => total + bytes.length);
+}
+
+/// Records the haptic feedback the app asks the phone for (HAP-1–HAP-4),
+/// newest last, as `HapticFeedbackType.selectionClick` and the like. The
+/// channel is put back at the end of the test.
+List<String> captureHaptics() {
+  final asked = <String>[];
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+  messenger.setMockMethodCallHandler(SystemChannels.platform, (call) async {
+    if (call.method == 'HapticFeedback.vibrate') {
+      asked.add(call.arguments as String);
+    }
+    return null;
+  });
+  addTearDown(
+    () => messenger.setMockMethodCallHandler(SystemChannels.platform, null),
+  );
+  return asked;
 }

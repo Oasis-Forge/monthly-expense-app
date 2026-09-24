@@ -4,9 +4,11 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/account.dart';
+import '../models/money.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'account_edit_screen.dart';
+import 'amount_style.dart';
 import 'transfer_screen.dart';
 
 /// Accounts with today's balances (ACC-4), and the way to add accounts and
@@ -44,6 +46,9 @@ class AccountsScreen extends StatelessWidget {
         children: [
           for (final account in provider.activeAccounts)
             _AccountTile(account: account),
+          // ACC-10: what they come to, under the last of them. With one
+          // account it would only repeat the row above it.
+          if (provider.activeAccounts.length > 1) const _AccountsTotal(),
           if (archived.isNotEmpty) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
@@ -79,15 +84,52 @@ class _AccountTile extends StatelessWidget {
       title: Text(account.label(l10n)),
       subtitle: Text(accountTypeLabel(account.type, l10n)),
       trailing: Text(
-        currency.format(balance.toDouble()),
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: balance.isNegative ? Colors.red : null,
+        currency.money(balance),
+        style: amountStyle(
+          TextStyle(
+            fontWeight: FontWeight.w600,
+            color: balanceColor(context, balance),
+          ),
         ),
       ),
       onTap: () => Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => AccountEditScreen(editing: account)),
       ),
+    );
+  }
+}
+
+/// What the active accounts add up to (ACC-10).
+class _AccountsTotal extends StatelessWidget {
+  const _AccountsTotal();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final provider = context.watch<TransactionProvider>();
+    final currency = context.watch<SettingsProvider>().currencyFormat(
+      l10n.localeName,
+    );
+    final total = provider.accountsTotal;
+
+    return Column(
+      children: [
+        const Divider(indent: 16, endIndent: 16),
+        ListTile(
+          title: Text(
+            l10n.accountsTotalLabel,
+            style: theme.textTheme.titleSmall,
+          ),
+          trailing: Text(
+            currency.money(total),
+            style: amountStyle(theme.textTheme.titleMedium).copyWith(
+              fontWeight: FontWeight.w700,
+              color: balanceColor(context, total),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/csv_import.dart';
+import '../models/money.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart' show foldForSearch;
 import '../providers/ads_provider.dart';
@@ -585,7 +586,7 @@ class _RowLine extends StatelessWidget {
           Text(
             amount == null
                 ? '—'
-                : '${_sign(row.type)}${currency.format(amount.toDouble())}',
+                : '${_sign(row.type)}${currency.money(amount)}',
             // The sign stays in front of the amount in Arabic (LANG-5).
             textDirection: TextDirection.ltr,
             style: TextStyle(

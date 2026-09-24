@@ -112,12 +112,12 @@ void main() {
         // Where the currency symbol sits is the locale's business; the sign
         // staying in front of its own digits is ours.
         expect(
-          RegExp(r'\+[^\d]{0,3}40\.00').hasMatch(text),
+          RegExp(r'\+[^\d]{0,3}40').hasMatch(text),
           isTrue,
           reason: '$code: $text',
         );
         expect(
-          RegExp(r'−[^\d]{0,3}25\.00').hasMatch(text),
+          RegExp(r'−[^\d]{0,3}25').hasMatch(text),
           isTrue,
           reason: '$code: $text',
         );

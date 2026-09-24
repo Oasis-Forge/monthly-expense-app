@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../l10n/app_localizations.dart';
 import '../models/amount_expression.dart';
 import '../models/money.dart';
+import 'haptics.dart';
 
 /// Amounts and expressions like `12.5+3` read left to right in every
 /// language, but sit on the label's side in right-to-left layouts (LANG-5).
@@ -75,7 +76,7 @@ mixin AmountEntry<T extends StatefulWidget> on State<T> {
         border: const OutlineInputBorder(),
         prefixText: '${currency.currencySymbol} ',
         helperText: isAmountExpression(amountController.text) && result != null
-            ? l10n.amountResult(currency.format(result.toDouble()))
+            ? l10n.amountResult(currency.money(result))
             : null,
       ),
       validator: (value) {
@@ -116,6 +117,10 @@ class AmountKeypad extends StatelessWidget {
     final next = key == 'back'
         ? (text.isEmpty ? text : text.substring(0, text.length - 1))
         : '$text$key';
+    // HAP-1: a key that changes nothing says nothing, so that the tick keeps
+    // meaning "that landed".
+    if (next == text) return;
+    keyFeedback();
     controller.value = TextEditingValue(
       text: next,
       selection: TextSelection.collapsed(offset: next.length),
@@ -154,7 +159,10 @@ class AmountKeypad extends StatelessWidget {
                     ),
                     'done' => IconButton(
                       tooltip: l10n.hideKeypadTooltip,
-                      onPressed: onDone,
+                      onPressed: () {
+                        keyFeedback();
+                        onDone();
+                      },
                       icon: const Icon(Icons.keyboard_hide_outlined),
                     ),
                     _ => TextButton(

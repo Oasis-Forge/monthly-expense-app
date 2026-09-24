@@ -744,4 +744,24 @@ void main() {
     expect(relaunched.transfers.single.id, 't');
     expect(relaunched.deletedTransfers, isEmpty);
   });
+
+  group('what the accounts come to (ACC-10)', () {
+    test('the active accounts are added up, archived ones left out', () async {
+      final provider = await loaded(
+        FakeDB(
+          accounts: [
+            testAccount(cash, opening: 100),
+            testAccount('bank', opening: 250),
+            testAccount('shoebox', opening: 40),
+          ],
+          transactions: [testTx('a', expense, 30, DateTime(2026, 9, 10))],
+        ),
+      );
+
+      expect(provider.accountsTotal, const Money(360000));
+
+      await provider.archiveAccount('shoebox');
+      expect(provider.accountsTotal, const Money(320000));
+    });
+  });
 }

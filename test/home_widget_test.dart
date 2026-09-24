@@ -103,9 +103,9 @@ void main() {
 
       final first = entriesOf(json).single;
       expect(first['period'], 'September 2026');
-      expect(first['income'], r'$200.00');
-      expect(first['expense'], r'$30.00');
-      expect(first['balance'], r'$170.00');
+      expect(first['income'], r'$200');
+      expect(first['expense'], r'$30');
+      expect(first['balance'], r'$170');
       expect(first.containsKey('budgetLeft'), isFalse);
     });
 
@@ -144,7 +144,7 @@ void main() {
       final under = await payload(
         timeline: [entry(budgetLeft: const Money(70000))],
       );
-      expect(entriesOf(under).single['budgetLeft'], r'$70.00');
+      expect(entriesOf(under).single['budgetLeft'], r'$70');
       expect(entriesOf(under).single['overBudget'], isFalse);
 
       final over = await payload(
@@ -215,7 +215,7 @@ void main() {
 
       expect(service.updates, isNotEmpty);
       final entries = entriesOf(service.last);
-      expect(entries.first['expense'], r'$30.00');
+      expect(entries.first['expense'], r'$30');
     });
 
     test('nothing is pushed before the first load', () async {
@@ -246,7 +246,7 @@ void main() {
       await pumpEventQueue();
 
       expect(service.updates.length, greaterThan(before));
-      expect(entriesOf(service.last).first['income'], r'$500.00');
+      expect(entriesOf(service.last).first['income'], r'$500');
     });
 
     test('a settings change reaches it too', () async {
@@ -282,7 +282,7 @@ void main() {
       await settings.setShowWidgetAmounts(true);
       await pumpEventQueue();
       expect(service.last['hideAmounts'], isFalse);
-      expect(entriesOf(service.last).first['expense'], r'$30.00');
+      expect(entriesOf(service.last).first['expense'], r'$30');
     });
 
     test('it stops pushing once disposed', () async {

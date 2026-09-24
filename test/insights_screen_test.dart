@@ -125,7 +125,7 @@ void main() {
       await showInsights(tester, spending);
 
       expect(
-        find.text('Total spent: \$40.00', skipOffstage: false),
+        find.text('Total spent: \$40', skipOffstage: false),
         findsOneWidget,
       );
       expect(find.text('Food', skipOffstage: false), findsOneWidget);
@@ -142,7 +142,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Total income: \$100.00', skipOffstage: false),
+        find.text('Total income: \$100', skipOffstage: false),
         findsOneWidget,
       );
       expect(find.text('Salary', skipOffstage: false), findsOneWidget);
@@ -174,10 +174,10 @@ void main() {
 
       expect(find.text('Budgets'), findsOneWidget);
       // September 15–30 is 16 days, today included.
-      expect(find.text('\$960.00 left · \$60.00 a day'), findsOneWidget);
-      expect(find.text('\$30.00 of \$46.00'), findsOneWidget);
-      expect(find.text('\$16.00 left · \$1.00 a day'), findsOneWidget);
-      expect(find.text('Over by \$5.00'), findsOneWidget);
+      expect(find.text('\$960 left · \$60 a day'), findsOneWidget);
+      expect(find.text('\$30 of \$46'), findsOneWidget);
+      expect(find.text('\$16 left · \$1 a day'), findsOneWidget);
+      expect(find.text('Over by \$5'), findsOneWidget);
     });
 
     testWidgets('the budgets button opens the budgets screen', (tester) async {
@@ -321,6 +321,19 @@ void main() {
 
       expect(find.text('Tap a day to see its transactions.'), findsOneWidget);
     });
+    testWidgets('a signed amount is laid out left to right (LANG-5)', (
+      tester,
+    ) async {
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+      await tester.tap(find.text('15'));
+      await tester.pumpAndSettle();
+
+      // The sign is added outside the currency's own isolate, so the row
+      // has to say which way the piece runs or Arabic moves it to the end.
+      final amount = tester.widget<Text>(find.textContaining('\$').last);
+      expect(amount.textDirection, TextDirection.ltr);
+    });
   });
 
   group('trend (INS-2)', () {
@@ -336,20 +349,20 @@ void main() {
       await openTab(tester, 'Trend');
 
       expect(
-        find.text('Average per period · Income \$50.00 · Expense \$15.00'),
+        find.text('Average per period · Income \$50 · Expense \$15'),
         findsOneWidget,
       );
       expect(
-        find.text('Income \$100.00 · Expense \$30.00', skipOffstage: false),
+        find.text('Income \$100 · Expense \$30', skipOffstage: false),
         findsOneWidget,
       );
-      expect(find.text('\$70.00', skipOffstage: false), findsOneWidget);
-      expect(find.text('-\$60.00', skipOffstage: false), findsOneWidget);
+      expect(find.text('\$70', skipOffstage: false), findsOneWidget);
+      expect(find.text('-\$60', skipOffstage: false), findsOneWidget);
 
       await tester.tap(find.text('12 months'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Average per period · Income \$25.00 · Expense \$7.50'),
+        find.text('Average per period · Income \$25 · Expense \$7.50'),
         findsOneWidget,
       );
     });
@@ -367,7 +380,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Average per period · Income \$75.00 · Expense \$22.50'),
+        find.text('Average per period · Income \$75 · Expense \$22.50'),
         findsOneWidget,
       );
     });
@@ -383,6 +396,22 @@ void main() {
       // would sit on top of the $3.5K one.
       expect(find.text('\$3.65K'), findsNothing);
       expect(find.text('\$3K'), findsOneWidget);
+    });
+    testWidgets('a net is coloured only when it is below zero (CUR-5)', (
+      tester,
+    ) async {
+      await showInsights(tester, history);
+      await openTab(tester, 'Trend');
+
+      // A period that came out ahead keeps the ordinary text colour; only
+      // the one below zero is painted, and in the app's own red.
+      final ahead = tester.widget<Text>(find.text('\$70', skipOffstage: false));
+      expect(ahead.style?.color, isNull);
+
+      final behind = tester.widget<Text>(
+        find.text('-\$60', skipOffstage: false),
+      );
+      expect(behind.style?.color, const Color(expenseInkLight));
     });
   });
 
@@ -408,13 +437,13 @@ void main() {
 
       await tester.tap(find.byTooltip('Previous period'));
       await tester.pumpAndSettle();
-      expect(find.text('\$30.00 left'), findsOneWidget);
+      expect(find.text('\$30 left'), findsOneWidget);
 
       await tester.tap(find.byTooltip('Next period'));
       await tester.tap(find.byTooltip('Next period'));
       await tester.pumpAndSettle();
-      expect(find.text('Limit \$50.00'), findsOneWidget);
-      expect(find.text('Limit \$10.00'), findsOneWidget);
+      expect(find.text('Limit \$50'), findsOneWidget);
+      expect(find.text('Limit \$10'), findsOneWidget);
     });
 
     testWidgets('upcoming entries in the day list are marked (BAL-4)', (

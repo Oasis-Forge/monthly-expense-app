@@ -390,6 +390,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get archivedHeader => 'Αρχειοθετημένα';
 
   @override
+  String get accountsTotalLabel => 'Σύνολο';
+
+  @override
   String get categorySaveFailed =>
       'Δεν ήταν δυνατή η αποθήκευση της κατηγορίας. Δοκιμάστε ξανά.';
 
@@ -579,6 +582,31 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get rulesHeader => 'Κανόνες';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '$amount τον μήνα σε λογαριασμούς';
+  }
+
+  @override
+  String nextBillToday(String title) {
+    return 'Επόμενο: $title, σήμερα';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Επόμενο: $title, αύριο';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Επόμενο: $title, σε $days ημέρες',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'Τίποτα τις επόμενες 30 ημέρες.';

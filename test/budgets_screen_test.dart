@@ -49,7 +49,7 @@ void main() {
 
     await setLimit(tester, 'Food', '300');
 
-    expect(find.text('\$300.00'), findsOneWidget);
+    expect(find.text('\$300'), findsOneWidget);
     expect(
       provider.budgetLimit('cat-food', provider.currentPeriod),
       const Money(300000),

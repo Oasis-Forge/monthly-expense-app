@@ -87,7 +87,7 @@ void main() {
     await showTrash(tester);
 
     expect(find.text('acc-cash → bank'), findsOneWidget);
-    expect(find.text('\$50.00 · deleted for good in 30 days'), findsOneWidget);
+    expect(find.text('\$50 · deleted for good in 30 days'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Restore').first);
     await tester.pumpAndSettle();

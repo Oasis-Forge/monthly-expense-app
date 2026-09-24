@@ -4,11 +4,13 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/money.dart';
 import '../models/note.dart';
 import '../models/transaction_filter.dart' show foldForSearch;
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import 'delete_snack_bar.dart';
+import 'haptics.dart';
 import 'note_form_screen.dart';
 
 enum _StatusFilter { open, done }
@@ -255,12 +257,14 @@ class _NoteTile extends StatelessWidget {
             ? l10n.noteFilterOverdue
             : DateFormat.yMMMEd(l10n.localeName).format(due),
       if (category != null) category.label(l10n),
-      if (note.amount != null) currency.format(note.amount!.toDouble()),
+      if (note.amount != null) currency.money(note.amount!),
     ];
 
     return Dismissible(
       key: ValueKey('note-${note.id}'),
       direction: DismissDirection.endToStart,
+      // HAP-3: as on the day list's rows.
+      onUpdate: swipeUpdate,
       background: Container(
         color: Colors.red,
         alignment: AlignmentDirectional.centerEnd,

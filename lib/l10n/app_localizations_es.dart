@@ -390,6 +390,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get archivedHeader => 'Archivadas';
 
   @override
+  String get accountsTotalLabel => 'Total';
+
+  @override
   String get categorySaveFailed =>
       'No se pudo guardar la categoría. Inténtalo de nuevo.';
 
@@ -579,6 +582,31 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get rulesHeader => 'Reglas';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '$amount al mes en facturas';
+  }
+
+  @override
+  String nextBillToday(String title) {
+    return 'Próximo: $title, hoy';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Próximo: $title, mañana';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Próximo: $title, en $days días',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'Nada en los próximos 30 días.';

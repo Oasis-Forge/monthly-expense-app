@@ -9,7 +9,9 @@ import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'amount_style.dart';
 import 'form_fields.dart';
+import 'haptics.dart';
 import 'recurring_rule_screen.dart';
 
 /// Recurring transactions: what's due and waiting for a tap (RCR-2), the
@@ -37,6 +39,8 @@ class RecurringScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: 88),
         children: [
+          // RCR-8: what the rules come to, and what falls next.
+          if (rules.isNotEmpty) const _BillsHeader(),
           if (due.isNotEmpty) ...[
             _Header(l10n.dueHeader),
             for (final occurrence in due) _DueTile(occurrence: occurrence),
@@ -80,14 +84,76 @@ class _Empty extends StatelessWidget {
       ListTile(title: Text(text, style: Theme.of(context).textTheme.bodySmall));
 }
 
+/// When the next entry falls (RCR-8). Today and tomorrow are messages of
+/// their own rather than `=0` and `=1` cases of the plural: gen_l10n compiles
+/// an explicit case into the CLDR category of the same name, and Russian's
+/// "one" category also holds 21 and 31 — which had a bill three weeks off
+/// announcing itself as "tomorrow".
+String _nextLine(AppLocalizations l10n, int days, String title) =>
+    switch (days) {
+      <= 0 => l10n.nextBillToday(title),
+      1 => l10n.nextBillTomorrow(title),
+      _ => l10n.nextBill(days, title),
+    };
+
+/// What the expense rules come to in a month, and what falls next (RCR-8).
+class _BillsHeader extends StatelessWidget {
+  const _BillsHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final provider = context.watch<TransactionProvider>();
+    final currency = context.watch<SettingsProvider>().currencyFormat(
+      l10n.localeName,
+    );
+    final bills = provider.monthlyBills;
+    final next = provider.nextScheduled;
+    // Rules that are all income, with nothing scheduled, leave nothing to say.
+    if (!bills.isPositive && next == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (bills.isPositive)
+            Text(
+              l10n.billsPerMonth(currency.money(bills)),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          if (next != null)
+            Text(
+              _nextLine(
+                l10n,
+                provider.daysUntil(next.date),
+                next.rule.label(
+                  provider.categoryById(next.rule.categoryId),
+                  l10n,
+                ),
+              ),
+              style: theme.textTheme.bodySmall,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// The signed amount of a rule, like a transaction row.
 String _signedAmount(
   RecurringRule rule,
   NumberFormat currency, [
   Money? amount,
 ]) {
-  final sign = rule.type == TransactionType.income ? '+' : '-';
-  return '$sign${currency.format((amount ?? rule.amount).toDouble())}';
+  return signedAmount(
+    currency,
+    amount ?? rule.amount,
+    isIncome: rule.type == TransactionType.income,
+  );
 }
 
 class _DueTile extends StatelessWidget {
@@ -123,10 +189,11 @@ class _DueTile extends StatelessWidget {
       ),
     );
     if (amount == null || !context.mounted) return;
-    await _run(
-      context,
-      () => provider.postOccurrence(occurrence, amount: amount),
-    );
+    await _run(context, () async {
+      await provider.postOccurrence(occurrence, amount: amount);
+      // HAP-2: a due entry posted with a tap is a record written.
+      saveFeedback();
+    });
   }
 
   @override
@@ -170,8 +237,11 @@ class _DueTile extends StatelessWidget {
                 child: Text(l10n.skipButton),
               ),
               FilledButton.tonal(
-                onPressed: () =>
-                    _run(context, () => provider.postOccurrence(occurrence)),
+                onPressed: () => _run(context, () async {
+                  await provider.postOccurrence(occurrence);
+                  // HAP-2: the same knock as the entry form.
+                  saveFeedback();
+                }),
                 child: Text(l10n.postButton),
               ),
             ],

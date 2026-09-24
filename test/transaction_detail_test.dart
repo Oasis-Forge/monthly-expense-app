@@ -92,7 +92,7 @@ void main() {
   testWidgets('income shows with a plus (DET-2)', (tester) async {
     await openDetail(tester, 'b');
 
-    expect(find.text('+\$3,000.00'), findsOneWidget);
+    expect(find.text('+\$3,000'), findsOneWidget);
     expect(find.text('Income'), findsOneWidget);
   });
 

@@ -396,6 +396,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get archivedHeader => 'Zarchiwizowane';
 
   @override
+  String get accountsTotalLabel => 'Suma';
+
+  @override
   String get categorySaveFailed =>
       'Nie udało się zapisać kategorii. Spróbuj ponownie.';
 
@@ -587,6 +590,34 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get rulesHeader => 'Reguły';
+
+  @override
+  String billsPerMonth(String amount) {
+    return '$amount miesięcznie na rachunki';
+  }
+
+  @override
+  String nextBillToday(String title) {
+    return 'Następny: $title, dziś';
+  }
+
+  @override
+  String nextBillTomorrow(String title) {
+    return 'Następny: $title, jutro';
+  }
+
+  @override
+  String nextBill(int days, String title) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Następny: $title, za $days dni',
+      many: 'Następny: $title, za $days dni',
+      few: 'Następny: $title, za $days dni',
+      one: 'Następny: $title, za $days dzień',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get nothingUpcoming => 'Nic w ciągu najbliższych 30 dni.';
