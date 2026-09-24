@@ -14,6 +14,7 @@ import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/backup_service.dart';
+import 'amount_style.dart';
 
 /// Reads a CSV another app wrote and shows what importing it would do, before
 /// any of it happens (IMP-1–IMP-8).
@@ -586,8 +587,13 @@ class _RowLine extends StatelessWidget {
           Text(
             amount == null
                 ? '—'
-                : '${_sign(row.type)}${currency.money(amount)}',
-            // The sign stays in front of the amount in Arabic (LANG-5).
+                : row.type == ImportedType.transfer
+                ? currency.money(amount)
+                : signedAmount(
+                    currency,
+                    amount,
+                    isIncome: row.type == ImportedType.income,
+                  ),
             style: TextStyle(
               color: skipLine == null ? null : scheme.onSurfaceVariant,
             ),
@@ -596,10 +602,4 @@ class _RowLine extends StatelessWidget {
       ),
     );
   }
-
-  static String _sign(ImportedType type) => switch (type) {
-    ImportedType.income => '+',
-    ImportedType.expense => '−',
-    ImportedType.transfer => '',
-  };
 }

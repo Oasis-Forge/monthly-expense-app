@@ -49,6 +49,8 @@ class ReportLabels {
 
   String get localeName => l10n.localeName;
   String money(Money amount) => currency.money(amount);
+  String signed(Money amount, {required bool isIncome}) =>
+      currency.signedMoney(amount, isIncome: isIncome);
   String day(DateTime date) => DateFormat.MMMd(localeName).format(date);
   String fullDay(DateTime date) => DateFormat.yMMMd(localeName).format(date);
   String month(DateTime date) => DateFormat.yMMM(localeName).format(date);
@@ -517,9 +519,12 @@ String _accountOf(ReportEntry entry, ReportLabels labels) {
 }
 
 String _amountOf(ReportEntry entry, ReportLabels labels) {
-  final money = labels.money(entry.amount);
-  if (entry.isTransfer) return money;
-  return entry.transaction!.type == TransactionType.income
-      ? '+$money'
-      : '−$money';
+  if (entry.isTransfer) return labels.money(entry.amount);
+  // Signed the way every screen signs (CUR-5), rather than by pasting a sign
+  // in front of the figures, which in Arabic lands outside the isolate the
+  // pattern draws and reads as the opposite side of the amount.
+  return labels.signed(
+    entry.amount,
+    isIncome: entry.transaction!.type == TransactionType.income,
+  );
 }

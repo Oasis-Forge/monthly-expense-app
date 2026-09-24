@@ -1,3 +1,4 @@
+import 'package:intl/number_symbols_data.dart' show numberFormatSymbols;
 import 'package:intl/intl.dart';
 
 /// An amount of money in whole thousandths of a currency unit, so sums never
@@ -52,6 +53,25 @@ extension MoneyFormat on NumberFormat {
         ? 0
         : maximumFractionDigits;
     return format(amount.toDouble());
+  }
+
+  /// [amount] with a plus on money coming in and a minus on money going out
+  /// (CUR-5). The amount is formatted negative so that the language's own
+  /// pattern decides where the sign belongs — before the symbol in English,
+  /// against the figures in Arabic — and money coming in takes a plus in that
+  /// same place. Pasted in front of the formatted amount instead, it would
+  /// fall outside the isolate the pattern draws round the figures (LANG-5),
+  /// and a right-to-left line would carry it off to the far end of the row,
+  /// away from the figures it belongs to.
+  String signedMoney(Money amount, {required bool isIncome}) {
+    final text = money(-amount);
+    if (!isIncome) return text;
+    // A language's own minus may carry a direction mark in front of it, and a
+    // pattern of our own writes the plain one, so both are looked for.
+    for (final minus in [numberFormatSymbols[locale]?.MINUS_SIGN ?? '-', '-']) {
+      if (text.contains(minus)) return text.replaceFirst(minus, '+');
+    }
+    return '+$text';
   }
 }
 

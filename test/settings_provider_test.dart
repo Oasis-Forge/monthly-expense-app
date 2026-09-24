@@ -152,6 +152,30 @@ void main() {
         // A sign needs none: the rule is for letters meeting digits.
         await settings.setCurrencyCode('USD');
         expect(settings.currencyFormat('en').format(12), '\$12.00');
+
+        // CLDR looks at the one character that touches the digits, not at
+        // whether the symbol has a letter in it somewhere: `R$` ends in a
+        // sign, so it stays against the number.
+        await settings.setCurrencyCode('BRL');
+        expect(
+          settings.currencyFormat('en').format(12),
+          isNot(contains('\u00A0')),
+          reason: settings.currencyFormat('en').format(12),
+        );
+
+        // The short form takes a symbol rather than a pattern, and has to
+        // carry the same space, or the calendar disagrees with the total
+        // printed above it.
+        await settings.setCurrencyCode('IDR');
+        expect(
+          settings.compactCurrencyFormat('id').format(1234.5),
+          startsWith('Rp\u00A0'),
+        );
+        await settings.setCurrencyCode('USD');
+        expect(
+          settings.compactCurrencyFormat('en').format(1234.5),
+          isNot(contains('\u00A0')),
+        );
       },
     );
 
