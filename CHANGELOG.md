@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.23.1] - 2026-09-24
+
+### Fixed
+- Russian counted wrongly at twenty-one. Because of the way plural rules work in Russian, numbers ending in 1 — 21, 31, 41 — were shown the wording meant for a single item: twenty-one search results read as "1 результат", and a repeating entry set to every 21 days described itself as "every day". Every counted message in the app now reads correctly at those numbers, in all twenty-one languages.
+
 ## [1.23.0] - 2026-09-24
 
 ### Added
