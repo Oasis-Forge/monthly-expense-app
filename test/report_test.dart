@@ -37,6 +37,7 @@ void main() {
     String? accountId,
     bool Function(ExpenseTransaction)? matches,
     Money? Function(String)? budgetLimit,
+    bool Function(String)? isCategoryArchived,
     int startDay = 1,
     ReportOptions options = const ReportOptions(),
   }) => buildReport(
@@ -49,6 +50,7 @@ void main() {
     accountId: accountId,
     matches: matches,
     budgetLimit: budgetLimit,
+    isCategoryArchived: isCategoryArchived,
     startDay: startDay,
     options: options,
   );
@@ -309,6 +311,47 @@ void main() {
       expect(data.expenseCategories.single.amount.toDouble(), 45);
       expect(data.expenseCategories.single.budget, isNull);
       expect(data.expenseCategories.single.budgetUsed, isNull);
+    });
+
+    test('the current period carries no budget for an archived category '
+        '(BUD-5, review-pdf-archived-budget)', () {
+      final data = report(
+        transactions: [
+          testTx(
+            'a',
+            TransactionType.expense,
+            60,
+            DateTime(2026, 9, 2),
+            categoryId: 'cat-food',
+          ),
+        ],
+        budgetLimit: (id) => id == 'cat-food' ? const Money(100000) : null,
+        isCategoryArchived: (id) => id == 'cat-food',
+      );
+
+      expect(data.expenseCategories.single.budget, isNull);
+      expect(data.expenseCategories.single.budgetUsed, isNull);
+    });
+
+    test('a past period still carries the budget an archived category had '
+        '(BUD-6, review-pdf-archived-budget)', () {
+      final data = report(
+        from: DateTime(2026, 8, 1),
+        to: DateTime(2026, 8, 31),
+        transactions: [
+          testTx(
+            'a',
+            TransactionType.expense,
+            60,
+            DateTime(2026, 8, 2),
+            categoryId: 'cat-food',
+          ),
+        ],
+        budgetLimit: (id) => id == 'cat-food' ? const Money(100000) : null,
+        isCategoryArchived: (id) => id == 'cat-food',
+      );
+
+      expect(data.expenseCategories.single.budget?.toDouble(), 100);
     });
   });
 
