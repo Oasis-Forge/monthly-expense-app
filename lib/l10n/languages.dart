@@ -54,16 +54,15 @@ Locale effectiveAppLocale(Locale? chosen) =>
     chosen ??
     resolveAppLocale(WidgetsBinding.instance.platformDispatcher.locales);
 
-/// First-day-of-week overrides for a region whose own convention intl's
-/// bundled data does not carry, checked directly against CLDR's own
-/// supplemental weekData. In [firstDayOfWeekIndex]'s own numbering (0 is
-/// Sunday).
+/// First-day-of-week overrides where PER-4's product choice differs from
+/// the region's own CLDR/intl convention, rather than a gap in intl's data.
+/// In [firstDayOfWeekIndex]'s own numbering (0 is Sunday).
 ///
-/// Portugal is Monday, the same as the rest of the EU (CLDR's weekData:
-/// `PT` `firstDay="mon"`), but intl's `pt_PT` symbols still carry the same
-/// `FIRSTDAYOFWEEK` value as generic and Brazilian Portuguese (Sunday), so
-/// looking it up the way every other region below is looked up would still
-/// read Sunday.
+/// Portugal is Monday here on purpose, not because CLDR calls for it: CLDR's
+/// own supplemental weekData lists `PT` under `firstDay="sun"`, and intl's
+/// `pt_PT` symbols agree (`FIRSTDAYOFWEEK` matches generic and Brazilian
+/// Portuguese, both Sunday). PER-4 chooses Monday for it anyway, to match
+/// the convention the rest of the EU actually follows day to day.
 const _weekStartOverrides = {'PT': 1};
 
 /// The device's own first day of the week (PER-4), from [deviceLocales]
