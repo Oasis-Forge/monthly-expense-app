@@ -412,6 +412,20 @@ void main() {
       },
     );
 
+    test('the overall offer starts from the period before the current one, '
+        'whichever is selected (BUD-11, rules-6-10#8)', () async {
+      fake.rows.addAll([
+        testTx('aug', expense, 80, DateTime(2026, 8, 10)),
+        testTx('aug-in', TransactionType.income, 999, DateTime(2026, 8, 11)),
+        testTx('jul', expense, 40, DateTime(2026, 7, 10)),
+      ]);
+      await reload();
+      expect(provider.lastPeriodExpense, const Money(80000));
+
+      provider.previousPeriod();
+      expect(provider.lastPeriodExpense, const Money(80000));
+    });
+
     test('after the start day moves, a change or removal still takes effect '
         'at once (BUD-5, PER-2, rules-6-10#5)', () async {
       // Set on the 1st-to-1st calendar: this version starts on 1 Sep.

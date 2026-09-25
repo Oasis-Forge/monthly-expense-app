@@ -1271,6 +1271,22 @@ class TransactionProvider extends ChangeNotifier {
   Money? budgetLimit(String? categoryId, [Period? period]) =>
       limitFor(_budgets, categoryId, period ?? _period);
 
+  /// What every account spent in the period before the current one, for the
+  /// overall budget's first figure (BUD-11, ACC-7). It does not follow the
+  /// selected period: the budget it seeds starts from the current one.
+  Money get lastPeriodExpense {
+    final period = currentPeriod.previous;
+    var total = Money.zero;
+    for (final tx in _transactions) {
+      if (tx.type == TransactionType.expense &&
+          period.contains(tx.date) &&
+          !isUpcoming(tx)) {
+        total += tx.amount;
+      }
+    }
+    return total;
+  }
+
   /// Sets a budget, or removes it with a null [limit], from the current
   /// period onward; earlier periods keep their limits (BUD-5).
   ///

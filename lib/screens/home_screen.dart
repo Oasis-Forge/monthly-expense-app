@@ -246,14 +246,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       heroLine: chosenAccount == null
                           ? provider.heroLine
                           : null,
-                      // BUD-11: offered only when there is no overall budget
-                      // to lead with, prefilled from the period before the
-                      // one on screen so the first budget is a correction.
+                      // BUD-11: offered only while the current period has no
+                      // overall budget, whichever period is on screen, and
+                      // prefilled from the period before the current one so
+                      // the first budget is a correction.
                       onSetBudget:
                           chosenAccount == null &&
-                              provider.budgetLimit(null) == null
+                              provider.budgetLimit(
+                                    null,
+                                    provider.currentPeriod,
+                                  ) ==
+                                  null
                           ? () {
-                              final last = provider.trend(2).first.expense;
+                              final last = provider.lastPeriodExpense;
                               // Nothing spent last period is nothing to learn
                               // from: an empty box beats a prefilled zero,
                               // which reads like a budget of none.
