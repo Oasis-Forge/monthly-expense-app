@@ -4,6 +4,26 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.30.0] - 2026-09-25
+
+### Fixed
+- Editing a recurring rule's schedule or end no longer posts or queues dates already past, and the repeat count has no limit (RCR-5, RCR-1).
+- Budgets: a change after moving the month start day now applies; the "Set a monthly budget" offer follows the current month and never overwrites a budget; an archived category's budget stops counting from the current month (BUD-5, BUD-11).
+- Deleting a recurring rule can be undone (DEL-2).
+- A PDF made from Search says it is narrowed to the search and reads amounts with the language's decimal mark; a year's or custom range's PDF no longer measures it against one month's budget (PDF-1, BUD-2).
+- With app lock on, the notification shade, a dialog or split-screen no longer blanks the app or closes the keypad (LOCK-2).
+- Trash emptied twice could come back through a Merge, and a Merge brought back photos of entries it left out (BAK-3, ATT-5).
+- Scrolling away while recording a voice note no longer loses it (ATT-4).
+- A full-screen ad no longer appears when a widget or shortcut tap leaves Insights (ADS-1).
+- A shortcut or widget tap asks before discarding a half-typed entry (ADD-9).
+- The app notices when the phone blocks notifications, says so in Settings, and no longer turns the reminder off as ignored (NUDGE-5, NUDGE-7).
+- CSV import no longer reads a bank's "Value Dt" date column as the amount, and matches more headers in Chinese, Japanese, Korean, Thai, Hindi, Vietnamese and Greek (IMP-3).
+- French, Portuguese, Hindi and Bengali no longer say "1" for zero results (LANG-7).
+- A release build without its signing key now stops instead of signing with the debug key.
+
+### Tests
+- About 75 new tests, including guards that no user data can reach an ad request and that consent comes before ads start (ADS-7, ADS-4).
+
 ## [1.29.0] - 2026-09-25
 
 ### Fixed
