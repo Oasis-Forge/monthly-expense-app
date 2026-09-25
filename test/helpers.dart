@@ -821,6 +821,12 @@ class FakeAdService implements AdService {
   /// Whether a full-screen request comes back with one (ADS-13).
   bool interstitialFills;
 
+  /// Whether a fetched interstitial's `show()` reports the ad was actually
+  /// displayed, or reports a failed show (ADS-13). A test sets this false to
+  /// simulate an ad that expired, or lost a race with another full-screen
+  /// surface, between being fetched and reaching its seam.
+  bool interstitialShowSucceeds = true;
+
   /// How many full-screen ads were asked for, shown, and let go unshown.
   int interstitialsRequested = 0;
   int interstitialsShown = 0;
@@ -831,7 +837,11 @@ class FakeAdService implements AdService {
     interstitialsRequested++;
     if (!canStart || !interstitialFills) return null;
     return LoadedInterstitial(
-      show: () async => interstitialsShown++,
+      show: () async {
+        final wasShown = interstitialShowSucceeds;
+        if (wasShown) interstitialsShown++;
+        return wasShown;
+      },
       dispose: () async => interstitialsDropped++,
     );
   }

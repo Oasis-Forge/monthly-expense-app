@@ -194,9 +194,14 @@ class AdsProvider extends ChangeNotifier {
       await ad.dispose();
       return;
     }
-    await ad.show();
-    _interstitialShown = true;
-    await _settings.spendAdActivity();
+    // Only a real display spends the day's showing or counts as having
+    // interrupted the session: a failed show costs the user nothing and the
+    // next seam may still try (ADS-13).
+    final wasShown = await ad.show();
+    if (wasShown) {
+      _interstitialShown = true;
+      await _settings.spendAdActivity();
+    }
   }
 
   /// Drops a primed interstitial without showing it: for a seam whose
