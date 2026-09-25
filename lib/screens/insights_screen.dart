@@ -390,7 +390,7 @@ class _DayCell extends StatelessWidget {
 
   final String label;
   final DayTotals? totals;
-  final NumberFormat compact;
+  final CompactCurrencyFormat compact;
   final bool isToday;
   final bool isSelected;
   final bool isUpcoming;

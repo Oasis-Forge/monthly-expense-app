@@ -281,17 +281,24 @@ class SettingsProvider extends ChangeNotifier {
   /// takes a symbol rather than a pattern, so CLDR's spacing goes on the
   /// symbol itself; without it the calendar would read `Rp1,2 rb` beside a
   /// total of `Rp 1.235` on the same screen (LANG-5).
-  NumberFormat compactCurrencyFormat(String locale) {
+  ///
+  /// Some locales' own compact suffix (`ألف`, `tys.`, `din`…) already touches
+  /// the symbol with a separator of its own, which intl gives no way to see
+  /// ahead of formatting; [CompactCurrencyFormat] collapses the resulting
+  /// double space rather than risk leaving none at all (LANG-5, CUR-2).
+  CompactCurrencyFormat compactCurrencyFormat(String locale) {
     final plain =
         _localSymbol(locale) ??
         NumberFormat.simpleCurrency(
           locale: locale,
           name: _currencyCode,
         ).currencySymbol;
-    return NumberFormat.compactCurrency(
-      locale: locale,
-      name: _currencyCode,
-      symbol: _spacedSymbol(locale, plain),
+    return CompactCurrencyFormat(
+      NumberFormat.compactCurrency(
+        locale: locale,
+        name: _currencyCode,
+        symbol: _spacedSymbol(locale, plain),
+      ),
     );
   }
 
@@ -777,4 +784,24 @@ class SettingsProvider extends ChangeNotifier {
       value == null ? null : DateTime.tryParse(value);
 
   static String _stamp(DateTime moment) => moment.toUtc().toIso8601String();
+}
+
+/// A compact currency formatter that never leaves a doubled space next to
+/// its symbol.
+///
+/// intl's own compact suffix (`ألف`, `tys.`, `din`…) sometimes already
+/// touches the symbol with a separator, and there is no way to see that
+/// ahead of formatting — [SettingsProvider.compactCurrencyFormat] adds its
+/// own CLDR spacing regardless, so the two can double up (LANG-5, CUR-2).
+/// This collapses any doubled space or no-break space back to one rather
+/// than risk removing the only one some locales actually need.
+class CompactCurrencyFormat {
+  const CompactCurrencyFormat(this._inner);
+
+  final NumberFormat _inner;
+
+  static final _doubledSpace = RegExp('[  ]{2,}');
+
+  String format(num amount) =>
+      _inner.format(amount).replaceAll(_doubledSpace, ' ');
 }

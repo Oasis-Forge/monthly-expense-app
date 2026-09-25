@@ -179,6 +179,43 @@ void main() {
       },
     );
 
+    test('compact amounts never carry a doubled space next to the symbol '
+        '(LANG-5, CUR-2, pr61#3)', () async {
+      // intl's own compact suffix (ألف, tys., din…) already touches the
+      // symbol with a separator in these locales; CLDR's own spacing
+      // (above) would double it up if left unchecked.
+      final settings = SettingsProvider(
+        await prefsWith({'currency_code': 'SAR'}),
+      );
+      expect(
+        settings.compactCurrencyFormat('ar').format(1234.5),
+        isNot(contains('  ')),
+      );
+      expect(
+        settings.compactCurrencyFormat('ar').format(1234.5),
+        isNot(contains('  ')),
+      );
+
+      await settings.setCurrencyCode('PLN');
+      expect(
+        settings.compactCurrencyFormat('pl').format(1234.5),
+        isNot(contains('  ')),
+      );
+
+      await settings.setCurrencyCode('CHF');
+      expect(
+        settings.compactCurrencyFormat('de').format(1234.5),
+        isNot(contains('  ')),
+      );
+
+      // A locale that needs one space still keeps exactly one.
+      await settings.setCurrencyCode('IDR');
+      expect(
+        settings.compactCurrencyFormat('id').format(1234.5),
+        contains('Rp '),
+      );
+    });
+
     test('the PDF report gets the symbol without the marks', () async {
       final settings = SettingsProvider(
         await prefsWith({'currency_code': 'SAR'}),
