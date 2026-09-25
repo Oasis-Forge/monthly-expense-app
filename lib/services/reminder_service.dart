@@ -170,11 +170,16 @@ abstract class ReminderService {
   /// cancelled only when that time changed or it passed more than
   /// [passedReminderGrace] ago; otherwise whatever is already pending (the
   /// device's own inexact alarm) is left alone rather than dropped for good
-  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]) -- unless app lock
-  /// just turned on, in which case that pending alarm is replaced right
-  /// away with the locked wording, so it never keeps showing the note's
-  /// text once locked. With [appLockOn], the notification names only the
-  /// app, not the note's text (LOCK-2).
+  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]) -- except that with
+  /// app lock on, every such reschedule checks what the device itself
+  /// currently has for it (never a memory of whether app lock just turned
+  /// on, which a cold start has none of) and rewords it once with the
+  /// locked wording: a delivered one still in the tray is replaced in
+  /// place, without alerting again, and a still-pending one is cancelled
+  /// and re-laid about a minute out with it. Once that copy already
+  /// carries the locked wording, later reschedules leave it alone
+  /// (x-reminder-lock-keep, see [lockKeepActionFor]). With [appLockOn], the
+  /// notification names only the app, not the note's text (LOCK-2).
   Future<void> schedule(
     Note note, {
     required bool appLockOn,
