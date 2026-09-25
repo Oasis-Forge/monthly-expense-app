@@ -205,10 +205,18 @@ class DBHelper {
       }
       final batch = txn.batch();
       for (final MapEntry(key: id, value: updatedAt) in purged.entries) {
-        batch.insert('purged_records', {
-          'id': id,
-          'updated_at': updatedAt,
-        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        // A row purged once already (its own earlier deletion, now gone)
+        // keeps the LATEST updated_at rather than the first: an
+        // ConflictAlgorithm.ignore would leave a stale, earlier tombstone in
+        // place, letting a later merge from a backup whose edit falls
+        // between the two deletions bring the row back a second time
+        // (BAK-3, rules-1-5#7).
+        batch.rawInsert(
+          'INSERT INTO purged_records(id, updated_at) VALUES(?, ?) '
+          'ON CONFLICT(id) DO UPDATE SET '
+          'updated_at = MAX(updated_at, excluded.updated_at)',
+          [id, updatedAt],
+        );
       }
       await batch.commit(noResult: true);
     });

@@ -335,6 +335,53 @@ void main() {
       },
     );
 
+    test('purging the same id twice keeps the LATEST tombstone, not the first '
+        '(BAK-3, review-data-1)', () async {
+      final helper = helperAt('app.db');
+      // Deleted and purged once already: the tombstone from this purge is
+      // stale by the time it is challenged again below.
+      await helper.insertTransaction(
+        testTx('x', expense, 1, DateTime(2026, 6, 1)).copyWith(
+          updatedAt: DateTime.utc(2026, 7, 1),
+          deletedAt: DateTime.utc(2026, 7, 1),
+        ),
+      );
+      await helper.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+      expect(
+        (await helper.fetchPurgedIds())['x'],
+        DateTime.utc(2026, 7, 1).toIso8601String(),
+      );
+
+      // A merge brought it back with a later edit (Sep 20 beats the Jul 1
+      // tombstone, per rules-1-5#7): not deleted.
+      await helper.insertTransaction(
+        testTx(
+          'x',
+          expense,
+          1,
+          DateTime(2026, 9, 20),
+        ).copyWith(updatedAt: DateTime.utc(2026, 9, 20)),
+      );
+      // The user deletes it again on Oct 1 (updated_at Oct 1).
+      await helper.insertTransaction(
+        testTx('x', expense, 1, DateTime(2026, 9, 20)).copyWith(
+          updatedAt: DateTime.utc(2026, 10, 1),
+          deletedAt: DateTime.utc(2026, 10, 1),
+        ),
+      );
+      await helper.purgeDeletedBefore(DateTime.utc(2026, 11, 1));
+
+      // The tombstone must now be Oct 1, the LATEST updated_at purged for
+      // this id — not the stale Jul 1 from the first purge. Otherwise a
+      // later merge of a backup whose edit for 'x' falls between the two
+      // deletions (after Jul 1 but before Oct 1, e.g. Sep 20) would pass
+      // the tombstone check and bring 'x' back a second time.
+      expect(
+        (await helper.fetchPurgedIds())['x'],
+        DateTime.utc(2026, 10, 1).toIso8601String(),
+      );
+    });
+
     test('categories can be added and updated', () async {
       final helper = helperAt('app.db');
       final coffee = Category(

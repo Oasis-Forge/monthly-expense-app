@@ -241,6 +241,17 @@ class FakeDB extends DBHelper {
       if (row.deletedAt != null) row,
   ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
+  /// Records a purge like the real `purged_records` table does: the LATEST
+  /// `updated_at` for [id] wins, not the first (review-data-1). A purge
+  /// with an earlier `updated_at` than one already on file leaves the
+  /// existing, later tombstone in place.
+  void _recordPurge(String id, String updatedAt) {
+    final existing = purgedIds[id];
+    if (existing == null || existing.compareTo(updatedAt) < 0) {
+      purgedIds[id] = updatedAt;
+    }
+  }
+
   @override
   Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
     bool old(DateTime? deletedAt) => deletedAt?.isBefore(cutoff) ?? false;
@@ -249,16 +260,16 @@ class FakeDB extends DBHelper {
         if (old(row.deletedAt)) row,
     ];
     for (final row in going) {
-      purgedIds[row.id] = row.updatedAt.toUtc().toIso8601String();
+      _recordPurge(row.id, row.updatedAt.toUtc().toIso8601String());
     }
     for (final t in transfers) {
       if (old(t.deletedAt)) {
-        purgedIds[t.id] = t.updatedAt.toUtc().toIso8601String();
+        _recordPurge(t.id, t.updatedAt.toUtc().toIso8601String());
       }
     }
     for (final n in notes) {
       if (old(n.deletedAt)) {
-        purgedIds[n.id] = n.updatedAt.toUtc().toIso8601String();
+        _recordPurge(n.id, n.updatedAt.toUtc().toIso8601String());
       }
     }
     rows.removeWhere((row) => old(row.deletedAt));
