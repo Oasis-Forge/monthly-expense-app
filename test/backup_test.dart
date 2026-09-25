@@ -728,6 +728,45 @@ void main() {
     expect([for (final t in await device.fetchTransactions()) t.id], ['mine']);
   });
 
+  test(
+    'a Merge restore whose file write fails should not have already '
+    'committed the database (BAK-2, ATT-6, data-integrity#8, review-data-5)',
+    () async {
+      final device = helperAt('merge-write-fail.db');
+      await device.insertTransaction(tx('mine', title: 'Mine'));
+
+      final other = helperAt('other-merge-write-fail.db');
+      // Only in the backup, so Merge inserts it and its file must be
+      // written.
+      await other.insertTransaction(
+        tx('dinner', title: 'Dinner').copyWith(photoFile: 'photo1.jpg'),
+      );
+      final settings = await testSettings();
+      final backup = (await testBackupService(other).create(settings))
+          .withFiles({
+            'photo1.jpg': const [9],
+          });
+
+      final service = testBackupService(
+        device,
+        attachments: _ThrowingAttachments(),
+      );
+
+      await expectLater(
+        service.restore(backup, RestoreMode.merge, settings),
+        throwsException,
+      );
+
+      // Files are written before the merge is applied to the database
+      // (review-data-5): reverting that order would let this pass with the
+      // merge already committed despite the failed file write.
+      expect(
+        [for (final t in await device.fetchTransactions()) t.id],
+        ['mine'],
+      );
+    },
+  );
+
   test('a failed replace leaves the data as it was', () async {
     final helper = helperAt('app.db');
     await helper.insertTransaction(tx('mine'));
