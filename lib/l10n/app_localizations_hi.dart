@@ -28,6 +28,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get emptyPeriod => 'इस अवधि में अभी तक कोई लेनदेन नहीं।';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'इस अवधि में इस खाते के लिए कुछ नहीं है।';
+
+  @override
   String get balanceLabel => 'बैलेंस';
 
   @override

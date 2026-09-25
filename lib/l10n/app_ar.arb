@@ -6,6 +6,7 @@
   "searchTooltip": "بحث",
   "addButton": "إضافة",
   "emptyPeriod": "لا توجد معاملات في هذه الفترة بعد.",
+  "emptyPeriodFilteredByAccount": "لا شيء لهذا الحساب في هذه الفترة.",
   "balanceLabel": "الرصيد",
   "expandSummaryTooltip": "عرض الدخل والمصروفات",
   "collapseSummaryTooltip": "عرض الرصيد فقط",

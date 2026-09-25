@@ -28,6 +28,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get emptyPeriod => 'この期間の取引はまだありません。';
 
   @override
+  String get emptyPeriodFilteredByAccount => 'この期間、このアカウントには何もありません。';
+
+  @override
   String get balanceLabel => '残高';
 
   @override

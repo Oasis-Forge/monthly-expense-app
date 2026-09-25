@@ -139,7 +139,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
     final previous = isExpense
         ? provider.previousExpenseByCategory
         : provider.previousIncomeByCategory;
-    final comparable = provider.hasEarlierRecords;
+    final comparable = provider.hasComparablePreviousPeriod;
     final difference =
         total - previous.values.fold(Money.zero, (a, b) => a + b);
     final percent = NumberFormat.percentPattern(l10n.localeName)

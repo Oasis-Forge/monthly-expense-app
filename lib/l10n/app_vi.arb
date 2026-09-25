@@ -6,6 +6,7 @@
   "searchTooltip": "Tìm kiếm",
   "addButton": "Thêm",
   "emptyPeriod": "Chưa có giao dịch nào trong kỳ này.",
+  "emptyPeriodFilteredByAccount": "Không có gì cho tài khoản này trong kỳ này.",
   "balanceLabel": "Số dư",
   "expandSummaryTooltip": "Hiện thu và chi",
   "collapseSummaryTooltip": "Chỉ hiện số dư",

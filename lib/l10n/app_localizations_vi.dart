@@ -28,6 +28,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get emptyPeriod => 'Chưa có giao dịch nào trong kỳ này.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Không có gì cho tài khoản này trong kỳ này.';
+
+  @override
   String get balanceLabel => 'Số dư';
 
   @override

@@ -28,6 +28,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get emptyPeriod => 'Aucune transaction pour cette période.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Rien pour ce compte cette période.';
+
+  @override
   String get balanceLabel => 'Solde';
 
   @override

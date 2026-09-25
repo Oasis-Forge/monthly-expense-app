@@ -6,6 +6,7 @@
   "searchTooltip": "Zoeken",
   "addButton": "Toevoegen",
   "emptyPeriod": "Nog geen transacties in deze periode.",
+  "emptyPeriodFilteredByAccount": "Niets voor dit account deze periode.",
   "balanceLabel": "Saldo",
   "expandSummaryTooltip": "Inkomsten en uitgaven tonen",
   "collapseSummaryTooltip": "Alleen het saldo tonen",

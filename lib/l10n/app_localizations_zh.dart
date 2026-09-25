@@ -28,6 +28,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get emptyPeriod => '本期暂无交易记录。';
 
   @override
+  String get emptyPeriodFilteredByAccount => '本期该账户没有任何记录。';
+
+  @override
   String get balanceLabel => '结余';
 
   @override

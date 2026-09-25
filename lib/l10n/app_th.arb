@@ -6,6 +6,7 @@
   "searchTooltip": "ค้นหา",
   "addButton": "เพิ่ม",
   "emptyPeriod": "ยังไม่มีรายการในงวดนี้",
+  "emptyPeriodFilteredByAccount": "ไม่มีรายการสำหรับบัญชีนี้ในช่วงนี้",
   "balanceLabel": "ยอดคงเหลือ",
   "expandSummaryTooltip": "แสดงรายรับและรายจ่าย",
   "collapseSummaryTooltip": "แสดงเฉพาะยอดคงเหลือ",

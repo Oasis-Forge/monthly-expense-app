@@ -479,6 +479,55 @@ void main() {
     expect(find.byType(RecurringScreen), findsOneWidget);
   });
 
+  group("the account filter's empty message (EMPTY-4, ACC-6)", () {
+    testWidgets(
+      'says nothing matched this account, with a way back to every one',
+      (tester) async {
+        // Bank has nothing in August; Cash (the seeded transactions'
+        // account) has an entry there, so the period isn't really empty.
+        fake.accounts.add(testAccount('bank'));
+        fake.rows.add(
+          testTx('aug', TransactionType.expense, 5, DateTime(2026, 8, 10)),
+        );
+        await provider.load();
+        provider.selectAccountFilter('bank');
+
+        await showHome(tester);
+        // A period containing today always has a day selected, so the
+        // empty-period message only ever shows for a different one (DAY-6).
+        await tester.tap(find.byTooltip('Previous period'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('No transactions in this period yet.'), findsNothing);
+        expect(
+          find.text('Nothing for this account this period.'),
+          findsOneWidget,
+        );
+
+        await settings.setAccountFilterId('bank');
+        await tester.tap(find.text('All accounts'));
+        await tester.pumpAndSettle();
+
+        expect(provider.accountFilterId, isNull);
+        expect(find.text('aug'), findsOneWidget);
+        // The saved choice moves with it (EMPTY-4), or a relaunch would
+        // reopen filtered to Bank again.
+        expect(settings.accountFilterId, isNull);
+      },
+    );
+
+    testWidgets('a period empty for every account still says so plainly', (
+      tester,
+    ) async {
+      await showHome(tester);
+      await tester.tap(find.byTooltip('Previous period'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No transactions in this period yet.'), findsOneWidget);
+      expect(find.text('Nothing for this account this period.'), findsNothing);
+    });
+  });
+
   group('the budgets card (BUD-7, BUD-8)', () {
     Budget limit(String id, String? categoryId, int amount) => Budget(
       id: id,

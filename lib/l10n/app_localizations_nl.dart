@@ -28,6 +28,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get emptyPeriod => 'Nog geen transacties in deze periode.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Niets voor dit account deze periode.';
+
+  @override
   String get balanceLabel => 'Saldo';
 
   @override

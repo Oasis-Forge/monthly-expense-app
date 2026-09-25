@@ -6,6 +6,7 @@
   "searchTooltip": "Cari",
   "addButton": "Tambah",
   "emptyPeriod": "Belum ada transaksi di periode ini.",
+  "emptyPeriodFilteredByAccount": "Tidak ada untuk akun ini periode ini.",
   "balanceLabel": "Saldo",
   "expandSummaryTooltip": "Tampilkan pemasukan dan pengeluaran",
   "collapseSummaryTooltip": "Tampilkan saldo saja",

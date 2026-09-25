@@ -157,9 +157,8 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
-    final currency = context.watch<SettingsProvider>().currencyFormat(
-      l10n.localeName,
-    );
+    final settings = context.watch<SettingsProvider>();
+    final currency = settings.currencyFormat(l10n.localeName);
     final editing = widget.editing;
     final isArchived = editing?.archivedAt != null;
     final canLeaveActive = isArchived || provider.activeAccounts.length > 1;
@@ -186,7 +185,15 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
             IconButton(
               icon: const Icon(Icons.archive_outlined),
               tooltip: l10n.archiveAction,
-              onPressed: () => _run(() => provider.archiveAccount(editing.id)),
+              onPressed: () => _run(() async {
+                await provider.archiveAccount(editing.id);
+                // archiveAccount clears the in-memory choice once one
+                // active account is left (rules-6-10#10); save that so a
+                // later relaunch does not restore the old filter either.
+                if (provider.accountFilterId == null) {
+                  await settings.setAccountFilterId(null);
+                }
+              }),
             ),
           if (editing != null &&
               canLeaveActive &&

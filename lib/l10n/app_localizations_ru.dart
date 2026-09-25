@@ -28,6 +28,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get emptyPeriod => 'В этом периоде пока нет операций.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Ничего по этому счёту за этот период.';
+
+  @override
   String get balanceLabel => 'Баланс';
 
   @override

@@ -6,6 +6,7 @@
   "searchTooltip": "Szukaj",
   "addButton": "Dodaj",
   "emptyPeriod": "Brak transakcji w tym okresie.",
+  "emptyPeriodFilteredByAccount": "Nic dla tego konta w tym okresie.",
   "balanceLabel": "Saldo",
   "expandSummaryTooltip": "Pokaż wpływy i wydatki",
   "collapseSummaryTooltip": "Pokaż tylko saldo",

@@ -28,6 +28,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get emptyPeriod => 'Δεν υπάρχουν συναλλαγές σε αυτή την περίοδο.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Τίποτα για αυτόν τον λογαριασμό αυτήν την περίοδο.';
+
+  @override
   String get balanceLabel => 'Υπόλοιπο';
 
   @override

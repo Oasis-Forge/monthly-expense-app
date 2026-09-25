@@ -108,9 +108,6 @@ class TransactionProvider extends ChangeNotifier {
   /// account is chosen, so it is built at most once per change.
   _PeriodSummary? _everyAccountSummary;
 
-  /// The period before the selected one, for the category chart's comparison
-  /// (INS-6). Built only when that chart asks for it.
-  _PeriodSummary? _previousSummary;
   bool _loaded = false;
 
   /// Whether [load] has finished at least once.
@@ -177,11 +174,15 @@ class TransactionProvider extends ChangeNotifier {
 
   /// The account Home is showing, or null for every account (ACC-6). An
   /// account archived or removed since it was chosen reads as null rather
-  /// than showing an empty Home with no way back, and [selectAccountFilter]
-  /// is what writes it.
+  /// than showing an empty Home with no way back, and so does archiving
+  /// some *other* account down to a single active one: with only one
+  /// account left there is nothing to switch to, so the control that would
+  /// otherwise clear the filter is gone too (rules-6-10#10).
+  /// [selectAccountFilter] is what writes it.
   String? get accountFilterId {
     final id = _accountFilterId;
     if (id == null) return null;
+    if (activeAccounts.length < 2) return null;
     final account = accountById(id);
     return account != null && account.archivedAt == null ? id : null;
   }
@@ -683,12 +684,16 @@ class TransactionProvider extends ChangeNotifier {
       final old = _transactions[index];
       _transactions[index] = stamped;
       _transactions.sort(_newestFirst);
+      // The write has already succeeded, so the cached totals move with it
+      // regardless of what the cleanup below does (data-integrity#12):
+      // otherwise a throw from it would leave them stale even though the
+      // row itself is already saved.
+      _changed();
       // A photo or voice note that was replaced leaves its file (ATT-5).
       await _attachments.deleteAll([
         if (old.photoFile != stamped.photoFile) old.photoFile,
         if (old.voiceFile != stamped.voiceFile) old.voiceFile,
       ]);
-      _changed();
     }
   }
 
@@ -705,8 +710,18 @@ class TransactionProvider extends ChangeNotifier {
     await _db.updateTransaction(deleted);
     _transactions.removeWhere((t) => t.id == id);
     _deleted.insert(0, deleted);
-    await _reopenNoteFor(id);
+    // As in updateTransaction, ahead of the note side effect (NOTE-4)
+    // rather than after it (data-integrity#12), so totals follow the
+    // committed write even if the note step below throws. A second,
+    // dataChanged: false notification follows the note step, since it can
+    // change whether a note reads as due (NOTE-5) with no earlier
+    // notification of its own to piggyback on (data-integrity#12).
     _changed();
+    try {
+      await _reopenNoteFor(id);
+    } finally {
+      _changed(dataChanged: false);
+    }
   }
 
   /// Takes the transaction out of the trash with its original ID, date, and
@@ -724,8 +739,16 @@ class TransactionProvider extends ChangeNotifier {
     _transactions
       ..add(restored)
       ..sort(_newestFirst);
-    await _relinkNoteFor(id);
+    // Same ordering as delete and update, ahead of the note relink
+    // (data-integrity#12), and the same second notification once the
+    // relink finishes, so a note it marks done stops reading as due
+    // (NOTE-5) without waiting on some unrelated change.
     _changed();
+    try {
+      await _relinkNoteFor(id);
+    } finally {
+      _changed(dataChanged: false);
+    }
   }
 
   /// Saves a new transfer (ACC-3). Throws an [ArgumentError] when both sides
@@ -960,6 +983,13 @@ class TransactionProvider extends ChangeNotifier {
     await _saveAccounts([
       accountById(id)!.copyWith(archivedAt: _clock().toUtc()),
     ]);
+    // With one active account left, accountFilterId already falls back to
+    // every account (rules-6-10#10). Clear the stored choice too, so a
+    // later account that brings the count back to two does not silently
+    // restore it (already notified by _saveAccounts, above).
+    if (activeAccounts.length < 2) {
+      _accountFilterId = null;
+    }
   }
 
   Future<void> unarchiveAccount(String id) =>
@@ -2056,6 +2086,8 @@ class TransactionProvider extends ChangeNotifier {
     _summary = null;
     _everyAccountSummary = null;
     _previousSummary = null;
+    _previousSummaryDay = null;
+    _previousSummaryAccount = null;
     _balanceCache = null;
     _trendCache = null;
     _daysUsedCache = null;
@@ -2072,21 +2104,50 @@ class TransactionProvider extends ChangeNotifier {
     if (!listEquals(plan, _plannedNudges)) unawaited(_scheduleNudges(plan));
   }
 
-  /// The period before the selected one, for the comparison the category
-  /// chart draws (INS-6). It follows the chosen account exactly as the chart
-  /// does (ACC-7), and like the others it is built at most once per change.
+  /// The period before the selected one, bounded to the same number of days
+  /// the selected one has had so far, for the comparison the category chart
+  /// draws (INS-6, pr56+60#4): a partial current period is measured against
+  /// an equally partial previous one, not the whole of it, so an early-month
+  /// reading doesn't compare 3 days of spending against 31. It follows the
+  /// chosen account exactly as the chart does (ACC-7), and like the others
+  /// it is built at most once per change.
+  _PeriodSummary? _previousSummary;
+  DateTime? _previousSummaryDay;
+  String? _previousSummaryAccount;
+
+  /// The day [_previous] bounds itself to, so a category with nothing
+  /// dated on or before it reads the same as a category with no earlier
+  /// record at all (pr56+60#4). Counted on the calendar with [daysBetween]
+  /// and rebuilt with the plain [DateTime] constructor, not
+  /// `.difference().inDays` and `.add(Duration(...))`: those go through
+  /// the wall clock, so a daylight-saving change inside either span makes
+  /// the count a day short or the rebuilt date land on the wrong day.
+  ///
+  /// Only applied while the selected period is itself still in progress —
+  /// one already over is compared against the whole of the one before it,
+  /// since there is no "so far" left for it to match (pr56+60#4).
+  DateTime _previousAsOf(DateTime today) {
+    if (_period.timingOn(today) != PeriodTiming.current) return today;
+    final elapsedDays = daysBetween(_period.start, today);
+    final start = _period.previous.start;
+    return DateTime(start.year, start.month, start.day + elapsedDays);
+  }
+
   _PeriodSummary get _previous {
     final today = _today;
     final account = accountFilterId;
     final cached = _previousSummary;
     if (cached != null &&
-        cached.today == today &&
-        cached.accountId == account) {
+        _previousSummaryDay == today &&
+        _previousSummaryAccount == account) {
       return cached;
     }
+    final asOf = _previousAsOf(today);
+    _previousSummaryDay = today;
+    _previousSummaryAccount = account;
     return _previousSummary = _PeriodSummary(
       _period.previous,
-      today,
+      asOf,
       _transactions,
       _transfers,
       _accounts,
@@ -2102,12 +2163,34 @@ class TransactionProvider extends ChangeNotifier {
   /// Whether anything at all was recorded before the selected period, for
   /// the chosen account. The earliest period on record has nothing to
   /// compare itself with, and a comparison against nothing reads as "you
-  /// spent nothing last month" (INS-6, ACC-7).
+  /// spent nothing last month" (INS-6, ACC-7). Kept for callers that mean
+  /// exactly that; the category chart's own comparison is gated by
+  /// [hasComparablePreviousPeriod] instead, since [_previous] bounds the
+  /// span it draws from and an earlier record outside that bound is no
+  /// more comparable than no record at all (pr56+60#4).
   bool get hasEarlierRecords {
     final account = accountFilterId;
     return _transactions.any(
       (tx) =>
           tx.date.isBefore(_period.start) &&
+          (account == null || tx.accountId == account),
+    );
+  }
+
+  /// Whether the category chart's comparison (INS-6) has a real previous
+  /// period to draw from, once bounded the same way [_previous] is: a
+  /// record dated before the bound doesn't feed it, so it must not count
+  /// as making the comparison possible either, or a partial history reads
+  /// as "you spent nothing last month" the moment its only earlier record
+  /// falls outside the bound (pr56+60#4).
+  bool get hasComparablePreviousPeriod {
+    final today = _today;
+    final asOf = _previousAsOf(today);
+    final account = accountFilterId;
+    return _transactions.any(
+      (tx) =>
+          tx.date.isBefore(_period.start) &&
+          !_dayOf(tx.date).isAfter(asOf) &&
           (account == null || tx.accountId == account),
     );
   }
@@ -2177,7 +2260,11 @@ class _PeriodSummary {
     var openingDuring = Money.zero;
     for (final account in accounts) {
       if (accountId != null && account.id != accountId) continue;
-      if (account.openingDate.isBefore(period.start)) {
+      // BAL-2, BAL-4, ACC-4: an opening date that hasn't arrived yet counts
+      // nowhere, carried-forward included -- otherwise a future period
+      // could carry forward a balance the account itself doesn't have yet.
+      if (account.openingDate.isBefore(period.start) &&
+          !_dayOf(account.openingDate).isAfter(today)) {
         openingBefore += account.openingBalance;
       } else if (period.contains(account.openingDate) &&
           !_dayOf(account.openingDate).isAfter(today)) {

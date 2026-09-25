@@ -6,6 +6,7 @@
   "searchTooltip": "تلاش",
   "addButton": "شامل کریں",
   "emptyPeriod": "اس مدت میں ابھی کوئی ٹرانزیکشن نہیں۔",
+  "emptyPeriodFilteredByAccount": "اس مدت میں اس اکاؤنٹ کے لیے کچھ نہیں۔",
   "balanceLabel": "بیلنس",
   "expandSummaryTooltip": "آمدنی اور اخراجات دکھائیں",
   "collapseSummaryTooltip": "صرف بیلنس دکھائیں",

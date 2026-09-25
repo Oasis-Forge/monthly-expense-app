@@ -6,6 +6,7 @@
   "searchTooltip": "Ara",
   "addButton": "Ekle",
   "emptyPeriod": "Bu dönemde henüz işlem yok.",
+  "emptyPeriodFilteredByAccount": "Bu dönemde bu hesap için hiçbir şey yok.",
   "balanceLabel": "Bakiye",
   "expandSummaryTooltip": "Gelir ve gideri göster",
   "collapseSummaryTooltip": "Yalnızca bakiyeyi göster",

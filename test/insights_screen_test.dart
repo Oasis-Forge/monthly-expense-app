@@ -239,6 +239,45 @@ void main() {
     });
 
     testWidgets(
+      'a partial current period compares with the same number of days last '
+      'month, not the whole of it (INS-6, pr56+60#4)',
+      (tester) async {
+        // Today is the 15th, 14 days into September, so the comparison is
+        // bounded to August 1–15. An entry on the 20th is past that bound
+        // and must not count, or a partial month would read as a much
+        // bigger drop than it is.
+        await showInsights(tester, [
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 3)),
+          testTx('b', TransactionType.expense, 50, DateTime(2026, 8, 20)),
+          testTx('c', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+        ]);
+
+        // 100 (bounded) against 60, not 150 against 60.
+        expect(find.text('\$40 less than last month'), findsOneWidget);
+        expect(find.text('-40%'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'the only earlier record falling after the bound reads as no earlier '
+      'record at all, not an empty comparison (INS-6, pr56+60#4)',
+      (tester) async {
+        // Today is the 15th, so the bound is August 1–15. The only record
+        // before September is on the 20th, past that bound: hasEarlierRecords
+        // alone would say yes, but the bounded comparison it feeds has
+        // nothing in it, which reads as "you spent nothing last month" --
+        // exactly what an empty comparison must never show.
+        await showInsights(tester, [
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 20)),
+          testTx('b', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+        ]);
+
+        expect(find.textContaining('than last month'), findsNothing);
+        expect(find.text('new'), findsNothing);
+      },
+    );
+
+    testWidgets(
       'a rising category shows a plus, and a change under half a percent '
       'shows no label at all (INS-6, pr61#5, pr56+60#2)',
       (tester) async {

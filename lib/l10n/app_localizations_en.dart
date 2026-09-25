@@ -28,6 +28,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyPeriod => 'No transactions in this period yet.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Nothing for this account this period.';
+
+  @override
   String get balanceLabel => 'Balance';
 
   @override
