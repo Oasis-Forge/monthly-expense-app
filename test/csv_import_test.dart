@@ -181,6 +181,39 @@ void main() {
 
       expect(matched.keys, {ImportField.date, ImportField.amount});
     });
+
+    test('a short alias only matches whole words, not a substring of another '
+        'word (IMP-3, IMP-6)', () {
+      // "Counterparty" contains the letters "art", the type alias, only
+      // as part of "party" -- it must not be read as the type column.
+      final matched = matchColumns(['Date', 'Amount', 'Counterparty']);
+
+      expect(matched.containsKey(ImportField.type), isFalse);
+    });
+
+    test('a bank statement "Value Dt" column is not guessed as the amount '
+        '(IMP-3, IMP-6, IMP-5)', () {
+      // The common Indian bank-statement layout: withdrawal and deposit
+      // are separate columns, neither of which is a recognised amount
+      // alias, and "Value Dt" reads as both the amount alias "value" and
+      // the date alias "dt". Guessing either would plan nonsense (a date
+      // read as a numeric amount, or a random column as the type); IMP-3
+      // says an unconfident column is left out, not guessed at.
+      final header = [
+        'Date',
+        'Narration',
+        'Chq./Ref.No.',
+        'Value Dt',
+        'Withdrawal Amt.',
+        'Deposit Amt.',
+        'Closing Balance',
+      ];
+
+      final matched = matchColumns(header);
+
+      expect(matched.containsKey(ImportField.amount), isFalse);
+      expect(matched[ImportField.date], 0);
+    });
   });
 
   group('reading a type (IMP-3)', () {

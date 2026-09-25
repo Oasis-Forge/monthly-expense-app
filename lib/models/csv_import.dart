@@ -145,6 +145,8 @@ const _aliases = <ImportField, List<String>>{
     'posted',
     'posting date',
     'value date',
+    'value dt',
+    'dt',
     'when',
     'tarih',
     'التاريخ',
@@ -407,10 +409,26 @@ Map<ImportField, int> matchColumns(List<String> header) {
       for (var column = 0; column < folded.length; column++) {
         if (taken.contains(column) || folded[column].isEmpty) continue;
         final name = folded[column];
-        final hit = entry.value.any(
-          (alias) => exact ? name == alias : name.contains(alias),
-        );
+        final words = name.split(' ');
+        final hit = entry.value.any((alias) {
+          if (exact) return name == alias;
+          // The loose pass matches a whole word of the header, never a
+          // substring buried inside another word ("Counterparty" must not
+          // match the type alias "art" just because "party" contains it).
+          // Aliases of three letters or fewer ("art", "tag", "day"...) are
+          // common enough as fragments of unrelated words that they are
+          // trusted only on an exact whole-header match, never loosely.
+          if (alias.length <= 3) return false;
+          return _wholeWordMatch(words, alias);
+        });
         if (!hit) continue;
+        if (!exact && _readsAsAnotherField(words, entry.key)) {
+          // The header also reads as a different field ("Value Dt" is both
+          // the amount alias "value" and the date alias "dt"): a column
+          // with competing meanings is left out rather than guessed at
+          // (IMP-3), instead of the loose pass picking one arbitrarily.
+          continue;
+        }
         matched[entry.key] = column;
         taken.add(column);
         break;
@@ -418,6 +436,33 @@ Map<ImportField, int> matchColumns(List<String> header) {
     }
   }
   return matched;
+}
+
+/// Whether the header words also whole-word match some field other than
+/// [field], regardless of alias length: a short alias is not trusted to
+/// pick a field on its own, but it is trusted to veto a different field's
+/// loose match when the same header could mean either.
+bool _readsAsAnotherField(List<String> words, ImportField field) => _aliases
+    .entries
+    .where((other) => other.key != field)
+    .any((other) => other.value.any((alias) => _wholeWordMatch(words, alias)));
+
+/// Whether [alias] (one or more space-separated words) appears as a
+/// contiguous run of whole words inside [nameWords].
+bool _wholeWordMatch(List<String> nameWords, String alias) {
+  final aliasWords = alias.split(' ');
+  if (aliasWords.length > nameWords.length) return false;
+  for (var start = 0; start + aliasWords.length <= nameWords.length; start++) {
+    var match = true;
+    for (var i = 0; i < aliasWords.length; i++) {
+      if (nameWords[start + i] != aliasWords[i]) {
+        match = false;
+        break;
+      }
+    }
+    if (match) return true;
+  }
+  return false;
 }
 
 /// Folds a header for comparison and reduces whatever separates its words —
