@@ -714,10 +714,32 @@ void main() {
 
       expect(categories, isNotEmpty);
       expect(categories.where((c) => c.color == null), isEmpty);
-      // Only colours the app itself offers, so an upgraded database and a
-      // fresh one are picking from the same sixteen.
+      // The values this merged step itself hands out, frozen here rather
+      // than read from the live categoryPalette (migrations.dart's own
+      // doc comment): the app's picker is free to move a colour for
+      // contrast (pr58#9) without rewriting what an old upgrade already
+      // did, so an upgraded database and a fresh one are not guaranteed to
+      // keep picking from the same sixteen forever.
+      const migrationV10Palette = [
+        0xFF6C5CE7,
+        0xFF00897B,
+        0xFFD84315,
+        0xFF1E88E5,
+        0xFFC2185B,
+        0xFF2E7D32,
+        0xFF8E24AA,
+        0xFF00838F,
+        0xFF5D4037,
+        0xFF3949AB,
+        0xFFE53935,
+        0xFF546E7A,
+        0xFFEF6C00,
+        0xFF00695C,
+        0xFF4527A0,
+        0xFFAD1457,
+      ];
       expect(
-        categories.where((c) => !categoryPalette.contains(c.color)),
+        categories.where((c) => !migrationV10Palette.contains(c.color)),
         isEmpty,
       );
       // Handed out in palette order, so the first screenful is not one

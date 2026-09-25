@@ -6,7 +6,12 @@ import 'transaction.dart';
 ///
 /// Every one of them carries white text, because the percentage label inside
 /// a pie slice is white — a pale swatch would read worse than the fixed
-/// palette it replaces.
+/// palette it replaces. As a swatch, a dot, or a pie slice, each one also
+/// carries meaning by colour alone, so THEME-4 holds it to WCAG's 3:1
+/// non-text bar against the surface it sits on, on every theme choice
+/// including true black (test/theme_test.dart, pr58#9). Six were originally
+/// picked too dark for that on a dark or black surface (2.0–2.8:1) and were
+/// lightened just enough to clear it, keeping their hue.
 const categoryPalette = <int>[
   0xFF6C5CE7,
   0xFF00897B,
@@ -14,16 +19,16 @@ const categoryPalette = <int>[
   0xFF1E88E5,
   0xFFC2185B,
   0xFF2E7D32,
-  0xFF8E24AA,
+  0xFFA028BF, // was 0xFF8E24AA
   0xFF00838F,
-  0xFF5D4037,
-  0xFF3949AB,
+  0xFF835A4E, // was 0xFF5D4037
+  0xFF4A5BC3, // was 0xFF3949AB
   0xFFE53935,
   0xFF546E7A,
   0xFFEF6C00,
-  0xFF00695C,
-  0xFF4527A0,
-  0xFFAD1457,
+  0xFF007365, // was 0xFF00695C
+  0xFF6C4BD3, // was 0xFF4527A0
+  0xFFBF1660, // was 0xFFAD1457
 ];
 
 /// The colour a new category should take: the first in [categoryPalette]
