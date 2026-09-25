@@ -46,6 +46,21 @@ void main() {
       expect(Money.tryParse('1.500', maxDecimals: 3), const Money(1500));
     });
 
+    test('reads the comma as the decimal mark for a language that writes it '
+        'that way (CUR-2, review#money-setup-snackbar)', () {
+      // fr, de, tr and the other comma-decimal languages show 1.5 TND as
+      // "1,500" (intl's own formatting), so the same text typed back in is
+      // no longer ambiguous once the caller says which mark is decimal.
+      expect(
+        Money.tryParse('1,500', maxDecimals: 3, decimalMark: ','),
+        const Money(1500),
+      );
+      // Where the caller says the comma is a grouping mark instead (the
+      // default, matching en and the other comma-grouping languages), the
+      // same text stays rejected rather than guessed.
+      expect(Money.tryParse('1,500', maxDecimals: 3, decimalMark: '.'), isNull);
+    });
+
     test('adds, negates, and formats for editing', () {
       expect(const Money(12500) + const Money(500), const Money(13000));
       expect(const Money(500) - const Money(1500), const Money(-1000));

@@ -1098,7 +1098,8 @@ class FakeUpdates implements UpdateService {
     this.supported = true,
     this.offered = false,
     this.downloads = true,
-  });
+    bool downloaded = false,
+  }) : alreadyDownloaded = downloaded;
 
   @override
   final bool supported;
@@ -1109,6 +1110,10 @@ class FakeUpdates implements UpdateService {
   /// Whether the background download finishes, rather than being declined
   /// or failing.
   final bool downloads;
+
+  /// Whether Play already has a finished download waiting from an earlier
+  /// run (UPD-1), so [download] should never be called.
+  final bool alreadyDownloaded;
 
   /// How many times Play was asked whether anything is waiting.
   int checked = 0;
@@ -1130,6 +1135,9 @@ class FakeUpdates implements UpdateService {
     started++;
     return downloads;
   }
+
+  @override
+  Future<bool> downloaded() async => alreadyDownloaded;
 
   @override
   Future<void> install() async => installed++;

@@ -62,6 +62,7 @@ class _SearchScreenState extends State<SearchScreen> {
       filter,
       categoryName: (category) => category.label(l10n),
       accountName: (account) => account.label(l10n),
+      decimalMark: currency.symbols.DECIMAL_SEP,
     );
     final categories = [
       for (final type in TransactionType.values)

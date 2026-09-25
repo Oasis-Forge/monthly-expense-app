@@ -375,6 +375,32 @@ void main() {
     expect(relaunched.currencyCode, 'EGP');
   });
 
+  test('an existing install backfills the currency it already showed, not '
+      'just a fresh one (CUR-1, CUR-3, RUN-3, RUN-5, '
+      'review#money-setup-snackbar)', () async {
+    // An install from before this fix: setup_done is already true (either
+    // completeSetup ran under the old code, which never saved the
+    // currency, or the RUN-5 update path derived it from first_opened_at),
+    // and currency_code was never written.
+    final prefs = await prefsWith({
+      'first_opened_at': '2026-01-04T08:00:00.000Z',
+      'setup_done': true,
+    });
+    final launch = SettingsProvider(prefs, deviceLocale: 'ar_EG');
+    expect(launch.currencyCode, 'EGP');
+
+    // The backfill write in the constructor is unawaited (RUN-5's own
+    // setup_done write-back is the same shape), so it needs a turn of the
+    // event loop before a second read of the same prefs would see it.
+    await Future<void>.delayed(Duration.zero);
+
+    // The device's language changes later; the currency this device has
+    // always shown must not silently follow it, even though this
+    // provider never called completeSetup itself.
+    final relaunched = SettingsProvider(prefs, deviceLocale: 'en_US');
+    expect(relaunched.currencyCode, 'EGP');
+  });
+
   test('language follows the device until one is chosen (LANG-1)', () async {
     final prefs = await prefsWith({'language': 'xx'});
     final settings = SettingsProvider(prefs);

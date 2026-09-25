@@ -172,14 +172,28 @@ void main() {
 
     await tester.tap(find.text('fail'));
     await tester.pump();
-    // Comfortably longer than a SnackBar's default duration, so a message
-    // that isn't stuck behind the restart offer would have had its turn
-    // by now.
-    await tester.pump(const Duration(seconds: 6));
+    // Comfortably longer than the restart bar's own 10 second duration, so a
+    // message that isn't stuck behind it would have had its turn by now.
+    await tester.pump(const Duration(seconds: 10));
     await tester.pump(const Duration(seconds: 1));
 
     expect(find.text('Could not save.'), findsOneWidget);
   });
+
+  testWidgets(
+    'a download Play already finished offers the restart without starting '
+    'another (UPD-1)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(downloaded: true);
+
+      await runSeam(tester, provider, settings, updates: updates);
+
+      expect(find.text('An update has been downloaded.'), findsOneWidget);
+      expect(updates.started, 0);
+      expect(settings.updateAskedOn, isNotNull);
+    },
+  );
 
   testWidgets('a download that never finished says nothing (UPD-1)', (
     tester,

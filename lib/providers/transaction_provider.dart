@@ -1173,9 +1173,10 @@ class TransactionProvider extends ChangeNotifier {
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
+    String decimalMark = '.',
   }) {
     final query = foldForSearch(filter.query.trim());
-    final queryAmount = Money.tryParse(filter.query);
+    final queryAmount = Money.tryParse(filter.query, decimalMark: decimalMark);
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
 

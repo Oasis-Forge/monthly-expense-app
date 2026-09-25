@@ -13,15 +13,28 @@ extension type const Money(int thousandths) {
   /// [maxDecimals] decimals (the currency's, CUR-2). Returns null for anything
   /// else, including negative numbers.
   ///
-  /// A comma followed by exactly [maxDecimals] digits is also rejected when
-  /// that is 3 (KWD, BHD, JOD, TND): `1,500` reads the same as a 3-decimal
-  /// fraction (1.5) or a thousands separator (1500), and guessing the
-  /// decimal reading would be silently off by 1000x. A period stays an
-  /// unambiguous decimal point, since it's what [toInputString] round-trips
-  /// through when an existing amount is edited again.
-  static Money? tryParse(String input, {int maxDecimals = 3}) {
+  /// [decimalMark] is the language's own decimal separator (a `NumberFormat`'s
+  /// `symbols.DECIMAL_SEP`, CUR-2): where it is `,` (French, German, Turkish,
+  /// and most other non-English languages), a comma is read as a decimal
+  /// point exactly like a period, since that's how the app's own amounts are
+  /// shown in that language. Where it is anything else, `,` is presumed to be
+  /// that language's thousands separator instead, and a comma followed by
+  /// exactly [maxDecimals] digits is rejected when that is 3 (KWD, BHD, JOD,
+  /// TND): `1,500` reads the same as a 3-decimal fraction (1.5) or a
+  /// thousands separator (1500), and guessing the decimal reading would be
+  /// silently off by 1000x. A period is always read as an unambiguous decimal
+  /// point regardless of [decimalMark], since it's what [toInputString]
+  /// round-trips through when an existing amount is edited again — so a
+  /// language that groups thousands with a period (German) can still be
+  /// misread this way; callers show the parsed amount back for a chance to
+  /// notice.
+  static Money? tryParse(
+    String input, {
+    int maxDecimals = 3,
+    String decimalMark = '.',
+  }) {
     final trimmed = input.trim();
-    if (maxDecimals == 3) {
+    if (maxDecimals == 3 && decimalMark != ',') {
       final comma = trimmed.lastIndexOf(',');
       if (comma >= 0 && trimmed.length - comma - 1 == 3) return null;
     }

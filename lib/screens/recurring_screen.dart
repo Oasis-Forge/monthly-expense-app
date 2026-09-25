@@ -361,6 +361,19 @@ class _PostDialogState extends State<_PostDialog> {
   );
 
   @override
+  void initState() {
+    super.initState();
+    // Live preview of the parsed amount (CUR-2): the system decimal keyboard
+    // reads '.' as a thousands separator in some languages, so a mistyped
+    // amount is shown back rather than saved silently wrong.
+    _controller.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -369,11 +382,13 @@ class _PostDialogState extends State<_PostDialog> {
   Money? _parse() => Money.tryParse(
     _controller.text,
     maxDecimals: widget.currency.maximumFractionDigits,
+    decimalMark: widget.currency.symbols.DECIMAL_SEP,
   );
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final amount = _controller.text.trim().isEmpty ? null : _parse();
     return AlertDialog(
       title: Text(widget.name),
       content: Form(
@@ -387,6 +402,9 @@ class _PostDialogState extends State<_PostDialog> {
           decoration: InputDecoration(
             labelText: l10n.amountLabel,
             prefixText: '${widget.currency.currencySymbol} ',
+            helperText: amount != null
+                ? l10n.amountResult(widget.currency.money(amount))
+                : null,
           ),
           validator: (_) {
             final amount = _parse();
