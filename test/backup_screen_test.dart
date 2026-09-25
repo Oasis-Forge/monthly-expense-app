@@ -12,6 +12,9 @@ import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
+import 'package:monthly_expense_app/screens/home_screen.dart';
+import 'package:monthly_expense_app/screens/search_screen.dart';
+import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
@@ -338,4 +341,82 @@ void main() {
     expect(titles(), ['Dinner']);
     expect(ads.interstitialsShown, 0);
   });
+
+  testWidgets(
+    'leaving Search, Settings, or Backup & restore through Home is never '
+    'a seam for the full-screen ad either (ADS-11, rules-22-25-31-35#11)',
+    (tester) async {
+      // Earned the way the restore test above earns it: only leaving
+      // Insights is a seam (HomeScreen._open checks `screen is
+      // InsightsScreen`), and this is what the re-check found missing --
+      // every other screen Home opens must prove the same, going through
+      // Home rather than pumping the screen on its own, or removing that
+      // check would still leave this suite green.
+      final earnedSettings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+        'ad_activity': SettingsProvider.adActivityThreshold,
+        'ad_activity_day': today.toUtc().toIso8601String(),
+      }, () => today);
+      final ads = FakeAdService(canStart: true, interstitialFills: true);
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          earnedSettings,
+          const HomeScreen(),
+          backup: service,
+          ads: ads,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Future<void> openAndReturn(
+        Future<void> Function() open,
+        Type screen,
+      ) async {
+        await open();
+        await tester.pumpAndSettle();
+        expect(find.byType(screen), findsOneWidget);
+        await tester.pageBack();
+        await tester.pumpAndSettle();
+        // None of these screens hold a keypad, so one Back is always
+        // enough (ADD-9 does not apply), but a second is harmless if it
+        // has already gone.
+        if (find.byType(screen).evaluate().isNotEmpty) {
+          await tester.pageBack();
+          await tester.pumpAndSettle();
+        }
+      }
+
+      await openAndReturn(
+        () => tester.tap(find.byTooltip('Search')),
+        SearchScreen,
+      );
+      await openAndReturn(
+        () => tester.tap(find.byTooltip('Settings')),
+        SettingsScreen,
+      );
+      await openAndReturn(() async {
+        await tester.tap(find.byTooltip('Open navigation menu'));
+        await tester.pumpAndSettle();
+        final label = find.text('Backup & restore');
+        await tester.scrollUntilVisible(
+          label,
+          120,
+          scrollable: find
+              .descendant(
+                of: find.byType(Drawer),
+                matching: find.byType(Scrollable),
+              )
+              .first,
+        );
+        await tester.tap(label);
+      }, BackupScreen);
+
+      expect(ads.interstitialsShown, 0);
+    },
+  );
 }
