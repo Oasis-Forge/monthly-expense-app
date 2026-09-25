@@ -1149,6 +1149,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appLockReason => 'Desbloquear Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Confirma tu identidad';
+
+  @override
   String get appLockFailed =>
       'No se pudo confirmar tu identidad. El bloqueo de la app no ha cambiado.';
 
@@ -1309,6 +1312,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Hay una nota que vence';
+
+  @override
+  String get noteReminderChannelName => 'Recordatorios de notas';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1776,6 +1782,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dueEntryReminderTitle => 'Un registro venció';
 
   @override
+  String get dueEntryChannelName => 'Registros vencidos';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title vencía hoy y sigue pendiente.';
   }
@@ -1797,6 +1806,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Nada registrado hoy';
+
+  @override
+  String get emptyDayChannelName => 'Días sin registrar';
 
   @override
   String get emptyDayReminderBody =>

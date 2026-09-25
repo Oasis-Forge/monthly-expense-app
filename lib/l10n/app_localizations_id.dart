@@ -1135,6 +1135,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get appLockReason => 'Buka kunci Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Konfirmasi identitas Anda';
+
+  @override
   String get appLockFailed =>
       'Gagal mengonfirmasi identitas Anda. Kunci aplikasi tidak diubah.';
 
@@ -1292,6 +1295,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Ada catatan jatuh tempo';
+
+  @override
+  String get noteReminderChannelName => 'Pengingat catatan';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1757,6 +1763,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get dueEntryReminderTitle => 'Entri jatuh tempo';
 
   @override
+  String get dueEntryChannelName => 'Entri yang jatuh tempo';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title jatuh tempo hari ini dan masih menunggu.';
   }
@@ -1778,6 +1787,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Belum ada catatan hari ini';
+
+  @override
+  String get emptyDayChannelName => 'Hari tanpa catatan';
 
   @override
   String get emptyDayReminderBody => 'Catat pengeluaranmu selagi masih ingat.';

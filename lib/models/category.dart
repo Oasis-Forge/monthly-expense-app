@@ -26,6 +26,22 @@ const categoryPalette = <int>[
   0xFFAD1457,
 ];
 
+/// The colour a new category should take: the first in [categoryPalette]
+/// not already worn by one of [liveCategories], so two categories never
+/// look alike while any unused colour remains (CAT-6). Once every colour is
+/// taken, wraps around and hands them out again in order rather than
+/// refusing one.
+int nextCategoryColor(List<Category> liveCategories) {
+  final used = {
+    for (final category in liveCategories)
+      if (category.color != null) category.color,
+  };
+  for (final color in categoryPalette) {
+    if (!used.contains(color)) return color;
+  }
+  return categoryPalette[liveCategories.length % categoryPalette.length];
+}
+
 /// A transaction category (CAT-1). Built-in defaults have a fixed [id] and a
 /// [defaultKey]; their name comes from translations until the user sets
 /// [name].

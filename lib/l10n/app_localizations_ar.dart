@@ -1172,6 +1172,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appLockReason => 'افتح قفل Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'تأكيد الهوية';
+
+  @override
   String get appLockFailed => 'تعذّر التحقق من هويتك. لم يتغير قفل التطبيق.';
 
   @override
@@ -1330,6 +1333,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'هناك ملاحظة مستحقة';
+
+  @override
+  String get noteReminderChannelName => 'تذكيرات بالملاحظات';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1816,6 +1822,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dueEntryReminderTitle => 'إدخال متكرر مستحق';
 
   @override
+  String get dueEntryChannelName => 'إدخالات مستحقة';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title كان مستحقًا اليوم ولا يزال بانتظارك.';
   }
@@ -1841,6 +1850,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'لا شيء مسجل اليوم';
+
+  @override
+  String get emptyDayChannelName => 'أيام بدون تسجيل';
 
   @override
   String get emptyDayReminderBody => 'أضف ما أنفقته بينما ما زلت تتذكره.';

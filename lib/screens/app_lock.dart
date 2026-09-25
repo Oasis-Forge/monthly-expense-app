@@ -199,9 +199,13 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
   Future<void> _unlock() async {
     if (_authenticating || !mounted) return;
     final authenticator = context.read<Authenticator>();
-    final reason = AppLocalizations.of(context).appLockReason;
+    final l10n = AppLocalizations.of(context);
     setState(() => _authenticating = true);
-    final result = await authenticator.authenticate(reason);
+    final result = await authenticator.authenticate(
+      l10n.appLockReason,
+      hint: l10n.appLockPromptHint,
+      cancelButton: l10n.cancelButton,
+    );
     // LOCK-3: without biometrics or a screen lock, nothing can confirm the
     // owner, so app lock turns off rather than lock the data away.
     if (result == AuthResult.unavailable) await _settings.setAppLock(false);

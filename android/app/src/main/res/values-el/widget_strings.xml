@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">Τα έξοδα αυτής της περιόδου, ή όσα απομένουν από τον προϋπολογισμό σας</string>
+    <string name="widget_medium_description">Τα έσοδα, τα έξοδα και το υπόλοιπο αυτής της περιόδου</string>
+    <string name="widget_open_the_app">Ανοίξτε το Monthly Expenses για να δείτε αυτή την περίοδο</string>
+    <string name="widget_preview_period">Αυτή η περίοδος</string>
+    <string name="widget_preview_income">Έσοδα</string>
+    <string name="widget_preview_expense">Έξοδα</string>
+    <string name="widget_preview_balance">Υπόλοιπο</string>
+    <string name="widget_preview_left">Υπόλοιπα</string>
+    <string name="widget_preview_add_expense">Προσθήκη εξόδων</string>
+    <string name="widget_preview_add_income">Προσθήκη εσόδων</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

@@ -237,6 +237,33 @@ void main() {
       expect((cleared.name, cleared.archivedAt), (null, null));
       expect(cleared.id, category.id);
     });
+
+    Category withColor(int? color) => category.copyWith(color: color);
+
+    test('nextCategoryColor skips colours already worn by a live category '
+        '(CAT-6)', () {
+      expect(
+        nextCategoryColor([withColor(categoryPalette[0])]),
+        categoryPalette[1],
+      );
+      // Order of use doesn't matter, only which colours are taken.
+      expect(
+        nextCategoryColor([
+          withColor(categoryPalette[1]),
+          withColor(categoryPalette[0]),
+        ]),
+        categoryPalette[2],
+      );
+      // A category that predates colours (null) doesn't block any colour.
+      expect(nextCategoryColor([withColor(null)]), categoryPalette[0]);
+      // No categories: the first colour.
+      expect(nextCategoryColor(const []), categoryPalette[0]);
+    });
+
+    test('nextCategoryColor wraps once every colour is taken (CAT-6)', () {
+      final allTaken = [for (final c in categoryPalette) withColor(c)];
+      expect(nextCategoryColor(allTaken), categoryPalette[0]);
+    });
   });
 
   group('Account', () {

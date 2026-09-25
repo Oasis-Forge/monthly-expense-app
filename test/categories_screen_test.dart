@@ -68,8 +68,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Coffee');
     await tester.tap(find.text('☕'));
-    // Not the one the dialog opens on, so saving the default would fail it.
-    final chosen = categoryPalette[3];
+    // Not the one the dialog opens on (the next unused colour), so saving
+    // the default would fail it.
+    final chosen = categoryPalette[5];
     final swatch = find.byWidgetPredicate(
       (w) => w is CircleAvatar && w.backgroundColor == Color(chosen),
     );
@@ -84,6 +85,65 @@ void main() {
 
     final added = provider.categoriesFor(TransactionType.expense).last;
     expect(added.color, chosen);
+  });
+
+  testWidgets(
+    'a new category defaults to the next unused colour, not palette[0] '
+    '(CAT-6)',
+    (tester) async {
+      await showCategories(tester);
+
+      await tester.tap(find.byTooltip('Add category'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'Coffee');
+      await tester.tap(find.text('☕'));
+      // Leave the colour swatch untouched: accept whatever the dialog opens
+      // on.
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final added = provider.categoriesFor(TransactionType.expense).last;
+      final used = {
+        for (final c in [
+          ...provider.categoriesFor(TransactionType.expense),
+          ...provider.categoriesFor(TransactionType.income),
+        ])
+          if (c.id != added.id) c.color,
+      };
+      // cat-food, cat-rent and cat-other hold palette[0..2]; cat-salary and
+      // cat-income-other hold palette[3..4]. The new category must not
+      // collide with any live category of either type.
+      expect(used.contains(added.color), isFalse);
+      expect(added.color, categoryPalette[5]);
+    },
+  );
+
+  testWidgets("a new income category's default colour differs from every live "
+      'category of either type (CAT-6, rules-1-5_4)', (tester) async {
+    await showCategories(tester);
+
+    // cat-food, cat-rent, cat-other hold palette[0..2]; cat-salary and
+    // cat-income-other hold palette[3..4]. Switching to Income and
+    // defaulting to "the next colour among income categories only" would
+    // wrap back to palette[0] -- cat-food's colour.
+    await tester.tap(find.text('Income'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add category'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Bonus');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final added = provider.categoriesFor(TransactionType.income).last;
+    final used = {
+      for (final c in [
+        ...provider.categoriesFor(TransactionType.expense),
+        ...provider.categoriesFor(TransactionType.income),
+      ])
+        if (c.id != added.id) c.color,
+    };
+    expect(used.contains(added.color), isFalse);
+    expect(added.color, categoryPalette[5]);
   });
 
   testWidgets('a name already in use is rejected', (tester) async {

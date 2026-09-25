@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">本期的支出，或预算的剩余额度</string>
+    <string name="widget_medium_description">本期的收入、支出和结余</string>
+    <string name="widget_open_the_app">打开 Monthly Expenses 查看本期</string>
+    <string name="widget_preview_period">本期</string>
+    <string name="widget_preview_income">收入</string>
+    <string name="widget_preview_expense">支出</string>
+    <string name="widget_preview_balance">结余</string>
+    <string name="widget_preview_left">剩余</string>
+    <string name="widget_preview_add_expense">添加支出</string>
+    <string name="widget_preview_add_income">添加收入</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

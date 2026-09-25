@@ -1111,6 +1111,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appLockReason => 'Monthly Expensesのロックを解除';
 
   @override
+  String get appLockPromptHint => '本人確認をしてください';
+
+  @override
   String get appLockFailed => '本人確認ができませんでした。アプリロックは変更されていません。';
 
   @override
@@ -1264,6 +1267,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => '期日のメモがあります';
+
+  @override
+  String get noteReminderChannelName => 'メモの通知';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1715,6 +1721,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dueEntryReminderTitle => '入力期限が来ました';
 
   @override
+  String get dueEntryChannelName => '期限切れの入力';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$titleは本日期限でしたが、まだ未対応です。';
   }
@@ -1735,6 +1744,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => '今日は何も記録されていません';
+
+  @override
+  String get emptyDayChannelName => '記録のない日';
 
   @override
   String get emptyDayReminderBody => '忘れないうちに支出を記録しましょう。';

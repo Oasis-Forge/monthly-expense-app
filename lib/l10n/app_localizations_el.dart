@@ -1151,6 +1151,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get appLockReason => 'Ξεκλείδωμα Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Επιβεβαίωση ταυτότητας';
+
+  @override
   String get appLockFailed =>
       'Δεν ήταν δυνατή η επιβεβαίωση ταυτότητας. Το κλείδωμα εφαρμογής δεν άλλαξε.';
 
@@ -1312,6 +1315,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Μια σημείωση λήγει';
+
+  @override
+  String get noteReminderChannelName => 'Υπενθυμίσεις σημειώσεων';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1782,6 +1788,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get dueEntryReminderTitle => 'Καταχώριση οφειλόταν';
 
   @override
+  String get dueEntryChannelName => 'Ληξιπρόθεσμες καταχωρίσεις';
+
+  @override
   String dueEntryReminderOne(String title) {
     return 'Το $title οφειλόταν σήμερα και εκκρεμεί ακόμα.';
   }
@@ -1803,6 +1812,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Καμία καταχώριση σήμερα';
+
+  @override
+  String get emptyDayChannelName => 'Ημέρες χωρίς καταχώριση';
 
   @override
   String get emptyDayReminderBody =>

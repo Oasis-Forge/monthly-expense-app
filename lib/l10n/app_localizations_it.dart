@@ -1140,6 +1140,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get appLockReason => 'Sblocca Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Confermare l\'identità';
+
+  @override
   String get appLockFailed =>
       'Impossibile confermare la tua identità. Il blocco app non è stato modificato.';
 
@@ -1297,6 +1300,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Una nota è in scadenza';
+
+  @override
+  String get noteReminderChannelName => 'Promemoria note';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1762,6 +1768,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dueEntryReminderTitle => 'Una voce era scaduta';
 
   @override
+  String get dueEntryChannelName => 'Voci scadute';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title era previsto per oggi ed è ancora in attesa.';
   }
@@ -1783,6 +1792,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Nessuna registrazione oggi';
+
+  @override
+  String get emptyDayChannelName => 'Giorni senza registrazioni';
 
   @override
   String get emptyDayReminderBody =>

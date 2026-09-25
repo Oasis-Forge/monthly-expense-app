@@ -36,6 +36,20 @@ const _nudgePrefix = 'nudge:';
 /// so this folds the UUID's hash into that range.
 int reminderNotificationId(String noteId) => noteId.hashCode & 0x7fffffff;
 
+/// The Android notification channel name for a note reminder, from [l10n]
+/// rather than an English literal (LANG-2, NUDGE-11). A pure function so a
+/// test can catch a regression to the English literal without touching the
+/// notifications plugin.
+String noteChannelName(AppLocalizations l10n) => l10n.noteReminderChannelName;
+
+/// The Android notification channel name for one of the app's own nudges
+/// (NUDGE-11), from [l10n] rather than an English literal (LANG-2).
+String channelNameFor(ReminderKind kind, AppLocalizations l10n) =>
+    switch (kind) {
+      ReminderKind.dueEntry => l10n.dueEntryChannelName,
+      ReminderKind.emptyDay => l10n.emptyDayChannelName,
+    };
+
 /// Schedules and cancels the local notification for a note's reminder
 /// (NOTE-6). Tests use a fake instead of touching the device.
 abstract class ReminderService {
@@ -267,15 +281,15 @@ class DeviceReminderService implements ReminderService {
       title: appLockOn ? l10n.noteReminderLockedTitle : l10n.noteReminderTitle,
       body: appLockOn ? null : note.text,
       scheduledDate: tz.TZDateTime.from(at, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'note_reminders',
-          'Note reminders',
+          noteChannelName(l10n),
           importance: Importance.defaultImportance,
         ),
-        iOS: DarwinNotificationDetails(),
-        macOS: DarwinNotificationDetails(),
-        linux: LinuxNotificationDetails(),
+        iOS: const DarwinNotificationDetails(),
+        macOS: const DarwinNotificationDetails(),
+        linux: const LinuxNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: note.id,
@@ -339,10 +353,7 @@ class DeviceReminderService implements ReminderService {
               ReminderKind.dueEntry => 'due_entries',
               ReminderKind.emptyDay => 'empty_days',
             },
-            switch (reminder.kind) {
-              ReminderKind.dueEntry => 'Entries that fell due',
-              ReminderKind.emptyDay => 'Days with nothing recorded',
-            },
+            channelNameFor(reminder.kind, l10n),
             importance: Importance.defaultImportance,
           ),
           iOS: const DarwinNotificationDetails(),

@@ -26,7 +26,11 @@ void main() {
     now = DateTime(2026, 9, 15, 10);
   });
 
-  Future<void> showApp(WidgetTester tester, {required bool appLock}) async {
+  Future<void> showApp(
+    WidgetTester tester, {
+    required bool appLock,
+    Locale? locale,
+  }) async {
     settings = await testSettings({'app_lock': appLock});
     await tester.pumpWidget(
       MultiProvider(
@@ -35,6 +39,7 @@ void main() {
           Provider<Authenticator>.value(value: authenticator),
         ],
         child: MaterialApp(
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) => AppLock(clock: () => now, child: child!),
@@ -79,6 +84,16 @@ void main() {
     expect(locked, findsNothing);
     expect(content.hitTestable(), findsOneWidget);
     expect(authenticator.requests, 2);
+  });
+
+  testWidgets('the prompt is built from the app language, not left in English '
+      'local_auth defaults (LANG-2, LOCK-1)', (tester) async {
+    await showApp(tester, appLock: true, locale: const Locale('fr'));
+
+    expect(authenticator.requests, 1);
+    expect(authenticator.lastReason, 'Déverrouiller Monthly Expenses');
+    expect(authenticator.lastHint, 'Confirmez votre identité');
+    expect(authenticator.lastCancelButton, 'Annuler');
   });
 
   testWidgets('it locks again after a minute in the background (LOCK-2)', (

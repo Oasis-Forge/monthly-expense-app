@@ -624,16 +624,25 @@ const _typeWords = <ImportedType, List<String>>{
   ],
 };
 
+/// [_typeWords] folded the same way as the cell it's compared against
+/// (`foldForSearch`), so accented and combining-mark words ("Έξοδα", "Chuyển
+/// khoản", "व्यय", "รายรับ", "آمدنی") still match after folding strips their
+/// diacritics.
+final _foldedTypeWords = <ImportedType, List<String>>{
+  for (final MapEntry(key: type, value: words) in _typeWords.entries)
+    type: [for (final word in words) foldForSearch(word)],
+};
+
 /// Reads a type out of [value], in any of the app's 21 languages or the
 /// usual English shorthands. Null when it says nothing recognisable.
 ImportedType? parseImportedType(String value) {
   final folded = foldForSearch(value).trim();
   if (folded.isEmpty) return null;
-  for (final entry in _typeWords.entries) {
+  for (final entry in _foldedTypeWords.entries) {
     if (entry.value.contains(folded)) return entry.key;
   }
   // "Expense (food)" and the like: fall back to a word inside the cell.
-  for (final entry in _typeWords.entries) {
+  for (final entry in _foldedTypeWords.entries) {
     for (final word in entry.value) {
       if (RegExp('\\b${RegExp.escape(word)}\\b').hasMatch(folded)) {
         return entry.key;

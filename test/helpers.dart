@@ -590,12 +590,26 @@ class FakeAuthenticator implements Authenticator {
   /// How many times the user was asked to authenticate.
   int requests = 0;
 
+  /// What the last call passed, so a test can check the prompt is built
+  /// from the caller's own translations rather than left in English
+  /// (LANG-2, LOCK-1).
+  String? lastReason;
+  String? lastHint;
+  String? lastCancelButton;
+
   @override
   Future<bool> isAvailable() async => available;
 
   @override
-  Future<AuthResult> authenticate(String reason) async {
+  Future<AuthResult> authenticate(
+    String reason, {
+    String? hint,
+    String? cancelButton,
+  }) async {
     requests++;
+    lastReason = reason;
+    lastHint = hint;
+    lastCancelButton = cancelButton;
     return available ? result : AuthResult.unavailable;
   }
 }

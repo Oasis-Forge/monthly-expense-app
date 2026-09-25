@@ -859,6 +859,10 @@
   "appLockSubtitle": "Unlock with your fingerprint, face, or screen lock",
   "appLockUnavailable": "Set up a screen lock on this device to use app lock",
   "appLockReason": "Unlock Monthly Expenses",
+  "appLockPromptHint": "Confirm it's you",
+  "@appLockPromptHint": {
+    "description": "The subtitle under the app-lock prompt's title (LOCK-1)."
+  },
   "appLockFailed": "Couldn't confirm it's you. App lock wasn't changed.",
   "lockedTitle": "Monthly Expenses is locked",
   "unlockButton": "Unlock",
@@ -918,6 +922,10 @@
   "dayNotesDueHeader": "Notes due",
   "noteReminderTitle": "Note reminder",
   "noteReminderLockedTitle": "A note is due",
+  "noteReminderChannelName": "Note reminders",
+  "@noteReminderChannelName": {
+    "description": "The Android notification channel for note reminders, shown in system settings (NUDGE-11)."
+  },
   "noteReminderPermissionDenied": "Turn on notifications in system settings to get reminders for notes.",
   "reportRange": "{from} to {to}",
   "@reportRange": {
@@ -1224,6 +1232,10 @@
     "description": "Subtitle of the Privacy options row (ADS-5)."
   },
   "dueEntryReminderTitle": "An entry was due",
+  "dueEntryChannelName": "Entries that fell due",
+  "@dueEntryChannelName": {
+    "description": "The Android notification channel for due recurring entries, shown in system settings (NUDGE-11)."
+  },
   "dueEntryReminderOne": "{title} was due today and is still waiting.",
   "@dueEntryReminderOne": {
     "placeholders": {
@@ -1242,6 +1254,10 @@
     }
   },
   "emptyDayReminderTitle": "Nothing recorded today",
+  "emptyDayChannelName": "Days with nothing recorded",
+  "@emptyDayChannelName": {
+    "description": "The Android notification channel for empty-day nudges, shown in system settings (NUDGE-11)."
+  },
   "emptyDayReminderBody": "Add what you spent while you still remember it.",
   "reminderLockedTitle": "Something is waiting",
   "nudgeSettingsTitle": "Remind me on an empty day",

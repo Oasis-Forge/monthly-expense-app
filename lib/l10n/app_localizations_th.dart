@@ -1130,6 +1130,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get appLockReason => 'ปลดล็อก Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'ยืนยันตัวตนของคุณ';
+
+  @override
   String get appLockFailed =>
       'ยืนยันตัวตนไม่สำเร็จ การล็อกแอปไม่มีการเปลี่ยนแปลง';
 
@@ -1287,6 +1290,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'มีโน้ตครบกำหนด';
+
+  @override
+  String get noteReminderChannelName => 'การแจ้งเตือนโน้ต';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1747,6 +1753,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get dueEntryReminderTitle => 'รายการถึงกำหนดแล้ว';
 
   @override
+  String get dueEntryChannelName => 'รายการที่ถึงกำหนด';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
   }
@@ -1768,6 +1777,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'วันนี้ยังไม่มีการบันทึก';
+
+  @override
+  String get emptyDayChannelName => 'วันที่ไม่มีการบันทึก';
 
   @override
   String get emptyDayReminderBody => 'บันทึกค่าใช้จ่ายไว้ตอนที่ยังจำได้';

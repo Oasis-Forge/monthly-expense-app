@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">Pengeluaran periode ini, atau sisa anggaran Anda</string>
+    <string name="widget_medium_description">Pemasukan, pengeluaran, dan saldo periode ini</string>
+    <string name="widget_open_the_app">Buka Monthly Expenses untuk melihat periode ini</string>
+    <string name="widget_preview_period">Periode ini</string>
+    <string name="widget_preview_income">Pemasukan</string>
+    <string name="widget_preview_expense">Pengeluaran</string>
+    <string name="widget_preview_balance">Saldo</string>
+    <string name="widget_preview_left">Sisa</string>
+    <string name="widget_preview_add_expense">Tambah pengeluaran</string>
+    <string name="widget_preview_add_income">Tambah pemasukan</string>
+    <string name="widget_preview_amount">—</string>
+</resources>
