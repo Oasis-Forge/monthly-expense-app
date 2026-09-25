@@ -2188,7 +2188,11 @@ class _PeriodSummary {
     var openingDuring = Money.zero;
     for (final account in accounts) {
       if (accountId != null && account.id != accountId) continue;
-      if (account.openingDate.isBefore(period.start)) {
+      // BAL-2, BAL-4, ACC-4: an opening date that hasn't arrived yet counts
+      // nowhere, carried-forward included -- otherwise a future period
+      // could carry forward a balance the account itself doesn't have yet.
+      if (account.openingDate.isBefore(period.start) &&
+          !_dayOf(account.openingDate).isAfter(today)) {
         openingBefore += account.openingBalance;
       } else if (period.contains(account.openingDate) &&
           !_dayOf(account.openingDate).isAfter(today)) {

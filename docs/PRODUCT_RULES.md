@@ -68,7 +68,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 **Learn:** the carried-forward balance answers "how much do I have?", not just "how did this month go?".
 
 - **BAL-1** Period net = income − expense within the period. Transfers are excluded.
-- **BAL-2** Carried forward = account opening balances + the sum of every net before the period start.
+- **BAL-2** Carried forward = account opening balances + the sum of every net before the period start. An opening date that hasn't arrived yet (BAL-4) contributes nothing, even to a period that starts after it — an account isn't carried into a future period before it exists in the present one (rules-1-5#10).
 - **BAL-3** Closing balance = carried forward + period net. Showing the carried-forward balance is a setting, on by default.
 - **BAL-4** A future-dated transaction counts nowhere until its date arrives: not in totals, balances, charts, or budgets. It shows in the list as upcoming and starts counting on its date.
 - **BAL-5** Deleted (trashed) transactions count nowhere: totals, charts, budgets, search, or export.

@@ -229,6 +229,26 @@ void main() {
       },
     );
 
+    test("carried forward leaves out an account whose opening date hasn't "
+        'arrived yet, even from a later period (BAL-2, BAL-4, ACC-4, '
+        'rules-1-5#10)', () async {
+      final provider = await loaded(
+        FakeDB(
+          accounts: [
+            testAccount(cash, opening: 100, on: DateTime(2026, 1, 1)),
+            // Opens after today (Sep 15): doesn't count anywhere yet.
+            testAccount('savings', opening: 1000, on: DateTime(2026, 9, 20)),
+          ],
+        ),
+      );
+
+      provider.nextPeriod();
+      expect(provider.period.start, DateTime(2026, 10));
+      // October carries forward only Cash: Savings' opening date is
+      // before October but still hasn't arrived as of today.
+      expect(provider.carriedForward, const Money(100000));
+    });
+
     test(
       'a month start day of 25 moves the period boundaries (PER-2)',
       () async {
