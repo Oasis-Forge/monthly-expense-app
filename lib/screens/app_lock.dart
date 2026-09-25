@@ -39,14 +39,18 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
   bool _authenticating = false;
   DateTime? _hiddenAt;
 
-  /// True from the moment the app leaves the foreground until it's back, so
-  /// long as App Lock is on — covering the last frame in Dart itself
-  /// (LOCK-2). The native side only keeps the OS from screenshotting or
-  /// thumbnailing the window (see [_syncSecure]); Flutter still holds and
-  /// can redraw that last frame on the live surface, and iOS drops its own
-  /// native cover on `didBecomeActive` before Dart has had a chance to
-  /// react to `resumed` and lock. This flag closes that gap without waiting
-  /// for [AppLock.timeout] or asking the user anything.
+  /// True from the moment the app is actually hidden (not merely a window
+  /// losing focus — a dialog, a permission prompt, split-screen or DeX, the
+  /// notification shade) until it's back, so long as App Lock is on —
+  /// covering the last frame in Dart itself (LOCK-2). The native side only
+  /// keeps the OS from screenshotting or thumbnailing the window (see
+  /// [_syncSecure]); Flutter still holds and can redraw that last frame on
+  /// the live surface, and iOS drops its own native cover on
+  /// `didBecomeActive` before Dart has had a chance to react to `resumed`
+  /// and lock. This flag closes that gap without waiting for
+  /// [AppLock.timeout] or asking the user anything. It is purely visual: it
+  /// never excludes focus or pointer input (see [build]), so a brief loss of
+  /// window focus never drops a focused field or blanks the app.
   bool _obscured = false;
 
   /// Told whether App Lock is turned on, so the OS never keeps a readable
@@ -126,11 +130,16 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
     if (_authenticating || _locked) return;
     switch (state) {
       case AppLifecycleState.inactive:
-        // The earliest signal that the app is leaving the foreground: cover
-        // it right away, before the OS has a chance to snapshot this frame
-        // (LOCK-2).
-        if (_settings.appLock) setState(() => _obscured = true);
+        // Only a loss of window focus: a dialog, a permission prompt, the
+        // notification shade, split-screen or DeX with another window
+        // focused. The app is still visible, so nothing is obscured here —
+        // doing so would exclude focus and pointer input from the content
+        // below (see [build]) and drop a focused field or blank the app for
+        // as long as the other surface has focus.
+        break;
       case AppLifecycleState.hidden:
+        // The app is actually hidden now: cover it right away, before the
+        // OS has a chance to snapshot this frame (LOCK-2).
         if (_settings.appLock) setState(() => _obscured = true);
         _hiddenAt ??= _now();
       case AppLifecycleState.paused:
@@ -169,15 +178,18 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    final hidden = _locked || _obscured;
     return Stack(
       children: [
+        // Focus, pointer input and semantics are excluded only while
+        // actually locked: [_obscured] is a purely visual cover over the
+        // last frame (see its doc comment), so it never steals focus from a
+        // field the user is typing into.
         ExcludeFocus(
-          excluding: hidden,
+          excluding: _locked,
           child: IgnorePointer(
-            ignoring: hidden,
+            ignoring: _locked,
             child: ExcludeSemantics(
-              excluding: hidden,
+              excluding: _locked,
               child: TickerMode(enabled: !_locked, child: widget.child),
             ),
           ),
@@ -187,7 +199,10 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
             child: _LockScreen(busy: _authenticating, onUnlock: _unlock),
           )
         else if (_obscured)
-          const Positioned.fill(child: _ObscureCover()),
+          const Positioned.fill(
+            key: ValueKey('appLockObscureCover'),
+            child: _ObscureCover(),
+          ),
       ],
     );
   }

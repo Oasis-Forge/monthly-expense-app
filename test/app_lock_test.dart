@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -17,6 +19,7 @@ void main() {
 
   final locked = find.text('Monthly Expenses is locked');
   final content = find.text('Balance \$100');
+  final cover = find.byKey(const ValueKey('appLockObscureCover'));
 
   setUp(() {
     authenticator = FakeAuthenticator();
@@ -103,12 +106,45 @@ void main() {
 
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      // The engine itself does not draw frames while genuinely backgrounded
+      // (SchedulerBinding disables frame scheduling on hidden/paused): force
+      // one so the test can see the state the next real frame will show.
+      tester.binding.scheduleForcedFrame();
       await tester.pump();
 
       // Not actually locked yet — under the timeout — so no prompt, just
       // nothing readable while backgrounded.
       expect(locked, findsNothing);
-      expect(content.hitTestable(), findsNothing);
+      expect(cover, findsOneWidget);
+
+      now = now.add(const Duration(seconds: 30));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(locked, findsNothing);
+      expect(cover, findsNothing);
+      expect(content.hitTestable(), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'hidden alone covers the app, and resuming within the timeout uncovers '
+    'it (LOCK-2)',
+    (tester) async {
+      await showApp(tester, appLock: true);
+      expect(content.hitTestable(), findsOneWidget);
+      expect(cover, findsNothing);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      // See the comment in the previous test: force the frame the engine
+      // would otherwise withhold while backgrounded.
+      tester.binding.scheduleForcedFrame();
+      await tester.pump();
+
+      // Not actually locked yet — under the timeout — but hidden is real
+      // backgrounding, so the cover goes up.
+      expect(locked, findsNothing);
+      expect(cover, findsOneWidget);
 
       now = now.add(const Duration(seconds: 30));
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
@@ -116,6 +152,94 @@ void main() {
 
       expect(locked, findsNothing);
       expect(content.hitTestable(), findsOneWidget);
+    },
+  );
+
+  testWidgets('a window merely losing focus (inactive) does not drop a focused '
+      "field's focus or blank the app: it is not real backgrounding "
+      '(LOCK-2, review-ads-1)', (tester) async {
+    final focusNode = FocusNode();
+    addTearDown(focusNode.dispose);
+    settings = await testSettings({'app_lock': true});
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: settings),
+          Provider<Authenticator>.value(value: authenticator),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) => AppLock(clock: () => now, child: child!),
+          home: Scaffold(body: TextField(focusNode: focusNode)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // Focused once already unlocked: an autofocus racing the initial lock
+    // screen is a separate concern from this test.
+    focusNode.requestFocus();
+    await tester.pump();
+    expect(focusNode.hasFocus, isTrue);
+
+    // A dialog, a permission prompt, the notification shade or a
+    // split-screen neighbour taking focus: the window loses focus but the
+    // app is still visible.
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    await tester.pump();
+
+    expect(focusNode.hasFocus, isTrue);
+    expect(find.byType(TextField).hitTestable(), findsOneWidget);
+
+    now = now.add(const Duration(seconds: 5));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pumpAndSettle();
+
+    expect(locked, findsNothing);
+    expect(focusNode.hasFocus, isTrue);
+  });
+
+  testWidgets(
+    'desktop: a window merely losing focus (inactive) does not blank the '
+    'whole app (LOCK-2, review-ads-2)',
+    (tester) async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+      final focusNode = FocusNode();
+      addTearDown(focusNode.dispose);
+      settings = await testSettings({'app_lock': true});
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: settings),
+            Provider<Authenticator>.value(value: authenticator),
+          ],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            builder: (context, child) =>
+                AppLock(clock: () => now, child: child!),
+            home: Scaffold(body: TextField(focusNode: focusNode)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      focusNode.requestFocus();
+      await tester.pump();
+      expect(focusNode.hasFocus, isTrue);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      await tester.pump();
+
+      expect(find.byType(TextField).hitTestable(), findsOneWidget);
+      expect(focusNode.hasFocus, isTrue);
+
+      now = now.add(const Duration(seconds: 5));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(locked, findsNothing);
+      expect(focusNode.hasFocus, isTrue);
+      debugDefaultTargetPlatformOverride = null;
     },
   );
 
