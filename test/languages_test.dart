@@ -107,6 +107,36 @@ void main() {
     await tester.pump();
   }
 
+  /// Drags [scrollable] to its end in bounded steps, so a lazy list lays out
+  /// every child at least once (LANG-6, test-quality#8): otherwise only the
+  /// first screenful — what a phone shows before scrolling — is ever built
+  /// and checked for overflow. A no-op when nothing is scrollable (e.g. the
+  /// report screen with no font for the language).
+  Future<void> scrollToEnd(WidgetTester tester, Finder scrollable) async {
+    if (scrollable.evaluate().isEmpty) return;
+    var position = tester.state<ScrollableState>(scrollable).position;
+    var guard = 0;
+    while (position.pixels < position.maxScrollExtent && guard < 60) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump();
+      position = tester.state<ScrollableState>(scrollable).position;
+      guard++;
+    }
+  }
+
+  /// Screen names (as keyed in [screens]) whose content is a plain lazy
+  /// `ListView`, so only the rows already on a phone's screen are ever laid
+  /// out unless something scrolls the rest into view (test-quality#8).
+  const lazyListScreens = {
+    'Settings',
+    'Backup',
+    'Export PDF',
+    'Transaction details',
+    'Remove ads',
+    'Recurring',
+    'Budgets',
+  };
+
   /// A file with something for every part of the import preview: two rows to
   /// import, one skipped for each reason, and names this app hasn't got.
   const importSample =
@@ -202,6 +232,18 @@ void main() {
             await tester.tap(find.text(l10n.amountLabel));
             await tester.pump();
             expect(find.byType(AmountKeypad), findsOneWidget);
+            // The keypad pushes the Save buttons further down the form's
+            // own lazy list, so scroll past it to lay them out too
+            // (test-quality#8).
+            await scrollToEnd(
+              tester,
+              find
+                  .descendant(
+                    of: find.byType(Form),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first,
+            );
           }
           if (screen is InsightsScreen) {
             for (final tab in [l10n.calendarTab, l10n.trendTab]) {
@@ -224,6 +266,9 @@ void main() {
                 await tester.pumpAndSettle();
               }
             }
+          }
+          if (lazyListScreens.contains(name)) {
+            await scrollToEnd(tester, find.byType(Scrollable).first);
           }
         });
       }
