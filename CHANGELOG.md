@@ -4,6 +4,30 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.31.0] - 2026-09-26
+
+### Fixed
+- Reminders: opening the app just after a note reminder's time no longer cancels it before it arrives; the due-entry reminder names the amount and the right day; turning on app lock rewords a pending reminder; day counting uses local calendar days (NOTE-6, NUDGE-2, NUDGE-5).
+- A home-screen widget or shortcut no longer keeps a stale language after the phone's language changes; the widget's over-budget red no longer sticks (WID).
+- Money: signs stay with their figures in Arabic and Urdu, including in PDFs; day totals are signed, not told apart by colour alone; compact amounts no longer double their space; amount fields put the currency symbol where the language does (CUR, LANG-5).
+- Insights compares this period so far with the same span of the last one, and formats percentages for the language (INS-6).
+- Search matches Vietnamese, Polish and Greek text without its accents (SRCH).
+- The app-lock prompt, notification channels and the Android widget picker are translated; the unlock prompt no longer repeats itself (LANG-2).
+- Text and colour contrast meet their targets in light and dark themes; the budget bar no longer takes its colour from the wallpaper; colour swatches are labelled for screen readers (THEME-4, A11Y).
+- A new category gets the next unused colour, not Food's.
+- The first day of the week follows the phone's region (PER-4).
+- Home offers a way back when an account filter hides everything; archiving down to one account clears the filter (ACC-6).
+- The recurring form asks before discarding changes, and its interval error shows its maximum (ADD-9, RCR-1).
+- PDF reports: no budget for an archived category, no typed search text when titles are off, and a correct right-to-left header (PDF, BUD-5).
+- The update and rating asks never land in the middle of an entry, and only hand-saved entries count toward the rating ask (UPD-2, RATE-1).
+- Opening data saved by a newer version shows a message instead of an empty app.
+- CSV import reads the app's own export back exactly (IMP).
+- Faster Accounts, Search, Insights and widget updates with many entries.
+
+### Tests and CI
+- About 230 new tests; test flakiness from the real database, the clock and shared state is gone.
+- CI now builds a release APK and checks that R8 kept every resource the app needs.
+
 ## [1.30.0] - 2026-09-25
 
 ### Fixed
