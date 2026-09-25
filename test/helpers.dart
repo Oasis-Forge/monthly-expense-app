@@ -383,6 +383,12 @@ class FakeDB extends DBHelper {
   ];
 
   @override
+  Future<List<Note>> fetchDeletedNotes() async => [
+    for (final note in notes)
+      if (note.deletedAt != null) note,
+  ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
+
+  @override
   Future<void> insertNote(Note note) async {
     _checkWrite();
     notes.add(note);

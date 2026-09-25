@@ -96,6 +96,7 @@
   "trashTitle": "휴지통",
   "trashEmpty": "휴지통이 비어 있어요.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{1일 후 완전히 삭제} other{{days}일 후 완전히 삭제}}",
+  "trashNoteSubtitle": "{days, plural, =1{1일 후 완전히 삭제} other{{days}일 후 완전히 삭제}}",
   "restoreTooltip": "복원",
   "categoriesTitle": "카테고리",
   "addCategoryTooltip": "카테고리 추가",

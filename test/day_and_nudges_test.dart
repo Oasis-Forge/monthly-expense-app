@@ -76,6 +76,39 @@ void main() {
         reason: 'the automatic occurrence due today should have posted',
       );
     });
+
+    test(
+      'a shortcut or widget tap brings a stale day forward too, so a new '
+      'entry does not land on an earlier day (DAY-1, DAY-9, NAV-8)',
+      () async {
+        var now = DateTime(2026, 9, 20, 9);
+        final provider = TransactionProvider(db: FakeDB(), clock: () => now);
+        await provider.load();
+        expect(provider.selectedDay, DateTime(2026, 9, 20));
+
+        // Four days pass in the same period, with no lifecycle-resumed event
+        // in between -- exactly what a shortcut or widget tap's _open does
+        // in main.dart before pushing the add-transaction form.
+        now = DateTime(2026, 9, 24, 10);
+        provider.showCurrentPeriod();
+
+        expect(provider.selectedDay, DateTime(2026, 9, 24));
+        expect(provider.newEntryDate, DateTime(2026, 9, 24, 10));
+      },
+    );
+
+    test('showCurrentPeriod keeps a day the user deliberately chose (WID-3, '
+        'ADD-3, DAY-9)', () async {
+      var now = DateTime(2026, 9, 24, 9);
+      final provider = TransactionProvider(db: FakeDB(), clock: () => now);
+      await provider.load();
+      provider.selectDay(DateTime(2026, 9, 21));
+
+      now = DateTime(2026, 9, 24, 10);
+      provider.showCurrentPeriod();
+
+      expect(provider.newEntryDate, DateTime(2026, 9, 21, 10));
+    });
   });
 
   test(

@@ -358,6 +358,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String trashNoteSubtitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'wird in $days Tagen endgültig gelöscht',
+      one: 'wird in 1 Tag endgültig gelöscht',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get restoreTooltip => 'Wiederherstellen';
 
   @override

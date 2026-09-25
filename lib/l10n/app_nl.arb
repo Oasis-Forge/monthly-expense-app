@@ -96,6 +96,7 @@
   "trashTitle": "Prullenbak",
   "trashEmpty": "Prullenbak is leeg.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{definitief verwijderd over 1 dag} other{definitief verwijderd over {days} dagen}}",
+  "trashNoteSubtitle": "{days, plural, =1{definitief verwijderd over 1 dag} other{definitief verwijderd over {days} dagen}}",
   "restoreTooltip": "Herstellen",
   "categoriesTitle": "Categorieën",
   "addCategoryTooltip": "Categorie toevoegen",

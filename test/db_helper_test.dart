@@ -480,6 +480,30 @@ void main() {
       await helper.purgeDeletedBefore(DateTime.utc(2026, 9));
       expect(await (await helper.database).query('notes'), isEmpty);
     });
+
+    test('deleted notes are kept and read back, most recent first (DEL-5, '
+        'NOTE-7)', () async {
+      final helper = helperAt('app.db');
+      final kept = testNote('keep', 'Still open');
+      final first = testNote('first', 'Deleted first');
+      final second = testNote('second', 'Deleted second');
+      await helper.insertNote(kept);
+      await helper.insertNote(first);
+      await helper.insertNote(second);
+
+      await helper.updateNote(
+        first.copyWith(deletedAt: DateTime.utc(2026, 9, 4)),
+      );
+      await helper.updateNote(
+        second.copyWith(deletedAt: DateTime.utc(2026, 9, 5)),
+      );
+
+      expect([for (final n in await helper.fetchNotes()) n.id], ['keep']);
+      final deleted = await helper.fetchDeletedNotes();
+      expect([for (final n in deleted) n.id], ['second', 'first']);
+      expect(deleted.first.deletedAt, DateTime.utc(2026, 9, 5));
+      expect(deleted.last.deletedAt, DateTime.utc(2026, 9, 4));
+    });
   });
 
   group('attachments (ATT-1, ATT-5)', () {

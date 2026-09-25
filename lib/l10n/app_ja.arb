@@ -96,6 +96,7 @@
   "trashTitle": "ゴミ箱",
   "trashEmpty": "ゴミ箱は空です。",
   "trashItemSubtitle": "{amount}・{days, plural, =1{あと1日で完全に削除されます} other{あと{days}日で完全に削除されます}}",
+  "trashNoteSubtitle": "{days, plural, =1{あと1日で完全に削除されます} other{あと{days}日で完全に削除されます}}",
   "restoreTooltip": "復元",
   "categoriesTitle": "カテゴリー",
   "addCategoryTooltip": "カテゴリーを追加",

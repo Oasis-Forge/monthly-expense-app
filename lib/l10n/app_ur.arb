@@ -96,6 +96,7 @@
   "trashTitle": "ٹریش",
   "trashEmpty": "ٹریش خالی ہے۔",
   "trashItemSubtitle": "{amount} · {days, plural, =1{1 دن میں ہمیشہ کے لیے حذف ہو جائے گا} other{{days} دن میں ہمیشہ کے لیے حذف ہو جائے گا}}",
+  "trashNoteSubtitle": "{days, plural, =1{1 دن میں ہمیشہ کے لیے حذف ہو جائے گا} other{{days} دن میں ہمیشہ کے لیے حذف ہو جائے گا}}",
   "restoreTooltip": "بحال کریں",
   "categoriesTitle": "کیٹیگریز",
   "addCategoryTooltip": "کیٹیگری شامل کریں",

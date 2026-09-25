@@ -96,6 +96,7 @@
   "trashTitle": "回收站",
   "trashEmpty": "回收站为空。",
   "trashItemSubtitle": "{amount} · {days, plural, =1{将于1天后彻底删除} other{将于{days}天后彻底删除}}",
+  "trashNoteSubtitle": "{days, plural, =1{将于1天后彻底删除} other{将于{days}天后彻底删除}}",
   "restoreTooltip": "恢复",
   "categoriesTitle": "分类",
   "addCategoryTooltip": "添加分类",

@@ -138,6 +138,10 @@ class TransactionProvider extends ChangeNotifier {
   /// restored the same way transactions are, from the same screen.
   List<Transfer> get deletedTransfers => List.unmodifiable(_deletedTransfers);
 
+  /// Notes in the trash, most recently deleted first (DEL-5, NOTE-7). Like
+  /// transactions and transfers, they are restored from the same screen.
+  List<Note> get deletedNotes => List.unmodifiable(_deletedNotes);
+
   List<Category> get categories => List.unmodifiable(_categories);
 
   /// Every account that isn't deleted, archived ones included.
@@ -394,6 +398,9 @@ class TransactionProvider extends ChangeNotifier {
   int trashDaysLeftForTransfer(Transfer transfer) =>
       _daysLeftSince(transfer.deletedAt!);
 
+  /// The same for a trashed note (DEL-5, NOTE-7).
+  int trashDaysLeftForNote(Note note) => _daysLeftSince(note.deletedAt!);
+
   int _daysLeftSince(DateTime deletedAt) {
     final left = trashRetention.inDays - _clock().difference(deletedAt).inDays;
     return left < 1 ? 1 : left;
@@ -455,34 +462,46 @@ class TransactionProvider extends ChangeNotifier {
     final deleted = await _db.fetchDeletedTransactions();
     final transfers = await _db.fetchTransfers();
     final deletedTransfers = await _db.fetchDeletedTransfers();
-    _occurrences
-      ..clear()
-      ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
-    _transactions
-      ..clear()
-      ..addAll(loaded)
-      ..sort(_newestFirst);
-    _deleted
-      ..clear()
-      ..addAll(deleted);
-    _transfers
-      ..clear()
-      ..addAll(transfers)
-      ..sort(_newestTransferFirst);
-    // DEL-5: the trash keeps transfers across a launch, like transactions.
-    _deletedTransfers
-      ..clear()
-      ..addAll(deletedTransfers);
-    _deletedNotes.clear();
-    _reopenedNotes.clear();
-    await _postAutomaticOccurrences();
-    await rescheduleReminders(
-      appLockOn: appLockOn,
-      locale: locale,
-      nudge: nudge,
-    );
-    _loaded = true;
-    if (!_loadDone.isCompleted) _loadDone.complete();
+    final deletedNotes = await _db.fetchDeletedNotes();
+    // Everything above only reads the database; a shortcut or widget tap
+    // waiting on [whenLoaded] (WID-3, ADD-3) must still be freed even if
+    // something below throws -- a write failure in
+    // _postAutomaticOccurrences (storage full, a locked database) or a
+    // crash while building the schedule -- rather than waiting forever.
+    try {
+      _occurrences
+        ..clear()
+        ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
+      _transactions
+        ..clear()
+        ..addAll(loaded)
+        ..sort(_newestFirst);
+      _deleted
+        ..clear()
+        ..addAll(deleted);
+      _transfers
+        ..clear()
+        ..addAll(transfers)
+        ..sort(_newestTransferFirst);
+      // DEL-5: the trash keeps transfers across a launch, like transactions.
+      _deletedTransfers
+        ..clear()
+        ..addAll(deletedTransfers);
+      // DEL-5, NOTE-7: and notes, the same way.
+      _deletedNotes
+        ..clear()
+        ..addAll(deletedNotes);
+      _reopenedNotes.clear();
+      await _postAutomaticOccurrences();
+      await rescheduleReminders(
+        appLockOn: appLockOn,
+        locale: locale,
+        nudge: nudge,
+      );
+      _loaded = true;
+    } finally {
+      if (!_loadDone.isCompleted) _loadDone.complete();
+    }
     _changed();
   }
 
@@ -1621,6 +1640,17 @@ class TransactionProvider extends ChangeNotifier {
   /// [periodTransfers] grouped by day, newest day first.
   Map<DateTime, List<Transfer>> get transfersByDay => _current.transfersByDay;
 
+  /// [periodTransactions] across every account, whatever [accountFilterId]
+  /// is set to. The CSV export reads these instead of [periodTransactions]:
+  /// like budgets, it is one of the things the account choice must not
+  /// reach, because a partial file that looks complete is worse than an
+  /// extra step (ACC-7, BAK-5).
+  List<ExpenseTransaction> get everyAccountPeriodTransactions =>
+      _everyAccount.transactions;
+
+  /// [periodTransfers] across every account (ACC-7, BAK-5).
+  List<Transfer> get everyAccountPeriodTransfers => _everyAccount.transfers;
+
   Money get periodIncome => _current.income;
   Money get periodExpense => _current.expense;
 
@@ -1647,19 +1677,23 @@ class TransactionProvider extends ChangeNotifier {
   DateTime get today => _today;
 
   /// Counted income and expense of the [count] periods that end with the
-  /// selected one, oldest first (INS-2, BAL-4).
+  /// selected one, oldest first. Follows the chosen account exactly as the
+  /// other Insights views do, so a chart and the total above it are never
+  /// about different money (INS-2, BAL-4, ACC-7).
   List<PeriodTotals> trend(int count) {
     assert(count > 0, 'A trend needs at least one period');
     final periods = [_period];
     while (periods.length < count) {
       periods.insert(0, periods.first.previous);
     }
+    final account = accountFilterId;
     final income = List.filled(count, Money.zero);
     final expense = List.filled(count, Money.zero);
     for (final tx in _transactions) {
       if (isUpcoming(tx) ||
           tx.date.isBefore(periods.first.start) ||
-          !tx.date.isBefore(_period.end)) {
+          !tx.date.isBefore(_period.end) ||
+          (account != null && tx.accountId != account)) {
         continue;
       }
       final index = periods.indexWhere((period) => period.contains(tx.date));
@@ -1678,8 +1712,12 @@ class TransactionProvider extends ChangeNotifier {
   // The home-screen widget (WID-1–WID-6).
 
   /// Shows the period that contains today, whatever was selected before
-  /// (WID-3).
+  /// (WID-3). A shortcut or widget tap is a fresh start, so a day chosen on
+  /// an earlier visit is brought forward to today first, the same as the
+  /// app resuming does (DAY-1, DAY-9): otherwise a stale day survives within
+  /// the same period and a new entry lands on it instead of today.
   void showCurrentPeriod() {
+    returnToToday();
     final current = currentPeriod;
     if (current == _period) return;
     _period = current;
@@ -1792,12 +1830,18 @@ class TransactionProvider extends ChangeNotifier {
       _previous.expenseByCategory;
   Map<String, Money> get previousIncomeByCategory => _previous.incomeByCategory;
 
-  /// Whether anything at all was recorded before the selected period. The
-  /// earliest period on record has nothing to compare itself with, and a
-  /// comparison against nothing reads as "you spent nothing last month"
-  /// (INS-6).
-  bool get hasEarlierRecords =>
-      _transactions.any((tx) => tx.date.isBefore(_period.start));
+  /// Whether anything at all was recorded before the selected period, for
+  /// the chosen account. The earliest period on record has nothing to
+  /// compare itself with, and a comparison against nothing reads as "you
+  /// spent nothing last month" (INS-6, ACC-7).
+  bool get hasEarlierRecords {
+    final account = accountFilterId;
+    return _transactions.any(
+      (tx) =>
+          tx.date.isBefore(_period.start) &&
+          (account == null || tx.accountId == account),
+    );
+  }
 
   /// The period across every account, whatever [accountFilterId] is set to.
   /// A budget is a limit on a category and has no account (BUD-1), so

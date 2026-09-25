@@ -96,6 +96,7 @@
   "trashTitle": "Kosz",
   "trashEmpty": "Kosz jest pusty.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{zostanie usunięte na stałe za 1 dzień} other{zostanie usunięte na stałe za {days} dni}}",
+  "trashNoteSubtitle": "{days, plural, =1{zostanie usunięte na stałe za 1 dzień} other{zostanie usunięte na stałe za {days} dni}}",
   "restoreTooltip": "Przywróć",
   "categoriesTitle": "Kategorie",
   "addCategoryTooltip": "Dodaj kategorię",

@@ -385,6 +385,19 @@ class DBHelper {
     return [for (final map in maps) Note.fromMap(map)];
   }
 
+  /// Notes in the trash, most recently deleted first (DEL-5, NOTE-7).
+  /// Without this the next launch forgot them, and only the Undo snackbar
+  /// could bring one back.
+  Future<List<Note>> fetchDeletedNotes() async {
+    final db = await database;
+    final maps = await db.query(
+      'notes',
+      where: 'deleted_at IS NOT NULL',
+      orderBy: 'deleted_at DESC',
+    );
+    return [for (final map in maps) Note.fromMap(map)];
+  }
+
   Future<void> insertNote(Note note) async {
     final db = await database;
     await db.insert('notes', note.toMap());

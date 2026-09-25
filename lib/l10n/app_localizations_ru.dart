@@ -362,6 +362,19 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String trashNoteSubtitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'удалится навсегда через $days дней',
+      many: 'удалится навсегда через $days дней',
+      few: 'удалится навсегда через $days дня',
+      one: 'удалится навсегда через $days день',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get restoreTooltip => 'Восстановить';
 
   @override

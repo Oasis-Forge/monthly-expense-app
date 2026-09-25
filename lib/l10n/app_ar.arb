@@ -96,6 +96,7 @@
   "trashTitle": "المحذوفات",
   "trashEmpty": "لا توجد عناصر محذوفة.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{يُحذف نهائيًا خلال يوم واحد} =2{يُحذف نهائيًا خلال يومين} few{يُحذف نهائيًا خلال {days} أيام} many{يُحذف نهائيًا خلال {days} يومًا} other{يُحذف نهائيًا خلال {days} يوم}}",
+  "trashNoteSubtitle": "{days, plural, =1{يُحذف نهائيًا خلال يوم واحد} =2{يُحذف نهائيًا خلال يومين} few{يُحذف نهائيًا خلال {days} أيام} many{يُحذف نهائيًا خلال {days} يومًا} other{يُحذف نهائيًا خلال {days} يوم}}",
   "restoreTooltip": "استعادة",
   "categoriesTitle": "الفئات",
   "addCategoryTooltip": "إضافة فئة",

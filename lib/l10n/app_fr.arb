@@ -96,6 +96,7 @@
   "trashTitle": "Corbeille",
   "trashEmpty": "La corbeille est vide.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{supprimé définitivement dans 1 jour} other{supprimé définitivement dans {days} jours}}",
+  "trashNoteSubtitle": "{days, plural, =1{supprimé définitivement dans 1 jour} other{supprimé définitivement dans {days} jours}}",
   "restoreTooltip": "Restaurer",
   "categoriesTitle": "Catégories",
   "addCategoryTooltip": "Ajouter une catégorie",
