@@ -4,6 +4,17 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.28.0] - 2026-09-25
+
+### Added
+- A Privacy policy row in Settings opens the published policy in the browser; Google Play and the App Store require it inside the app. The app itself still fetches nothing (RUN-2).
+
+### Fixed
+- A paying user got the ads back when the store listed no product (offline, a Play hiccup): what the account owns is now always asked (PAY-5).
+- Left open past midnight, Home stayed on yesterday, so the morning's entries got the wrong day; it now moves on to today (DAY-1).
+- An entry made today no longer leaves tonight's empty-day reminder scheduled, and posted or skipped due entries stop being announced (NUDGE-4).
+- The empty-day reminder no longer switches itself off for people who record every day (NUDGE-5).
+
 ## [1.27.4] - 2026-09-25
 
 ### Fixed
