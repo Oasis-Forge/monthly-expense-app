@@ -874,8 +874,12 @@ String importIdentity({
 ].join('|');
 
 /// A leading apostrophe that csv_export.dart's `_text` adds before `=`, `+`,
-/// `-`, or `@` (BAK-5), stripped only from this app's own export (IMP-2).
-final _formulaGuard = RegExp(r"^'(?=[=+\-@])");
+/// `-`, or `@`, or before the user's own apostrophe followed by one of
+/// those (BAK-5), stripped only from this app's own export (IMP-2,
+/// rules-11-13-20-21#11). The lookahead only recognises what `_text`'s
+/// `_formulaStart` would have guarded, so a foreign file's own leading
+/// apostrophe -- one not followed by a formula character -- is left alone.
+final _formulaGuard = RegExp(r"^'(?=[=+\-@]|'[=+\-@])");
 
 String _stripFormulaGuard(String value) =>
     value.replaceFirst(_formulaGuard, '');

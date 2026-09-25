@@ -1017,6 +1017,35 @@ void main() {
       expect(plan.unknownAccounts, isEmpty);
     });
 
+    test('a title that starts with the user\'s own apostrophe reads back '
+        'exactly (rules-11-13-20-21#11)', () {
+      final tx = testTx(
+        't1',
+        TransactionType.expense,
+        0,
+        DateTime(2026, 9, 1),
+        title: "'-5 refund",
+      );
+      final csv = buildCsv(
+        transactions: [tx],
+        currencyCode: 'KWD',
+        categoryName: (_) => 'Food',
+        accountName: (_) => 'Cash',
+      );
+      // The export guards it with a second apostrophe, or the plain
+      // '-5 refund" case above and this one would export identically and
+      // no longer round-trip.
+      expect(csv, contains("''-5 refund"));
+
+      final plan = planImport(
+        table: parseCsv(csv),
+        categoryIdFor: (_) => 'cat-food',
+        accountIdFor: (_) => Account.cashId,
+      );
+
+      expect(plan.rows.single.title, "'-5 refund");
+    });
+
     test('a foreign file\'s own leading apostrophe is left alone', () {
       final plan = planImport(
         table: parseCsv("date,amount,title\n2026-09-01,-5.00,'-5 refund\n"),
