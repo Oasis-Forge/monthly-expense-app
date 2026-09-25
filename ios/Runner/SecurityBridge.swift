@@ -10,7 +10,9 @@ import UIKit
 /// signal instead. `app_lock.dart` pushes whether App Lock is turned on
 /// through this channel at launch and whenever the setting changes; this
 /// class only remembers that boolean and shows or hides a plain cover.
-final class SecurityBridge {
+// NSObject: #selector and the Notification Center observers below need an
+// Objective-C-compatible class, which a plain Swift class isn't.
+final class SecurityBridge: NSObject {
   static let shared = SecurityBridge()
 
   static let channelName = "com.oasisforge.monthlyexpenses/security"
@@ -21,7 +23,8 @@ final class SecurityBridge {
   private var secure = false
   private var cover: UIView?
 
-  private init() {
+  private override init() {
+    super.init()
     NotificationCenter.default.addObserver(
       self,
       selector: #selector(willResignActive),

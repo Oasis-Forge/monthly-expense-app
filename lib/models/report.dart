@@ -177,6 +177,15 @@ enum ReportTrendGrain { day, period }
 /// balance; without one, transfers are shown in the day list but change no
 /// total, because the money never leaves (ACC-4).
 ///
+/// [matches], when given, narrows what the report *shows*: only a matching
+/// in-range transaction lands in the entries, income, expense, categories,
+/// trend, or upcoming, and transfers are left out of the day list and
+/// upcoming entirely (a transfer never matches a text, type, or category
+/// search, so showing it would defeat the narrowing). Every transaction
+/// still counts toward [ReportData.openingBalance] and
+/// [ReportData.closingBalance] regardless of [matches], so a narrowed report
+/// never states a false balance (BAL-2, BAL-3).
+///
 /// [budgetLimit] answers the limit in force for a category, or null; pass
 /// [TransactionProvider.budgetLimit]. [startDay] is the first day of a period
 /// (PER-2), used to group a long range's trend.
@@ -188,6 +197,7 @@ ReportData buildReport({
   required List<Transfer> transfers,
   required List<Account> accounts,
   String? accountId,
+  bool Function(ExpenseTransaction transaction)? matches,
   Money? Function(String categoryId)? budgetLimit,
   int startDay = 1,
   ReportOptions options = const ReportOptions(),
@@ -224,8 +234,14 @@ ReportData buildReport({
     }
   }
 
+  // Shown totals: only transactions matching a narrowing filter, for the
+  // figures the report displays.
   var income = Money.zero;
   var expense = Money.zero;
+  // True totals: every transaction that counts, regardless of a narrowing
+  // filter, so the balances below are never distorted by one (BAL-2, BAL-3).
+  var trueIncome = Money.zero;
+  var trueExpense = Money.zero;
   final expenseByCategory = <String, Money>{};
   final incomeByCategory = <String, Money>{};
   final byDay = <DateTime, List<ReportEntry>>{};
@@ -236,15 +252,26 @@ ReportData buildReport({
   for (final tx in transactions) {
     if (!mine(tx)) continue;
     if (!inRange(tx.date)) {
-      // Everything counted before the range moves the opening balance.
+      // Everything counted before the range moves the opening balance,
+      // matching filter or not.
       if (counts(tx.date) && _dayOf(tx.date).isBefore(first)) {
         opening += tx.type == TransactionType.income ? tx.amount : -tx.amount;
       }
       continue;
     }
+    final isIncome = tx.type == TransactionType.income;
+    final txCounts = counts(tx.date);
+    if (txCounts) {
+      if (isIncome) {
+        trueIncome += tx.amount;
+      } else {
+        trueExpense += tx.amount;
+      }
+    }
+    if (matches != null && !matches(tx)) continue;
     entryCount++;
     final entry = ReportEntry.transaction(tx);
-    if (!counts(tx.date)) {
+    if (!txCounts) {
       upcoming.add(entry);
       continue;
     }
@@ -252,7 +279,6 @@ ReportData buildReport({
     if (options.transactions) {
       byDay.putIfAbsent(day, () => []).add(entry);
     }
-    final isIncome = tx.type == TransactionType.income;
     final totals = dayTotals[day] ?? const DayTotals();
     dayTotals[day] = DayTotals(
       income: isIncome ? totals.income + tx.amount : totals.income,
@@ -283,18 +309,24 @@ ReportData buildReport({
       }
       continue;
     }
+    final transferCounts = counts(transfer.date);
+    if (accountId != null && transferCounts) {
+      if (into) transferNet += transfer.amount;
+      if (outOf) transferNet -= transfer.amount;
+    }
+    // A narrowing filter never matches a transfer's text, type, or category,
+    // so it is left out of the day list and upcoming entirely rather than
+    // shown regardless of the filter (PDF-1, BAK-5). transferNet above still
+    // keeps the account balance right.
+    if (matches != null) continue;
     entryCount++;
     final entry = ReportEntry.transfer(transfer);
-    if (!counts(transfer.date)) {
+    if (!transferCounts) {
       upcoming.add(entry);
       continue;
     }
     if (options.transactions) {
       byDay.putIfAbsent(_dayOf(transfer.date), () => []).add(entry);
-    }
-    if (accountId != null) {
-      if (into) transferNet += transfer.amount;
-      if (outOf) transferNet -= transfer.amount;
     }
   }
 
@@ -310,7 +342,8 @@ ReportData buildReport({
     income: income,
     expense: expense,
     openingBalance: opening,
-    closingBalance: opening + openingDuring + income - expense + transferNet,
+    closingBalance:
+        opening + openingDuring + trueIncome - trueExpense + transferNet,
     expenseCategories: _lines(expenseByCategory, expense, budgetLimit),
     incomeCategories: _lines(incomeByCategory, income, null),
     trend: _trend(first, last, now, dayTotals, startDay),

@@ -18,6 +18,7 @@ class AttachmentField extends StatefulWidget {
     this.voiceFile,
     required this.onPhotoChanged,
     required this.onVoiceChanged,
+    this.onRecordingChanged,
   });
 
   final String? photoFile;
@@ -25,11 +26,17 @@ class AttachmentField extends StatefulWidget {
   final ValueChanged<String?> onPhotoChanged;
   final ValueChanged<String?> onVoiceChanged;
 
+  /// Told whenever a recording starts or stops, so the form can count it as
+  /// an unsaved edit (ADD-9) and finish it before a save loses it (ATT-4).
+  final ValueChanged<bool>? onRecordingChanged;
+
   @override
-  State<AttachmentField> createState() => _AttachmentFieldState();
+  State<AttachmentField> createState() => AttachmentFieldState();
 }
 
-class _AttachmentFieldState extends State<AttachmentField> {
+/// Public so a form can hold a `GlobalKey<AttachmentFieldState>` and call
+/// [finishRecording] on it before saving (ATT-4, ATT-5).
+class AttachmentFieldState extends State<AttachmentField> {
   /// Files this form made. One of these that is dropped before the form is
   /// saved is deleted here; a file the transaction already had is left to the
   /// provider, which deletes it once the change is saved (ATT-5).
@@ -117,6 +124,12 @@ class _AttachmentFieldState extends State<AttachmentField> {
     await _dropIfMine(old);
   }
 
+  void _setRecording(bool recording) {
+    if (_recording == recording) return;
+    setState(() => _recording = recording);
+    widget.onRecordingChanged?.call(recording);
+  }
+
   Future<void> _startRecording() async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
@@ -124,10 +137,8 @@ class _AttachmentFieldState extends State<AttachmentField> {
       messenger.showSnackBar(SnackBar(content: Text(l10n.microphoneRefused)));
       return;
     }
-    setState(() {
-      _recording = true;
-      _left = AttachmentService.voiceLimit;
-    });
+    setState(() => _left = AttachmentService.voiceLimit);
+    _setRecording(true);
     // A voice note stops on its own at the cap (ATT-4).
     _countdown = Timer.periodic(const Duration(seconds: 1), (_) {
       final left = _left - const Duration(seconds: 1);
@@ -139,16 +150,27 @@ class _AttachmentFieldState extends State<AttachmentField> {
     });
   }
 
-  Future<void> _stopRecording() async {
+  Future<String?> _finishRecording() async {
     _countdown?.cancel();
     final old = widget.voiceFile;
     final name = await _attachments.stopRecording();
-    if (!mounted) return;
-    setState(() => _recording = false);
-    if (name == null) return;
+    if (mounted) _setRecording(false);
+    if (name == null) return null;
     _mine.add(name);
     await _dropIfMine(old);
     widget.onVoiceChanged(name);
+    return name;
+  }
+
+  Future<void> _stopRecording() => _finishRecording();
+
+  /// Stops an in-progress recording and attaches it, the same way the Stop
+  /// button does, so a save mid-recording (Save or Save & add another)
+  /// doesn't leave the just-spoken note behind or the microphone running
+  /// (ATT-4, ATT-5). Null, and nothing changed, when nothing was recording.
+  Future<String?> finishRecording() {
+    if (!_recording) return Future.value(null);
+    return _finishRecording();
   }
 
   Future<void> _removeVoice() async {

@@ -93,6 +93,32 @@ void main() {
     expect(authenticator.requests, 2);
   });
 
+  testWidgets(
+    'backgrounding the app hides its content immediately in Dart itself, '
+    "before the OS's own screenshot protection would ever draw a fresh "
+    'frame (LOCK-2)',
+    (tester) async {
+      await showApp(tester, appLock: true);
+      expect(content.hitTestable(), findsOneWidget);
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      await tester.pump();
+
+      // Not actually locked yet — under the timeout — so no prompt, just
+      // nothing readable while backgrounded.
+      expect(locked, findsNothing);
+      expect(content.hitTestable(), findsNothing);
+
+      now = now.add(const Duration(seconds: 30));
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+
+      expect(locked, findsNothing);
+      expect(content.hitTestable(), findsOneWidget);
+    },
+  );
+
   testWidgets('without a screen lock, app lock turns itself off (LOCK-3)', (
     tester,
   ) async {

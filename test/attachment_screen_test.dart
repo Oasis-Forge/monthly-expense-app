@@ -249,8 +249,8 @@ void main() {
     });
 
     testWidgets(
-      'leaving the form mid-recording cancels it, not left running with no '
-      'cap (ATT-4, ATT-5)',
+      'leaving the form mid-recording asks first (ADD-9), then cancels it, '
+      'not left running with no cap (ATT-4, ATT-5)',
       (tester) async {
         usePhoneScreen(tester);
         await tester.pumpWidget(
@@ -278,17 +278,30 @@ void main() {
         await record(tester);
         expect(find.widgetWithText(FilledButton, 'Stop'), findsOneWidget);
 
-        // Back, as many times as it takes to actually pop (the first one
-        // may only close the keypad, per ADD-9). Never pumpAndSettle here:
-        // the countdown ticks every second and the tree would never settle
-        // while still recording.
-        for (
-          var i = 0;
-          i < 3 && find.byType(AddTransactionScreen).evaluate().isNotEmpty;
-          i++
-        ) {
-          await tester.pageBack();
-          await tester.pump();
+        // Never pumpAndSettle here: the countdown ticks every second and the
+        // tree would never settle while still recording.
+        // The first Back only closes the keypad (ADD-9).
+        await tester.pageBack();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+        // The second Back asks, since a recording in progress counts as an
+        // unsaved edit (ADD-9) — it must not be thrown away silently.
+        await tester.pageBack();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Discard changes?'), findsOneWidget);
+        expect(
+          attachments.cancelled,
+          isFalse,
+          reason: 'still asking, so nothing has been thrown away yet',
+        );
+
+        await tester.tap(find.text('Discard'));
+        // Two route-pop transitions run in sequence here (the dialog's, then
+        // the form's), so this needs more than one beat to finish.
+        for (var i = 0; i < 6; i++) {
           await tester.pump(const Duration(milliseconds: 300));
         }
 
@@ -300,6 +313,71 @@ void main() {
               'a recording left running when the form closes should be '
               'cancelled, not left running with no cap (ATT-4)',
         );
+      },
+    );
+
+    testWidgets(
+      'Save mid-recording attaches the note just spoken instead of losing '
+      'it (ATT-4, ATT-5)',
+      (tester) async {
+        await open(tester);
+        // Enter the amount before recording starts, so nothing here needs
+        // to settle while the countdown ticks.
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '12.50');
+
+        await record(tester);
+        expect(find.widgetWithText(FilledButton, 'Stop'), findsOneWidget);
+
+        final saveButton = find.widgetWithText(FilledButton, 'Add Transaction');
+        await tester.ensureVisible(saveButton);
+        await tester.tap(saveButton);
+        await tester.pump();
+        // Saving stops the recording itself; nothing left ticking now.
+        await tester.pumpAndSettle();
+
+        expect(attachments.cancelled, isFalse);
+        expect(provider.transactions.single.voiceFile, 'file1.m4a');
+      },
+    );
+
+    testWidgets(
+      "'Save & add another' mid-recording attaches the note to the entry "
+      'just saved, not the next one (ATT-4, ATT-5)',
+      (tester) async {
+        await open(tester);
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '12.50');
+
+        await record(tester);
+
+        final addAnother = find.widgetWithText(
+          OutlinedButton,
+          'Save & add another',
+        );
+        await tester.ensureVisible(addAnother);
+        await tester.tap(addAnother);
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(provider.transactions.single.voiceFile, 'file1.m4a');
+        // The next, still-open entry starts with no voice note of its own.
+        expect(
+          find.widgetWithText(OutlinedButton, 'Record a voice note'),
+          findsOneWidget,
+        );
+
+        // The form is a lazy list: the amount field scrolled out of view (and
+        // out of the tree) while reaching the button below, so it needs
+        // revealing again for the second entry.
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '5');
+        await tapInForm(
+          tester,
+          find.widgetWithText(FilledButton, 'Add Transaction'),
+        );
+
+        expect(provider.transactions.last.voiceFile, isNull);
       },
     );
 

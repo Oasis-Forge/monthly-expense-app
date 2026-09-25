@@ -148,87 +148,159 @@ void main() {
     },
   );
 
-  group('what a report from Search is built from (PDF-1, BAK-5)', () {
-    late ExpenseTransaction rent;
-    late List<ExpenseTransaction> all;
-    // The labels don't matter to this group; each function just has to be
-    // one reportSourceTransactions can call.
-    String categoryName(Category category) => category.id;
-    String accountName(Account account) => account.id;
-
-    setUp(() async {
-      rent = testTx(
-        'rent',
-        TransactionType.expense,
-        800,
-        DateTime(2026, 9, 1),
-        title: 'Rent',
-      );
-      all = [
-        rent,
-        testTx('e2', TransactionType.expense, 20, DateTime(2026, 9, 5)),
-        testTx('i1', TransactionType.income, 900, DateTime(2026, 9, 2)),
-      ];
+  testWidgets(
+    'opened from Search, an archived account still carries over instead of '
+    'falling back to "All accounts" (PDF-1)',
+    (tester) async {
+      // Search itself offers archived accounts too, so a report opened on
+      // one has to seed from every account, not just the active ones.
       provider = TransactionProvider(
-        db: FakeDB(transactions: all),
+        db: FakeDB(
+          transactions: fake.rows,
+          accounts: [
+            testAccount(Account.cashId),
+            testAccount('savings').copyWith(archivedAt: DateTime(2026, 1, 1)),
+          ],
+        ),
         clock: () => DateTime(2026, 9, 15),
       );
       await provider.load();
-    });
 
-    test('opened from Home or Insights, every transaction is included', () {
-      expect(
-        reportSourceTransactions(
-          provider,
-          null,
-          categoryName: categoryName,
-          accountName: accountName,
-        ),
-        unorderedEquals(all),
+      await showReport(
+        tester,
+        filter: const TransactionFilter(accountId: 'savings'),
       );
-    });
 
-    test('a type filter from Search excludes the other type', () {
-      expect(
-        reportSourceTransactions(
+      // Falling back to "All accounts" here would report on every account,
+      // the exact over-sharing the archived filter is meant to avoid
+      // (testAccount names each account after its ID).
+      expect(find.text('savings'), findsOneWidget);
+      expect(find.text('All accounts'), findsNothing);
+    },
+  );
+
+  group(
+    'what a report from Search draws from (PDF-1, BAK-5, BAL-2, BAL-3)',
+    () {
+      late ExpenseTransaction rent;
+      late List<ExpenseTransaction> all;
+      // The labels don't matter to this group; each function just has to be
+      // one reportMatchesFor can call.
+      String categoryName(Category category) => category.id;
+      String accountName(Account account) => account.id;
+
+      setUp(() async {
+        rent = testTx(
+          'rent',
+          TransactionType.expense,
+          800,
+          DateTime(2026, 9, 1),
+          title: 'Rent',
+        );
+        all = [
+          rent,
+          testTx('e2', TransactionType.expense, 20, DateTime(2026, 9, 5)),
+          testTx('i1', TransactionType.income, 900, DateTime(2026, 9, 2)),
+        ];
+        provider = TransactionProvider(
+          db: FakeDB(
+            transactions: all,
+            transfers: [
+              testTransfer(
+                't',
+                Account.cashId,
+                Account.cashId,
+                50,
+                DateTime(2026, 9, 3),
+              ),
+            ],
+          ),
+          clock: () => DateTime(2026, 9, 15),
+        );
+        await provider.load();
+      });
+
+      test('opened from Home or Insights, there is no narrowing predicate', () {
+        expect(
+          reportMatchesFor(
+            provider,
+            null,
+            categoryName: categoryName,
+            accountName: accountName,
+          ),
+          isNull,
+        );
+      });
+
+      test('the account and dates in a Search filter play no part in the '
+          "predicate; they're the report's own controls instead", () {
+        expect(
+          reportMatchesFor(
+            provider,
+            TransactionFilter(
+              accountId: 'no-such-account',
+              from: DateTime(2099),
+              to: DateTime(2099),
+            ),
+            categoryName: categoryName,
+            accountName: accountName,
+          ),
+          isNull,
+        );
+      });
+
+      test('a type filter from Search excludes the other type', () {
+        final matches = reportMatchesFor(
           provider,
           const TransactionFilter(type: TransactionType.income),
           categoryName: categoryName,
           accountName: accountName,
-        ),
-        [all[2]],
-      );
-    });
+        );
+        expect(all.where(matches!), [all[2]]);
+      });
 
-    test('a text query from Search excludes what it does not match', () {
-      expect(
-        reportSourceTransactions(
-          provider,
-          const TransactionFilter(query: 'Rent'),
-          categoryName: categoryName,
-          accountName: accountName,
-        ),
-        [rent],
-      );
-    });
+      test(
+        'a text query narrows the report without giving it a false balance or '
+        'listing transfers (BAL-2, BAL-3, BAK-5)',
+        () {
+          final matches = reportMatchesFor(
+            provider,
+            const TransactionFilter(query: 'Rent'),
+            categoryName: categoryName,
+            accountName: accountName,
+          );
 
-    test('the account and dates in a Search filter do not narrow this list; '
-        "they're the report's own controls instead", () {
-      expect(
-        reportSourceTransactions(
-          provider,
-          TransactionFilter(
-            accountId: 'no-such-account',
-            from: DateTime(2099),
-            to: DateTime(2099),
-          ),
-          categoryName: categoryName,
-          accountName: accountName,
-        ),
-        unorderedEquals(all),
+          ReportData build({bool Function(ExpenseTransaction)? matches}) =>
+              buildReport(
+                from: DateTime(2026, 9, 1),
+                to: DateTime(2026, 9, 30),
+                today: provider.today,
+                transactions: provider.transactions,
+                transfers: provider.transfers,
+                accounts: provider.accounts,
+                matches: matches,
+              );
+
+          final unfiltered = build();
+          final filtered = build(matches: matches);
+
+          // The bug this reproduces: pre-filtering the transaction list before
+          // buildReport worked out the balances from it, so a query gave a
+          // false opening and closing balance (BAL-2, BAL-3).
+          expect(filtered.openingBalance, unfiltered.openingBalance);
+          expect(filtered.closingBalance, unfiltered.closingBalance);
+          // The unfiltered report includes the transfer; the filtered one
+          // leaves it out entirely, along with the non-matching transaction.
+          final filteredEntries = filtered.byDay.values.expand((e) => e);
+          expect(filteredEntries.single.transaction!.id, 'rent');
+          expect(
+            unfiltered.byDay.values.expand((e) => e).any((e) => e.isTransfer),
+            isTrue,
+          );
+        },
       );
-    });
-  });
+    },
+  );
 
   testWidgets('every account is offered, plus all of them together '
       '(PDF-1)', (tester) async {

@@ -35,6 +35,7 @@ void main() {
     List<Transfer> transfers = const [],
     List<Account> accounts = const [],
     String? accountId,
+    bool Function(ExpenseTransaction)? matches,
     Money? Function(String)? budgetLimit,
     int startDay = 1,
     ReportOptions options = const ReportOptions(),
@@ -46,6 +47,7 @@ void main() {
     transfers: transfers,
     accounts: accounts,
     accountId: accountId,
+    matches: matches,
     budgetLimit: budgetLimit,
     startDay: startDay,
     options: options,
@@ -294,6 +296,134 @@ void main() {
       expect(data.expense.toDouble(), 40);
       expect(data.expenseCategories, hasLength(1));
       expect(data.entryCount, 1);
+    });
+  });
+
+  group('report narrowed by a search filter (PDF-1, BAL-2, BAL-3, BAK-5)', () {
+    bool matchesRent(ExpenseTransaction tx) => tx.title == 'Rent';
+
+    test('opening and closing balance stay true regardless of the filter', () {
+      // The scenario from the audit: cash opening 1000, Salary +900 (Aug 1),
+      // Rent -800 (Aug 2), Rent -800 (Sep 1), a Freelance +500 that doesn't
+      // match "Rent" (Sep 15), reported for Sep 1-30.
+      final accounts = [account('cash', 1000, DateTime(2026, 1, 1))];
+      final transactions = [
+        testTx(
+          'salary',
+          TransactionType.income,
+          900,
+          DateTime(2026, 8, 1),
+          title: 'Salary',
+        ),
+        testTx(
+          'rent-aug',
+          TransactionType.expense,
+          800,
+          DateTime(2026, 8, 2),
+          title: 'Rent',
+        ),
+        testTx(
+          'rent-sep',
+          TransactionType.expense,
+          800,
+          DateTime(2026, 9, 1),
+          title: 'Rent',
+        ),
+        testTx(
+          'freelance',
+          TransactionType.income,
+          500,
+          DateTime(2026, 9, 15),
+          title: 'Freelance',
+        ),
+      ];
+
+      final unfiltered = report(accounts: accounts, transactions: transactions);
+      final filtered = report(
+        accounts: accounts,
+        transactions: transactions,
+        matches: matchesRent,
+      );
+
+      expect(unfiltered.openingBalance.toDouble(), 1100);
+      expect(unfiltered.closingBalance.toDouble(), 800);
+      // The filtered report never states a false balance (BAL-2, BAL-3):
+      // both figures match the unfiltered report exactly.
+      expect(filtered.openingBalance, unfiltered.openingBalance);
+      expect(filtered.closingBalance, unfiltered.closingBalance);
+    });
+
+    test('only matching entries show in the day list, income, expense, and '
+        'categories', () {
+      final transactions = [
+        testTx(
+          'rent-sep',
+          TransactionType.expense,
+          800,
+          DateTime(2026, 9, 1),
+          title: 'Rent',
+        ),
+        testTx(
+          'freelance',
+          TransactionType.income,
+          500,
+          DateTime(2026, 9, 15),
+          title: 'Freelance',
+        ),
+      ];
+
+      final filtered = report(transactions: transactions, matches: matchesRent);
+
+      expect(filtered.entryCount, 1);
+      expect(filtered.income.toDouble(), 0);
+      expect(filtered.expense.toDouble(), 800);
+      expect(filtered.incomeCategories, isEmpty);
+      expect(
+        filtered.byDay.values.expand((e) => e).single.transaction!.id,
+        'rent-sep',
+      );
+    });
+
+    test('a matching entry after today still lands in upcoming', () {
+      final transactions = [
+        testTx(
+          'rent-upcoming',
+          TransactionType.expense,
+          800,
+          DateTime(2026, 9, 20),
+          title: 'Rent',
+        ),
+        testTx(
+          'other-upcoming',
+          TransactionType.expense,
+          10,
+          DateTime(2026, 9, 21),
+          title: 'Coffee',
+        ),
+      ];
+
+      final filtered = report(transactions: transactions, matches: matchesRent);
+
+      expect(filtered.upcoming.single.transaction!.id, 'rent-upcoming');
+    });
+
+    test('transfers are left out of the day list and upcoming, but their '
+        'balance still counts (ACC-4)', () {
+      final data = report(
+        accountId: 'cash',
+        accounts: [account('cash', 100, DateTime(2026, 1, 1))],
+        transfers: [
+          transfer('in', 'bank', 'cash', 30, DateTime(2026, 9, 4)),
+          // Dated after today, so it would otherwise land in upcoming.
+          transfer('later', 'bank', 'cash', 5, DateTime(2026, 9, 20)),
+        ],
+        matches: matchesRent,
+      );
+
+      expect(data.byDay, isEmpty);
+      expect(data.upcoming, isEmpty);
+      expect(data.entryCount, 0);
+      expect(data.closingBalance.toDouble(), 130);
     });
   });
 

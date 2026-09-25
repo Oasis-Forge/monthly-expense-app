@@ -52,6 +52,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
 
   String? _photoFile;
   String? _voiceFile;
+  bool _recording = false;
+  final _attachmentFieldKey = GlobalKey<AttachmentFieldState>();
 
   TransactionType _type = TransactionType.expense;
   String? _categoryId;
@@ -108,7 +110,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     snapshotForm();
   }
 
-  /// Everything the user can change here, for the Back guard (ADD-9).
+  /// Everything the user can change here, for the Back guard (ADD-9). A
+  /// recording in progress counts too, so leaving mid-recording asks first
+  /// instead of silently throwing the note away.
   @override
   String formSnapshot() => [
     amountController.text,
@@ -120,6 +124,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     _date.toIso8601String(),
     _photoFile ?? '',
     _voiceFile ?? '',
+    _recording.toString(),
   ].join('\u0000');
 
   @override
@@ -141,6 +146,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
 
   Future<void> _submit({bool addAnother = false}) async {
     if (_saving || !_formKey.currentState!.validate()) return;
+    // Set before the await below, so a repeated tap during it doesn't save
+    // twice.
+    _saving = true;
 
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
@@ -154,7 +162,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     final note = _noteController.text.trim();
     final recordingNote = widget.recordingNote;
 
-    _saving = true;
+    // A save mid-recording (Save or Save & add another) must not silently
+    // drop the note just spoken, or leave the mic running into the next
+    // entry (ATT-4, ATT-5): stop and attach it before the transaction is
+    // built. This updates _voiceFile via onVoiceChanged when it returns.
+    await _attachmentFieldKey.currentState?.finishRecording();
+    if (!mounted) return;
+
     try {
       final editing = widget.editing;
       if (editing != null) {
@@ -426,10 +440,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
               ),
               const SizedBox(height: 16),
               AttachmentField(
+                key: _attachmentFieldKey,
                 photoFile: _photoFile,
                 voiceFile: _voiceFile,
                 onPhotoChanged: (name) => setState(() => _photoFile = name),
                 onVoiceChanged: (name) => setState(() => _voiceFile = name),
+                onRecordingChanged: (recording) =>
+                    setState(() => _recording = recording),
               ),
               if (linkedNote != null) ...[
                 const SizedBox(height: 16),
