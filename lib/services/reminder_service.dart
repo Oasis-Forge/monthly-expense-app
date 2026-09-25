@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -163,7 +165,16 @@ class DeviceReminderService implements ReminderService {
   /// the tapped notification's note a second time.
   Future<void>? _initializing;
 
-  Future<void> _ensureInitialized() => _initializing ??= _doInitialize();
+  Future<void> _ensureInitialized() {
+    final initializing = _initializing ??= _doInitialize();
+    // A failed attempt is not cached: the next call starts a fresh one,
+    // exactly as the old `bool` flag (left false on failure) did. This does
+    // not touch what `initializing` resolves with for whoever is awaiting
+    // it here and elsewhere -- Dart lets more than one caller listen to the
+    // same future independently.
+    unawaited(initializing.catchError((_) => _initializing = null));
+    return initializing;
+  }
 
   Future<void> _doInitialize() async {
     tz_data.initializeTimeZones();
