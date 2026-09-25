@@ -218,6 +218,71 @@ void main() {
       expect(find.text('new'), findsOneWidget);
     });
 
+    testWidgets(
+      'a rising category shows a plus, and a change under half a percent '
+      'shows no label at all (INS-6, pr61#5, pr56+60#2)',
+      (tester) async {
+        await showInsights(tester, [
+          // August: rent 50, transport 1000, shopping 1000.
+          testTx(
+            'a',
+            expense,
+            50,
+            DateTime(2026, 8, 3),
+            categoryId: 'cat-rent',
+          ),
+          testTx(
+            'b',
+            expense,
+            1000,
+            DateTime(2026, 8, 9),
+            categoryId: 'cat-transport',
+          ),
+          testTx(
+            'c',
+            expense,
+            1000,
+            DateTime(2026, 8, 10),
+            categoryId: 'cat-shopping',
+          ),
+          // September: rent doubles (+100%); transport falls just under
+          // half a percent, which intl's own NumberFormat still signs
+          // from the unrounded value, so before the fix it rounded to
+          // "-0%" instead of hiding like the same-sized rise (INS-6);
+          // shopping rises just under half a percent too.
+          testTx(
+            'd',
+            expense,
+            100,
+            DateTime(2026, 9, 4),
+            categoryId: 'cat-rent',
+          ),
+          testTx(
+            'e',
+            expense,
+            999.5,
+            DateTime(2026, 9, 5),
+            categoryId: 'cat-transport',
+          ),
+          testTx(
+            'f',
+            expense,
+            1001,
+            DateTime(2026, 9, 6),
+            categoryId: 'cat-shopping',
+          ),
+        ]);
+
+        // The rise carries a plus, from the language's own negative
+        // pattern with the sign swapped, not a bare '+' pasted in front
+        // (LANG-5, CUR-5).
+        expect(find.text('+100%'), findsOneWidget);
+        // Neither small change rounds away to a fake "-0%" or "0%".
+        expect(find.text('-0%'), findsNothing);
+        expect(find.text('0%'), findsNothing);
+      },
+    );
+
     testWidgets('the earliest period on record compares with nothing (INS-6)', (
       tester,
     ) async {

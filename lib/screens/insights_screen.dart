@@ -155,9 +155,16 @@ class _CategoriesTabState extends State<_CategoriesTab> {
         now: now,
       );
       if (share == null) return l10n.categoryNewLabel;
-      final rounded = percent.format(share);
-      if (rounded == percent.format(0)) return null;
-      return share > 0 ? '+$rounded' : rounded;
+      // A fall this small formats with intl's own minus, from the unrounded
+      // value, even once "0%" would print for a rise of the same size — so
+      // the magnitude, not the formatted string, decides whether to hide it.
+      if (share.abs() * 100 < 0.5) return null;
+      if (share < 0) return percent.format(share);
+      // A rise: format the negated share so the language's own negative
+      // pattern places the sign against its digits, then swap that minus for
+      // a plus the same way signedMoney does, rather than paste one in front
+      // where bidi could carry it off (LANG-5, CUR-5).
+      return swapMinusForPlus(percent.format(-share), percent.locale);
     }
 
     return ListView(

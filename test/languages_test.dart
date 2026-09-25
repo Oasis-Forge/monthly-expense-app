@@ -341,6 +341,49 @@ void main() {
       );
     });
 
+    testWidgets(
+      'a rising category keeps its plus against its figures, not floated '
+      'to the far end of the line (INS-6, LANG-5, CUR-5)',
+      (tester) async {
+        await show(tester, 'ar', const InsightsScreen());
+
+        // changeLabel used to paste a bare '+' in front of the formatted
+        // percent, which bidi could carry to the far end of the line.
+        final changeFinder = find.byWidgetPredicate(
+          (widget) => widget is Text && (widget.data?.contains('+') ?? false),
+        );
+        await tester.dragUntilVisible(
+          changeFinder,
+          find.byType(Scrollable).first,
+          const Offset(0, -300),
+        );
+        await tester.pumpAndSettle();
+        expect(changeFinder, findsOneWidget);
+        final change = tester.widget<Text>(changeFinder);
+        final text = change.data!;
+
+        final painter = TextPainter(
+          text: TextSpan(text: text),
+          textDirection: change.textDirection ?? TextDirection.rtl,
+        )..layout();
+        addTearDown(painter.dispose);
+        Rect boxOf(int at) => painter
+            .getBoxesForSelection(
+              TextSelection(baseOffset: at, extentOffset: at + 1),
+            )
+            .first
+            .toRect();
+        final sign = boxOf(text.indexOf('+'));
+        final firstDigit = boxOf(text.indexOf(RegExp('[0-9]')));
+
+        expect(
+          sign.right,
+          closeTo(firstDigit.left, 2),
+          reason: 'the + should sit against its figures, not float away: $text',
+        );
+      },
+    );
+
     testWidgets('the trend starts with the newest period on the left, and '
         'amounts sit on the right', (tester) async {
       await show(tester, 'ar', const InsightsScreen());
