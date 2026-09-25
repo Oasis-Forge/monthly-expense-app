@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Um lançamento recorrente ({amount}) venceu hoje e ainda está pendente.",
   "dueEntryReminderUntitledOverdue": "Um lançamento recorrente ({amount}) venceu em {date} e ainda está pendente.",
   "dueEntryReminderMany": "{count, plural, =0{{count} lançamentos recorrentes venceram hoje.} =1{1 lançamento recorrente venceu hoje.} other{{count} lançamentos recorrentes venceram hoje.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =0{{count} lançamentos recorrentes ainda aguardam.} =1{1 lançamento recorrente ainda aguarda.} other{{count} lançamentos recorrentes ainda aguardam.}}",
   "emptyDayReminderTitle": "Nada registrado hoje",
   "emptyDayChannelName": "Dias sem registro",
   "emptyDayReminderBody": "Adicione o que gastou enquanto ainda se lembra.",

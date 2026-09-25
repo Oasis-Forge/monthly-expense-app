@@ -1806,6 +1806,18 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count आवर्ती प्रविष्टियाँ प्रतीक्षा में हैं।',
+      one: '1 आवर्ती प्रविष्टि प्रतीक्षा में है।',
+      zero: '$count आवर्ती प्रविष्टियाँ प्रतीक्षा में हैं।',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'आज कुछ भी दर्ज नहीं हुआ';
 
   @override

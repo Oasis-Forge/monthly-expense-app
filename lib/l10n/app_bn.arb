@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "একটি পুনরাবৃত্ত এন্ট্রি ({amount}) আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।",
   "dueEntryReminderUntitledOverdue": "একটি পুনরাবৃত্ত এন্ট্রি ({amount}) {date} বকেয়া ছিল এবং এখনও অপেক্ষা করছে।",
   "dueEntryReminderMany": "{count, plural, =0{{count}টি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।} =1{1টি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।} other{{count}টি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =0{{count}টি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।} =1{1টি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।} other{{count}টি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।}}",
   "emptyDayReminderTitle": "আজ কিছু রেকর্ড করা হয়নি",
   "emptyDayChannelName": "রেকর্ড ছাড়া দিন",
   "emptyDayReminderBody": "আপনি যা খরচ করেছেন তা মনে থাকতে থাকতেই যোগ করুন।",

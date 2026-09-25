@@ -281,6 +281,23 @@ void main() {
       expect(body, '2 repeating entries were due today.');
     });
 
+    test('a group with one overdue occurrence carried over says "waiting", '
+        'not "due today" (rules-23-26-34#9)', () {
+      final body = nudgeBody(
+        l10n,
+        PlannedReminder(
+          kind: ReminderKind.dueEntry,
+          at: DateTime(2026, 9, 20, 9),
+          count: 2,
+          anyOverdue: true,
+        ),
+        currency: currency,
+      );
+
+      expect(body, '2 repeating entries are waiting.');
+      expect(body, isNot(contains('today')));
+    });
+
     test('an empty day carries no amount at all', () {
       final body = nudgeBody(
         l10n,

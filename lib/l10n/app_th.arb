@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "รายการที่เกิดซ้ำ ({amount}) ถึงกำหนดวันนี้และยังคงรอดำเนินการ",
   "dueEntryReminderUntitledOverdue": "รายการที่เกิดซ้ำ ({amount}) ถึงกำหนด{date}และยังคงรอดำเนินการ",
   "dueEntryReminderMany": "{count, plural, =1{มีรายการที่เกิดซ้ำถึงกำหนดวันนี้ {count} รายการ} other{มีรายการที่เกิดซ้ำถึงกำหนดวันนี้ {count} รายการ}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{มีรายการที่เกิดซ้ำรออยู่ {count} รายการ} other{มีรายการที่เกิดซ้ำรออยู่ {count} รายการ}}",
   "emptyDayReminderTitle": "วันนี้ยังไม่มีการบันทึก",
   "emptyDayChannelName": "วันที่ไม่มีการบันทึก",
   "emptyDayReminderBody": "บันทึกค่าใช้จ่ายไว้ตอนที่ยังจำได้",

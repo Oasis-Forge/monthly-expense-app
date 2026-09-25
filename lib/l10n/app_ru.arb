@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Срок повторяющейся записи ({amount}) наступил сегодня, и она всё ещё ждёт.",
   "dueEntryReminderUntitledOverdue": "Срок повторяющейся записи ({amount}) наступил {date}, и она всё ещё ждёт.",
   "dueEntryReminderMany": "{count, plural, one{У {count} повторяющейся записи сегодня срок.} few{У {count} повторяющихся записей сегодня срок.} many{У {count} повторяющихся записей сегодня срок.} other{У {count} повторяющихся записей сегодня срок.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, one{{count} повторяющаяся запись ожидает.} few{{count} повторяющиеся записи ожидают.} many{{count} повторяющихся записей ожидают.} other{{count} повторяющихся записей ожидают.}}",
   "emptyDayReminderTitle": "Сегодня ничего не записано",
   "emptyDayChannelName": "Дни без записей",
   "emptyDayReminderBody": "Добавьте расходы, пока ещё помните о них.",

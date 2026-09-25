@@ -574,7 +574,10 @@ String nudgeTitle(AppLocalizations l10n, PlannedReminder reminder) =>
 /// (CUR-2), and "due today" only when [reminder]'s own due date really is
 /// the day it fires on -- an occurrence carried over from an earlier,
 /// unhandled day names that day instead of claiming it is today's
-/// (rules-23-26-34#9).
+/// (rules-23-26-34#9). A grouped reminder ([reminder.count] more than one)
+/// carries no date of its own, but says "waiting" rather than "due today"
+/// when [PlannedReminder.anyOverdue] shows at least one of the group was
+/// carried over too.
 String nudgeBody(
   AppLocalizations l10n,
   PlannedReminder reminder, {
@@ -583,7 +586,11 @@ String nudgeBody(
   if (reminder.kind == ReminderKind.emptyDay) {
     return l10n.emptyDayReminderBody;
   }
-  if (reminder.count > 1) return l10n.dueEntryReminderMany(reminder.count);
+  if (reminder.count > 1) {
+    return reminder.anyOverdue
+        ? l10n.dueEntryReminderManyWaiting(reminder.count)
+        : l10n.dueEntryReminderMany(reminder.count);
+  }
   final amount = reminder.amount;
   final amountText = amount == null
       ? ''

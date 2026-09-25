@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Tekrarlanan bir kayıt ({amount}) bugün vadesi geldi ve hâlâ bekliyor.",
   "dueEntryReminderUntitledOverdue": "Tekrarlanan bir kayıt ({amount}) {date} vadesi geldi ve hâlâ bekliyor.",
   "dueEntryReminderMany": "{count, plural, =1{1 tekrarlanan kayıt bugün vadesi geldi.} other{{count} tekrarlanan kayıt bugün vadesi geldi.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 tekrarlanan kayıt bekliyor.} other{{count} tekrarlanan kayıt bekliyor.}}",
   "emptyDayReminderTitle": "Bugün kayıt yok",
   "emptyDayChannelName": "Kayıt olmayan günler",
   "emptyDayReminderBody": "Hatırlarken harcamalarını ekle.",

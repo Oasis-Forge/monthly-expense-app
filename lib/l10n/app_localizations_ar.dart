@@ -1860,6 +1860,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إدخال متكرر في الانتظار.',
+      many: '$count إدخالًا متكررًا في الانتظار.',
+      few: '$count إدخالات متكررة في الانتظار.',
+      two: 'إدخالان متكرران في الانتظار.',
+      one: 'إدخال متكرر واحد في الانتظار.',
+      zero: 'لا توجد إدخالات متكررة في الانتظار.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'لا شيء مسجل اليوم';
 
   @override

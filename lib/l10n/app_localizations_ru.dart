@@ -1862,6 +1862,19 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count повторяющихся записей ожидают.',
+      many: '$count повторяющихся записей ожидают.',
+      few: '$count повторяющиеся записи ожидают.',
+      one: '$count повторяющаяся запись ожидает.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Сегодня ничего не записано';
 
   @override

@@ -109,6 +109,27 @@ void main() {
       expect(reminders.single.title, isNull, reason: 'a count, not a list');
     });
 
+    test('two falling due the same day are not carried over, so the group '
+        'is not marked overdue (rules-23-26-34#9)', () {
+      final reminders = plan(
+        upcoming: [occurrence('Salary', 1), occurrence('Rent', 1)],
+      );
+
+      expect(reminders.single.anyOverdue, isFalse);
+    });
+
+    test('a group with an overdue occurrence carried in from an earlier day '
+        'is marked overdue, so it does not claim they were all due today '
+        '(rules-23-26-34#9)', () {
+      final reminders = plan(
+        due: [occurrence('Salary', -2), occurrence('Rent', -2)],
+        upcoming: [occurrence('Utilities', 1)],
+      );
+
+      expect(reminders.single.count, 3);
+      expect(reminders.single.anyOverdue, isTrue);
+    });
+
     test('one already waiting is announced tomorrow morning, since this '
         'morning has gone', () {
       final reminders = plan(due: [occurrence('Salary', -3)]);

@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Một mục lặp lại ({amount}) đã đến hạn hôm nay và vẫn đang chờ.",
   "dueEntryReminderUntitledOverdue": "Một mục lặp lại ({amount}) đã đến hạn vào {date} và vẫn đang chờ.",
   "dueEntryReminderMany": "{count, plural, =1{Có {count} mục lặp lại đến hạn hôm nay.} other{Có {count} mục lặp lại đến hạn hôm nay.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{Có {count} mục lặp lại đang chờ xử lý.} other{Có {count} mục lặp lại đang chờ xử lý.}}",
   "emptyDayReminderTitle": "Hôm nay chưa ghi gì",
   "emptyDayChannelName": "Những ngày chưa ghi gì",
   "emptyDayReminderBody": "Hãy thêm khoản chi trong khi bạn còn nhớ.",

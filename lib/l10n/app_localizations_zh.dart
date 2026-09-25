@@ -1746,6 +1746,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 笔重复记录仍在等待处理。',
+      one: '有 $count 笔重复记录仍在等待处理。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => '今天没有记录';
 
   @override

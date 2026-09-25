@@ -1797,6 +1797,17 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ada $count entri berulang yang masih menunggu.',
+      one: 'Ada $count entri berulang yang masih menunggu.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Belum ada catatan hari ini';
 
   @override

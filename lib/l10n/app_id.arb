@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Entri berulang ({amount}) jatuh tempo hari ini dan masih menunggu.",
   "dueEntryReminderUntitledOverdue": "Entri berulang ({amount}) jatuh tempo {date} dan masih menunggu.",
   "dueEntryReminderMany": "{count, plural, =1{Ada {count} entri berulang jatuh tempo hari ini.} other{Ada {count} entri berulang jatuh tempo hari ini.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{Ada {count} entri berulang yang masih menunggu.} other{Ada {count} entri berulang yang masih menunggu.}}",
   "emptyDayReminderTitle": "Belum ada catatan hari ini",
   "emptyDayChannelName": "Hari tanpa catatan",
   "emptyDayReminderBody": "Catat pengeluaranmu selagi masih ingat.",

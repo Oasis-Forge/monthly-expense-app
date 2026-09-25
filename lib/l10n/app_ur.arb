@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "ایک تکراری اندراج ({amount}) آج واجب الادا تھا اور اب بھی زیر التوا ہے۔",
   "dueEntryReminderUntitledOverdue": "ایک تکراری اندراج ({amount}) {date} واجب الادا تھا اور اب بھی زیر التوا ہے۔",
   "dueEntryReminderMany": "{count, plural, =1{1 تکراری اندراج آج واجب الادا تھا۔} other{{count} تکراری اندراجات آج واجب الادا تھے۔}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 تکراری اندراج زیرِ انتظار ہے۔} other{{count} تکراری اندراجات زیرِ انتظار ہیں۔}}",
   "emptyDayReminderTitle": "آج کچھ بھی درج نہیں ہوا",
   "emptyDayChannelName": "بلا اندراج دن",
   "emptyDayReminderBody": "جب تک یاد ہے، اپنا خرچ درج کر لیں۔",

@@ -1822,6 +1822,17 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count τακτικές καταχωρίσεις εκκρεμούν.',
+      one: '1 τακτική καταχώριση εκκρεμεί.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Καμία καταχώριση σήμερα';
 
   @override

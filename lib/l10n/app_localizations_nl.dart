@@ -1815,6 +1815,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vaste posten staan nog open.',
+      one: '1 vaste post staat nog open.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Vandaag niets geregistreerd';
 
   @override

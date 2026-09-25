@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Een terugkerende invoer ({amount}) was vandaag verschuldigd en wacht nog.",
   "dueEntryReminderUntitledOverdue": "Een terugkerende invoer ({amount}) was verschuldigd op {date} en wacht nog.",
   "dueEntryReminderMany": "{count, plural, =1{1 vaste post stond vandaag open.} other{{count} vaste posten stonden vandaag open.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 vaste post staat nog open.} other{{count} vaste posten staan nog open.}}",
   "emptyDayReminderTitle": "Vandaag niets geregistreerd",
   "emptyDayChannelName": "Dagen zonder registratie",
   "emptyDayReminderBody": "Voeg toe wat je hebt uitgegeven terwijl je het nog weet.",

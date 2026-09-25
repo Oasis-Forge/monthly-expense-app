@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "定期入力（{amount}）の期限が今日でしたが、まだ未対応です。",
   "dueEntryReminderUntitledOverdue": "定期入力（{amount}）の期限が{date}でしたが、まだ未対応です。",
   "dueEntryReminderMany": "{count, plural, =1{本日期限の定期入力が{count}件あります。} other{本日期限の定期入力が{count}件あります。}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{保留中の定期入力が{count}件あります。} other{保留中の定期入力が{count}件あります。}}",
   "emptyDayReminderTitle": "今日は何も記録されていません",
   "emptyDayChannelName": "記録のない日",
   "emptyDayReminderBody": "忘れないうちに支出を記録しましょう。",

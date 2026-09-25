@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Une saisie récurrente ({amount}) était due aujourd'hui et attend toujours.",
   "dueEntryReminderUntitledOverdue": "Une saisie récurrente ({amount}) était due le {date} et attend toujours.",
   "dueEntryReminderMany": "{count, plural, =0{{count} saisies récurrentes dues aujourd'hui.} =1{1 saisie récurrente due aujourd'hui.} other{{count} saisies récurrentes dues aujourd'hui.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =0{{count} saisies récurrentes en attente.} =1{1 saisie récurrente en attente.} other{{count} saisies récurrentes en attente.}}",
   "emptyDayReminderTitle": "Rien de noté aujourd'hui",
   "emptyDayChannelName": "Jours sans enregistrement",
   "emptyDayReminderBody": "Ajoutez vos dépenses tant que vous vous en souvenez.",

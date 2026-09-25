@@ -1816,6 +1816,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count entradas recurrentes siguen pendientes.',
+      one: '1 entrada recurrente sigue pendiente.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Nada registrado hoy';
 
   @override

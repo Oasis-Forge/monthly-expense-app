@@ -1755,6 +1755,17 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '保留中の定期入力が$count件あります。',
+      one: '保留中の定期入力が$count件あります。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => '今日は何も記録されていません';
 
   @override

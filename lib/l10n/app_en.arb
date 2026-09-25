@@ -1290,6 +1290,15 @@
       }
     }
   },
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 repeating entry is waiting.} other{{count} repeating entries are waiting.}}",
+  "@dueEntryReminderManyWaiting": {
+    "description": "Like dueEntryReminderMany, but for a group where at least one occurrence was carried over from an earlier, unhandled day, so the notification does not claim they were all due today (rules-23-26-34#9).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "emptyDayReminderTitle": "Nothing recorded today",
   "emptyDayChannelName": "Days with nothing recorded",
   "@emptyDayChannelName": {

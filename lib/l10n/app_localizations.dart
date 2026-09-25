@@ -3028,6 +3028,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 repeating entry was due today.} other{{count} repeating entries were due today.}}'**
   String dueEntryReminderMany(int count);
 
+  /// Like dueEntryReminderMany, but for a group where at least one occurrence was carried over from an earlier, unhandled day, so the notification does not claim they were all due today (rules-23-26-34#9).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 repeating entry is waiting.} other{{count} repeating entries are waiting.}}'**
+  String dueEntryReminderManyWaiting(int count);
+
   /// No description provided for @emptyDayReminderTitle.
   ///
   /// In en, this message translates to:

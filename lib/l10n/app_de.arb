@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Ein wiederkehrender Eintrag ({amount}) war heute fällig und wartet noch.",
   "dueEntryReminderUntitledOverdue": "Ein wiederkehrender Eintrag ({amount}) war am {date} fällig und wartet noch.",
   "dueEntryReminderMany": "{count, plural, =1{1 wiederkehrender Eintrag war heute fällig.} other{{count} wiederkehrende Einträge waren heute fällig.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 wiederkehrender Eintrag wartet noch.} other{{count} wiederkehrende Einträge warten noch.}}",
   "emptyDayReminderTitle": "Heute nichts erfasst",
   "emptyDayChannelName": "Tage ohne Erfassung",
   "emptyDayReminderBody": "Trage deine Ausgaben ein, solange du dich noch erinnerst.",

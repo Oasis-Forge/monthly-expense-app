@@ -48,6 +48,7 @@ class PlannedReminder {
     this.dueDate,
     this.amount,
     this.isIncome = false,
+    this.anyOverdue = false,
   });
 
   final ReminderKind kind;
@@ -77,6 +78,12 @@ class PlannedReminder {
   /// shown with (CUR-5). Meaningless when [amount] is null.
   final bool isIncome;
 
+  /// Whether, among the several occurrences [count] counts, at least one
+  /// fell due on an earlier day than the one this reminder fires on --
+  /// carried over, unhandled (rules-23-26-34#9). Meaningless when [count] is
+  /// 1: a single entry's own overdue-ness is told from [dueDate] instead.
+  final bool anyOverdue;
+
   @override
   bool operator ==(Object other) =>
       other is PlannedReminder &&
@@ -86,11 +93,20 @@ class PlannedReminder {
       other.count == count &&
       other.dueDate == dueDate &&
       other.amount == amount &&
-      other.isIncome == isIncome;
+      other.isIncome == isIncome &&
+      other.anyOverdue == anyOverdue;
 
   @override
-  int get hashCode =>
-      Object.hash(kind, at, title, count, dueDate, amount, isIncome);
+  int get hashCode => Object.hash(
+    kind,
+    at,
+    title,
+    count,
+    dueDate,
+    amount,
+    isIncome,
+    anyOverdue,
+  );
 
   @override
   String toString() => 'PlannedReminder($kind, $at, $title, x$count)';
@@ -176,6 +192,9 @@ List<PlannedReminder> planReminders({
         dueDate: single?.date,
         amount: single?.rule.amount,
         isIncome: single?.rule.type == TransactionType.income,
+        anyOverdue: single == null
+            ? announcing.any((occurrence) => !_sameDay(occurrence.date, day))
+            : false,
       ),
     );
   }

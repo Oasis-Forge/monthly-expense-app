@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Una voce ricorrente ({amount}) era prevista per oggi ed è ancora in attesa.",
   "dueEntryReminderUntitledOverdue": "Una voce ricorrente ({amount}) era prevista per il {date} ed è ancora in attesa.",
   "dueEntryReminderMany": "{count, plural, =1{1 voce ricorrente era prevista per oggi.} other{{count} voci ricorrenti erano previste per oggi.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 voce ricorrente è ancora in attesa.} other{{count} voci ricorrenti sono ancora in attesa.}}",
   "emptyDayReminderTitle": "Nessuna registrazione oggi",
   "emptyDayChannelName": "Giorni senza registrazioni",
   "emptyDayReminderBody": "Aggiungi le tue spese finché le ricordi ancora.",

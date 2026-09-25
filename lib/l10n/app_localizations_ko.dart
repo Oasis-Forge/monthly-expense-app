@@ -1755,6 +1755,17 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '대기 중인 반복 항목이 $count개 있습니다.',
+      one: '대기 중인 반복 항목이 $count개 있습니다.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => '오늘 기록된 내용이 없습니다';
 
   @override

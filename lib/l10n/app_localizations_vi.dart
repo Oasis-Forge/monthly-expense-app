@@ -1798,6 +1798,17 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Có $count mục lặp lại đang chờ xử lý.',
+      one: 'Có $count mục lặp lại đang chờ xử lý.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Hôm nay chưa ghi gì';
 
   @override

@@ -482,6 +482,7 @@
   "dueEntryReminderUntitled": "Μια επαναλαμβανόμενη καταχώριση ({amount}) οφειλόταν σήμερα και εκκρεμεί ακόμα.",
   "dueEntryReminderUntitledOverdue": "Μια επαναλαμβανόμενη καταχώριση ({amount}) οφειλόταν στις {date} και εκκρεμεί ακόμα.",
   "dueEntryReminderMany": "{count, plural, =1{1 τακτική καταχώριση οφειλόταν σήμερα.} other{{count} τακτικές καταχωρίσεις οφείλονταν σήμερα.}}",
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 τακτική καταχώριση εκκρεμεί.} other{{count} τακτικές καταχωρίσεις εκκρεμούν.}}",
   "emptyDayReminderTitle": "Καμία καταχώριση σήμερα",
   "emptyDayChannelName": "Ημέρες χωρίς καταχώριση",
   "emptyDayReminderBody": "Πρόσθεσε όσα ξόδεψες όσο τα θυμάσαι ακόμα.",

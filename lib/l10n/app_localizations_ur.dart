@@ -1793,6 +1793,17 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تکراری اندراجات زیرِ انتظار ہیں۔',
+      one: '1 تکراری اندراج زیرِ انتظار ہے۔',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'آج کچھ بھی درج نہیں ہوا';
 
   @override
