@@ -736,6 +736,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get wholeNumberInvalid => '1 veya daha büyük bir tam sayı girin';
 
   @override
+  String wholeNumberRange(int max) {
+    return '1 ile $max arasında bir tam sayı girin';
+  }
+
+  @override
   String get endDateInvalid => 'Bitiş tarihi başlangıçtan sonra olmalı';
 
   @override

@@ -740,6 +740,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get wholeNumberInvalid => 'Inserisci un numero intero da 1 in su';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Inserisci un numero intero da 1 a $max';
+  }
+
+  @override
   String get endDateInvalid =>
       'La data di fine deve essere successiva a quella di inizio';
 

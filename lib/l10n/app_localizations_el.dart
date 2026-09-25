@@ -746,6 +746,11 @@ class AppLocalizationsEl extends AppLocalizations {
   String get wholeNumberInvalid => 'Εισαγάγετε ακέραιο αριθμό από το 1';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Εισαγάγετε ακέραιο αριθμό από 1 έως $max';
+  }
+
+  @override
   String get endDateInvalid =>
       'Η ημερομηνία λήξης πρέπει να είναι μετά την έναρξη';
 

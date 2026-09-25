@@ -198,6 +198,7 @@
   "timesLabel": "回数",
   "endsOnLabel": "終了日",
   "wholeNumberInvalid": "1以上の整数を入力してください",
+  "wholeNumberRange": "1〜{max} の整数を入力してください",
   "endDateInvalid": "終了日は開始日より後にしてください",
   "autoPostLabel": "自動登録",
   "autoPostSubtitle": "オフの場合、期日でタップするまで登録されません",

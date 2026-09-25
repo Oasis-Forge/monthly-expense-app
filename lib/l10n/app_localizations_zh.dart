@@ -731,6 +731,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get wholeNumberInvalid => '请输入不小于1的整数';
 
   @override
+  String wholeNumberRange(int max) {
+    return '请输入 1 到 $max 之间的整数';
+  }
+
+  @override
   String get endDateInvalid => '结束日期必须晚于开始日期';
 
   @override

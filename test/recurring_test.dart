@@ -121,6 +121,22 @@ void main() {
         count: 999999999,
       );
       expect(() => hugeCount.isActiveOn(DateTime(2026, 9, 1)), returnsNormally);
+      // Its last time is past any calendar, so it is still to come
+      // (review-state-3).
+      expect(hugeCount.isActiveOn(DateTime(2026, 9, 1)), isTrue);
+
+      // A count near the largest int must not wrap the step count around.
+      final wrapping = rule(
+        DateTime(2026, 9, 1),
+        frequency: RecurrenceFrequency.day,
+        interval: 999,
+        end: RecurrenceEnd.afterCount,
+        count: 9000000000000000000,
+      );
+      expect(wrapping.isActiveOn(DateTime(2026, 9, 1)), isTrue);
+      expect(dates(wrapping, DateTime(2026, 9, 1), DateTime(2026, 9, 30)), [
+        DateTime(2026, 9, 1),
+      ]);
     });
 
     test('a rule ends after a number of times or on a date', () {

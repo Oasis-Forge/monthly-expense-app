@@ -769,6 +769,11 @@ class AppLocalizationsPl extends AppLocalizations {
   String get wholeNumberInvalid => 'Podaj liczbę całkowitą od 1';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Wpisz liczbę całkowitą od 1 do $max';
+  }
+
+  @override
   String get endDateInvalid =>
       'Data zakończenia musi być późniejsza niż data rozpoczęcia';
 

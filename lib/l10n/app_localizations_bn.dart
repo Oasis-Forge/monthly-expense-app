@@ -740,6 +740,11 @@ class AppLocalizationsBn extends AppLocalizations {
   String get wholeNumberInvalid => '1 থেকে শুরু করে একটি পূর্ণ সংখ্যা লিখুন';
 
   @override
+  String wholeNumberRange(int max) {
+    return '1 থেকে $max পর্যন্ত একটি পূর্ণ সংখ্যা লিখুন';
+  }
+
+  @override
   String get endDateInvalid => 'শেষ তারিখ শুরুর তারিখের পরে হতে হবে';
 
   @override

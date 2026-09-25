@@ -745,6 +745,11 @@ class AppLocalizationsPt extends AppLocalizations {
   String get wholeNumberInvalid => 'Informe um número inteiro a partir de 1';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Digite um número inteiro de 1 a $max';
+  }
+
+  @override
   String get endDateInvalid => 'A data final deve ser depois da inicial';
 
   @override

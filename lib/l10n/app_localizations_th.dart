@@ -734,6 +734,11 @@ class AppLocalizationsTh extends AppLocalizations {
   String get wholeNumberInvalid => 'กรอกจำนวนเต็มตั้งแต่ 1 ขึ้นไป';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'ป้อนจำนวนเต็มตั้งแต่ 1 ถึง $max';
+  }
+
+  @override
   String get endDateInvalid => 'วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มต้น';
 
   @override

@@ -198,6 +198,7 @@
   "timesLabel": "Kali",
   "endsOnLabel": "Berakhir pada",
   "wholeNumberInvalid": "Masukkan bilangan bulat mulai dari 1",
+  "wholeNumberRange": "Masukkan bilangan bulat dari 1 sampai {max}",
   "endDateInvalid": "Tanggal akhir harus setelah tanggal mulai",
   "autoPostLabel": "Catat otomatis",
   "autoPostSubtitle": "Jika tidak, transaksi menunggu di Jatuh Tempo untuk diketuk",

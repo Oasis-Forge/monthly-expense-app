@@ -198,6 +198,7 @@
   "timesLabel": "Veces",
   "endsOnLabel": "Termina el",
   "wholeNumberInvalid": "Introduce un número entero desde 1",
+  "wholeNumberRange": "Introduce un número entero de 1 a {max}",
   "endDateInvalid": "La fecha de fin debe ser posterior al inicio",
   "autoPostLabel": "Registrar automáticamente",
   "autoPostSubtitle": "Si no, espera en Pendientes hasta que la toques",

@@ -769,6 +769,11 @@ class AppLocalizationsRu extends AppLocalizations {
   String get wholeNumberInvalid => 'Введите целое число от 1';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Введите целое число от 1 до $max';
+  }
+
+  @override
   String get endDateInvalid => 'Дата окончания должна быть позже даты начала';
 
   @override

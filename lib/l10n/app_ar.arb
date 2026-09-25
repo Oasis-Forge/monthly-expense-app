@@ -198,6 +198,7 @@
   "timesLabel": "مرات",
   "endsOnLabel": "تنتهي في",
   "wholeNumberInvalid": "أدخل عددًا صحيحًا من 1 فأكثر",
+  "wholeNumberRange": "أدخل عددًا صحيحًا من 1 إلى {max}",
   "endDateInvalid": "يجب أن يكون تاريخ الانتهاء بعد البداية",
   "autoPostLabel": "تسجيل تلقائي",
   "autoPostSubtitle": "وإلا فستنتظر في المستحقة حتى تنقر عليها",

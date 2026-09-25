@@ -198,6 +198,7 @@
   "timesLabel": "बार",
   "endsOnLabel": "समाप्ति तारीख़",
   "wholeNumberInvalid": "1 से पूरी संख्या दर्ज करें",
+  "wholeNumberRange": "1 से {max} तक पूरी संख्या दर्ज करें",
   "endDateInvalid": "समाप्ति तारीख़ शुरुआत के बाद होनी चाहिए",
   "autoPostLabel": "अपने आप पोस्ट करें",
   "autoPostSubtitle": "वरना यह टैप के लिए देय में रहेगा",

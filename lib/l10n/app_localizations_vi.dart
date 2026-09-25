@@ -738,6 +738,11 @@ class AppLocalizationsVi extends AppLocalizations {
   String get wholeNumberInvalid => 'Nhập số nguyên từ 1 trở lên';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Nhập số nguyên từ 1 đến $max';
+  }
+
+  @override
   String get endDateInvalid => 'Ngày kết thúc phải sau ngày bắt đầu';
 
   @override

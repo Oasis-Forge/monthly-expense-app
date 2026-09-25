@@ -731,6 +731,11 @@ class AppLocalizationsJa extends AppLocalizations {
   String get wholeNumberInvalid => '1以上の整数を入力してください';
 
   @override
+  String wholeNumberRange(int max) {
+    return '1〜$max の整数を入力してください';
+  }
+
+  @override
   String get endDateInvalid => '終了日は開始日より後にしてください';
 
   @override

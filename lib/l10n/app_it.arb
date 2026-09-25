@@ -198,6 +198,7 @@
   "timesLabel": "Volte",
   "endsOnLabel": "Termina il",
   "wholeNumberInvalid": "Inserisci un numero intero da 1 in su",
+  "wholeNumberRange": "Inserisci un numero intero da 1 a {max}",
   "endDateInvalid": "La data di fine deve essere successiva a quella di inizio",
   "autoPostLabel": "Registra automaticamente",
   "autoPostSubtitle": "Altrimenti resta in sospeso, in attesa di un tocco",

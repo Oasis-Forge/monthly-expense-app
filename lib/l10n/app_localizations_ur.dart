@@ -739,6 +739,11 @@ class AppLocalizationsUr extends AppLocalizations {
   String get wholeNumberInvalid => '1 سے پورا نمبر درج کریں';
 
   @override
+  String wholeNumberRange(int max) {
+    return '1 سے $max تک پورا عدد درج کریں';
+  }
+
+  @override
   String get endDateInvalid => 'اختتامی تاریخ شروع کی تاریخ کے بعد ہونی چاہیے';
 
   @override

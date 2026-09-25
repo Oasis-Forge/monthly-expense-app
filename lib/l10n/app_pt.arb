@@ -198,6 +198,7 @@
   "timesLabel": "Vezes",
   "endsOnLabel": "Termina em",
   "wholeNumberInvalid": "Informe um número inteiro a partir de 1",
+  "wholeNumberRange": "Digite um número inteiro de 1 a {max}",
   "endDateInvalid": "A data final deve ser depois da inicial",
   "autoPostLabel": "Lançar automaticamente",
   "autoPostSubtitle": "Caso contrário, fica em Pendentes até você tocar",

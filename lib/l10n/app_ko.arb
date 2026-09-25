@@ -198,6 +198,7 @@
   "timesLabel": "횟수",
   "endsOnLabel": "종료일",
   "wholeNumberInvalid": "1 이상의 정수를 입력하세요",
+  "wholeNumberRange": "1에서 {max} 사이의 정수를 입력하세요",
   "endDateInvalid": "종료일은 시작일 이후여야 해요",
   "autoPostLabel": "자동 등록",
   "autoPostSubtitle": "끄면 탭할 때까지 도래 목록에서 대기해요",

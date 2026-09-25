@@ -767,6 +767,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get wholeNumberInvalid => 'أدخل عددًا صحيحًا من 1 فأكثر';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'أدخل عددًا صحيحًا من 1 إلى $max';
+  }
+
+  @override
   String get endDateInvalid => 'يجب أن يكون تاريخ الانتهاء بعد البداية';
 
   @override

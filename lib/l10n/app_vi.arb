@@ -198,6 +198,7 @@
   "timesLabel": "Số lần",
   "endsOnLabel": "Kết thúc vào",
   "wholeNumberInvalid": "Nhập số nguyên từ 1 trở lên",
+  "wholeNumberRange": "Nhập số nguyên từ 1 đến {max}",
   "endDateInvalid": "Ngày kết thúc phải sau ngày bắt đầu",
   "autoPostLabel": "Tự động ghi nhận",
   "autoPostSubtitle": "Nếu không, giao dịch sẽ chờ trong mục Đến hạn để bạn nhấn",

@@ -731,6 +731,11 @@ class AppLocalizationsKo extends AppLocalizations {
   String get wholeNumberInvalid => '1 이상의 정수를 입력하세요';
 
   @override
+  String wholeNumberRange(int max) {
+    return '1에서 $max 사이의 정수를 입력하세요';
+  }
+
+  @override
   String get endDateInvalid => '종료일은 시작일 이후여야 해요';
 
   @override

@@ -746,6 +746,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get wholeNumberInvalid => 'Introduce un número entero desde 1';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Introduce un número entero de 1 a $max';
+  }
+
+  @override
   String get endDateInvalid => 'La fecha de fin debe ser posterior al inicio';
 
   @override

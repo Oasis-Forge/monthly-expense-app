@@ -198,6 +198,7 @@
   "timesLabel": "次数",
   "endsOnLabel": "结束于",
   "wholeNumberInvalid": "请输入不小于1的整数",
+  "wholeNumberRange": "请输入 1 到 {max} 之间的整数",
   "endDateInvalid": "结束日期必须晚于开始日期",
   "autoPostLabel": "自动记账",
   "autoPostSubtitle": "否则将在「到期」中等待手动确认",

@@ -198,6 +198,7 @@
   "timesLabel": "Kez",
   "endsOnLabel": "Bitiş tarihi",
   "wholeNumberInvalid": "1 veya daha büyük bir tam sayı girin",
+  "wholeNumberRange": "1 ile {max} arasında bir tam sayı girin",
   "endDateInvalid": "Bitiş tarihi başlangıçtan sonra olmalı",
   "autoPostLabel": "Otomatik işle",
   "autoPostSubtitle": "Aksi halde Zamanı gelenler'de bir dokunuş bekler",

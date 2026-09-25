@@ -198,6 +198,7 @@
   "timesLabel": "Keer",
   "endsOnLabel": "Eindigt op",
   "wholeNumberInvalid": "Vul een heel getal vanaf 1 in",
+  "wholeNumberRange": "Voer een heel getal van 1 tot {max} in",
   "endDateInvalid": "De einddatum moet na de startdatum liggen",
   "autoPostLabel": "Automatisch boeken",
   "autoPostSubtitle": "Anders wacht deze in Te boeken op een tik",

@@ -737,6 +737,11 @@ class AppLocalizationsId extends AppLocalizations {
   String get wholeNumberInvalid => 'Masukkan bilangan bulat mulai dari 1';
 
   @override
+  String wholeNumberRange(int max) {
+    return 'Masukkan bilangan bulat dari 1 sampai $max';
+  }
+
+  @override
   String get endDateInvalid => 'Tanggal akhir harus setelah tanggal mulai';
 
   @override

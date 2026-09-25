@@ -198,6 +198,7 @@
   "timesLabel": "বার",
   "endsOnLabel": "শেষ তারিখ",
   "wholeNumberInvalid": "1 থেকে শুরু করে একটি পূর্ণ সংখ্যা লিখুন",
+  "wholeNumberRange": "1 থেকে {max} পর্যন্ত একটি পূর্ণ সংখ্যা লিখুন",
   "endDateInvalid": "শেষ তারিখ শুরুর তারিখের পরে হতে হবে",
   "autoPostLabel": "স্বয়ংক্রিয়ভাবে পোস্ট করুন",
   "autoPostSubtitle": "নাহলে এটি ট্যাপের অপেক্ষায় বাকি-তে থাকবে",

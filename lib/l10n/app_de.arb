@@ -198,6 +198,7 @@
   "timesLabel": "Mal",
   "endsOnLabel": "Endet am",
   "wholeNumberInvalid": "Gib eine ganze Zahl ab 1 ein",
+  "wholeNumberRange": "Gib eine ganze Zahl von 1 bis {max} ein",
   "endDateInvalid": "Das Enddatum muss nach dem Beginn liegen",
   "autoPostLabel": "Automatisch buchen",
   "autoPostSubtitle": "Sonst wartet sie unter Fällig auf einen Tipp",

@@ -198,6 +198,7 @@
   "timesLabel": "Razy",
   "endsOnLabel": "Kończy się dnia",
   "wholeNumberInvalid": "Podaj liczbę całkowitą od 1",
+  "wholeNumberRange": "Wpisz liczbę całkowitą od 1 do {max}",
   "endDateInvalid": "Data zakończenia musi być późniejsza niż data rozpoczęcia",
   "autoPostLabel": "Księguj automatycznie",
   "autoPostSubtitle": "W przeciwnym razie czeka w sekcji „Do zaksięgowania”",

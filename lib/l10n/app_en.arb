@@ -562,6 +562,15 @@
   "timesLabel": "Times",
   "endsOnLabel": "Ends on",
   "wholeNumberInvalid": "Enter a whole number from 1",
+  "wholeNumberRange": "Enter a whole number from 1 to {max}",
+  "@wholeNumberRange": {
+    "description": "Error under the repeat interval field when it is not a whole number in range.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "endDateInvalid": "The end date must be after the start",
   "autoPostLabel": "Post automatically",
   "autoPostSubtitle": "Otherwise it waits in Due for a tap",

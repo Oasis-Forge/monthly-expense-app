@@ -198,6 +198,7 @@
   "timesLabel": "Раз",
   "endsOnLabel": "Дата окончания",
   "wholeNumberInvalid": "Введите целое число от 1",
+  "wholeNumberRange": "Введите целое число от 1 до {max}",
   "endDateInvalid": "Дата окончания должна быть позже даты начала",
   "autoPostLabel": "Проводить автоматически",
   "autoPostSubtitle": "Иначе будет ждать в разделе «К проведению»",

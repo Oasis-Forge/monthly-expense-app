@@ -198,6 +198,7 @@
   "timesLabel": "دفعہ",
   "endsOnLabel": "اختتام کی تاریخ",
   "wholeNumberInvalid": "1 سے پورا نمبر درج کریں",
+  "wholeNumberRange": "1 سے {max} تک پورا عدد درج کریں",
   "endDateInvalid": "اختتامی تاریخ شروع کی تاریخ کے بعد ہونی چاہیے",
   "autoPostLabel": "خودکار پوسٹ کریں",
   "autoPostSubtitle": "ورنہ یہ ٹیپ کے انتظار میں واجب الادا میں رہے گی",

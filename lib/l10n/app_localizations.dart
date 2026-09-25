@@ -1324,6 +1324,12 @@ abstract class AppLocalizations {
   /// **'Enter a whole number from 1'**
   String get wholeNumberInvalid;
 
+  /// Error under the repeat interval field when it is not a whole number in range.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number from 1 to {max}'**
+  String wholeNumberRange(int max);
+
   /// No description provided for @endDateInvalid.
   ///
   /// In en, this message translates to:
