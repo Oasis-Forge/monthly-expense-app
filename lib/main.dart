@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'db/db_helper.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/languages.dart';
 import 'models/reminders.dart';
@@ -55,7 +56,7 @@ Future<void> main() async {
 
 class MonthlyExpenseApp extends StatelessWidget {
   /// [backup], [authenticator], [reminders], [homeWidget], [ads],
-  /// [purchases], [reviews] and [updates] default to the device
+  /// [purchases], [reviews], [updates] and [db] default to the device
   /// implementations; tests
   /// pass their own.
   const MonthlyExpenseApp({
@@ -70,6 +71,7 @@ class MonthlyExpenseApp extends StatelessWidget {
     this.reviews,
     this.updates,
     this.shortcuts,
+    this.db,
   });
 
   final SettingsProvider settings;
@@ -82,6 +84,11 @@ class MonthlyExpenseApp extends StatelessWidget {
   final ReviewService? reviews;
   final UpdateService? updates;
   final ShortcutService? shortcuts;
+
+  /// Overrides where [TransactionProvider] stores its data. Null means the
+  /// app's own on-disk database; tests pass an isolated [DBHelper] so a full
+  /// widget test never touches the real, shared production file.
+  final DBHelper? db;
 
   /// So a tapped reminder notification can open its note (NOTE-6, LOCK-2),
   /// from outside the widget tree that the notification callback runs in.
@@ -103,6 +110,7 @@ class MonthlyExpenseApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) =>
               TransactionProvider(
+                  db: db,
                   startDay: settings.startDay,
                   reminders: reminderService,
                   attachments: attachmentService,

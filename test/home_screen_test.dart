@@ -137,6 +137,62 @@ void main() {
     expect(find.text('-\$40'), findsNWidgets(2));
   });
 
+  testWidgets(
+    'income and expense are not interchangeable, in the summary or a row '
+    '(CUR-5, DAY-7, BAL-3)',
+    (tester) async {
+      fake.rows.add(
+        testTx(
+          'c',
+          TransactionType.income,
+          100,
+          DateTime(2026, 9, 15),
+          title: 'Salary',
+        ),
+      );
+      await provider.load();
+
+      await showHome(tester);
+
+      // The summary: income's own tile shows $100, expense's own tile shows
+      // $12.50 (the concert is still upcoming and uncounted).
+      final incomeTile = find
+          .ancestor(of: find.text('Income'), matching: find.byType(Column))
+          .first;
+      final expenseTile = find
+          .ancestor(of: find.text('Expense'), matching: find.byType(Column))
+          .first;
+      expect(
+        find.descendant(of: incomeTile, matching: find.text('\$100')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: expenseTile, matching: find.text('\$12.50')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: incomeTile, matching: find.text('\$12.50')),
+        findsNothing,
+      );
+
+      // The day row: the salary reads as a plus, the lunch as a minus.
+      final salaryRow = find
+          .ancestor(of: find.text('Salary'), matching: find.byType(ListTile))
+          .first;
+      final lunchRow = find
+          .ancestor(of: find.text('Lunch'), matching: find.byType(ListTile))
+          .first;
+      expect(
+        find.descendant(of: salaryRow, matching: find.text('+\$100')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: lunchRow, matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+    },
+  );
+
   testWidgets('the balance carries forward from earlier periods (BAL-2)', (
     tester,
   ) async {
@@ -162,6 +218,35 @@ void main() {
     expect(find.text('This period'), findsOneWidget);
     expect(find.textContaining('Carried forward'), findsNothing);
   });
+
+  testWidgets(
+    'with carrying forward off, the amount is the period net, not the '
+    'closing balance (BAL-3, BAL-2)',
+    (tester) async {
+      // Same earlier-period income as BAL-2, so carried forward ($100) and
+      // period net (-$12.50) are different numbers, unlike the base BAL-3
+      // test above where both happen to be the same because there is no
+      // prior period.
+      fake.rows.add(
+        testTx('pay', TransactionType.income, 100, DateTime(2026, 8, 20)),
+      );
+      await provider.load();
+      settings = await testSettings({'show_carried_forward': false});
+
+      await showHome(tester);
+
+      expect(find.text('This period'), findsOneWidget);
+      // A day row can show the same figure, so look inside the summary card.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('\$87.50')),
+        findsNothing,
+      );
+    },
+  );
 
   testWidgets('amounts use the chosen currency (CUR-2)', (tester) async {
     settings = await testSettings({'currency_code': 'EUR'});

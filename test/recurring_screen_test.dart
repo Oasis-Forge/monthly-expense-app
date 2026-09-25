@@ -478,7 +478,18 @@ void main() {
         findsOneWidget,
       );
 
+      // The pause's snack bar sits over the Save button; clear it first so
+      // the tap actually reaches Save instead of silently landing on the
+      // snack bar (test-quality#5).
+      ScaffoldMessenger.of(tester.element(find.byType(RecurringRuleScreen)))
+          .removeCurrentSnackBar();
+      await tester.pumpAndSettle();
+
       await save(tester);
+      expect(
+        find.text("Couldn't save the recurring transaction. Try again."),
+        findsOneWidget,
+      );
       expect(find.byType(RecurringRuleScreen), findsOneWidget);
       expect(provider.recurringRuleById('Gym')!.isPaused, isFalse);
     });
