@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.view.View
 import android.widget.RemoteViews
 
@@ -44,9 +45,9 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
     now: Long,
     widgetId: Int,
   ): RemoteViews {
-    val layout = if (isMedium) R.layout.widget_medium else R.layout.widget_small
-    val views = RemoteViews(context.packageName, layout)
     val entry = payload?.entryAt(now)
+    val overBudget = entry != null && entry.budgetLeft != null && entry.isOverBudget
+    val views = RemoteViews(context.packageName, pickLayout(overBudget))
 
     views.setInt(
       R.id.widget_root,
@@ -67,7 +68,7 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
       views.setTextViewText(R.id.widget_period, payload?.title.orEmpty())
     } else {
       views.setTextViewText(R.id.widget_period, entry.period)
-      fillAmounts(context, views, payload, entry)
+      fillAmounts(views, payload, entry, overBudget)
     }
 
     views.setTextViewText(R.id.widget_add_expense, payload?.label("addExpense").orEmpty())
@@ -91,10 +92,10 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
   }
 
   private fun fillAmounts(
-    context: Context,
     views: RemoteViews,
     payload: HomeWidgetStore.Payload,
     entry: HomeWidgetStore.Entry,
+    overBudget: Boolean,
   ) {
     // The small widget leads with the budget left when there is one, since
     // that is the number worth glancing at (WID-1).
@@ -105,14 +106,7 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
         if (budget == null) payload.label("expense") else payload.label("budgetLeft"),
       )
       views.setTextViewText(R.id.widget_main_amount, budget ?: entry.expense)
-      // Set explicitly either way: AppWidgetHostView reapplies this update
-      // onto the view it already has, so a colour left unset here would be
-      // whatever the last update happened to leave behind, not the layout's
-      // own default (WID-6).
-      views.setTextColor(
-        R.id.widget_main_amount,
-        amountColor(context, overBudget = budget != null && entry.isOverBudget),
-      )
+      applyAmountColor(views, R.id.widget_main_amount, overBudget)
       return
     }
 
@@ -126,20 +120,44 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
     if (budget != null) {
       views.setTextViewText(R.id.widget_budget_label, payload.label("budgetLeft"))
       views.setTextViewText(R.id.widget_budget_amount, budget)
-      views.setTextColor(
-        R.id.widget_budget_amount,
-        amountColor(context, overBudget = entry.isOverBudget),
-      )
+      applyAmountColor(views, R.id.widget_budget_amount, overBudget)
     }
   }
 
-  /** The over-budget red when [overBudget], else the layout's own amount
-   * colour — set explicitly rather than left to whichever update last
-   * touched this view (WID-6). Both colours are the app's own expense-ink
-   * pair (CUR-5) and clear 4.5:1 on the widget's light and dark background
-   * alike (A11Y-3, THEME-4). */
-  private fun amountColor(context: Context, overBudget: Boolean): Int =
-    context.getColor(if (overBudget) R.color.widget_over_budget else R.color.widget_amount)
+  /** Picks the plain or over-budget layout variant for API levels where a
+   * colour sent from here can't follow the launcher's theme (below the
+   * setColorStateList resource-id overload, API 31). Each variant carries
+   * its amount colour in its own XML, so a fresh inflate after a theme
+   * change always shows the right one instead of a stuck resolved int
+   * (WID-6, A11Y-3, THEME-4). On API 31+ both amount views start from the
+   * plain layout and get their colour from [applyAmountColor] instead,
+   * which the host re-resolves on every apply. */
+  private fun pickLayout(overBudget: Boolean): Int =
+    if (overBudget && Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+      if (isMedium) R.layout.widget_medium_over_budget else R.layout.widget_small_over_budget
+    } else {
+      if (isMedium) R.layout.widget_medium else R.layout.widget_small
+    }
+
+  /** On API 31+, hands the host a colour *resource id* rather than a
+   * resolved int: the framework re-resolves it against its own light/dark
+   * configuration every time it (re)applies this RemoteViews, so a theme
+   * change the launcher makes without a new update from the app still
+   * shows the right colour (WID-6, A11Y-3, THEME-4). Below API 31 the
+   * layout picked in [pickLayout] already carries the right colour in its
+   * own XML, so nothing is set here — an explicit setTextColor would be
+   * exactly the stuck resolved int this fix removes. Both colours are the
+   * app's own expense-ink pair (CUR-5) and clear 4.5:1 on the widget's
+   * light and dark background alike. */
+  private fun applyAmountColor(views: RemoteViews, viewId: Int, overBudget: Boolean) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+      views.setColorStateList(
+        viewId,
+        "setTextColor",
+        if (overBudget) R.color.widget_over_budget else R.color.widget_amount,
+      )
+    }
+  }
 
   private fun launchIntent(context: Context, widgetId: Int, action: String): PendingIntent {
     val intent =
