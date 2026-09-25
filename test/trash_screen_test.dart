@@ -220,4 +220,30 @@ void main() {
     expect(find.text('Pay rent'), findsOneWidget);
     expect(find.text("Couldn't restore the note. Try again."), findsOneWidget);
   });
+
+  testWidgets(
+    'a long, multi-line note is clipped in the trash, like in the notes '
+    'list (NOTE-7)',
+    (tester) async {
+      final longText = List.generate(10, (i) => 'Line $i').join('\n');
+      final notesDb = FakeDB(
+        notes: [
+          testNote(
+            'n1',
+            longText,
+          ).copyWith(deletedAt: DateTime.utc(2026, 9, 14)),
+        ],
+      );
+      provider = TransactionProvider(
+        db: notesDb,
+        clock: () => DateTime(2026, 9, 15, 12),
+      );
+      await provider.load();
+      await showTrash(tester);
+
+      final title = tester.widget<Text>(find.text(longText));
+      expect(title.maxLines, 2);
+      expect(title.overflow, TextOverflow.ellipsis);
+    },
+  );
 }

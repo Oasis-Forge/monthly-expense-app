@@ -169,7 +169,7 @@ class _TrashedNote extends StatelessWidget {
     ];
     return ListTile(
       leading: const CircleAvatar(child: Icon(Icons.sticky_note_2_outlined)),
-      title: Text(note.text),
+      title: Text(note.text, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: Text(parts.join(' · ')),
       trailing: _RestoreButton(
         onRestore: () => provider.restoreNote(

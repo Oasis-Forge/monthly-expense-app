@@ -128,16 +128,22 @@ void main() {
         // to run, so it must be answered rather than left to throw.
         final messenger =
             TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-        for (final name in [
+        const audioChannels = [
           'xyz.luan/audioplayers.global',
           'xyz.luan/audioplayers.global/events',
           'xyz.luan/audioplayers',
-        ]) {
+        ];
+        for (final name in audioChannels) {
           messenger.setMockMethodCallHandler(
             MethodChannel(name),
             (call) async => null,
           );
         }
+        addTearDown(() {
+          for (final name in audioChannels) {
+            messenger.setMockMethodCallHandler(MethodChannel(name), null);
+          }
+        });
 
         final shortcuts = FakeShortcuts();
         await tester.pumpWidget(
@@ -240,6 +246,147 @@ void main() {
         );
 
         shortcuts.choose('add_expense');
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byType(AddTransactionScreen, skipOffstage: false),
+          findsNothing,
+        );
+      },
+    );
+  });
+
+  group('the home screen widget tap (WID-3)', () {
+    testWidgets(
+      'a widget tap chosen before the database load finishes waits for '
+      'it, so the category default is filled in rather than staying '
+      'empty (WID-3, ADD-3)',
+      (tester) async {
+        // AddTransactionScreen's voice attachment field reaches for the
+        // real audioplayers plugin, which has no test implementation.
+        // Holding the screen open across the load's real I/O gives it time
+        // to run, so it must be answered rather than left to throw.
+        final messenger =
+            TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+        const audioChannels = [
+          'xyz.luan/audioplayers.global',
+          'xyz.luan/audioplayers.global/events',
+          'xyz.luan/audioplayers',
+        ];
+        for (final name in audioChannels) {
+          messenger.setMockMethodCallHandler(
+            MethodChannel(name),
+            (call) async => null,
+          );
+        }
+        addTearDown(() {
+          for (final name in audioChannels) {
+            messenger.setMockMethodCallHandler(MethodChannel(name), null);
+          }
+        });
+        addTearDown(() => tappedWidgetAction.value = null);
+
+        await tester.pumpWidget(
+          MonthlyExpenseApp(
+            settings: await testSettings({
+              'setup_done': true,
+              'walkthrough_seen': true,
+            }),
+            homeWidget: const NoopHomeWidgetService(),
+            reviews: FakeReviews(supported: false),
+            updates: FakeUpdates(supported: false),
+            shortcuts: FakeShortcuts(),
+            ads: FakeAdService(),
+            purchases: FakePurchases(),
+          ),
+        );
+        await tester.pump();
+
+        final transactions = tester
+            .element(find.byType(MaterialApp))
+            .read<TransactionProvider>();
+        // The process is dead, as it usually is for a widget tap: the real
+        // database load is still in flight when the tap arrives.
+        expect(
+          transactions.isLoaded,
+          isFalse,
+          reason:
+              'the probe needs the load still pending when the '
+              'widget tap fires',
+        );
+
+        tappedWidgetAction.value = HomeWidgetAction.addExpense;
+        await tester.pump();
+        // The push waits for the load, so nothing has opened yet.
+        expect(
+          find.byType(AddTransactionScreen, skipOffstage: false),
+          findsNothing,
+        );
+
+        for (var i = 0; i < 200 && !transactions.isLoaded; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+          await tester.pump();
+        }
+        expect(
+          transactions.isLoaded,
+          isTrue,
+          reason: 'the database never loaded',
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+        final categoryField = tester
+            .widgetList<DropdownButtonFormField<String>>(
+              find.byType(DropdownButtonFormField<String>),
+            )
+            .first;
+        expect(
+          categoryField.initialValue,
+          isNotNull,
+          reason:
+              'the category should be filled in from the real default '
+              'once the load finishes, not stay empty (ADD-3, WID-3)',
+        );
+      },
+    );
+
+    testWidgets(
+      'a widget tap is skipped while setup isn\'t finished, so it never '
+      'opens over it (RUN-5)',
+      (tester) async {
+        addTearDown(() => tappedWidgetAction.value = null);
+
+        await tester.pumpWidget(
+          MonthlyExpenseApp(
+            settings: await testSettings({'setup_done': false}),
+            homeWidget: const NoopHomeWidgetService(),
+            reviews: FakeReviews(supported: false),
+            updates: FakeUpdates(supported: false),
+            shortcuts: FakeShortcuts(),
+            ads: FakeAdService(),
+            purchases: FakePurchases(),
+          ),
+        );
+        await tester.pump();
+
+        final transactions = tester
+            .element(find.byType(MaterialApp))
+            .read<TransactionProvider>();
+        for (var i = 0; i < 200 && !transactions.isLoaded; i++) {
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+          await tester.pump();
+        }
+        expect(
+          transactions.isLoaded,
+          isTrue,
+          reason: 'the database never loaded',
+        );
+
+        tappedWidgetAction.value = HomeWidgetAction.addExpense;
         await tester.pumpAndSettle();
 
         expect(

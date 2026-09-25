@@ -455,37 +455,45 @@ class TransactionProvider extends ChangeNotifier {
     final transfers = await _db.fetchTransfers();
     final deletedTransfers = await _db.fetchDeletedTransfers();
     final deletedNotes = await _db.fetchDeletedNotes();
-    _occurrences
-      ..clear()
-      ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
-    _transactions
-      ..clear()
-      ..addAll(loaded)
-      ..sort(_newestFirst);
-    _deleted
-      ..clear()
-      ..addAll(deleted);
-    _transfers
-      ..clear()
-      ..addAll(transfers)
-      ..sort(_newestTransferFirst);
-    // DEL-5: the trash keeps transfers across a launch, like transactions.
-    _deletedTransfers
-      ..clear()
-      ..addAll(deletedTransfers);
-    // DEL-5, NOTE-7: and notes, the same way.
-    _deletedNotes
-      ..clear()
-      ..addAll(deletedNotes);
-    _reopenedNotes.clear();
-    await _postAutomaticOccurrences();
-    await rescheduleReminders(
-      appLockOn: appLockOn,
-      locale: locale,
-      nudge: nudge,
-    );
-    _loaded = true;
-    if (!_loadDone.isCompleted) _loadDone.complete();
+    // Everything above only reads the database; a shortcut or widget tap
+    // waiting on [whenLoaded] (WID-3, ADD-3) must still be freed even if
+    // something below throws -- a write failure in
+    // _postAutomaticOccurrences (storage full, a locked database) or a
+    // crash while building the schedule -- rather than waiting forever.
+    try {
+      _occurrences
+        ..clear()
+        ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
+      _transactions
+        ..clear()
+        ..addAll(loaded)
+        ..sort(_newestFirst);
+      _deleted
+        ..clear()
+        ..addAll(deleted);
+      _transfers
+        ..clear()
+        ..addAll(transfers)
+        ..sort(_newestTransferFirst);
+      // DEL-5: the trash keeps transfers across a launch, like transactions.
+      _deletedTransfers
+        ..clear()
+        ..addAll(deletedTransfers);
+      // DEL-5, NOTE-7: and notes, the same way.
+      _deletedNotes
+        ..clear()
+        ..addAll(deletedNotes);
+      _reopenedNotes.clear();
+      await _postAutomaticOccurrences();
+      await rescheduleReminders(
+        appLockOn: appLockOn,
+        locale: locale,
+        nudge: nudge,
+      );
+      _loaded = true;
+    } finally {
+      if (!_loadDone.isCompleted) _loadDone.complete();
+    }
     _changed();
   }
 
