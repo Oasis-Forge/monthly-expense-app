@@ -77,6 +77,44 @@ bool shouldCancelPassedReminder({
 /// one exactly as it is, or cancel it outright.
 enum ReminderAction { schedule, keep, cancel }
 
+/// While [ReminderAction.keep] leaves a passed-but-pending reminder alone,
+/// app lock being on is still a reason to touch it: whatever the device has
+/// for it must carry the locked wording, not the note's own text (LOCK-2).
+/// What that takes depends on what the device actually has, not on any
+/// remembered history of the app's own (x-reminder-lock-keep) -- a cold
+/// start has no such history, but the device's own active and pending
+/// lists are always there to ask.
+enum LockKeepAction {
+  /// App lock is off, or the device has nothing for this reminder: leave it
+  /// exactly as it is.
+  none,
+
+  /// Already delivered and sitting in the tray: shown again with the same
+  /// ID and the locked wording, which replaces it in place rather than
+  /// adding a second one (LOCK-2).
+  reshow,
+
+  /// Not yet delivered: the pending alarm still carries the note's own
+  /// text, so it is cancelled and laid again a minute out with the locked
+  /// wording, rather than shown this instant (NUDGE-9's own inexact
+  /// delivery, kept even here).
+  reschedule,
+}
+
+/// The decision [DeviceReminderService.schedule]'s keep path makes for a
+/// note reminder, from what the device currently has for it -- never from
+/// memory of what app lock used to be, so it holds after a cold start too.
+LockKeepAction lockKeepActionFor({
+  required bool appLockOn,
+  required bool isActive,
+  required bool isPending,
+}) {
+  if (!appLockOn) return LockKeepAction.none;
+  if (isActive) return LockKeepAction.reshow;
+  if (isPending) return LockKeepAction.reschedule;
+  return LockKeepAction.none;
+}
+
 /// The single decision [DeviceReminderService.schedule] and
 /// `FakeReminderService.schedule` (test/helpers.dart) must agree on, so a
 /// test that only drives the fake proves something true of the device too
@@ -237,12 +275,14 @@ class DeviceReminderService implements ReminderService {
   /// the tapped notification's note a second time.
   Future<void>? _initializing;
 
-  /// The time each note's reminder was last scheduled for, and whether app
-  /// lock was on then, so a passed time can be told apart from one that
-  /// changed (pr59-style in-memory record; see [shouldCancelPassedReminder])
-  /// and so app lock turning on while that reminder is still pending can be
-  /// noticed (LOCK-2, NOTE-6).
-  final _lastScheduledAt = <String, ({DateTime at, bool appLockOn})>{};
+  /// The time each note's reminder was last scheduled for, so a passed time
+  /// can be told apart from one that changed (pr59-style in-memory record;
+  /// see [shouldCancelPassedReminder]). Nothing about app lock is kept here
+  /// any more: whether a pending reminder needs the locked wording is
+  /// decided from the device's own state every time (see
+  /// [lockKeepActionFor]), not from a memory that a cold start would start
+  /// out empty (x-reminder-lock-keep).
+  final _lastScheduledAt = <String, DateTime>{};
 
   Future<void> _ensureInitialized() {
     final initializing = _initializing ??= _doInitialize();
@@ -334,37 +374,19 @@ class DeviceReminderService implements ReminderService {
     final at = note.reminderAt;
     final last = _lastScheduledAt[note.id];
     final now = DateTime.now();
-    switch (reminderActionFor(note, lastScheduledAt: last?.at, now: now)) {
+    switch (reminderActionFor(note, lastScheduledAt: last, now: now)) {
       case ReminderAction.cancel:
         await cancel(note);
         return;
       case ReminderAction.keep:
         // Still within the grace window and unchanged: leave whatever the
-        // device already has pending alone (NOTE-6) -- unless app lock just
-        // turned on, in which case that pending alarm would still show the
-        // note's text on the lock screen: replace it right away with the
-        // locked wording instead (LOCK-2).
-        if (last != null && !last.appLockOn && appLockOn) {
-          await _ensureInitialized();
-          final l10n = await AppLocalizations.delegate.load(locale);
-          await _plugin.cancel(id: reminderNotificationId(note.id));
-          await _plugin.show(
-            id: reminderNotificationId(note.id),
-            title: l10n.noteReminderLockedTitle,
-            notificationDetails: NotificationDetails(
-              android: AndroidNotificationDetails(
-                'note_reminders',
-                noteChannelName(l10n),
-                importance: Importance.defaultImportance,
-              ),
-              iOS: const DarwinNotificationDetails(),
-              macOS: const DarwinNotificationDetails(),
-              linux: const LinuxNotificationDetails(),
-            ),
-            payload: note.id,
-          );
-        }
-        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        // device already has pending alone (NOTE-6) -- unless app lock is
+        // on, in which case whatever the device has for it must not still
+        // carry the note's own text (LOCK-2). Asked of the device itself,
+        // not remembered, so this holds after a cold start too
+        // (x-reminder-lock-keep).
+        await _applyLockKeep(note, appLockOn: appLockOn, locale: locale);
+        _lastScheduledAt[note.id] = at!;
         return;
       case ReminderAction.schedule:
         break;
@@ -389,7 +411,66 @@ class DeviceReminderService implements ReminderService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: note.id,
     );
-    _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
+    _lastScheduledAt[note.id] = at;
+  }
+
+  /// Makes sure whatever the device has for [note]'s reminder carries the
+  /// locked wording while app lock is on (LOCK-2), per [lockKeepActionFor].
+  Future<void> _applyLockKeep(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    if (!appLockOn) return;
+    await _ensureInitialized();
+    final id = reminderNotificationId(note.id);
+    final active = await _plugin.getActiveNotifications();
+    final pending = await _plugin.pendingNotificationRequests();
+    final action = lockKeepActionFor(
+      appLockOn: appLockOn,
+      isActive: active.any((n) => n.id == id),
+      isPending: pending.any((p) => p.id == id),
+    );
+    if (action == LockKeepAction.none) return;
+
+    final l10n = await AppLocalizations.delegate.load(locale);
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'note_reminders',
+        noteChannelName(l10n),
+        importance: Importance.defaultImportance,
+      ),
+      iOS: const DarwinNotificationDetails(),
+      macOS: const DarwinNotificationDetails(),
+      linux: const LinuxNotificationDetails(),
+    );
+    switch (action) {
+      case LockKeepAction.reshow:
+        // Same ID: this replaces the one already in the tray rather than
+        // adding a second one (LOCK-2).
+        await _plugin.show(
+          id: id,
+          title: l10n.noteReminderLockedTitle,
+          notificationDetails: details,
+          payload: note.id,
+        );
+      case LockKeepAction.reschedule:
+        await _plugin.cancel(id: id);
+        await _plugin.zonedSchedule(
+          id: id,
+          title: l10n.noteReminderLockedTitle,
+          body: null,
+          scheduledDate: tz.TZDateTime.from(
+            DateTime.now().add(const Duration(minutes: 1)),
+            tz.local,
+          ),
+          notificationDetails: details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: note.id,
+        );
+      case LockKeepAction.none:
+        break;
+    }
   }
 
   @override

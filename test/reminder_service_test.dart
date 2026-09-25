@@ -109,4 +109,64 @@ void main() {
       );
     });
   });
+
+  group('lockKeepActionFor (LOCK-2, x-reminder-lock-keep)', () {
+    test(
+      'app lock off leaves whatever the device has alone, active or not',
+      () {
+        for (final isActive in [true, false]) {
+          for (final isPending in [true, false]) {
+            expect(
+              lockKeepActionFor(
+                appLockOn: false,
+                isActive: isActive,
+                isPending: isPending,
+              ),
+              LockKeepAction.none,
+              reason: 'isActive: $isActive, isPending: $isPending',
+            );
+          }
+        }
+      },
+    );
+
+    test('app lock on and already delivered: re-shown with the locked wording, '
+        'which replaces it rather than adding a second one', () {
+      expect(
+        lockKeepActionFor(appLockOn: true, isActive: true, isPending: false),
+        LockKeepAction.reshow,
+      );
+      // Active takes priority even if somehow also reported pending.
+      expect(
+        lockKeepActionFor(appLockOn: true, isActive: true, isPending: true),
+        LockKeepAction.reshow,
+      );
+    });
+
+    test('app lock on and still pending: cancelled and laid again with the '
+        'locked wording, not shown this instant', () {
+      expect(
+        lockKeepActionFor(appLockOn: true, isActive: false, isPending: true),
+        LockKeepAction.reschedule,
+      );
+    });
+
+    test('app lock on but the device has nothing for it: nothing to do -- it '
+        'was already delivered and dismissed, or never scheduled at all', () {
+      expect(
+        lockKeepActionFor(appLockOn: true, isActive: false, isPending: false),
+        LockKeepAction.none,
+      );
+    });
+
+    test('no memory of app lock is needed: a cold start decides purely from '
+        'what the device reports, this call carrying no history at all', () {
+      // Called exactly as a first call after a cold start would be, with
+      // nothing remembered about whether app lock was already on.
+      expect(
+        lockKeepActionFor(appLockOn: true, isActive: true, isPending: false),
+        LockKeepAction.reshow,
+      );
+    });
+  });
 }
