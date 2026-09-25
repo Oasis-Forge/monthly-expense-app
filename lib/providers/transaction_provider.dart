@@ -1987,7 +1987,11 @@ class TransactionProvider extends ChangeNotifier {
     int days = 31,
   }) {
     final today = _today;
-    final last = today.add(Duration(days: days));
+    // Calendar days, not elapsed time (money-time#9): a Duration added
+    // across a DST change can be an hour short or long, landing `last` on
+    // the wrong side of midnight and leaving the widget one day short of
+    // real days ahead.
+    final last = DateTime(today.year, today.month, today.day + days);
 
     final changeDays = <DateTime>{today};
     for (final tx in _transactions) {

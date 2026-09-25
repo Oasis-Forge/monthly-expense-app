@@ -658,11 +658,14 @@ class _TrendTabState extends State<_TrendTab> {
     // A period is named after the month holding its middle day, so
     // "Aug 25 – Sep 24" reads as Sep.
     final monthFormat = DateFormat.MMM(locale);
+    // Calendar days, not elapsed time (money-time#9): a period that spans a
+    // DST change is an hour short or long, and .difference().inDays would
+    // drop the midpoint by a day and mislabel the bar's month.
     String shortLabel(Period period) => monthFormat.format(
       DateTime(
         period.start.year,
         period.start.month,
-        period.start.day + period.end.difference(period.start).inDays ~/ 2,
+        period.start.day + daysBetween(period.start, period.end) ~/ 2,
       ),
     );
     final rodWidth = _count == 6 ? 10.0 : 5.0;
