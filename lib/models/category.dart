@@ -11,7 +11,11 @@ import 'transaction.dart';
 /// non-text bar against the surface it sits on, on every theme choice
 /// including true black (test/theme_test.dart, pr58#9). Six were originally
 /// picked too dark for that on a dark or black surface (2.0–2.8:1) and were
-/// lightened just enough to clear it, keeping their hue.
+/// lightened just enough to clear it, keeping their hue. A seventh, orange,
+/// cleared the dark and black surfaces but fell short (about 2.9:1) on the
+/// light theme's own, much paler surface, which nothing had checked; it was
+/// darkened slightly instead, since lightening it further would have moved
+/// it away from THEME-4's own dark-surface bar.
 const categoryPalette = <int>[
   0xFF6C5CE7,
   0xFF00897B,
@@ -25,7 +29,7 @@ const categoryPalette = <int>[
   0xFF4A5BC3, // was 0xFF3949AB
   0xFFE53935,
   0xFF546E7A,
-  0xFFEF6C00,
+  0xFFE65100, // was 0xFFEF6C00
   0xFF007365, // was 0xFF00695C
   0xFF6C4BD3, // was 0xFF4527A0
   0xFFBF1660, // was 0xFFAD1457

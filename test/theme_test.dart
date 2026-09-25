@@ -134,6 +134,28 @@ void main() {
     // than the 4.5:1 text needs.
     const nonTextContrast = 3.0;
 
+    // THEME-4 says every theme choice, not just dark and black: the light
+    // theme's own surface (and the slightly deeper surfaceContainerLow a
+    // category row can sit on) is pale enough that this needs checking on
+    // its own (pr58#9's own re-check).
+    test('every one of the sixteen clears 3:1 on the light theme', () {
+      final theme = appTheme(brightness: Brightness.light);
+      for (final bg in [
+        theme.colorScheme.surface,
+        theme.colorScheme.surfaceContainerLow,
+      ]) {
+        for (final value in categoryPalette) {
+          expect(
+            contrast(Color(value), bg),
+            greaterThanOrEqualTo(nonTextContrast),
+            reason:
+                '#${value.toRadixString(16)} must stay tellable from $bg '
+                'on light',
+          );
+        }
+      }
+    });
+
     for (final black in [false, true]) {
       test(
         'every one of the sixteen clears 3:1 on ${black ? 'true black' : 'the dark surface'}',

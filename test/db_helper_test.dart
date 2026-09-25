@@ -798,6 +798,7 @@ void main() {
           0xFF00695C,
           0xFF4527A0,
           0xFFAD1457,
+          0xFFEF6C00,
         };
         expect(categories, isNotEmpty);
         expect(categories.where((c) => retired.contains(c.color)), isEmpty);
