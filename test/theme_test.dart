@@ -4,10 +4,14 @@ import 'package:intl/intl.dart';
 
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
+import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/amount_style.dart';
 import 'package:monthly_expense_app/screens/budget_progress.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/theme.dart';
+
+import 'helpers.dart';
 
 void main() {
   const black = Color(0xFF000000);
@@ -198,6 +202,33 @@ void main() {
             '(THEME-4); it must not follow colorScheme.primary',
       );
     });
+
+    for (final brightness in Brightness.values) {
+      testWidgets('a warning budget draws the darkened warning colour, '
+          '${brightness.name} (A11Y-3, pr58_4)', (tester) async {
+        late Color result;
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: appTheme(brightness: brightness),
+            home: Builder(
+              builder: (context) {
+                result = budgetLevelColor(context, BudgetLevel.warning);
+                return const SizedBox();
+              },
+            ),
+          ),
+        );
+
+        final dark = brightness == Brightness.dark;
+        expect(
+          result,
+          Color(dark ? budgetWarningDark : budgetWarningLight),
+          reason:
+              'putting Colors.orange back in the warning branch must fail '
+              'this test',
+        );
+      });
+    }
   });
 
   group('day header colour (A11Y-3, DAY-7)', () {
@@ -231,6 +262,63 @@ void main() {
           }
         });
       }
+    }
+
+    for (final brightness in Brightness.values) {
+      testWidgets(
+        "Home draws the day header in dayHeaderColor, ${brightness.name} "
+        '(A11Y-3, DAY-7, pr58_4)',
+        (tester) async {
+          final today = DateTime(2026, 9, 15, 10);
+          final fake = FakeDB(
+            transactions: [
+              testTx(
+                'a',
+                TransactionType.expense,
+                12.5,
+                DateTime(2026, 9, 15),
+                title: 'Lunch',
+              ),
+            ],
+          );
+          final provider = TransactionProvider(db: fake, clock: () => today);
+          await provider.load();
+          final settings = await testSettings();
+
+          await tester.pumpWidget(
+            testApp(
+              provider,
+              settings,
+              Theme(
+                data: appTheme(brightness: brightness),
+                child: const HomeScreen(),
+              ),
+            ),
+          );
+          await tester.pump();
+
+          // Sep 16 holds nothing, unlike Sep 15 (DAY-7).
+          await tester.tap(find.text('16'));
+          await tester.pumpAndSettle();
+
+          final dark = brightness == Brightness.dark;
+          final expected = Color(dark ? dayHeaderInkDark : dayHeaderInkLight);
+
+          final dateText = tester.widget<Text>(find.text('Sep 16, 2026'));
+          expect(
+            dateText.style?.color,
+            expected,
+            reason:
+                'putting Colors.grey.shade600 back in _DaySection must fail '
+                'this test',
+          );
+
+          final emptyText = tester.widget<Text>(
+            find.text('Nothing on this day.'),
+          );
+          expect(emptyText.style?.color, expected);
+        },
+      );
     }
   });
 }
