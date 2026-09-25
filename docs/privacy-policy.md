@@ -14,7 +14,7 @@ This policy explains how the **Monthly Expenses** app ("the app") handles your i
 
 **Nothing you record leaves your device.** Your transactions, titles, notes, categories, accounts, budgets and attachments are stored only on your device, and only you can send them anywhere — by saving a backup or an export.
 
-Your phone's own automatic app backup is **switched off for this app**, so Android never copies your records to Google Drive on its own. Reinstalling the app therefore starts you with nothing — the way to carry your data over is a backup you saved yourself. Moving to a new phone with Android's transfer still brings it with you.
+Your phone's own automatic app backup is **switched off for this app**, so Android never copies your records to Google Drive on its own. Reinstalling the app therefore starts you with nothing — the way to carry your data over is a backup you saved yourself. Moving to a new phone with Android's transfer still brings it with you on Android 12 and later; on Android 11 and below, the transfer does not carry it, so a backup you saved yourself is the way to bring it along.
 
 The app shows **banner ads** on two of its screens, and a **full-screen ad** once you have done ten things in the app that day, shown when you finish something such as a PDF report or a CSV export — through Google AdMob. Ads are the only reason the app uses the internet at all. AdMob receives technical information about your device in order to choose and count an ad — never anything you have recorded. You can buy "Remove ads" once, and then the ad software is never started at all.
 
