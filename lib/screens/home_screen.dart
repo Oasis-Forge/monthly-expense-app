@@ -64,6 +64,12 @@ class HomeScreen extends StatefulWidget {
     if (screen is! InsightsScreen) return;
     // The providers outlive the route, so the way back needs no context.
     final ads = context.read<AdsProvider>();
+    // Captured before the wait, so a shortcut or widget tap that fires while
+    // Insights is open is caught even when it moves on to nothing at all —
+    // popping straight back to Home for HomeWidgetAction.openHome, say —
+    // and so leaves Home looking like the current route again by the time
+    // this runs (rules-22-25-31-35#6).
+    final navigationEpoch = ads.navigationEpoch;
     unawaited(ads.primeInterstitial());
     unawaited(
       opened.then((_) async {
@@ -72,8 +78,11 @@ class HomeScreen extends StatefulWidget {
         // resolves in, so Home is no longer on top by the time this runs.
         // Treat that exactly like ADS-13's "no ad ready" case rather than
         // show the full-screen ad over whatever opened instead (ADS-1,
-        // ADS-11, ADS-14, rules-22-25-31-35#6).
-        if (homeRoute?.isCurrent != true) {
+        // ADS-11, ADS-14, rules-22-25-31-35#6). The same tap can also leave
+        // Home on top with nothing pushed at all, which looks identical to
+        // an ordinary "back to Home" unless the navigation epoch moved.
+        if (homeRoute?.isCurrent != true ||
+            ads.navigationEpoch != navigationEpoch) {
           await ads.dropPrimedInterstitial();
           return;
         }

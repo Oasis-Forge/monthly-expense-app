@@ -313,6 +313,10 @@ class _ShortcutTapsState extends State<_ShortcutTaps> {
       final discard = await guard.confirmDiscard();
       if (!discard || !navigator.mounted) return;
     }
+    // Marked before the pop, so an Insights seam still waiting on its route
+    // future treats this as a fresh navigation even when it lands back on
+    // Home with nothing pushed over it (rules-22-25-31-35#6).
+    navigator.context.read<AdsProvider>().noteExternalNavigation();
     navigator.popUntil((route) => route.isFirst);
     // A shortcut is a fresh start, so the form opens on the period the app
     // is for today rather than wherever Home was last left (DAY-9).
@@ -392,6 +396,11 @@ class _WidgetTapsState extends State<_WidgetTaps> {
       final discard = await guard.confirmDiscard();
       if (!discard || !navigator.mounted) return;
     }
+    // Marked before the pop, so an Insights seam still waiting on its route
+    // future treats this as a fresh navigation even when it lands back on
+    // Home with nothing pushed over it, as HomeWidgetAction.openHome does
+    // (rules-22-25-31-35#6).
+    navigator.context.read<AdsProvider>().noteExternalNavigation();
     navigator.popUntil((route) => route.isFirst);
     // The numbers on the widget are the current period's, so Home shows that
     // one however it was left (WID-2, WID-3).

@@ -128,6 +128,129 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a widget tap that leaves Insights while it is still open does not fire '
+    'the Insights seam over the form it opens instead (ADS-1, ADS-11, '
+    'ADS-14, rules-22-25-31-35#6)',
+    (tester) async {
+      final shortcuts = FakeShortcuts();
+      final ads = await startEarned(tester, shortcuts);
+      addTearDown(() => tappedWidgetAction.value = null);
+
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(PeriodSelector),
+              matching: find.byType(InkWell),
+            )
+            .at(1),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(InsightsScreen), findsOneWidget);
+
+      final adsProvider = tester
+          .element(find.byType(MaterialApp))
+          .read<AdsProvider>();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+      expect(
+        adsProvider.interstitialReady,
+        isTrue,
+        reason:
+            'the seam must have an ad in hand for this test to mean '
+            'anything',
+      );
+
+      // A widget tap arrives while Insights is still open: it pops back to
+      // Home and immediately opens the add form, racing the Insights seam's
+      // own `opened.then(...)`, the same as a shortcut tap does.
+      tappedWidgetAction.value = HomeWidgetAction.addExpense;
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(
+        ads.interstitialsShown,
+        0,
+        reason:
+            'ADS-1/ADS-11/ADS-14: the Insights seam must never fire once '
+            'the add form is on top of it',
+      );
+      expect(
+        ads.interstitialsDropped,
+        1,
+        reason:
+            'the primed interstitial should be let go rather than kept '
+            'for a later, unrelated seam',
+      );
+    },
+  );
+
+  testWidgets(
+    'a widget tap on the numbers (open_home) that closes Insights and '
+    'lands back on Home does not fire the Insights seam either, even '
+    'though Home ends up as the current route (ADS-1, ADS-11, '
+    'rules-22-25-31-35#6)',
+    (tester) async {
+      final shortcuts = FakeShortcuts();
+      final ads = await startEarned(tester, shortcuts);
+      addTearDown(() => tappedWidgetAction.value = null);
+
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(PeriodSelector),
+              matching: find.byType(InkWell),
+            )
+            .at(1),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(InsightsScreen), findsOneWidget);
+
+      final adsProvider = tester
+          .element(find.byType(MaterialApp))
+          .read<AdsProvider>();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+      expect(
+        adsProvider.interstitialReady,
+        isTrue,
+        reason:
+            'the seam must have an ad in hand for this test to mean '
+            'anything',
+      );
+
+      // A tap on the widget's numbers only pops back to Home: nothing is
+      // pushed over it, so Home is current by the time the Insights route's
+      // future resolves, exactly as it would be for the ordinary "back to
+      // Home" case.
+      tappedWidgetAction.value = HomeWidgetAction.openHome;
+      await tester.pumpAndSettle();
+
+      expect(find.byType(InsightsScreen), findsNothing);
+      expect(
+        ads.interstitialsShown,
+        0,
+        reason:
+            'ADS-1: a widget tap that closed Insights while it was open '
+            'must never bring back a full-screen ad the instant the app '
+            'resumes, even when it lands on Home with nothing pushed',
+      );
+      expect(
+        ads.interstitialsDropped,
+        1,
+        reason:
+            'the primed interstitial should be let go rather than kept '
+            'for a later, unrelated seam',
+      );
+    },
+  );
+
   testWidgets('leaving Insights the ordinary way still shows the seam (ADS-11, '
       'ADS-13)', (tester) async {
     final shortcuts = FakeShortcuts();
