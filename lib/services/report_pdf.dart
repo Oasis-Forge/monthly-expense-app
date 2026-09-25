@@ -139,6 +139,13 @@ Future<Uint8List> buildReportPdf({
     content.add(_run(l10n.reportEmpty, style: _muted));
   }
 
+  // The page-by-page layout below (MultiPage.generate, run synchronously by
+  // addPage) and the save after it are the one stretch [step] can't check in
+  // on: a cancel asked for right at the end still has to land somewhere
+  // before it, and this is the last chance before the layout itself starts
+  // (PDF-6).
+  if (isCancelled?.call() ?? false) throw const ReportCancelled();
+
   document.addPage(
     pw.MultiPage(
       pageFormat: pageFormat,
@@ -160,7 +167,12 @@ Future<Uint8List> buildReportPdf({
   );
 
   if (isCancelled?.call() ?? false) throw const ReportCancelled();
-  return document.save();
+  // Serializing is already off the UI isolate on every platform that runs
+  // this (pdf's own Document.save uses a background isolate on the Dart VM;
+  // only the web build it doesn't ship on falls back to the caller's own).
+  // enableEventLoopBalancing also lets that isolate yield between objects
+  // instead of writing the whole xref table in one go (PDF-6).
+  return document.save(enableEventLoopBalancing: true);
 }
 
 /// A run of text laid out in the direction its own content calls for.

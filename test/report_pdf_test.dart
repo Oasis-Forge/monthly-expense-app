@@ -307,5 +307,26 @@ void main() {
         reason: 'a year took ${took.inSeconds}s to lay out',
       );
     });
+
+    test('a cancel asked for right as progress reaches 100% is still honoured '
+        '(PDF-6)', () async {
+      // The window between the last progress tick and the page layout
+      // that follows it never used to be checked at all: onProgress
+      // marks the moment progress reaches 1.0, and isCancelled starts
+      // answering true from then on, so this can only pass if a check
+      // runs after that tick and before the (never awaited, so never
+      // interruptible once it starts) layout call.
+      var reachedFull = false;
+      await expectLater(
+        build(
+          dataWith(manyEntries(20)),
+          onProgress: (progress) {
+            if (progress >= 1.0) reachedFull = true;
+          },
+          isCancelled: () => reachedFull,
+        ),
+        throwsA(isA<ReportCancelled>()),
+      );
+    });
   });
 }
