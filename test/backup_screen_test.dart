@@ -3,10 +3,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:monthly_expense_app/models/backup.dart';
 import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
@@ -295,5 +297,45 @@ void main() {
 
     expect(titles(), isEmpty);
     expect(files.kept, hasLength(1));
+  });
+
+  testWidgets('a restore is never a seam for the full-screen ad: someone '
+      'putting their records back is not an audience (ADS-11, '
+      'rules-22-25-31-35#11)', (tester) async {
+    files.toOpen = await otherDeviceBackup();
+    final earnedSettings = await testSettings({
+      'setup_done': true,
+      'walkthrough_seen': true,
+      'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+      'ad_activity': SettingsProvider.adActivityThreshold,
+      'ad_activity_day': today.toUtc().toIso8601String(),
+    }, () => today);
+    final ads = FakeAdService(canStart: true, interstitialFills: true);
+
+    await tester.pumpWidget(
+      testApp(
+        provider,
+        earnedSettings,
+        const BackupScreen(),
+        backup: service,
+        ads: ads,
+      ),
+    );
+    await tester.pumpAndSettle();
+    // In the app the SDK started long ago; here the provider is built on
+    // its first read, so this is what a running app already has (ADS-4).
+    Provider.of<AdsProvider>(
+      tester.element(find.byType(BackupScreen)),
+      listen: false,
+    );
+    await tester.pumpAndSettle();
+
+    await openFile(tester);
+    await tester.tap(find.text('Replace'));
+    await tester.pumpAndSettle();
+    await tapRestore(tester);
+
+    expect(titles(), ['Dinner']);
+    expect(ads.interstitialsShown, 0);
   });
 }
