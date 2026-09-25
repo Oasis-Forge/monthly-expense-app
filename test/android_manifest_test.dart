@@ -150,12 +150,25 @@ void main() {
         'sharedpref',
         'external',
       ]) {
+        // Not just that the domain is mentioned: an <include> for it, or an
+        // <exclude> narrowed to less than the whole domain, would send that
+        // domain to Drive and still pass a bare `contains('domain="...')`
+        // (rules-11-13-20-21#5).
         expect(
           cloudBackup,
-          contains('domain="$domain"'),
-          reason: '$domain is not excluded from cloud backup (BAK-8, BAK-6).',
+          contains('<exclude domain="$domain" path="."'),
+          reason:
+              '$domain is not fully excluded from cloud backup '
+              '(BAK-8, BAK-6).',
         );
       }
+      expect(
+        cloudBackup,
+        isNot(contains('<include')),
+        reason:
+            'An <include> would send that domain to Drive, exactly '
+            'what decision 37 (BAK-8) refused.',
+      );
     });
   });
 
