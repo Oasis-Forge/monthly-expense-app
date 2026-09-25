@@ -32,6 +32,20 @@ void main() {
       expect(Money.tryParse('12.345', maxDecimals: 2), isNull);
     });
 
+    test('rejects a comma thousands separator instead of reading it as a '
+        '3-decimal fraction (CUR-2, MONEY-1, pr61#6)', () {
+      // For a 3-decimal currency (KWD, BHD, JOD, TND), '1,500' is
+      // ambiguous: comma-as-decimal-mark reads 1.5, comma-as-thousands-
+      // separator reads 1500. Guessing the decimal reading is silently off
+      // by 1000x, so this is rejected rather than guessed.
+      expect(Money.tryParse('1,500', maxDecimals: 3), isNull);
+      // Fewer than 3 digits after the comma isn't the ambiguous case.
+      expect(Money.tryParse('12,50', maxDecimals: 3), const Money(12500));
+      // A period stays an unambiguous decimal point: it's what editing an
+      // existing amount round-trips through (Money.toInputString).
+      expect(Money.tryParse('1.500', maxDecimals: 3), const Money(1500));
+    });
+
     test('adds, negates, and formats for editing', () {
       expect(const Money(12500) + const Money(500), const Money(13000));
       expect(const Money(500) - const Money(1500), const Money(-1000));

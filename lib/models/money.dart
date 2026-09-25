@@ -12,8 +12,20 @@ extension type const Money(int thousandths) {
   /// Parses user input like `12`, `12.5`, or `12,5`, allowing at most
   /// [maxDecimals] decimals (the currency's, CUR-2). Returns null for anything
   /// else, including negative numbers.
+  ///
+  /// A comma followed by exactly [maxDecimals] digits is also rejected when
+  /// that is 3 (KWD, BHD, JOD, TND): `1,500` reads the same as a 3-decimal
+  /// fraction (1.5) or a thousands separator (1500), and guessing the
+  /// decimal reading would be silently off by 1000x. A period stays an
+  /// unambiguous decimal point, since it's what [toInputString] round-trips
+  /// through when an existing amount is edited again.
   static Money? tryParse(String input, {int maxDecimals = 3}) {
-    final match = _input.firstMatch(input.trim().replaceAll(',', '.'));
+    final trimmed = input.trim();
+    if (maxDecimals == 3) {
+      final comma = trimmed.lastIndexOf(',');
+      if (comma >= 0 && trimmed.length - comma - 1 == 3) return null;
+    }
+    final match = _input.firstMatch(trimmed.replaceAll(',', '.'));
     if (match == null) return null;
     final fraction = match[2] ?? '';
     if (fraction.length > maxDecimals) return null;
