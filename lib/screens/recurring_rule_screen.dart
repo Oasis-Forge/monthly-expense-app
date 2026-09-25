@@ -100,6 +100,15 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     }
 
     final editing = widget.editing;
+    // The pause/resume button writes straight to the provider and leaves the
+    // form open, so `editing` can be a stale snapshot of the rule by the
+    // time Save runs; read pausedAt and createdAt from the provider's
+    // current copy instead of the one the screen opened with, or Save
+    // silently reverts whichever of Pause or Resume was just tapped
+    // (rules-6-10#3).
+    final live = editing == null
+        ? null
+        : provider.recurringRuleById(editing.id);
     final now = DateTime.now().toUtc();
     final title = _titleController.text.trim();
     final note = _noteController.text.trim();
@@ -120,9 +129,9 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
           : null,
       endDate: endDate,
       autoPost: _autoPost,
-      pausedAt: editing?.pausedAt,
+      pausedAt: live?.pausedAt,
       activeFrom: editing?.activeFrom ?? _startDate,
-      createdAt: editing?.createdAt ?? now,
+      createdAt: live?.createdAt ?? now,
       updatedAt: now,
     );
 

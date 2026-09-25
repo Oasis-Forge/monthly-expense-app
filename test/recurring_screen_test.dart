@@ -185,6 +185,27 @@ void main() {
       expect(provider.recurringRuleById('Rent'), isNull);
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
+
+    testWidgets('pausing or resuming and then saving keeps the change '
+        '(RCR-5, RCR-6, audit rules-6-10#3)', (tester) async {
+      await showRecurring(tester);
+
+      await tester.tap(find.text('Rent').last);
+      await tester.pumpAndSettle();
+      await tapInForm(tester, find.byTooltip('Pause'));
+      expect(provider.recurringRuleById('Rent')!.isPaused, isTrue);
+
+      await save(tester);
+      expect(provider.recurringRuleById('Rent')!.isPaused, isTrue);
+
+      await tester.tap(find.text('Rent').last);
+      await tester.pumpAndSettle();
+      await tapInForm(tester, find.byTooltip('Resume'));
+      expect(provider.recurringRuleById('Rent')!.isPaused, isFalse);
+
+      await save(tester);
+      expect(provider.recurringRuleById('Rent')!.isPaused, isFalse);
+    });
   });
 
   group('rule form (RCR-1)', () {
