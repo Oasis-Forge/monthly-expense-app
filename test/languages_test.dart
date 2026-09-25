@@ -306,7 +306,7 @@ void main() {
       expect(amount.textAlign, TextAlign.right);
     });
 
-    testWidgets('an imported row keeps its figures in one piece', (
+    testWidgets('an imported row keeps its sign against its figures', (
       tester,
     ) async {
       await show(tester, 'ar', const ImportScreen(), backup: withSampleCsv());
@@ -316,10 +316,29 @@ void main() {
       await tester.pumpAndSettle();
 
       final amount = tester.widget<Text>(find.textContaining('12.50'));
-      // The sign now travels inside the currency's own isolate, so the row
-      // must not force the line's direction: doing so would carry the symbol
-      // to the wrong side of the figures in Arabic (LANG-5).
-      expect(amount.textDirection, isNull);
+      // Where it sits, not what the widget declares: the row used to force a
+      // direction, and when that went the hand-pasted sign was left outside
+      // the isolate and bidi carried it to the far end of the row (LANG-5).
+      final text = amount.data!;
+      final painter = TextPainter(
+        text: TextSpan(text: text),
+        textDirection: amount.textDirection ?? TextDirection.rtl,
+      )..layout();
+      addTearDown(painter.dispose);
+      Rect boxOf(int at) => painter
+          .getBoxesForSelection(
+            TextSelection(baseOffset: at, extentOffset: at + 1),
+          )
+          .first
+          .toRect();
+      final sign = boxOf(text.indexOf(RegExp('[-+\u2212]')));
+      final firstDigit = boxOf(text.indexOf(RegExp('[0-9]')));
+
+      expect(
+        sign.right,
+        closeTo(firstDigit.left, 2),
+        reason: 'the sign should touch its figures, not float away: $text',
+      );
     });
 
     testWidgets('the trend starts with the newest period on the left, and '

@@ -268,19 +268,22 @@ class SettingsProvider extends ChangeNotifier {
     );
   }
 
-  /// Short amounts like `$1.2K`, for small spaces such as calendar days.
+  /// Short amounts like `$1.2K`, for small spaces such as calendar days. It
+  /// takes a symbol rather than a pattern, so CLDR's spacing goes on the
+  /// symbol itself; without it the calendar would read `Rp1,2 rb` beside a
+  /// total of `Rp 1.235` on the same screen (LANG-5).
   NumberFormat compactCurrencyFormat(String locale) {
-    final symbol = _localSymbol(locale);
-    return symbol == null
-        ? NumberFormat.compactSimpleCurrency(
-            locale: locale,
-            name: _currencyCode,
-          )
-        : NumberFormat.compactCurrency(
-            locale: locale,
-            name: _currencyCode,
-            symbol: symbol,
-          );
+    final plain =
+        _localSymbol(locale) ??
+        NumberFormat.simpleCurrency(
+          locale: locale,
+          name: _currencyCode,
+        ).currencySymbol;
+    return NumberFormat.compactCurrency(
+      locale: locale,
+      name: _currencyCode,
+      symbol: _spacedSymbol(locale, plain),
+    );
   }
 
   static String _language(String locale) => locale.split(RegExp('[-_]')).first;
@@ -293,9 +296,44 @@ class SettingsProvider extends ChangeNotifier {
   /// The figures of a currency pattern, with the sign that belongs to them.
   static final RegExp _figures = RegExp('[-+]?[#0][#0.,]*');
 
-  /// A symbol made of letters — `Rs`, `Rp` — rather than one of the signs,
-  /// `$` or `€`, that sit against a number without help.
-  static final RegExp _letters = RegExp(r'\p{L}', unicode: true);
+  /// CLDR asks for a no-break space between the digits and the symbol only
+  /// where the character that touches them is not itself a sign
+  /// (`currencySpacing`, `currencyMatch: [[:^S:]&[:^Z:]]`). So `Rs` and `Rp`
+  /// take one and `$`, `€` and `R$` do not — it is the touching character
+  /// that decides, not whether the symbol has a letter in it anywhere.
+  static final RegExp _sign = RegExp(r'[\p{S}\p{Z}]', unicode: true);
+
+  /// Whether [symbol] needs that space, given that it stands in front of the
+  /// figures ([leading]) or after them.
+  static bool _needsSpacing(String symbol, {required bool leading}) {
+    if (symbol.isEmpty) return false;
+    final touching = String.fromCharCode(
+      leading ? symbol.runes.last : symbol.runes.first,
+    );
+    return !_sign.hasMatch(touching);
+  }
+
+  /// Whether [locale] writes the symbol in front of the figures.
+  static bool _symbolLeads(String pattern) {
+    final symbol = pattern.indexOf('\u00A4');
+    final figure = pattern.indexOf(RegExp('[#0]'));
+    return symbol >= 0 && figure >= 0 && symbol < figure;
+  }
+
+  static String _cldrPattern(String locale) =>
+      numberFormatSymbols[Intl.verifiedLocale(
+            locale,
+            NumberFormat.localeExists,
+          )]!
+          .CURRENCY_PATTERN;
+
+  /// [symbol] carrying CLDR's spacing itself, for the compact format, which
+  /// takes a symbol where the others take a pattern.
+  static String _spacedSymbol(String locale, String symbol) {
+    final leading = _symbolLeads(_cldrPattern(locale));
+    if (!_needsSpacing(symbol, leading: leading)) return symbol;
+    return leading ? '$symbol\u00A0' : '\u00A0$symbol';
+  }
 
   /// [locale]'s currency pattern, mended in the two places intl leaves to
   /// us, or null where it needs neither.
@@ -309,13 +347,17 @@ class SettingsProvider extends ChangeNotifier {
     String symbol, {
     required bool isolated,
   }) {
-    final cldr =
-        numberFormatSymbols[Intl.verifiedLocale(
-              locale,
-              NumberFormat.localeExists,
-            )]!
-            .CURRENCY_PATTERN;
-    final spaced = _withCurrencySpacing(cldr, symbol);
+    final cldr = _cldrPattern(locale);
+    // A pattern we cannot read is left exactly as it is rather than guessed at.
+    if (!cldr.contains('\u00A4') || !cldr.contains(RegExp('[#0]'))) {
+      return null;
+    }
+    final leads = _symbolLeads(cldr);
+    final spaced = _needsSpacing(symbol, leading: leads)
+        ? (leads
+              ? cldr.replaceAll(RegExp('\u00A4(?=[#0])'), '\u00A4\u00A0')
+              : cldr.replaceAll(RegExp('(?<=[#0])\u00A4'), '\u00A0\u00A4'))
+        : cldr;
     final isolate =
         isolated && rightToLeftLanguages.contains(_language(locale));
     if (!isolate) return spaced == cldr ? null : spaced;
@@ -325,30 +367,18 @@ class SettingsProvider extends ChangeNotifier {
     // its own accord. Where it follows them, as Arabic writes it, only the
     // figures are isolated, so right-to-left order can carry the symbol over
     // to the left where it belongs (LANG-5).
-    final symbolLeads =
-        halves.first.indexOf('\u00A4') < halves.first.indexOf(RegExp('[#0]'));
     final negative = halves.length > 1
         ? halves[1]
-        : symbolLeads
+        : leads
         ? '-${halves.first}'
         : halves.first.replaceFirstMapped(_figures, (m) => '-${m[0]}');
     return [halves.first, negative]
         .map(
-          (h) => symbolLeads
+          (h) => leads
               ? '\u2066$h\u2069'
               : h.replaceFirstMapped(_figures, (m) => '\u2066${m[0]}\u2069'),
         )
         .join(';');
-  }
-
-  /// CLDR keeps a symbol made of letters off the digits with a no-break space
-  /// (`currencySpacing`), so PKR reads `Rs 12` and not `Rs12`. intl carries no
-  /// such rule, so the space is put in here.
-  static String _withCurrencySpacing(String pattern, String symbol) {
-    if (!_letters.hasMatch(symbol)) return pattern;
-    return pattern
-        .replaceAll(RegExp('\u00A4(?=[#0])'), '\u00A4\u00A0')
-        .replaceAll(RegExp('(?<=[#0])\u00A4'), '\u00A0\u00A4');
   }
 
   /// Changes the currency label only; stored amounts never change (CUR-3).

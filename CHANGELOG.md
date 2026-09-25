@@ -4,6 +4,15 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.27.2] - 2026-09-25
+
+### Fixed
+- In Arabic and Urdu, the import preview carried an amount's plus or minus to the far side of the row, away from the figures it belonged to.
+- The Insights calendar and trend chart ran the currency into the number, showing `Rp1,2 rb` beside a total of `Rp 1.235` on the same screen.
+- The PDF report signed its amounts differently from every screen in the app.
+- Currencies written as a letter and a sign together, such as `R$`, were given a space between symbol and number that they should not have.
+- On the Recurring screen, the row for something due kept the currency symbol on the opposite side from the rows beneath it.
+
 ## [1.27.1] - 2026-09-24
 
 ### Fixed

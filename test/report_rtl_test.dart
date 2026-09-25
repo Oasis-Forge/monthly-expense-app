@@ -116,8 +116,11 @@ void main() {
           isTrue,
           reason: '$code: $text',
         );
+        // The report signs through the same formatter as the screens, so the
+        // minus is the language's own rather than a typographic one the
+        // report chose for itself (CUR-5).
         expect(
-          RegExp(r'−[^\d]{0,3}25').hasMatch(text),
+          RegExp(r'[-\u2212][^\d]{0,3}25').hasMatch(text),
           isTrue,
           reason: '$code: $text',
         );

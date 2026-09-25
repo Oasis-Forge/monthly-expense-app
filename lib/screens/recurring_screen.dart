@@ -235,10 +235,7 @@ class _DueTile extends StatelessWidget {
           title: Text(name),
           subtitle: Text(
             l10n.categoryAndDate(
-              isolateLeftToRight(
-                _signedAmount(rule, currency),
-                Directionality.of(context),
-              ),
+              _signedAmount(rule, currency),
               DateFormat.yMMMd(l10n.localeName).format(occurrence.date),
             ),
           ),
