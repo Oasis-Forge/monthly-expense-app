@@ -225,6 +225,26 @@ void main() {
       expect(read.transactionCount, 1);
     });
 
+    test('a voice note alone still makes the backup a zip that carries it '
+        '(ATT-6)', () async {
+      await attachments.write('note1.m4a', const [5, 5]);
+      final service = serviceFor(
+        FakeDB(
+          transactions: [
+            testTx('a', expense, 10, now).copyWith(voiceFile: 'note1.m4a'),
+          ],
+        ),
+      );
+
+      await service.saveBackup(await testSettings());
+
+      expect(saved.saved.keys.single, endsWith('.zip'));
+      final read = await service.read(saved.saved.values.single);
+      expect(read.files, {
+        'note1.m4a': [5, 5],
+      });
+    });
+
     test('a backup without attachments stays a JSON file', () async {
       final service = serviceFor(FakeDB(transactions: [withPhoto(null)]));
 

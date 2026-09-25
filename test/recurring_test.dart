@@ -121,6 +121,91 @@ void main() {
       ]);
     });
 
+    test('an occurrence on the end date is the last one, not dropped '
+        '(RCR-1)', () {
+      final untilTheFifth = rule(
+        DateTime(2026, 1, 5),
+        end: RecurrenceEnd.onDate,
+        until: DateTime(2026, 3, 5),
+      );
+      expect(dates(untilTheFifth, DateTime(2026), DateTime(2026, 12, 31)), [
+        DateTime(2026, 1, 5),
+        DateTime(2026, 2, 5),
+        DateTime(2026, 3, 5),
+      ]);
+    });
+
+    test('nothing is dated before the start, even for a rule active from '
+        'earlier (RCR-1)', () {
+      // The provider keeps activeFrom on or after the start; a rule from
+      // anywhere else must still not invent days before it.
+      final daily = rule(
+        DateTime(2026, 9, 10),
+        frequency: RecurrenceFrequency.day,
+        activeFrom: DateTime(2026, 9, 1),
+      );
+      expect(dates(daily, DateTime(2026, 9, 1), DateTime(2026, 9, 12)), [
+        DateTime(2026, 9, 10),
+        DateTime(2026, 9, 11),
+        DateTime(2026, 9, 12),
+      ]);
+
+      final weekly = rule(
+        DateTime(2026, 9, 10),
+        frequency: RecurrenceFrequency.week,
+        activeFrom: DateTime(2026, 9, 1),
+      );
+      expect(dates(weekly, DateTime(2026, 9, 1), DateTime(2026, 9, 30)), [
+        DateTime(2026, 9, 10),
+        DateTime(2026, 9, 17),
+        DateTime(2026, 9, 24),
+      ]);
+    });
+
+    test('a range that begins on an occurrence includes it (RCR-4)', () {
+      final fortnightly = rule(
+        DateTime(2026, 9, 1),
+        frequency: RecurrenceFrequency.week,
+        interval: 2,
+      );
+      expect(dates(fortnightly, DateTime(2026, 9, 15), DateTime(2026, 9, 30)), [
+        DateTime(2026, 9, 15),
+        DateTime(2026, 9, 29),
+      ]);
+
+      final everyThreeDays = rule(
+        DateTime(2026, 9, 1),
+        frequency: RecurrenceFrequency.day,
+        interval: 3,
+      );
+      expect(
+        dates(everyThreeDays, DateTime(2026, 9, 7), DateTime(2026, 9, 7)),
+        [DateTime(2026, 9, 7)],
+      );
+    });
+
+    test('a rule read back from its map keeps its local days (RCR-3)', () {
+      // A local date written as UTC comes back as the day before east of
+      // Greenwich, and the rule then falls on the 30th instead of the 31st.
+      final saved = rule(
+        DateTime(2026, 1, 31),
+        end: RecurrenceEnd.onDate,
+        until: DateTime(2026, 4, 30),
+        activeFrom: DateTime(2026, 1, 31),
+      );
+      final loaded = RecurringRule.fromMap(saved.toMap());
+
+      expect(loaded.startDate, DateTime(2026, 1, 31));
+      expect(loaded.endDate, DateTime(2026, 4, 30));
+      expect(loaded.activeFrom, DateTime(2026, 1, 31));
+      expect(dates(loaded, DateTime(2026), DateTime(2026, 12, 31)), [
+        DateTime(2026, 1, 31),
+        DateTime(2026, 2, 28),
+        DateTime(2026, 3, 31),
+        DateTime(2026, 4, 30),
+      ]);
+    });
+
     test('occurrences before activeFrom are left out (RCR-5)', () {
       final edited = rule(DateTime(2026, 1, 5), activeFrom: DateTime(2026, 3));
       expect(dates(edited, DateTime(2026), DateTime(2026, 4, 30)), [
@@ -250,6 +335,18 @@ void main() {
       expect(provider.dueOccurrences, isEmpty);
     });
 
+    test(
+      'upcoming does not repeat what is already due today (RCR-2, RCR-7)',
+      () async {
+        await provider.addRecurringRule(
+          testRule('Rent', 900, DateTime(2026, 9, 15)),
+        );
+
+        expect(dates(provider.dueOccurrences), [DateTime(2026, 9, 15)]);
+        expect(dates(provider.upcomingOccurrences), [DateTime(2026, 10, 15)]);
+      },
+    );
+
     test('upcoming lists the next 30 days (RCR-7)', () async {
       await provider.addRecurringRule(
         testRule('Rent', 900, DateTime(2026, 9, 20)),
@@ -340,6 +437,34 @@ void main() {
       expect(monthly(RecurrenceFrequency.week, 1, 10), const Money(43333));
       expect(monthly(RecurrenceFrequency.year, 1, 120), const Money(10000));
       expect(monthly(RecurrenceFrequency.day, 1, 1), const Money(30417));
+    });
+
+    test('every interval divides, whatever the rule repeats on (RCR-8)', () {
+      // 10 every second week: 26 a year, 21.67 a month.
+      expect(monthly(RecurrenceFrequency.week, 2, 10), const Money(21667));
+      // 1 every second day: 182.5 a year, 15.21 a month.
+      expect(monthly(RecurrenceFrequency.day, 2, 1), const Money(15208));
+      // 120 every second year: 5 a month.
+      expect(monthly(RecurrenceFrequency.year, 2, 120), const Money(5000));
+    });
+
+    test('a rule whose end is today still counts today (RCR-8)', () {
+      final endsToday = testRule(
+        'r',
+        10,
+        DateTime(2026, 9),
+      ).copyWith(endType: RecurrenceEnd.onDate, endDate: DateTime(2026, 9, 15));
+      expect(endsToday.isActiveOn(DateTime(2026, 9, 15)), isTrue);
+      expect(endsToday.isActiveOn(DateTime(2026, 9, 16)), isFalse);
+
+      // July, August, September: the last of them falls today.
+      final lastToday = testRule(
+        'r',
+        10,
+        DateTime(2026, 7, 15),
+      ).copyWith(endType: RecurrenceEnd.afterCount, endCount: 3);
+      expect(lastToday.isActiveOn(DateTime(2026, 9, 15)), isTrue);
+      expect(lastToday.isActiveOn(DateTime(2026, 9, 16)), isFalse);
     });
 
     test('income, paused and finished rules stay out of the total', () async {

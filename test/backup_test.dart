@@ -379,6 +379,110 @@ void main() {
     }
   });
 
+  test('a file without the backup marker, or at schema 0, is refused as '
+      'invalid (BAK-1, BAK-4)', () async {
+    final service = testBackupService(helperAt('app.db'));
+    final valid = jsonDecode(
+      (await service.create(await testSettings())).toJson(),
+    ) as Map<String, Object?>;
+
+    for (final file in [
+      {...valid, 'format': 'another-app-export'},
+      // No tables, so nothing but the version itself can refuse it.
+      {...valid, 'schemaVersion': 0, 'tables': <String, Object?>{}},
+    ]) {
+      await expectLater(
+        service.read(utf8.encode(jsonEncode(file))),
+        refusedAs(BackupProblem.invalid),
+      );
+    }
+  });
+
+  test('a record holding a list or an object is refused (BAK-1)', () async {
+    final service = testBackupService(helperAt('app.db'));
+    final valid = await service.create(await testSettings());
+
+    final nested = valid.withTables({
+      ...valid.tables,
+      'transactions': [
+        {
+          ...tx('lunch').toMap(),
+          'extra': {'x': 1},
+        },
+      ],
+    }, schemaVersion: valid.schemaVersion);
+
+    await expectLater(
+      service.read(encode(nested)),
+      refusedAs(BackupProblem.invalid),
+    );
+  });
+
+  test('a backup whose accounts are all deleted is refused', () async {
+    final service = testBackupService(helperAt('app.db'));
+    final valid = await service.create(await testSettings());
+
+    final noAccount = valid.withTables({
+      ...valid.tables,
+      'accounts': [
+        for (final row in valid.tables['accounts']!)
+          {...row, 'deleted_at': DateTime.utc(2026, 9, 2).toIso8601String()},
+      ],
+    }, schemaVersion: valid.schemaVersion);
+
+    await expectLater(
+      service.read(encode(noAccount)),
+      refusedAs(BackupProblem.invalid),
+    );
+  });
+
+  test('Merge updates a record only when the backup is newer and differs '
+      '(BAK-3)', () {
+    MergePlan merge(ExpenseTransaction mine, ExpenseTransaction theirs) =>
+        planMerge(
+          {
+            'transactions': [mine.toMap()],
+          },
+          {
+            'transactions': [theirs.toMap()],
+          },
+        );
+    final sep5 = DateTime.utc(2026, 9, 5);
+
+    // Saved at the same moment: neither is later, so this device keeps its own.
+    final tie = merge(
+      tx('shared', title: 'Here', updated: sep5),
+      tx('shared', title: 'There', updated: sep5),
+    );
+    // Newer, but only the timestamps differ.
+    final sameContent = merge(
+      tx('shared', title: 'Lunch'),
+      tx('shared', title: 'Lunch', updated: sep5),
+    );
+
+    for (final plan in [tie, sameContent]) {
+      expect((plan.added, plan.updated, plan.unchanged), (0, 0, 1));
+    }
+  });
+
+  test('Merge counts an occurrence handled on both sides, and the '
+      'transaction it leaves out, as unchanged (BAK-3, RCR-4)', () {
+    final sep = DateTime(2026, 9);
+
+    final plan = planMerge(
+      {
+        'recurring_occurrences': [posted('device-sep', sep).toMap()],
+        'transactions': [tx('device-sep').toMap()],
+      },
+      {
+        'recurring_occurrences': [posted('other-sep', sep).toMap()],
+        'transactions': [tx('other-sep').toMap()],
+      },
+    );
+
+    expect((plan.added, plan.updated, plan.unchanged), (0, 0, 2));
+  });
+
   test('a failed replace leaves the data as it was', () async {
     final helper = helperAt('app.db');
     await helper.insertTransaction(tx('mine'));

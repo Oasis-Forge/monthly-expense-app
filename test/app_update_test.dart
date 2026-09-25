@@ -32,6 +32,30 @@ void main() {
       );
     });
 
+    test('the same date a month or a year on is another day (UPD-4)', () {
+      for (final asked in [DateTime(2026, 8, 24, 14), DateTime(2025, 9, 24)]) {
+        expect(
+          updateIsDue(now: now, askedOn: asked, locked: false),
+          isTrue,
+          reason: '$asked',
+        );
+      }
+    });
+
+    test('a stamp at either end of today, stored in UTC as the seam stores '
+        'it, is still today (UPD-4)', () {
+      // The seam stamps today's local midnight. East of UTC that instant
+      // falls on yesterday's UTC date, and west of it the last minutes of
+      // the day fall on tomorrow's, so both ends of the day are tried.
+      for (final at in [DateTime(2026, 9, 24), DateTime(2026, 9, 24, 23, 59)]) {
+        expect(
+          updateIsDue(now: now, askedOn: at.toUtc(), locked: false),
+          isFalse,
+          reason: '$at',
+        );
+      }
+    });
+
     test('the stored instant is read in the phone own day (UPD-4)', () {
       // The setting is written in UTC, so a day either side of midnight
       // would otherwise ask twice, or not at all.

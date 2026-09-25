@@ -107,6 +107,24 @@ void main() {
       );
     });
 
+    test('a deleted version never applies (BUD-5)', () {
+      final september = Period.containing(DateTime(2026, 9, 5));
+      final deleted = budget(
+        'b',
+        const Money(400000),
+        DateTime(2026, 9),
+      ).copyWith(deletedAt: DateTime.utc(2026, 9, 2));
+
+      expect(
+        limitFor(
+          [budget('a', const Money(300000), DateTime(2026, 8)), deleted],
+          'cat-food',
+          september,
+        ),
+        const Money(300000),
+      );
+    });
+
     test('levels, remaining, and per-day allowance (BUD-3, BUD-4)', () {
       BudgetStatus status(
         int spent, {
@@ -128,6 +146,19 @@ void main() {
       expect(status(300).perDayAllowance, isNull);
       expect(status(320).remaining, const Money(-20000));
       expect(status(100, timing: PeriodTiming.past).perDayAllowance, isNull);
+    });
+
+    test('the per-day allowance rounds down, so spending it every day stays '
+        'within the limit (BUD-3)', () {
+      const status = BudgetStatus(
+        categoryId: null,
+        limit: Money(10000),
+        spent: Money.zero,
+        timing: PeriodTiming.current,
+        daysLeft: 3,
+      );
+
+      expect(status.perDayAllowance, const Money(3333));
     });
 
     group('the line the summary card leads with (BAL-8)', () {
@@ -210,6 +241,19 @@ void main() {
         expect(line.kind, HeroLineKind.spentTotal);
         expect(line.perDay, isNull);
       });
+
+      test('no budget, on a period that is not running, whatever days are '
+          'counted (BUD-6)', () {
+        final line = lineFor(
+          null,
+          spent: 100,
+          daysElapsed: 30,
+          timing: PeriodTiming.past,
+        );
+
+        expect(line.kind, HeroLineKind.spentTotal);
+        expect(line.perDay, isNull);
+      });
     });
 
     group('the budgets card line (BUD-7)', () {
@@ -248,6 +292,16 @@ void main() {
         expect((summary.over, summary.level), (0, BudgetLevel.warning));
       });
 
+      test('one over and one near its limit: the line takes the worst, over '
+          '(BUD-4, BUD-7)', () {
+        final summary = BudgetSummary.of([
+          status('cat-food', 100, 150),
+          status('cat-transport', 100, 85),
+        ])!;
+
+        expect((summary.over, summary.level), (1, BudgetLevel.over));
+      });
+
       test('all within their limits', () {
         final summary = BudgetSummary.of([status('cat-food', 300, 10)])!;
 
@@ -280,6 +334,25 @@ void main() {
 
       final saved = (await db.fetchBudgets()).single;
       expect((saved.categoryId, saved.limit), ('cat-food', null));
+    });
+
+    test('a limit changed after the app reopens replaces the one saved '
+        'before it (BUD-5)', () async {
+      final db = DBHelper(path: inMemoryDatabasePath);
+      addTearDown(db.close);
+      Future<TransactionProvider> open() async {
+        final provider = TransactionProvider(db: db, clock: () => today);
+        await provider.load();
+        return provider;
+      }
+
+      await (await open()).setBudget('cat-food', const Money(300000));
+      // Reopened, the budget is read back from the database.
+      final reopened = await open();
+      await reopened.setBudget('cat-food', const Money(350000));
+
+      expect(reopened.budgetLimit('cat-food'), const Money(350000));
+      expect(await db.fetchBudgets(), hasLength(1));
     });
   });
 

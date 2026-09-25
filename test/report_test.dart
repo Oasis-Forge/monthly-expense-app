@@ -316,5 +316,177 @@ void main() {
         'late',
       ]);
     });
+
+    test('upcoming entries run oldest first, transfers among them (PDF-2)', () {
+      final data = report(
+        // Newest first, the way the provider hands them over.
+        transactions: [
+          testTx('later', TransactionType.expense, 5, DateTime(2026, 9, 25)),
+          testTx('sooner', TransactionType.expense, 5, DateTime(2026, 9, 18)),
+        ],
+        transfers: [transfer('t', 'cash', 'bank', 5, DateTime(2026, 9, 20))],
+      );
+
+      expect(data.upcoming.map((entry) => entry.date), [
+        DateTime(2026, 9, 18),
+        DateTime(2026, 9, 20),
+        DateTime(2026, 9, 25),
+      ]);
+    });
+  });
+
+  group('report edges (PDF-1, PDF-2, BAL-2–BAL-4, ACC-8)', () {
+    test('the first and last day of the range both count (PDF-1)', () {
+      final data = report(
+        from: DateTime(2026, 9, 5),
+        to: DateTime(2026, 9, 10),
+        transactions: [
+          testTx('first', TransactionType.expense, 10, DateTime(2026, 9, 5)),
+          testTx(
+            'last',
+            TransactionType.expense,
+            20,
+            DateTime(2026, 9, 10, 21),
+          ),
+        ],
+      );
+
+      expect(data.entryCount, 2);
+      expect(data.expense.toDouble(), 30);
+    });
+
+    test('an entry dated today counts rather than waiting (BAL-4)', () {
+      final data = report(
+        transactions: [
+          testTx(
+            'tonight',
+            TransactionType.expense,
+            30,
+            DateTime(2026, 9, 15, 23, 30),
+          ),
+        ],
+      );
+
+      expect(data.expense.toDouble(), 30);
+      expect(data.upcoming, isEmpty);
+    });
+
+    test('an account opened on the first day counts once, in the closing '
+        'balance (BAL-2, BAL-3)', () {
+      final data = report(
+        accounts: [account('savings', 400, DateTime(2026, 9, 1))],
+      );
+
+      expect(data.openingBalance.toDouble(), 0);
+      expect(data.closingBalance.toDouble(), 400);
+    });
+
+    test('a range after today carries in only what has happened (BAL-4)', () {
+      final data = report(
+        from: DateTime(2026, 10, 1),
+        to: DateTime(2026, 10, 31),
+        accounts: [account('cash', 500, DateTime(2026, 1, 1))],
+        transactions: [
+          testTx('done', TransactionType.expense, 100, DateTime(2026, 9, 10)),
+          // After today, so it isn't carried into October yet.
+          testTx('soon', TransactionType.expense, 50, DateTime(2026, 9, 20)),
+        ],
+      );
+
+      expect(data.openingBalance.toDouble(), 400);
+      expect(data.closingBalance.toDouble(), 400);
+    });
+
+    test('the trend keeps each day\'s income and expense apart (INS-2)', () {
+      final data = report(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 3),
+        transactions: [
+          testTx('pay', TransactionType.income, 100, DateTime(2026, 9, 2)),
+          testTx('lunch', TransactionType.expense, 10, DateTime(2026, 9, 2)),
+        ],
+      );
+
+      expect(data.trend[1].income.toDouble(), 100);
+      expect(data.trend[1].expense.toDouble(), 10);
+    });
+
+    test('a range of exactly two periods is still drawn a day at a time '
+        '(PDF-2)', () {
+      final data = report(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 10, 31),
+      );
+
+      expect(data.trend, hasLength(61));
+      expect(data.trend.every((p) => p.label == ReportTrendGrain.day), isTrue);
+    });
+
+    test('income lines take their share of the income total (PDF-2)', () {
+      final data = report(
+        transactions: [
+          testTx('pay', TransactionType.income, 300, DateTime(2026, 9, 2)),
+          testTx(
+            'gift',
+            TransactionType.income,
+            100,
+            DateTime(2026, 9, 3),
+            categoryId: 'cat-income-other',
+          ),
+          testTx('lunch', TransactionType.expense, 50, DateTime(2026, 9, 4)),
+        ],
+      );
+
+      expect(data.incomeCategories.map((line) => line.share), [0.75, 0.25]);
+    });
+
+    test('a zero budget reports no progress rather than infinity (BUD-2)', () {
+      const line = ReportCategoryLine(
+        categoryId: 'cat-food',
+        amount: Money(5000),
+        share: 1,
+        budget: Money.zero,
+      );
+
+      expect(line.budgetUsed, isNull);
+    });
+
+    test('narrowed to one account, another account opened in the range '
+        'stays out (ACC-8)', () {
+      final data = report(
+        accountId: 'cash',
+        accounts: [
+          account('cash', 100, DateTime(2026, 1, 1)),
+          account('bank', 900, DateTime(2026, 9, 10)),
+        ],
+      );
+
+      expect(data.closingBalance.toDouble(), 100);
+    });
+
+    test('narrowed to one account, a transfer out before the range lowers '
+        'its opening balance (ACC-8)', () {
+      final data = report(
+        accountId: 'cash',
+        accounts: [account('cash', 100, DateTime(2026, 1, 1))],
+        transfers: [transfer('out', 'cash', 'bank', 40, DateTime(2026, 8, 20))],
+      );
+
+      expect(data.openingBalance.toDouble(), 60);
+      expect(data.closingBalance.toDouble(), 60);
+    });
+
+    test('narrowed to one account, an upcoming transfer moves no balance yet '
+        '(ACC-8, BAL-4)', () {
+      final data = report(
+        accountId: 'cash',
+        accounts: [account('cash', 100, DateTime(2026, 1, 1))],
+        transfers: [transfer('in', 'bank', 'cash', 30, DateTime(2026, 9, 20))],
+      );
+
+      expect(data.closingBalance.toDouble(), 100);
+      expect(data.upcoming.single.isTransfer, isTrue);
+      expect(data.byDay, isEmpty);
+    });
   });
 }

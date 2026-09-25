@@ -41,6 +41,14 @@ void main() {
       expect(const Money(125).toInputString(), '0.125');
       expect(const Money(19990).toDouble(), 19.99);
     });
+
+    test('formats a fraction under 0.01 with its leading zeros (MONEY-2)', () {
+      // The fraction is padded to 3 digits before trailing zeros are
+      // stripped, so a thousandths value under 100 still reads as
+      // thousandths, not as hundredths or tenths.
+      expect(const Money(12005).toInputString(), '12.005');
+      expect(const Money(5).toInputString(), '0.005');
+    });
   });
 
   group('evaluateAmount (ADD-2)', () {
@@ -196,6 +204,12 @@ void main() {
       final cleared = account.copyWith(name: null, archivedAt: null);
       expect((cleared.name, cleared.archivedAt), (null, null));
     });
+
+    test('copyWith takes a new updatedAt, so a merge sees the later edit '
+        '(BAK-3)', () {
+      final edited = account.copyWith(updatedAt: DateTime.utc(2026, 5));
+      expect(edited.updatedAt, DateTime.utc(2026, 5));
+    });
   });
 
   group('Note (NOTE-1)', () {
@@ -294,6 +308,20 @@ void main() {
       final december = Period.containing(DateTime(2026, 12, 31));
       expect(december.next.start, DateTime(2027, 1));
       expect(december.next.previous, december);
+    });
+
+    test('periods that start together but end apart are different '
+        '(PER-1, PER-2)', () {
+      // In March 2026 a start day of 28 and the last day of the month both
+      // begin on 28 February, but end on 28 and 31 March.
+      final on28 = Period.containing(DateTime(2026, 3, 10), startDay: 28);
+      final onLast = Period.containing(
+        DateTime(2026, 3, 10),
+        startDay: Period.lastDayOfMonth,
+      );
+
+      expect(on28.start, onLast.start);
+      expect(on28, isNot(onLast));
     });
   });
 
