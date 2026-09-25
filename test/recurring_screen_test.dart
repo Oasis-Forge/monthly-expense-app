@@ -7,6 +7,7 @@ import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/amount_style.dart';
 import 'package:monthly_expense_app/screens/recurring_rule_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
 
@@ -538,6 +539,48 @@ void main() {
       CircleAvatar,
     }, reason: 'every row leads with the same shape, or the titles stagger');
   });
+
+  testWidgets(
+    'the amount is coloured and signed like everywhere else on the app '
+    '(CUR-4, CUR-5, CAT-6, pr56+60#8)',
+    (tester) async {
+      // Salary shows up in both the upcoming list (_OccurrenceTile) and the
+      // rules list (_RuleTile); Rent in both the due list (_DueTile, which
+      // has no trailing of its own -- its amount sits inside the subtitle
+      // text instead) and the rules list. Matching on a non-null trailing
+      // picks the standalone amount widgets those first two tiles style,
+      // never the due tile's unstyled subtitle.
+      fake.rules
+        ..clear()
+        ..addAll([
+          testRule('Rent', 900, DateTime(2026, 9)),
+          testRule(
+            'Salary',
+            3000,
+            DateTime(2026, 9, 20),
+          ).copyWith(type: TransactionType.income, categoryId: 'cat-salary'),
+        ]);
+      await provider.load();
+      await showRecurring(tester);
+
+      Finder trailingAmountOf(String title) => find.byWidgetPredicate((widget) {
+        if (widget is! ListTile || widget.trailing is! Text) return false;
+        final label = widget.title;
+        return label is Text && label.data == title;
+      });
+
+      Color? colorOf(String title) {
+        final trailing = tester
+            .widget<ListTile>(trailingAmountOf(title).first)
+            .trailing;
+        return (trailing as Text).style?.color;
+      }
+
+      final context = tester.element(trailingAmountOf('Salary').first);
+      expect(colorOf('Salary'), incomeColor(context));
+      expect(colorOf('Rent'), expenseColor(context));
+    },
+  );
 
   testWidgets('nothing is named next while something is overdue (RCR-8)', (
     tester,
