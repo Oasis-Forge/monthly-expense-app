@@ -122,6 +122,11 @@ class TransactionProvider extends ChangeNotifier {
   Object? _loadError;
   Object? get loadError => _loadError;
 
+  /// Whether [load] stopped at a refused downgrade open
+  /// (x-downgrade-message): the database was never opened, so a caller
+  /// waiting on [whenLoaded] must not act as though data is now ready.
+  bool get openRefused => _loadError is DatabaseDowngradeError;
+
   /// Bumped every time [_changed] runs — a save, a delete, a period or
   /// account-filter change — but not by [selectDay] or [clearSelectedDay]
   /// picking a different day inside the same period, which changes nothing

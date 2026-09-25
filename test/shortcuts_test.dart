@@ -8,6 +8,7 @@ import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/database_too_new_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
 import 'package:monthly_expense_app/services/home_widget_service.dart';
 
@@ -569,5 +570,42 @@ void main() {
         reason: 'Discard should have let the widget tap open a fresh form',
       );
     });
+  });
+
+  group('a refused downgrade open (x-downgrade-message)', () {
+    testWidgets(
+      'a shortcut lands on the update screen instead of a dead-end form',
+      (tester) async {
+        final shortcuts = FakeShortcuts();
+        final failedDb = FakeDB()
+          ..failLoadWith = DatabaseDowngradeError(11, 10);
+        await tester.pumpWidget(
+          MonthlyExpenseApp(
+            settings: await testSettings({
+              'setup_done': true,
+              'walkthrough_seen': true,
+            }),
+            homeWidget: const NoopHomeWidgetService(),
+            reviews: FakeReviews(supported: false),
+            updates: FakeUpdates(supported: false),
+            shortcuts: shortcuts,
+            ads: FakeAdService(),
+            purchases: FakePurchases(),
+            db: failedDb,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(DatabaseTooNewScreen), findsOneWidget);
+
+        shortcuts.choose('add_expense');
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byType(AddTransactionScreen, skipOffstage: false),
+          findsNothing,
+        );
+        expect(find.byType(DatabaseTooNewScreen), findsOneWidget);
+      },
+    );
   });
 }
