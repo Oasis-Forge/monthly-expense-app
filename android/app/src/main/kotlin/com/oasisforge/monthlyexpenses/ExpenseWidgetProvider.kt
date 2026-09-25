@@ -67,7 +67,7 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
       views.setTextViewText(R.id.widget_period, payload?.title.orEmpty())
     } else {
       views.setTextViewText(R.id.widget_period, entry.period)
-      fillAmounts(views, payload, entry)
+      fillAmounts(context, views, payload, entry)
     }
 
     views.setTextViewText(R.id.widget_add_expense, payload?.label("addExpense").orEmpty())
@@ -91,6 +91,7 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
   }
 
   private fun fillAmounts(
+    context: Context,
     views: RemoteViews,
     payload: HomeWidgetStore.Payload,
     entry: HomeWidgetStore.Entry,
@@ -104,11 +105,14 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
         if (budget == null) payload.label("expense") else payload.label("budgetLeft"),
       )
       views.setTextViewText(R.id.widget_main_amount, budget ?: entry.expense)
-      // Only overspending overrides the colour; everything else keeps the
-      // layout's own, which the launcher resolves light or dark for itself.
-      if (budget != null && entry.isOverBudget) {
-        views.setTextColor(R.id.widget_main_amount, OVER_BUDGET)
-      }
+      // Set explicitly either way: AppWidgetHostView reapplies this update
+      // onto the view it already has, so a colour left unset here would be
+      // whatever the last update happened to leave behind, not the layout's
+      // own default (WID-6).
+      views.setTextColor(
+        R.id.widget_main_amount,
+        amountColor(context, overBudget = budget != null && entry.isOverBudget),
+      )
       return
     }
 
@@ -122,9 +126,20 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
     if (budget != null) {
       views.setTextViewText(R.id.widget_budget_label, payload.label("budgetLeft"))
       views.setTextViewText(R.id.widget_budget_amount, budget)
-      if (entry.isOverBudget) views.setTextColor(R.id.widget_budget_amount, OVER_BUDGET)
+      views.setTextColor(
+        R.id.widget_budget_amount,
+        amountColor(context, overBudget = entry.isOverBudget),
+      )
     }
   }
+
+  /** The over-budget red when [overBudget], else the layout's own amount
+   * colour — set explicitly rather than left to whichever update last
+   * touched this view (WID-6). Both colours are the app's own expense-ink
+   * pair (CUR-5) and clear 4.5:1 on the widget's light and dark background
+   * alike (A11Y-3, THEME-4). */
+  private fun amountColor(context: Context, overBudget: Boolean): Int =
+    context.getColor(if (overBudget) R.color.widget_over_budget else R.color.widget_amount)
 
   private fun launchIntent(context: Context, widgetId: Int, action: String): PendingIntent {
     val intent =
@@ -195,10 +210,6 @@ abstract class ExpenseWidgetProvider : AppWidgetProvider() {
     const val ACTION_OPEN_HOME = "open_home"
 
     private val ACTIONS = listOf(ACTION_ADD_EXPENSE, ACTION_ADD_INCOME, ACTION_OPEN_HOME)
-
-    /** One red that reads on both a light and a dark home screen, since a
-     * colour set from here can't follow the launcher's theme. */
-    private const val OVER_BUDGET = 0xFFE4574C.toInt()
 
     /** Redraws every widget on the home screen, after the app saved new
      * numbers. */
