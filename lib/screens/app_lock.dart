@@ -1,4 +1,9 @@
+import 'dart:async' show unawaited;
+
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
@@ -34,6 +39,28 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
   bool _authenticating = false;
   DateTime? _hiddenAt;
 
+  /// Told whether App Lock is turned on, so the OS never keeps a readable
+  /// snapshot of the app around while it is (LOCK-2): Android sets
+  /// FLAG_SECURE on the window (MainActivity.kt), iOS covers the app the
+  /// moment it resigns active (SecurityBridge.swift) rather than waiting for
+  /// Dart to notice and draw the lock screen, which is already too late for
+  /// the snapshot the app switcher takes. A no-op on desktop and in tests,
+  /// where nothing answers the channel.
+  static const _security = MethodChannel(
+    'com.oasisforge.monthlyexpenses/security',
+  );
+
+  static bool get _hasNativeLock =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  bool? _secureSent;
+
+  // Cached rather than read from context each time: dispose() needs it too,
+  // and reading an inherited widget's context there is unsafe.
+  late final SettingsProvider _settings = context.read<SettingsProvider>();
+
   DateTime _now() => (widget.clock ?? DateTime.now)();
 
   /// Keeps [appIsLocked] with `_locked`, so the ad slots see it (ADS-9).
@@ -42,19 +69,43 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
     appIsLocked.value = locked;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    _locked = context.read<SettingsProvider>().appLock;
-    appIsLocked.value = _locked;
-    if (_locked) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _unlock());
+  /// Pushes whether App Lock is on to the native side, only when it
+  /// changed, so turning the setting on or off takes effect on the very
+  /// next time the app leaves the foreground.
+  void _syncSecure() {
+    if (!_hasNativeLock) return;
+    final secure = _settings.appLock;
+    if (secure == _secureSent) return;
+    _secureSent = secure;
+    unawaited(_sendSecure(secure));
+  }
+
+  Future<void> _sendSecure(bool secure) async {
+    try {
+      await _security.invokeMethod<void>('setSecure', secure);
+    } on PlatformException {
+      // The OS refused for its own reasons; nothing more to do here.
+    } on MissingPluginException {
+      // No native side registered: an old build, or a test.
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _locked = _settings.appLock;
+    appIsLocked.value = _locked;
+    if (_locked) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _unlock());
+    }
+    _settings.addListener(_syncSecure);
+    _syncSecure();
+  }
+
+  @override
   void dispose() {
+    _settings.removeListener(_syncSecure);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -71,7 +122,7 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
         final hiddenAt = _hiddenAt;
         _hiddenAt = null;
         if (hiddenAt != null &&
-            context.read<SettingsProvider>().appLock &&
+            _settings.appLock &&
             _now().difference(hiddenAt) >= AppLock.timeout) {
           _setLocked(true);
           _unlock();
@@ -84,14 +135,13 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
 
   Future<void> _unlock() async {
     if (_authenticating || !mounted) return;
-    final settings = context.read<SettingsProvider>();
     final authenticator = context.read<Authenticator>();
     final reason = AppLocalizations.of(context).appLockReason;
     setState(() => _authenticating = true);
     final result = await authenticator.authenticate(reason);
     // LOCK-3: without biometrics or a screen lock, nothing can confirm the
     // owner, so app lock turns off rather than lock the data away.
-    if (result == AuthResult.unavailable) await settings.setAppLock(false);
+    if (result == AuthResult.unavailable) await _settings.setAppLock(false);
     if (!mounted) return;
     setState(() => _authenticating = false);
     if (result != AuthResult.failed) _setLocked(false);

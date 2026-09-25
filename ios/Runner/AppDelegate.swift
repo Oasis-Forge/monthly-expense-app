@@ -18,5 +18,12 @@ import UIKit
     ) {
       HomeWidgetBridge.shared.attach(to: registrar.messenger())
     }
+    // Covers the app while App Lock is on, the moment it resigns active
+    // (LOCK-2).
+    if let registrar = engineBridge.pluginRegistry.registrar(
+      forPlugin: "SecurityBridge"
+    ) {
+      SecurityBridge.shared.attach(to: registrar.messenger())
+    }
   }
 }

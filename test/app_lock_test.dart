@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -150,5 +151,50 @@ void main() {
 
       expect(appIsLocked.value, isFalse);
     });
+  });
+
+  group('telling the OS not to keep a readable snapshot of the app while App '
+      'Lock is on (LOCK-2)', () {
+    final channel = const MethodChannel(
+      'com.oasisforge.monthlyexpenses/security',
+    );
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    late List<MethodCall> calls;
+
+    setUp(() {
+      calls = [];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        return null;
+      });
+    });
+
+    tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    testWidgets('a locked launch turns it on', (tester) async {
+      await showApp(tester, appLock: true);
+
+      expect(calls.single.method, 'setSecure');
+      expect(calls.single.arguments, isTrue);
+    });
+
+    testWidgets('app lock off never turns it on', (tester) async {
+      await showApp(tester, appLock: false);
+
+      expect(calls.single.method, 'setSecure');
+      expect(calls.single.arguments, isFalse);
+    });
+
+    testWidgets(
+      'app lock turning itself off (LOCK-3) turns this off too, without '
+      'waiting for the app to background and come back',
+      (tester) async {
+        authenticator.available = false;
+        await showApp(tester, appLock: true);
+
+        expect(calls.map((call) => call.arguments as bool), [true, false]);
+      },
+    );
   });
 }
