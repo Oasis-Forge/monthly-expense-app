@@ -8,11 +8,34 @@ plugins {
 }
 
 // Release signing: android/key.properties (gitignored) is written by CI or created locally.
-// See docs/RELEASING.md. Without it, release builds fall back to the debug keys.
+// See docs/RELEASING.md. Without it, a release build is refused (below) rather than
+// silently falling back to the debug keys, unless that fallback is explicitly asked for.
 val keystorePropertiesFile = rootProject.file("key.properties")
 val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+// `flutter run --release` and a local test build still need to work without a keystore,
+// so the missing-keys case is only a hard failure when a release build is actually being
+// assembled -- checked once the task graph is known, not at configuration time, so
+// `flutter build apk --debug` and `flutter test` are never affected by this at all -- and
+// only when neither escape hatch is given: `-PallowDebugSigning=true` locally, or the `CI`
+// environment variable GitHub Actions sets, for a workflow that provides its own keys.
+val allowDebugSigning = (project.findProperty("allowDebugSigning") as String?) == "true" ||
+    System.getenv("CI") == "true"
+
+gradle.taskGraph.whenReady {
+    val buildingRelease = allTasks.any { task ->
+        task.project == project && task.name.contains("Release")
+    }
+    if (buildingRelease && !keystorePropertiesFile.exists() && !allowDebugSigning) {
+        throw GradleException(
+            "android/key.properties not found: a release build would be debug-signed " +
+                "and Play Console would reject it. See docs/RELEASING.md, or pass " +
+                "-PallowDebugSigning=true for a local debug-signed test build.",
+        )
+    }
 }
 
 android {

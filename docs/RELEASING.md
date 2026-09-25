@@ -63,6 +63,8 @@ No store credentials are needed here: every upload to Play, TestFlight, Partner 
 4. In Play Console, create the app with package `com.oasisforge.monthlyexpenses` and keep Play App Signing enabled.
 5. **Upload every AAB by hand** in Play Console → Testing → Internal testing. Build it with `flutter build appbundle --release` (after step 3).
 
+Without `android/key.properties`, an Android release build (including `flutter run --release`) now fails fast with a clear error instead of silently producing a debug-signed AAB/APK that Play Console would reject; pass `-PallowDebugSigning=true` (or set `ORG_GRADLE_PROJECT_allowDebugSigning=true`) for a local debug-signed test build without a keystore.
+
 ## One-time setup: iOS
 
 1. Enroll in the Apple Developer Program.
