@@ -166,7 +166,7 @@ Future<Uint8List> buildReportPdf({
   // function for exactly this reason: its own body is the only scope the
   // isolate closure it creates can reach into, and that scope holds
   // nothing but its own plain parameters.
-  final headerWidget = _header(data, labels, createdAt);
+  final headerWidget = _header(data, labels, createdAt, options);
   final pageOfText = l10n.reportPageOf;
   final bytes = await _layoutAndWrite(
     document: document,
@@ -347,7 +347,12 @@ pw.Widget _heading(String text) => pw.Container(
 
 /// The app's name, what the report covers, the currency, and when it was
 /// made. No watermark and nothing promotional (PDF-3).
-pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
+pw.Widget _header(
+  ReportData data,
+  ReportLabels labels,
+  DateTime createdAt,
+  ReportOptions options,
+) {
   final l10n = labels.l10n;
   final range = data.from == data.to
       ? labels.fullDay(data.from)
@@ -390,11 +395,21 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
         // like the whole of the money is worse than no filter at all.
         if (searchInfo != null) ...[
           pw.SizedBox(height: 4),
-          _run(
-            l10n.reportNarrowedTo(_searchDescription(searchInfo, l10n)),
-            style: const pw.TextStyle(
-              fontSize: 10,
-              fontWeight: pw.FontWeight.bold,
+          // Each part its own run rather than one string interpolated into
+          // the label (as above, for the currency name and the created
+          // date): a query the user typed in Latin, spliced into an Arabic
+          // or Urdu sentence and left to this package's own bidi pass,
+          // comes out backwards the same way the app name once did
+          // (LANG-5, PDF-5, review-pdf-bidi).
+          pw.Wrap(
+            spacing: 4,
+            crossAxisAlignment: pw.WrapCrossAlignment.center,
+            children: _joinedRuns(
+              [
+                l10n.reportNarrowedTo('').trim(),
+                ..._searchParts(searchInfo, l10n, options),
+              ],
+              const pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
             ),
           ),
         ],
@@ -403,19 +418,54 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
   );
 }
 
-/// The query, type, and category a report was narrowed to, joined for the
-/// header line (PDF-1). At least one part is always present, since
-/// [ReportSearchInfo] is only attached when something narrowed the report.
-String _searchDescription(ReportSearchInfo info, AppLocalizations l10n) {
+/// Draws [parts] as separate runs (as [_run] already keeps each one's own
+/// bidi direction) with a direction-neutral "·" run of its own between them
+/// (review follow-up): a [pw.Wrap] with only a few points of spacing and no
+/// visible separator reads as one run-on phrase — "Expense Income tax" for
+/// a category named "Income tax" under the type Expense — in either a
+/// left-to-right or a right-to-left report.
+List<pw.Widget> _joinedRuns(List<String> parts, pw.TextStyle style) {
+  final children = <pw.Widget>[];
+  for (var i = 0; i < parts.length; i++) {
+    if (i > 0) {
+      children.add(_run('·', style: style.copyWith(color: PdfColors.grey600)));
+    }
+    children.add(_run(parts[i], style: style));
+  }
+  return children;
+}
+
+/// The query, type, and category a report was narrowed to, each its own
+/// piece for the header line to draw as a separate run (PDF-1, LANG-5): a
+/// query in one script joined into one string with a label in another, then
+/// handed whole to this package's bidi pass, is exactly what came out
+/// backwards before (review-pdf-bidi).
+///
+/// The query itself is left out when titles and notes are off, or when the
+/// transaction list itself is off (PDF-3): it may be private text of the
+/// user's own, and titles and notes only print at all when the list is on
+/// (report_screen.dart disables that switch, but leaves it *on*, whenever
+/// the list is off), so a report missing the list must not print the query
+/// back in the header either (review-pdf-query-titles-off). At least one
+/// part is always present, since [ReportSearchInfo] is only attached when
+/// something narrowed the report: the type and category still show (neither
+/// is titles-and-notes text), and a query-only search falls back to naming
+/// the search itself.
+List<String> _searchParts(
+  ReportSearchInfo info,
+  AppLocalizations l10n,
+  ReportOptions options,
+) {
   final parts = [
-    if (info.query.isNotEmpty) '"${info.query}"',
+    if (info.query.isNotEmpty && options.transactions && options.titlesAndNotes)
+      '"${info.query}"',
     if (info.type != null)
       info.type == TransactionType.income
           ? l10n.incomeLabel
           : l10n.expenseLabel,
     if (info.categoryName != null) info.categoryName!,
   ];
-  return parts.join(' · ');
+  return parts.isEmpty ? [l10n.searchTooltip] : parts;
 }
 
 /// Income, expense, net, and the balances either side of the range — or, for

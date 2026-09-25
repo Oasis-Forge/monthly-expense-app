@@ -469,6 +469,46 @@ void main() {
     });
   });
 
+  group('reportDataFor and an archived category\'s budget (BUD-5, BUD-6, '
+      'review-pdf-archived-budget)', () {
+    test('the current period leaves out the budget for a category archived '
+        'since, the same as budgetStatuses', () async {
+      final fake = FakeDB(
+        transactions: [
+          testTx('g', TransactionType.expense, 250, DateTime(2026, 9, 10)),
+        ],
+        budgets: [
+          Budget(
+            id: 'b1',
+            categoryId: 'cat-food',
+            limit: const Money(300000),
+            effectiveFrom: DateTime(2026, 9),
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        ],
+      );
+      final provider = TransactionProvider(
+        db: fake,
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await provider.load();
+      await provider.archiveCategory('cat-food');
+
+      final data = reportDataFor(
+        provider: provider,
+        filter: null,
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        categoryName: (category) => category.id,
+        accountName: (account) => account.id,
+        decimalMark: '.',
+      );
+
+      expect(data.expenseCategories.single.budget, isNull);
+    });
+  });
+
   testWidgets('every account is offered, plus all of them together '
       '(PDF-1)', (tester) async {
     await showReport(tester);

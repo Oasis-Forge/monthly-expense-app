@@ -239,33 +239,83 @@ void main() {
     expect(provider.transactions.single.type, TransactionType.income);
   });
 
-  testWidgets('save & add another keeps the choices and clears the amount', (
-    tester,
-  ) async {
-    await open(tester);
-    await tester.tap(find.text('Income'));
-    await tester.pumpAndSettle();
-    await enterAmount(tester, '100');
+  testWidgets(
+    'save & add another keeps the choices, date, and account; clears the '
+    'amount, title, and note; and focuses the amount (ADD-4)',
+    (tester) async {
+      fake = FakeDB(
+        accounts: [testAccount(Account.cashId), testAccount('bank')],
+      );
+      provider = TransactionProvider(db: fake);
+      await provider.load();
 
-    await tapInForm(
-      tester,
-      find.widgetWithText(OutlinedButton, 'Save & add another'),
-    );
+      await open(tester);
+      await tester.tap(find.text('Income'));
+      await tester.pumpAndSettle();
+      await tapInForm(tester, find.byTooltip('Previous day'));
 
-    expect(find.byType(AddTransactionScreen), findsOneWidget);
-    expect(find.text('Transaction added'), findsOneWidget);
-    await revealInForm(tester, amountField);
-    expect(tester.widget<TextFormField>(amountField).controller!.text, isEmpty);
+      final accountDropdown = find.byType(DropdownButtonFormField<String>).last;
+      await tapInForm(tester, accountDropdown);
+      await tester.tap(find.text('bank').last);
+      await tester.pumpAndSettle();
 
-    await enterAmount(tester, '50');
-    await tapButton(tester, 'Add Transaction');
+      final titleField = find.widgetWithText(TextFormField, 'Title (optional)');
+      await revealInForm(tester, titleField);
+      await tester.enterText(titleField, 'Groceries');
+      final noteField = find.widgetWithText(TextFormField, 'Note (optional)');
+      await revealInForm(tester, noteField);
+      await tester.enterText(noteField, 'weekly run');
+      await enterAmount(tester, '100');
 
-    expect(provider.transactions, hasLength(2));
-    expect(
-      {for (final t in provider.transactions) (t.type, t.categoryId)},
-      {(TransactionType.income, 'cat-salary')},
-    );
-  });
+      await tapInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.text('Transaction added'), findsOneWidget);
+      // ADD-4: the amount is refocused, which docks the keypad back in.
+      expect(find.byType(AmountKeypad), findsOneWidget);
+      await revealInForm(tester, amountField);
+      expect(
+        tester.widget<TextFormField>(amountField).controller!.text,
+        isEmpty,
+      );
+      await revealInForm(tester, titleField);
+      expect(
+        tester.widget<TextFormField>(titleField).controller!.text,
+        isEmpty,
+      );
+      await revealInForm(tester, noteField);
+      expect(tester.widget<TextFormField>(noteField).controller!.text, isEmpty);
+      await expectInForm(tester, 'bank');
+
+      await enterAmount(tester, '50');
+      await tapButton(tester, 'Add Transaction');
+
+      expect(provider.transactions, hasLength(2));
+      final yesterday = dayOf(DateTime.now().subtract(const Duration(days: 1)));
+      expect(
+        {for (final t in provider.transactions) dayOf(t.date)},
+        {yesterday},
+      );
+      expect({for (final t in provider.transactions) t.accountId}, {'bank'});
+      expect(
+        {for (final t in provider.transactions) (t.type, t.categoryId)},
+        {(TransactionType.income, 'cat-salary')},
+      );
+      final first = provider.transactions.firstWhere(
+        (t) => t.amount == const Money(100000),
+      );
+      expect(first.title, 'Groceries');
+      expect(first.note, 'weekly run');
+      final second = provider.transactions.firstWhere(
+        (t) => t.amount == const Money(50000),
+      );
+      expect(second.title, isNull);
+      expect(second.note, isNull);
+    },
+  );
 
   testWidgets('recent categories are one tap away (ADD-5)', (tester) async {
     fake.rows.addAll([
@@ -478,6 +528,39 @@ void main() {
       (lunch.amount, lunch.note, lunch.categoryId),
     );
     expect(dayOf(copy.date), dayOf(DateTime.now()));
+  });
+
+  testWidgets('duplicate also carries the title, type, and account (ADD-7)', (
+    tester,
+  ) async {
+    fake = FakeDB(
+      accounts: [testAccount(Account.cashId), testAccount('bank')],
+      transactions: [
+        testTx(
+          'p',
+          TransactionType.income,
+          900,
+          DateTime(2026, 9, 1),
+          title: 'Paycheck',
+          accountId: 'bank',
+        ),
+      ],
+    );
+    provider = TransactionProvider(db: fake);
+    await provider.load();
+    final pay = provider.transactions.single;
+
+    await open(tester, editing: pay);
+    await tester.tap(find.byTooltip('Duplicate'));
+    await tester.pumpAndSettle();
+
+    await tapButton(tester, 'Add Transaction');
+
+    final copy = provider.transactions.firstWhere((t) => t.id != 'p');
+    expect(
+      (copy.title, copy.type, copy.accountId),
+      ('Paycheck', TransactionType.income, 'bank'),
+    );
   });
 
   testWidgets('a transaction in an archived category keeps that category', (

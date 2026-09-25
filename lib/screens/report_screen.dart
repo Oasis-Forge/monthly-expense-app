@@ -119,6 +119,7 @@ ReportData reportDataFor({
       id,
       Period.containing(from, startDay: provider.startDay),
     ),
+    isCategoryArchived: (id) => provider.categoryById(id)?.archivedAt != null,
     startDay: provider.startDay,
     options: options,
   );
