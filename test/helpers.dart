@@ -978,6 +978,9 @@ class FakeAttachments implements AttachmentService {
   String? _recording;
   int _next = 0;
 
+  /// Whether a recording in progress was ever cancelled (ATT-4, ATT-5).
+  bool cancelled = false;
+
   String _name(String extension) => 'file${++_next}.$extension';
 
   @override
@@ -1006,6 +1009,7 @@ class FakeAttachments implements AttachmentService {
 
   @override
   Future<void> cancelRecording() async {
+    cancelled = true;
     stored.remove(_recording);
     _recording = null;
   }

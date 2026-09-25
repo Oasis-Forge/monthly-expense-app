@@ -248,6 +248,61 @@ void main() {
       expect(find.byTooltip('Pause'), findsOneWidget);
     });
 
+    testWidgets(
+      'leaving the form mid-recording cancels it, not left running with no '
+      'cap (ATT-4, ATT-5)',
+      (tester) async {
+        usePhoneScreen(tester);
+        await tester.pumpWidget(
+          testApp(
+            provider,
+            settings,
+            Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  onPressed: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const AddTransactionScreen(),
+                    ),
+                  ),
+                  child: const Text('open'),
+                ),
+              ),
+            ),
+            attachments: attachments,
+          ),
+        );
+        await tester.tap(find.text('open'));
+        await tester.pumpAndSettle();
+
+        await record(tester);
+        expect(find.widgetWithText(FilledButton, 'Stop'), findsOneWidget);
+
+        // Back, as many times as it takes to actually pop (the first one
+        // may only close the keypad, per ADD-9). Never pumpAndSettle here:
+        // the countdown ticks every second and the tree would never settle
+        // while still recording.
+        for (
+          var i = 0;
+          i < 3 && find.byType(AddTransactionScreen).evaluate().isNotEmpty;
+          i++
+        ) {
+          await tester.pageBack();
+          await tester.pump();
+          await tester.pump(const Duration(milliseconds: 300));
+        }
+
+        expect(find.byType(AddTransactionScreen), findsNothing);
+        expect(
+          attachments.cancelled,
+          isTrue,
+          reason:
+              'a recording left running when the form closes should be '
+              'cancelled, not left running with no cap (ATT-4)',
+        );
+      },
+    );
+
     testWidgets('a voice note whose file is gone says so (ATT-7)', (
       tester,
     ) async {

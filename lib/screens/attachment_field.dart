@@ -41,7 +41,9 @@ class _AttachmentFieldState extends State<AttachmentField> {
   bool _playing = false;
   StreamSubscription<bool>? _playback;
 
-  AttachmentService get _attachments => context.read<AttachmentService>();
+  // Cached in initState, not read lazily from a getter: dispose needs it
+  // too, and reading an inherited widget's context there is unsafe.
+  late final AttachmentService _attachments = context.read<AttachmentService>();
 
   @override
   void initState() {
@@ -55,6 +57,12 @@ class _AttachmentFieldState extends State<AttachmentField> {
   void dispose() {
     _countdown?.cancel();
     _playback?.cancel();
+    // Leaving the form mid-recording must not leave the microphone running
+    // past the 60s cap with an orphaned file (ATT-4, ATT-5): the cap above
+    // is only this widget's own Timer, so once it's gone, so is the cap.
+    if (_recording) {
+      unawaited(_attachments.cancelRecording());
+    }
     super.dispose();
   }
 
