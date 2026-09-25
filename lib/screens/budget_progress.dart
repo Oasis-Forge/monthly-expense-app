@@ -18,7 +18,7 @@ Color budgetLevelColor(BuildContext context, BudgetLevel level) {
   final dark = theme.brightness == Brightness.dark;
   return switch (level) {
     BudgetLevel.ok => Color(dark ? budgetOkDark : budgetOkLight),
-    BudgetLevel.warning => Colors.orange,
+    BudgetLevel.warning => Color(dark ? budgetWarningDark : budgetWarningLight),
     BudgetLevel.over => theme.colorScheme.error,
   };
 }

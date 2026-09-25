@@ -109,6 +109,13 @@ enum BudgetLevel { ok, warning, over }
 const budgetOkLight = 0xFF5D5791;
 const budgetOkDark = 0xFFC6BFFF;
 
+/// The budget bar's "warning" colour: the same orange, darkened just
+/// enough in the light theme to clear 4.5:1 against surface and
+/// surfaceContainerLow (A11Y-3); the dark theme's surfaces are already
+/// dark enough that the plain orange clears it.
+const budgetWarningLight = 0xFF8F5600;
+const budgetWarningDark = 0xFFFF9800;
+
 /// A budget's progress during one period (BUD-2–BUD-6).
 class BudgetStatus {
   const BudgetStatus({

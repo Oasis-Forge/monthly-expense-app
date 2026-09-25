@@ -6,6 +6,7 @@ import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/screens/amount_style.dart';
 import 'package:monthly_expense_app/screens/budget_progress.dart';
+import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/theme.dart';
 
 void main() {
@@ -131,7 +132,7 @@ void main() {
 
     for (final brightness in Brightness.values) {
       for (final entry in seeds.entries) {
-        test('ok clears 4.5:1 under ${entry.key}, '
+        test('ok and warning clear 4.5:1 under ${entry.key}, '
             '${brightness.name}', () {
           final fromPhone = entry.value == null
               ? null
@@ -142,6 +143,7 @@ void main() {
           final theme = appTheme(fromPhone: fromPhone, brightness: brightness);
           final dark = brightness == Brightness.dark;
           final ok = Color(dark ? budgetOkDark : budgetOkLight);
+          final warning = Color(dark ? budgetWarningDark : budgetWarningLight);
           for (final bg in [
             theme.colorScheme.surface,
             theme.colorScheme.surfaceContainerLow,
@@ -150,6 +152,11 @@ void main() {
               contrast(ok, bg),
               greaterThanOrEqualTo(4.5),
               reason: 'an OK budget must stay readable on $bg',
+            );
+            expect(
+              contrast(warning, bg),
+              greaterThanOrEqualTo(4.5),
+              reason: 'a warning budget must stay readable on $bg',
             );
           }
         });
@@ -191,5 +198,39 @@ void main() {
             '(THEME-4); it must not follow colorScheme.primary',
       );
     });
+  });
+
+  group('day header colour (A11Y-3, DAY-7)', () {
+    final seeds = <String, Color?>{
+      'the app own seed': null,
+      'a red wallpaper': const Color(0xFFD32F2F),
+      'an orange wallpaper': const Color(0xFFE65100),
+    };
+
+    for (final brightness in Brightness.values) {
+      for (final entry in seeds.entries) {
+        test('clears 4.5:1 under ${entry.key}, ${brightness.name}', () {
+          final fromPhone = entry.value == null
+              ? null
+              : ColorScheme.fromSeed(
+                  seedColor: entry.value!,
+                  brightness: brightness,
+                );
+          final theme = appTheme(fromPhone: fromPhone, brightness: brightness);
+          final dark = brightness == Brightness.dark;
+          final ink = Color(dark ? dayHeaderInkDark : dayHeaderInkLight);
+          for (final bg in [
+            theme.colorScheme.surface,
+            theme.colorScheme.surfaceContainerLow,
+          ]) {
+            expect(
+              contrast(ink, bg),
+              greaterThanOrEqualTo(4.5),
+              reason: 'a day header must stay readable on $bg',
+            );
+          }
+        });
+      }
+    }
   });
 }

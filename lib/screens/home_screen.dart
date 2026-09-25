@@ -1229,6 +1229,19 @@ class _AmountTile extends StatelessWidget {
   }
 }
 
+/// The day header's date and its "nothing recorded" line (DAY-7): a fixed
+/// grey, darker in the light theme and lighter in the dark one, so each
+/// clears 4.5:1 against the card's surface and surfaceContainerLow (A11Y-3).
+/// Colors.grey.shade600 cleared neither.
+const dayHeaderInkLight = 0xFF616161;
+const dayHeaderInkDark = 0xFF9E9E9E;
+
+Color dayHeaderColor(BuildContext context) => Color(
+  Theme.of(context).brightness == Brightness.dark
+      ? dayHeaderInkDark
+      : dayHeaderInkLight,
+);
+
 /// One day's entries under its date, with what the day came to (DAY-7). A
 /// day chosen in the strip is shown even when it holds nothing.
 class _DaySection extends StatelessWidget {
@@ -1265,7 +1278,7 @@ class _DaySection extends StatelessWidget {
                 child: Text(
                   DateFormat.yMMMd(l10n.localeName).format(day),
                   style: theme.textTheme.labelLarge?.copyWith(
-                    color: Colors.grey.shade600,
+                    color: dayHeaderColor(context),
                   ),
                 ),
               ),
@@ -1294,7 +1307,7 @@ class _DaySection extends StatelessWidget {
             child: Text(
               l10n.dayEmpty,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
+                color: dayHeaderColor(context),
               ),
             ),
           ),
