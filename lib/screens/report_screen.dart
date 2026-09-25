@@ -243,7 +243,11 @@ class _ReportScreenState extends State<ReportScreen> {
         labels: ReportLabels(
           l10n: l10n,
           locale: locale,
-          currency: settings.currencyFormat(l10n.localeName, isolated: false),
+          // isolated:true (the default) keeps the sign against its digits
+          // and gives report_pdf.dart the LRI/PDI marks it needs to place
+          // the symbol the same way the screens do (LANG-5, CUR-5, PDF-5,
+          // Decision 54).
+          currency: settings.currencyFormat(l10n.localeName),
           categoryName: (id) => provider.categoryById(id)?.label(l10n) ?? '',
           accountName: (id) => provider.accountById(id)?.label(l10n) ?? '',
           accountFilterName: _accountId == null

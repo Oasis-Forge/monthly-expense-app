@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
@@ -17,11 +16,17 @@ import 'pdf_text.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // The app's own formatter (settings.currencyFormat), exactly as
+  // report_screen.dart calls it — not a hand-rolled NumberFormat — so these
+  // tests exercise the real isolate marks an Arab currency and language
+  // combination produces (LANG-5, CUR-5, PDF-5).
   Future<Uint8List> report(
     String code, {
     List<ExpenseTransaction> transactions = const [],
+    String currencyCode = 'USD',
   }) async {
     final l10n = await AppLocalizations.delegate.load(Locale(code));
+    final settings = await testSettings({'currency_code': currencyCode});
     final data = buildReport(
       from: DateTime(2026, 9, 1),
       to: DateTime(2026, 9, 30),
@@ -36,11 +41,7 @@ void main() {
       labels: ReportLabels(
         l10n: l10n,
         locale: Locale(code),
-        currency: NumberFormat.currency(
-          locale: l10n.localeName,
-          symbol: r'$',
-          name: 'USD',
-        ),
+        currency: settings.currencyFormat(code),
         categoryName: (id) => 'Groceries',
         accountName: (id) => 'Cash',
       ),
@@ -125,6 +126,36 @@ void main() {
           reason: '$code: $text',
         );
       }
+    });
+
+    test(
+      'an Arab-currency (SAR) amount signs the same way in the PDF as on '
+      'screen: sign right next to its digits (LANG-5, CUR-5, Decision 54)',
+      () async {
+        final text = squashed(
+          pdfText(await report('ar', transactions: spend, currencyCode: 'SAR')),
+        );
+
+        expect(
+          RegExp(r'[-−][^\d]{0,3}25').hasMatch(text),
+          isTrue,
+          reason: 'sign should sit right next to its digits, got: $text',
+        );
+      },
+    );
+
+    test('a Latin-symbol currency (USD) keeps its symbol on the left in the '
+        'PDF, as it does on screen, even in an Arabic report (LANG-5, '
+        'Decision 54)', () async {
+      final text = squashed(
+        pdfText(await report('ar', transactions: spend, currencyCode: 'USD')),
+      );
+
+      expect(
+        RegExp(r'\$[^\d]{0,3}[-−][^\d]{0,3}25').hasMatch(text),
+        isTrue,
+        reason: 'symbol should lead the sign and digits, got: $text',
+      );
     });
 
     test('no amount carries a stray bidi mark (LANG-3)', () async {
