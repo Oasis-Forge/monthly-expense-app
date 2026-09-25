@@ -2122,7 +2122,12 @@ class TransactionProvider extends ChangeNotifier {
   /// `.difference().inDays` and `.add(Duration(...))`: those go through
   /// the wall clock, so a daylight-saving change inside either span makes
   /// the count a day short or the rebuilt date land on the wrong day.
+  ///
+  /// Only applied while the selected period is itself still in progress —
+  /// one already over is compared against the whole of the one before it,
+  /// since there is no "so far" left for it to match (pr56+60#4).
   DateTime _previousAsOf(DateTime today) {
+    if (_period.timingOn(today) != PeriodTiming.current) return today;
     final elapsedDays = daysBetween(_period.start, today);
     final start = _period.previous.start;
     return DateTime(start.year, start.month, start.day + elapsedDays);

@@ -1241,4 +1241,41 @@ void main() {
       });
     },
   );
+
+  group('the previous-period comparison bound (INS-6, pr56+60#4)', () {
+    test('is not applied once the selected period is already over', () async {
+      // Today is 1 March: February, the selected period, is over. The
+      // old-code bound (elapsed days into February, applied to January)
+      // would cut January off at the 29th and drop the 30th and 31st.
+      final provider = await loaded(
+        FakeDB(
+          transactions: [
+            testTx('a', expense, 40, DateTime(2026, 1, 30)),
+            testTx('b', expense, 20, DateTime(2026, 1, 31)),
+            testTx('c', expense, 10, DateTime(2026, 2, 5)),
+          ],
+        ),
+        now: DateTime(2026, 3, 1),
+      );
+      provider.previousPeriod();
+
+      expect(provider.previousExpenseByCategory['cat-food'], Money(60000));
+    });
+
+    test('is still applied while the selected period is in progress', () async {
+      final provider = await loaded(
+        FakeDB(
+          transactions: [
+            testTx('a', expense, 40, DateTime(2026, 1, 30)),
+            testTx('b', expense, 20, DateTime(2026, 1, 31)),
+          ],
+        ),
+        now: DateTime(2026, 2, 5),
+      );
+
+      // 5 days into February bounds January to the 1st-5th, so the 30th
+      // and 31st stay excluded here.
+      expect(provider.previousExpenseByCategory['cat-food'], isNull);
+    });
+  });
 }
