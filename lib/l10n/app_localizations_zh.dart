@@ -635,6 +635,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recurringSaveFailed => '无法保存该周期交易，请重试。';
 
   @override
+  String get recurringDeleted => '周期交易已删除';
+
+  @override
   String get everyLabel => '每';
 
   @override

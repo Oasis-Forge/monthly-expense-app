@@ -176,6 +176,7 @@
   "skipButton": "Pomiń",
   "postFailed": "Nie udało się zaksięgować transakcji. Spróbuj ponownie.",
   "recurringSaveFailed": "Nie udało się zapisać cyklicznej transakcji. Spróbuj ponownie.",
+  "recurringDeleted": "Cykliczna transakcja usunięta",
   "everyLabel": "Co",
   "frequencyDays": "Dni",
   "frequencyWeeks": "Tygodnie",

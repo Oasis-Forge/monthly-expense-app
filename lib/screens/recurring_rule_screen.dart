@@ -10,6 +10,7 @@ import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'delete_snack_bar.dart';
 import 'form_fields.dart';
 
 /// Adds or edits a recurring rule (RCR-1). Editing also offers pause, resume,
@@ -222,10 +223,21 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.deleteTooltip,
-              onPressed: () => _run(
-                () => provider.deleteRecurringRule(rule.id),
-                close: true,
-              ),
+              onPressed: () {
+                final messenger = ScaffoldMessenger.of(context);
+                _run(() async {
+                  final deleted = await provider.deleteRecurringRule(rule.id);
+                  // DEL-2: one tap, so Undo for five seconds, as for any
+                  // other delete.
+                  showUndoSnackBar(
+                    messenger,
+                    message: l10n.recurringDeleted,
+                    undoLabel: l10n.undoButton,
+                    failedMessage: l10n.undoFailed,
+                    onUndo: () => provider.restoreRecurringRule(deleted),
+                  );
+                }, close: true);
+              },
             ),
           ],
         ],

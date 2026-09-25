@@ -649,6 +649,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível salvar a transação recorrente. Tente novamente.';
 
   @override
+  String get recurringDeleted => 'Transação recorrente excluída';
+
+  @override
   String get everyLabel => 'A cada';
 
   @override

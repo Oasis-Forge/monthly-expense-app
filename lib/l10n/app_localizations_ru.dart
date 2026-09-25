@@ -661,6 +661,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось сохранить повторяющуюся операцию. Попробуйте ещё раз.';
 
   @override
+  String get recurringDeleted => 'Повторяющаяся операция удалена';
+
+  @override
   String get everyLabel => 'Каждые';
 
   @override

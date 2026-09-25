@@ -659,6 +659,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر حفظ المعاملة المتكررة. حاول مرة أخرى.';
 
   @override
+  String get recurringDeleted => 'تم حذف المعاملة المتكررة';
+
+  @override
   String get everyLabel => 'كل';
 
   @override

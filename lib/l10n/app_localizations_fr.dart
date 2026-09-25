@@ -650,6 +650,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d’enregistrer la transaction récurrente. Réessayez.';
 
   @override
+  String get recurringDeleted => 'Transaction récurrente supprimée';
+
+  @override
   String get everyLabel => 'Tous les';
 
   @override

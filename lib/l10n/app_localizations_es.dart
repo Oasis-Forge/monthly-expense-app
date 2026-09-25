@@ -650,6 +650,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo guardar la transacción recurrente. Inténtalo de nuevo.';
 
   @override
+  String get recurringDeleted => 'Transacción recurrente eliminada';
+
+  @override
   String get everyLabel => 'Cada';
 
   @override

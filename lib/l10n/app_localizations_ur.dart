@@ -643,6 +643,9 @@ class AppLocalizationsUr extends AppLocalizations {
       'تکراری ٹرانزیکشن محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔';
 
   @override
+  String get recurringDeleted => 'تکراری ٹرانزیکشن حذف ہو گئی';
+
+  @override
   String get everyLabel => 'ہر';
 
   @override

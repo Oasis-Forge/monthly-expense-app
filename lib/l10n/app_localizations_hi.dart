@@ -642,6 +642,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'रिकरिंग लेनदेन सेव नहीं हो सका। फिर कोशिश करें।';
 
   @override
+  String get recurringDeleted => 'रिकरिंग लेनदेन हटाया गया';
+
+  @override
   String get everyLabel => 'हर';
 
   @override

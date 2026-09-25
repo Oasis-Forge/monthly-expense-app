@@ -650,6 +650,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de terugkerende transactie niet opslaan. Probeer het opnieuw.';
 
   @override
+  String get recurringDeleted => 'Terugkerende transactie verwijderd';
+
+  @override
   String get everyLabel => 'Elke';
 
   @override

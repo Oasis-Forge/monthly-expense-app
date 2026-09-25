@@ -644,6 +644,9 @@ class AppLocalizationsBn extends AppLocalizations {
       'পুনরাবৃত্ত লেনদেন সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।';
 
   @override
+  String get recurringDeleted => 'পুনরাবৃত্ত লেনদেন মুছে ফেলা হয়েছে';
+
+  @override
   String get everyLabel => 'প্রতি';
 
   @override

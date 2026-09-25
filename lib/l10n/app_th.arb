@@ -176,6 +176,7 @@
   "skipButton": "ข้าม",
   "postFailed": "บันทึกรายการไม่สำเร็จ ลองอีกครั้ง",
   "recurringSaveFailed": "บันทึกรายการประจำไม่สำเร็จ ลองอีกครั้ง",
+  "recurringDeleted": "ลบรายการประจำแล้ว",
   "everyLabel": "ทุก",
   "frequencyDays": "วัน",
   "frequencyWeeks": "สัปดาห์",

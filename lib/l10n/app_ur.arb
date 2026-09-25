@@ -176,6 +176,7 @@
   "skipButton": "چھوڑیں",
   "postFailed": "ٹرانزیکشن پوسٹ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
   "recurringSaveFailed": "تکراری ٹرانزیکشن محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
+  "recurringDeleted": "تکراری ٹرانزیکشن حذف ہو گئی",
   "everyLabel": "ہر",
   "frequencyDays": "دن",
   "frequencyWeeks": "ہفتے",

@@ -176,6 +176,7 @@
   "skipButton": "Pular",
   "postFailed": "Não foi possível lançar a transação. Tente novamente.",
   "recurringSaveFailed": "Não foi possível salvar a transação recorrente. Tente novamente.",
+  "recurringDeleted": "Transação recorrente excluída",
   "everyLabel": "A cada",
   "frequencyDays": "Dias",
   "frequencyWeeks": "Semanas",

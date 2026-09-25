@@ -138,7 +138,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 **Learn:** undo is faster than a confirmation dialog and just as safe.
 
-- **DEL-2** Swiping a row away needs no confirmation: a snackbar offers Undo for about 5 seconds. Delete chosen from a row's menu asks first (ROW-3), since a tap in a menu is easy to land by mistake. Either way the entry goes to the trash and the same Undo snackbar appears.
+- **DEL-2** Swiping a row away needs no confirmation: a snackbar offers Undo for about 5 seconds. Delete chosen from a row's menu asks first (ROW-3), since a tap in a menu is easy to land by mistake. Either way the entry goes to the trash and the same Undo snackbar appears. Deleting a recurring rule from its screen is one tap as well, so it shows the same Undo snackbar, which brings the rule back as it was; the transactions it already posted were never touched (RCR-5).
 - **DEL-3** Deleted items stay in the trash for 30 days, then get purged on app start.
 - **DEL-4** Restore keeps the original ID, date, and category. If the category was archived in the meantime, the transaction still restores.
 - **DEL-5** The trash holds everything that was deleted — transfers as well as transactions — most recently deleted first, each restored by the same button (DEL-4). A deleted transfer survives the next launch: it waits out its 30 days in the database like anything else (DEL-3), and the app reads it back rather than forgetting it.

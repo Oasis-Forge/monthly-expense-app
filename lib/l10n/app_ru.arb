@@ -176,6 +176,7 @@
   "skipButton": "Пропустить",
   "postFailed": "Не удалось провести операцию. Попробуйте ещё раз.",
   "recurringSaveFailed": "Не удалось сохранить повторяющуюся операцию. Попробуйте ещё раз.",
+  "recurringDeleted": "Повторяющаяся операция удалена",
   "everyLabel": "Каждые",
   "frequencyDays": "Дни",
   "frequencyWeeks": "Недели",

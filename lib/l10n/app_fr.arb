@@ -176,6 +176,7 @@
   "skipButton": "Ignorer",
   "postFailed": "Impossible d’enregistrer la transaction. Réessayez.",
   "recurringSaveFailed": "Impossible d’enregistrer la transaction récurrente. Réessayez.",
+  "recurringDeleted": "Transaction récurrente supprimée",
   "everyLabel": "Tous les",
   "frequencyDays": "Jours",
   "frequencyWeeks": "Semaines",

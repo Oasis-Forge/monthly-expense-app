@@ -176,6 +176,7 @@
   "skipButton": "छोड़ें",
   "postFailed": "लेनदेन पोस्ट नहीं हो सका। फिर कोशिश करें।",
   "recurringSaveFailed": "रिकरिंग लेनदेन सेव नहीं हो सका। फिर कोशिश करें।",
+  "recurringDeleted": "रिकरिंग लेनदेन हटाया गया",
   "everyLabel": "हर",
   "frequencyDays": "दिन",
   "frequencyWeeks": "हफ्ते",

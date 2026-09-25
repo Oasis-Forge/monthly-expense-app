@@ -176,6 +176,7 @@
   "skipButton": "Bỏ qua",
   "postFailed": "Không thể ghi nhận giao dịch. Vui lòng thử lại.",
   "recurringSaveFailed": "Không thể lưu giao dịch định kỳ. Vui lòng thử lại.",
+  "recurringDeleted": "Đã xóa giao dịch định kỳ",
   "everyLabel": "Mỗi",
   "frequencyDays": "Ngày",
   "frequencyWeeks": "Tuần",

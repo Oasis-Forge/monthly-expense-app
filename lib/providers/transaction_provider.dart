@@ -1685,12 +1685,29 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Deletes a rule; the transactions it posted stay (RCR-5).
-  Future<void> deleteRecurringRule(String id) async {
+  /// Deletes a rule; the transactions it posted stay (RCR-5). Returns the
+  /// rule as it was, for [restoreRecurringRule] (DEL-2).
+  Future<RecurringRule> deleteRecurringRule(String id) async {
+    final rule = recurringRuleById(id)!;
     final now = _clock().toUtc();
-    await _saveRule(
-      recurringRuleById(id)!.copyWith(deletedAt: now, updatedAt: now),
+    await _saveRule(rule.copyWith(deletedAt: now, updatedAt: now));
+    _changed();
+    return rule;
+  }
+
+  /// Brings back a rule deleted by [deleteRecurringRule], by clearing its
+  /// deletedAt (DEL-2); automatic rules then post whatever fell due.
+  Future<void> restoreRecurringRule(RecurringRule rule) async {
+    if (recurringRuleById(rule.id) != null) return;
+    final restored = rule.copyWith(
+      deletedAt: null,
+      updatedAt: _clock().toUtc(),
     );
+    await _db.updateRecurringRule(restored);
+    // Back in its place: rules are listed in the order they were created.
+    final at = _rules.indexWhere((r) => r.createdAt.isAfter(rule.createdAt));
+    _rules = [..._rules]..insert(at < 0 ? _rules.length : at, restored);
+    await _postAutomaticOccurrences();
     _changed();
   }
 

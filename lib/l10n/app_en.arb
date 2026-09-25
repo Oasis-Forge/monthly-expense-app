@@ -493,6 +493,10 @@
   "skipButton": "Skip",
   "postFailed": "Couldn't post the transaction. Try again.",
   "recurringSaveFailed": "Couldn't save the recurring transaction. Try again.",
+  "recurringDeleted": "Recurring transaction deleted",
+  "@recurringDeleted": {
+    "description": "Snack bar after a recurring rule is deleted, with Undo (DEL-2)."
+  },
   "everyLabel": "Every",
   "frequencyDays": "Days",
   "frequencyWeeks": "Weeks",

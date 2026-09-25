@@ -176,6 +176,7 @@
   "skipButton": "এড়িয়ে যান",
   "postFailed": "লেনদেন পোস্ট করা যায়নি। আবার চেষ্টা করুন।",
   "recurringSaveFailed": "পুনরাবৃত্ত লেনদেন সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।",
+  "recurringDeleted": "পুনরাবৃত্ত লেনদেন মুছে ফেলা হয়েছে",
   "everyLabel": "প্রতি",
   "frequencyDays": "দিন",
   "frequencyWeeks": "সপ্তাহ",

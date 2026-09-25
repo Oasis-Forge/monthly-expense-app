@@ -635,6 +635,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recurringSaveFailed => '定期取引を保存できませんでした。もう一度お試しください。';
 
   @override
+  String get recurringDeleted => '定期取引を削除しました';
+
+  @override
   String get everyLabel => '間隔';
 
   @override

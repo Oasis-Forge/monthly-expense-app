@@ -661,6 +661,9 @@ class AppLocalizationsPl extends AppLocalizations {
       'Nie udało się zapisać cyklicznej transakcji. Spróbuj ponownie.';
 
   @override
+  String get recurringDeleted => 'Cykliczna transakcja usunięta';
+
+  @override
   String get everyLabel => 'Co';
 
   @override

@@ -176,6 +176,7 @@
   "skipButton": "Lewati",
   "postFailed": "Transaksi gagal dicatat. Coba lagi.",
   "recurringSaveFailed": "Transaksi berulang gagal disimpan. Coba lagi.",
+  "recurringDeleted": "Transaksi berulang dihapus",
   "everyLabel": "Setiap",
   "frequencyDays": "Hari",
   "frequencyWeeks": "Minggu",

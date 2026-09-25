@@ -640,6 +640,9 @@ class AppLocalizationsTr extends AppLocalizations {
       'Tekrarlanan işlem kaydedilemedi. Tekrar deneyin.';
 
   @override
+  String get recurringDeleted => 'Tekrarlanan işlem silindi';
+
+  @override
   String get everyLabel => 'Her';
 
   @override

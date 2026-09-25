@@ -176,6 +176,7 @@
   "skipButton": "跳过",
   "postFailed": "无法记账，请重试。",
   "recurringSaveFailed": "无法保存该周期交易，请重试。",
+  "recurringDeleted": "周期交易已删除",
   "everyLabel": "每",
   "frequencyDays": "天",
   "frequencyWeeks": "周",

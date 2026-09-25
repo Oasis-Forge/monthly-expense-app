@@ -638,6 +638,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get recurringSaveFailed => 'บันทึกรายการประจำไม่สำเร็จ ลองอีกครั้ง';
 
   @override
+  String get recurringDeleted => 'ลบรายการประจำแล้ว';
+
+  @override
   String get everyLabel => 'ทุก';
 
   @override

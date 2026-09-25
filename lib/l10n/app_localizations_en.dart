@@ -641,6 +641,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t save the recurring transaction. Try again.';
 
   @override
+  String get recurringDeleted => 'Recurring transaction deleted';
+
+  @override
   String get everyLabel => 'Every';
 
   @override

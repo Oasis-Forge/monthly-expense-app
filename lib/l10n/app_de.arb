@@ -176,6 +176,7 @@
   "skipButton": "Überspringen",
   "postFailed": "Die Buchung konnte nicht erstellt werden. Versuche es erneut.",
   "recurringSaveFailed": "Die wiederkehrende Buchung konnte nicht gespeichert werden. Versuche es erneut.",
+  "recurringDeleted": "Wiederkehrende Buchung gelöscht",
   "everyLabel": "Alle",
   "frequencyDays": "Tage",
   "frequencyWeeks": "Wochen",

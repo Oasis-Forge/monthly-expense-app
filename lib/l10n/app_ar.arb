@@ -176,6 +176,7 @@
   "skipButton": "تخطٍّ",
   "postFailed": "تعذّر تسجيل المعاملة. حاول مرة أخرى.",
   "recurringSaveFailed": "تعذّر حفظ المعاملة المتكررة. حاول مرة أخرى.",
+  "recurringDeleted": "تم حذف المعاملة المتكررة",
   "everyLabel": "كل",
   "frequencyDays": "أيام",
   "frequencyWeeks": "أسابيع",

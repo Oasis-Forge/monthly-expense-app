@@ -642,6 +642,9 @@ class AppLocalizationsVi extends AppLocalizations {
       'Không thể lưu giao dịch định kỳ. Vui lòng thử lại.';
 
   @override
+  String get recurringDeleted => 'Đã xóa giao dịch định kỳ';
+
+  @override
   String get everyLabel => 'Mỗi';
 
   @override

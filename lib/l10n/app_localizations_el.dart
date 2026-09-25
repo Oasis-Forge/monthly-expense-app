@@ -650,6 +650,9 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν ήταν δυνατή η αποθήκευση της επαναλαμβανόμενης συναλλαγής. Δοκιμάστε ξανά.';
 
   @override
+  String get recurringDeleted => 'Η επαναλαμβανόμενη συναλλαγή διαγράφηκε';
+
+  @override
   String get everyLabel => 'Κάθε';
 
   @override

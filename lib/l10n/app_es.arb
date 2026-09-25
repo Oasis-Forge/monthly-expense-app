@@ -176,6 +176,7 @@
   "skipButton": "Omitir",
   "postFailed": "No se pudo registrar la transacción. Inténtalo de nuevo.",
   "recurringSaveFailed": "No se pudo guardar la transacción recurrente. Inténtalo de nuevo.",
+  "recurringDeleted": "Transacción recurrente eliminada",
   "everyLabel": "Cada",
   "frequencyDays": "Días",
   "frequencyWeeks": "Semanas",

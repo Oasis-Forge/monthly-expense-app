@@ -1192,6 +1192,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save the recurring transaction. Try again.'**
   String get recurringSaveFailed;
 
+  /// Snack bar after a recurring rule is deleted, with Undo (DEL-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transaction deleted'**
+  String get recurringDeleted;
+
   /// No description provided for @everyLabel.
   ///
   /// In en, this message translates to:

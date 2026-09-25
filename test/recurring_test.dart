@@ -609,6 +609,29 @@ void main() {
       });
     });
 
+    test('a deleted rule can be restored, and it stays restored '
+        '(DEL-2, rules-6-10#12)', () async {
+      fake.rules.add(testRule('Rent', 900, DateTime(2026, 8), autoPost: true));
+      await reload();
+      expect(provider.transactions, hasLength(2));
+
+      final deleted = await provider.deleteRecurringRule('Rent');
+      expect(provider.recurringRules, isEmpty);
+
+      await provider.restoreRecurringRule(deleted);
+      expect(provider.recurringRuleById('Rent'), isNotNull);
+      // Nothing it already posted is posted twice (RCR-4).
+      expect(provider.transactions, hasLength(2));
+
+      // A second Undo does nothing.
+      await provider.restoreRecurringRule(deleted);
+      expect(provider.recurringRules, hasLength(1));
+
+      await reload();
+      expect(provider.recurringRuleById('Rent'), isNotNull);
+      expect(provider.transactions, hasLength(2));
+    });
+
     test('a failed post changes nothing', () async {
       await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));
       fake.failWrites = true;

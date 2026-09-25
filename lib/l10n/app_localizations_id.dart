@@ -641,6 +641,9 @@ class AppLocalizationsId extends AppLocalizations {
       'Transaksi berulang gagal disimpan. Coba lagi.';
 
   @override
+  String get recurringDeleted => 'Transaksi berulang dihapus';
+
+  @override
   String get everyLabel => 'Setiap';
 
   @override

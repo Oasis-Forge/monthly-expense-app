@@ -197,6 +197,28 @@ void main() {
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
 
+    testWidgets('a deleted rule comes back with Undo (DEL-2, rules-6-10#12)', (
+      tester,
+    ) async {
+      await showRecurring(tester);
+
+      await tester.tap(find.text('Rent').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(provider.recurringRuleById('Rent'), isNull);
+      expect(find.text('Recurring transaction deleted'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+
+      expect({for (final r in provider.recurringRules) r.id}, {'Rent', 'Gym'});
+      expect(fake.rules.firstWhere((r) => r.id == 'Rent').deletedAt, isNull);
+      // Rent's 1 Sep is waiting in Due again.
+      expect(provider.dueOccurrences, hasLength(1));
+    });
+
     testWidgets('pausing or resuming and then saving keeps the change '
         '(RCR-5, RCR-6, audit rules-6-10#3)', (tester) async {
       await showRecurring(tester);

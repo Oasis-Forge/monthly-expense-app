@@ -651,6 +651,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die wiederkehrende Buchung konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
+  String get recurringDeleted => 'Wiederkehrende Buchung gelöscht';
+
+  @override
   String get everyLabel => 'Alle';
 
   @override
