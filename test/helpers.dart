@@ -1290,6 +1290,10 @@ class FakeUpdates implements UpdateService {
     bool downloaded = false,
     this.duringAvailable,
     this.duringDownload,
+    // Can't initialize the field directly with `this.downloaded`:
+    // `UpdateService.downloaded()` is a method of that same name, so the
+    // mutable field needs one of its own.
+    // ignore: prefer_initializing_formals
   }) : _downloaded = downloaded;
 
   @override
