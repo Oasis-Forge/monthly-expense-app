@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/report.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transaction_filter.dart';
@@ -129,6 +131,103 @@ void main() {
     // Dates is already chosen, so the fields are showing.
     expect(find.text('From'), findsOneWidget);
     expect(find.text('To'), findsOneWidget);
+  });
+
+  testWidgets(
+    'opened from Search, the account filter carries over too (PDF-1)',
+    (tester) async {
+      await showReport(
+        tester,
+        filter: const TransactionFilter(accountId: Account.cashId),
+      );
+
+      // The account dropdown already shows the searched account, not "All
+      // accounts" (testAccount names each account after its ID).
+      expect(find.text('acc-cash'), findsOneWidget);
+      expect(find.text('All accounts'), findsNothing);
+    },
+  );
+
+  group('what a report from Search is built from (PDF-1, BAK-5)', () {
+    late ExpenseTransaction rent;
+    late List<ExpenseTransaction> all;
+    // The labels don't matter to this group; each function just has to be
+    // one reportSourceTransactions can call.
+    String categoryName(Category category) => category.id;
+    String accountName(Account account) => account.id;
+
+    setUp(() async {
+      rent = testTx(
+        'rent',
+        TransactionType.expense,
+        800,
+        DateTime(2026, 9, 1),
+        title: 'Rent',
+      );
+      all = [
+        rent,
+        testTx('e2', TransactionType.expense, 20, DateTime(2026, 9, 5)),
+        testTx('i1', TransactionType.income, 900, DateTime(2026, 9, 2)),
+      ];
+      provider = TransactionProvider(
+        db: FakeDB(transactions: all),
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await provider.load();
+    });
+
+    test('opened from Home or Insights, every transaction is included', () {
+      expect(
+        reportSourceTransactions(
+          provider,
+          null,
+          categoryName: categoryName,
+          accountName: accountName,
+        ),
+        unorderedEquals(all),
+      );
+    });
+
+    test('a type filter from Search excludes the other type', () {
+      expect(
+        reportSourceTransactions(
+          provider,
+          const TransactionFilter(type: TransactionType.income),
+          categoryName: categoryName,
+          accountName: accountName,
+        ),
+        [all[2]],
+      );
+    });
+
+    test('a text query from Search excludes what it does not match', () {
+      expect(
+        reportSourceTransactions(
+          provider,
+          const TransactionFilter(query: 'Rent'),
+          categoryName: categoryName,
+          accountName: accountName,
+        ),
+        [rent],
+      );
+    });
+
+    test('the account and dates in a Search filter do not narrow this list; '
+        "they're the report's own controls instead", () {
+      expect(
+        reportSourceTransactions(
+          provider,
+          TransactionFilter(
+            accountId: 'no-such-account',
+            from: DateTime(2099),
+            to: DateTime(2099),
+          ),
+          categoryName: categoryName,
+          accountName: accountName,
+        ),
+        unorderedEquals(all),
+      );
+    });
   });
 
   testWidgets('every account is offered, plus all of them together '

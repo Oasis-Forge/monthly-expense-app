@@ -9,8 +9,11 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/account.dart';
+import '../models/category.dart';
 import '../models/csv_export.dart' show isoDate;
 import '../models/report.dart';
+import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
@@ -19,13 +22,45 @@ import '../services/report_fonts.dart';
 import '../services/report_pdf.dart';
 import 'form_fields.dart';
 
+/// The transactions a report opened from Search should draw from: matching
+/// text, type and category narrow the result the same way the CSV export
+/// from Search already does (PDF-1, BAK-5). Dates and the account are left
+/// to the report's own controls instead (seeded from [filter], but the user
+/// can still change them there), so they never narrow this list here.
+List<ExpenseTransaction> reportSourceTransactions(
+  TransactionProvider provider,
+  TransactionFilter? filter, {
+  required String Function(Category category) categoryName,
+  required String Function(Account account) accountName,
+}) {
+  if (filter == null ||
+      (filter.query.trim().isEmpty &&
+          filter.type == null &&
+          filter.categoryId == null)) {
+    return provider.transactions;
+  }
+  return provider
+      .search(
+        TransactionFilter(
+          query: filter.query,
+          type: filter.type,
+          categoryId: filter.categoryId,
+        ),
+        categoryName: categoryName,
+        accountName: accountName,
+      )
+      .transactions;
+}
+
 /// Chooses what a PDF report covers and what it leaves out, then builds and
 /// previews it (PDF-1, PDF-3, PDF-4).
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key, this.filter});
 
   /// Set from Search, so the report covers what's on screen there (PDF-1,
-  /// BAK-5). Its dates seed the custom range.
+  /// BAK-5): its dates and account seed this screen's own controls, and its
+  /// text, type and category narrow the transactions the report is built
+  /// from until the user changes something here.
   final TransactionFilter? filter;
 
   @override
@@ -52,6 +87,15 @@ class _ReportScreenState extends State<ReportScreen> {
     _year = period.start.year;
     if (filter != null && (filter.from != null || filter.to != null)) {
       _range = ReportRange.custom;
+    }
+    // PDF-1: the account being searched carries over too, same as the
+    // dates above; only when it still exists, so the dropdown below always
+    // has a matching item.
+    if (filter?.accountId != null &&
+        provider.activeAccounts.any(
+          (account) => account.id == filter!.accountId,
+        )) {
+      _accountId = filter!.accountId;
     }
   }
 
@@ -109,7 +153,12 @@ class _ReportScreenState extends State<ReportScreen> {
         from: from,
         to: to,
         today: provider.today,
-        transactions: provider.transactions,
+        transactions: reportSourceTransactions(
+          provider,
+          widget.filter,
+          categoryName: (category) => category.label(l10n),
+          accountName: (account) => account.label(l10n),
+        ),
         transfers: provider.transfers,
         accounts: provider.accounts,
         accountId: _accountId,
