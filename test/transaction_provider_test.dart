@@ -802,6 +802,32 @@ void main() {
         expect(provider.deletedTransactions.single.id, 'a');
       });
 
+      test('restoring a note-linked transaction updates totals even when '
+          'relinking the note fails afterward', () async {
+        final fake = FakeDB(
+          transactions: [testTx('a', expense, 30, DateTime(2026, 9, 10))],
+          notes: [
+            testNote('n', 'Coffee').copyWith(
+              transactionId: 'a',
+              doneAt: DateTime(2026, 9, 10).toUtc(),
+            ),
+          ],
+        );
+        final provider = await loaded(fake);
+        await provider.deleteTransaction('a');
+        expect(provider.periodExpense, Money.zero);
+
+        fake.failNoteWrites = true;
+        await expectLater(provider.restoreTransaction('a'), throwsStateError);
+
+        // As with delete, the row is already back and the list already
+        // reflects it -- the caller sees the relink's failure, but cached
+        // totals follow the DB write that in fact already succeeded.
+        expect(provider.transactions.single.id, 'a');
+        expect(provider.periodExpense, const Money(30000));
+        expect(provider.deletedTransactions, isEmpty);
+      });
+
       test('deleting reopens the note in time for the notice, and restoring '
           'relinks it, by the last notification of each (NOTE-5)', () async {
         final fake = FakeDB(
