@@ -211,4 +211,20 @@ void main() {
       );
     });
   });
+
+  test('no XML comment under android/app/src/main contains "--", which '
+      'makes the file unparseable and fails every Android build', () {
+    final files = Directory('android/app/src/main')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.xml'));
+    final comment = RegExp(r'<!--(.*?)-->', dotAll: true);
+    final offenders = [
+      for (final file in files)
+        for (final match in comment.allMatches(file.readAsStringSync()))
+          if (match.group(1)!.contains('--')) file.path,
+    ];
+    expect(files, isNotEmpty);
+    expect(offenders, isEmpty);
+  });
 }
