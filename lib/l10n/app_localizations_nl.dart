@@ -396,6 +396,54 @@ class AppLocalizationsNl extends AppLocalizations {
   String get categoryNameTaken => 'Die naam is al in gebruik';
 
   @override
+  String get categoryColorPurple => 'Paars';
+
+  @override
+  String get categoryColorTeal => 'Blauwgroen';
+
+  @override
+  String get categoryColorRust => 'Roestbruin';
+
+  @override
+  String get categoryColorBlue => 'Blauw';
+
+  @override
+  String get categoryColorPink => 'Roze';
+
+  @override
+  String get categoryColorGreen => 'Groen';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Cyaan';
+
+  @override
+  String get categoryColorBrown => 'Bruin';
+
+  @override
+  String get categoryColorIndigo => 'Indigo';
+
+  @override
+  String get categoryColorRed => 'Rood';
+
+  @override
+  String get categoryColorSlate => 'Leigrijs';
+
+  @override
+  String get categoryColorOrange => 'Oranje';
+
+  @override
+  String get categoryColorEmerald => 'Smaragdgroen';
+
+  @override
+  String get categoryColorViolet => 'Violet';
+
+  @override
+  String get categoryColorRaspberry => 'Framboos';
+
+  @override
   String get archiveAction => 'Archiveren';
 
   @override
@@ -1157,6 +1205,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get appLockReason => 'Ontgrendel Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
 
   @override
   String get appLockPromptHint => 'Identiteit bevestigen';

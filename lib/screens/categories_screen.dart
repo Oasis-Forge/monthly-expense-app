@@ -330,19 +330,29 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   runSpacing: 8,
                   children: [
                     for (final color in categoryPalette)
-                      InkWell(
-                        onTap: () => setState(() => _color = color),
-                        customBorder: const CircleBorder(),
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(color),
-                          child: color == _color
-                              ? const Icon(
-                                  Icons.check,
-                                  size: 18,
-                                  color: Colors.white,
-                                )
-                              : null,
+                      Semantics(
+                        // A bare coloured circle, with only a check icon to
+                        // show which one is picked, is `(no label)` and
+                        // silent about its own selection to anything
+                        // driving the screen without eyes (A11Y-2,
+                        // rules-23-26-34#10).
+                        label: categoryColorName(l10n, color),
+                        button: true,
+                        selected: color == _color,
+                        child: InkWell(
+                          onTap: () => setState(() => _color = color),
+                          customBorder: const CircleBorder(),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Color(color),
+                            child: color == _color
+                                ? const Icon(
+                                    Icons.check,
+                                    size: 18,
+                                    color: Colors.white,
+                                  )
+                                : null,
+                          ),
                         ),
                       ),
                   ],

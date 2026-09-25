@@ -63,6 +63,14 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
   /// True while a save is in progress, so repeated taps don't save twice.
   bool _saving = false;
 
+  /// True once a "Save & add another" save has gone through and the update
+  /// or rating seam hasn't run since (UPD-2, RATE-3, pr58#7). A closing
+  /// save clears it by running the seam itself; leaving by Back instead
+  /// runs it there, in [onFormClosing], so someone whose habit is
+  /// add-another then Back still reaches it rather than dropping it every
+  /// time.
+  bool _seamPendingFromAddAnother = false;
+
   @override
   void initState() {
     super.initState();
@@ -222,11 +230,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     saveFeedback();
     // ADD-4 or not, a saved entry is a thing done (ADS-12).
     unawaited(ads.noteActivity());
+    // RATE-1, pr57#10: a brand-new entry typed in and saved by hand, not an
+    // edit to one already recorded.
+    if (widget.editing == null) unawaited(settings.noteManualEntrySaved());
     if (!mounted) return;
-    // UPD-2, RATE-3: the app has just done the thing it is for, which is
-    // the only moment worth offering anything in. Both asks come to nothing
-    // unless their own lines have been crossed, and the update goes first.
-    unawaited(afterSave(context));
 
     if (addAnother) {
       // ADD-4: keep the type, category, account, and date.
@@ -241,8 +248,34 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       // ADD-4 emptied the form on purpose, so that is the new starting point.
       snapshotForm();
       messenger.showSnackBar(SnackBar(content: Text(l10n.transactionAdded)));
+      // UPD-2, pr58#7: the form stays open on a fresh entry, so neither ask
+      // may show now -- it would land over the next entry, or its Restart
+      // action could later throw this one away. Both wait for a save that
+      // actually closes the form. If the form is later left by Back rather
+      // than another closing save, onFormClosing runs the seam there
+      // instead of dropping it (pr58#7 review follow-up).
+      _seamPendingFromAddAnother = true;
     } else {
+      // UPD-2, RATE-3: the app has just done the thing it is for, and the
+      // form is closing, which is the only moment worth offering anything
+      // in. Both asks come to nothing unless their own lines have been
+      // crossed, and the update goes first. Read from context before the
+      // pop below takes it away, so a screen closing behind this takes
+      // neither decision with it.
+      _seamPendingFromAddAnother = false;
+      unawaited(afterSave(context));
       Navigator.of(context).pop();
+    }
+  }
+
+  /// A save with "Save & add another" left the seam unrun so it wouldn't
+  /// land over the next entry (UPD-2, pr58#7); if Back is what finally
+  /// closes the form, that is the only moment left to run it.
+  @override
+  void onFormClosing() {
+    if (_seamPendingFromAddAnother) {
+      _seamPendingFromAddAnother = false;
+      unawaited(afterSave(context));
     }
   }
 

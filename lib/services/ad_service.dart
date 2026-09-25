@@ -29,10 +29,12 @@ class LoadedBanner {
 class LoadedInterstitial {
   const LoadedInterstitial({required this.show, required this.dispose});
 
-  /// Puts it on screen and completes once the user has dismissed it, so the
-  /// seam knows it was really seen before it counts the day's one showing
-  /// (ADS-12, ADS-14).
-  final Future<void> Function() show;
+  /// Puts it on screen and completes, once the user has dismissed it, with
+  /// whether it was actually displayed — true only when the SDK reported it
+  /// on screen, false when it failed to show. The seam uses this, not
+  /// merely that [show] returned, before it counts the day's one showing or
+  /// treats it as having interrupted the session (ADS-12, ADS-13, ADS-14).
+  final Future<bool> Function() show;
 
   /// Throws it away unshown.
   final Future<void> Function() dispose;
@@ -278,27 +280,32 @@ class DeviceAdService implements AdService {
   /// carrying on, which is what leaves the user exactly where they were
   /// going (ADS-14).
   LoadedInterstitial _interstitial(InterstitialAd ad) {
-    final gone = Completer<void>();
+    final gone = Completer<bool>();
+    var shown = false;
     ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (ad) {
+        shown = true;
+      },
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
-        if (!gone.isCompleted) gone.complete();
+        if (!gone.isCompleted) gone.complete(shown);
       },
       // One that refuses to show is one the user never saw, so it costs
-      // them nothing and the day is not counted against them (ADS-12).
+      // them nothing and the day is not counted against them (ADS-12,
+      // ADS-13): `shown` stays false here, never true.
       onAdFailedToShowFullScreenContent: (ad, error) {
         ad.dispose();
-        if (!gone.isCompleted) gone.complete();
+        if (!gone.isCompleted) gone.complete(false);
       },
     );
     return LoadedInterstitial(
       show: () async {
         await ad.show();
-        await gone.future;
+        return gone.future;
       },
       dispose: () async {
         if (gone.isCompleted) return;
-        gone.complete();
+        gone.complete(false);
         await ad.dispose();
       },
     );

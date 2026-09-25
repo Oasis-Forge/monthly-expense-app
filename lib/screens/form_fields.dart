@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform;
+    show TargetPlatform, defaultTargetPlatform, protected;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' hide TextDirection;
@@ -291,7 +291,8 @@ class DateField extends StatelessWidget {
 /// at a time): set while it is mounted, so a shortcut or widget tap that
 /// would otherwise silently replace it can ask the same ADD-9 question the
 /// back button does, instead of dropping unsaved edits without a word
-/// (pr57#3).
+/// (pr57#3). Also what the update ask's own "Restart" action checks before
+/// acting, so it never takes an unsaved entry down with it (UPD-2, pr58#7).
 UnsavedFormGuard? activeUnsavedFormGuard;
 
 /// What a shortcut or widget tap needs from the form currently on screen,
@@ -388,10 +389,22 @@ mixin UnsavedGuard<T extends StatefulWidget> on AmountEntry<T> {
     }
     final navigator = Navigator.of(context);
     if (!hasUnsavedEdits) {
+      onFormClosing();
       navigator.pop();
       return;
     }
     final discard = await _confirmDiscard();
-    if (discard && mounted) navigator.pop();
+    if (discard && mounted) {
+      onFormClosing();
+      navigator.pop();
+    }
   }
+
+  /// Called right before Back actually pops the form, whether it had
+  /// nothing to lose or the discard was confirmed. A screen that skipped
+  /// the closing-save seam because it saved with an "add another" action
+  /// overrides this to run it now, so leaving by Back afterwards still
+  /// reaches it instead of dropping it silently (UPD-2, RATE-3, pr58#7).
+  @protected
+  void onFormClosing() {}
 }

@@ -391,6 +391,54 @@ class AppLocalizationsTr extends AppLocalizations {
   String get categoryNameTaken => 'Bu ad zaten kullanılıyor';
 
   @override
+  String get categoryColorPurple => 'Mor';
+
+  @override
+  String get categoryColorTeal => 'Petrol mavisi';
+
+  @override
+  String get categoryColorRust => 'Pas rengi';
+
+  @override
+  String get categoryColorBlue => 'Mavi';
+
+  @override
+  String get categoryColorPink => 'Pembe';
+
+  @override
+  String get categoryColorGreen => 'Yeşil';
+
+  @override
+  String get categoryColorMagenta => 'Eflatun';
+
+  @override
+  String get categoryColorCyan => 'Camgöbeği';
+
+  @override
+  String get categoryColorBrown => 'Kahverengi';
+
+  @override
+  String get categoryColorIndigo => 'Çivit mavisi';
+
+  @override
+  String get categoryColorRed => 'Kırmızı';
+
+  @override
+  String get categoryColorSlate => 'Arduvaz';
+
+  @override
+  String get categoryColorOrange => 'Turuncu';
+
+  @override
+  String get categoryColorEmerald => 'Zümrüt yeşili';
+
+  @override
+  String get categoryColorViolet => 'Menekşe';
+
+  @override
+  String get categoryColorRaspberry => 'Ahududu';
+
+  @override
   String get archiveAction => 'Arşivle';
 
   @override
@@ -1143,6 +1191,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expenses kilidini aç';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
 
   @override
   String get appLockPromptHint => 'Kimliğini doğrula';

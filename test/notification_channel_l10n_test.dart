@@ -67,13 +67,21 @@ void main() {
     () {
       final messages = authMessagesFor(
         'Confirmez que c\'est vous',
+        title: 'Monthly Expenses',
         hint: 'Indice',
         cancelButton: 'Annuler',
       );
       final android = messages.whereType<AndroidAuthMessages>().single;
-      expect(android.signInTitle, 'Confirmez que c\'est vous');
+      expect(android.signInTitle, 'Monthly Expenses');
       expect(android.signInHint, 'Indice');
       expect(android.cancelButton, 'Annuler');
     },
   );
+
+  test('authMessagesFor falls back to the reason as the title only when the '
+      'caller gives none of its own (LANG-2, LOCK-1)', () {
+    final messages = authMessagesFor('Confirmez que c\'est vous');
+    final android = messages.whereType<AndroidAuthMessages>().single;
+    expect(android.signInTitle, 'Confirmez que c\'est vous');
+  });
 }

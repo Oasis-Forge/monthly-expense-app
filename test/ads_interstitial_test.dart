@@ -98,6 +98,30 @@ void main() {
       expect(settings.adActivityEarned, isFalse);
     });
 
+    test('a failed show costs nothing: the count is not spent and the '
+        'session is not marked interrupted (ADS-12, ADS-13)', () async {
+      final ads = filling()..interstitialShowSucceeds = false;
+      final settings = await settled(activity: earned);
+      final provider = await started(settings, ads);
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
+
+      expect(ads.interstitialsShown, 0);
+      expect(
+        settings.adActivity,
+        earned,
+        reason:
+            'a fetch that fails to show costs the user nothing, so the '
+            'next seam may still try (ADS-13)',
+      );
+      expect(
+        provider.interstitialShown,
+        isFalse,
+        reason: 'an ad nobody saw must not block the rating ask (RATE-3)',
+      );
+    });
+
     test('and ten more earn another the same day', () async {
       final ads = filling();
       final provider = await started(await settled(activity: earned), ads);

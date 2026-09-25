@@ -400,6 +400,54 @@ class AppLocalizationsFr extends AppLocalizations {
   String get categoryNameTaken => 'Ce nom est déjà utilisé';
 
   @override
+  String get categoryColorPurple => 'Violet';
+
+  @override
+  String get categoryColorTeal => 'Bleu sarcelle';
+
+  @override
+  String get categoryColorRust => 'Rouille';
+
+  @override
+  String get categoryColorBlue => 'Bleu';
+
+  @override
+  String get categoryColorPink => 'Rose';
+
+  @override
+  String get categoryColorGreen => 'Vert';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Cyan';
+
+  @override
+  String get categoryColorBrown => 'Marron';
+
+  @override
+  String get categoryColorIndigo => 'Indigo';
+
+  @override
+  String get categoryColorRed => 'Rouge';
+
+  @override
+  String get categoryColorSlate => 'Ardoise';
+
+  @override
+  String get categoryColorOrange => 'Orange';
+
+  @override
+  String get categoryColorEmerald => 'Émeraude';
+
+  @override
+  String get categoryColorViolet => 'Violet foncé';
+
+  @override
+  String get categoryColorRaspberry => 'Framboise';
+
+  @override
   String get archiveAction => 'Archiver';
 
   @override
@@ -1161,6 +1209,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get appLockReason => 'Déverrouiller Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
 
   @override
   String get appLockPromptHint => 'Confirmez votre identité';

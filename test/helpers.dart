@@ -615,6 +615,7 @@ class FakeAuthenticator implements Authenticator {
   /// from the caller's own translations rather than left in English
   /// (LANG-2, LOCK-1).
   String? lastReason;
+  String? lastTitle;
   String? lastHint;
   String? lastCancelButton;
 
@@ -624,11 +625,13 @@ class FakeAuthenticator implements Authenticator {
   @override
   Future<AuthResult> authenticate(
     String reason, {
+    String? title,
     String? hint,
     String? cancelButton,
   }) async {
     requests++;
     lastReason = reason;
+    lastTitle = title;
     lastHint = hint;
     lastCancelButton = cancelButton;
     return available ? result : AuthResult.unavailable;
@@ -861,6 +864,12 @@ class FakeAdService implements AdService {
   /// Whether a full-screen request comes back with one (ADS-13).
   bool interstitialFills;
 
+  /// Whether a fetched interstitial's `show()` reports the ad was actually
+  /// displayed, or reports a failed show (ADS-13). A test sets this false to
+  /// simulate an ad that expired, or lost a race with another full-screen
+  /// surface, between being fetched and reaching its seam.
+  bool interstitialShowSucceeds = true;
+
   /// How many full-screen ads were asked for, shown, and let go unshown.
   int interstitialsRequested = 0;
   int interstitialsShown = 0;
@@ -871,7 +880,11 @@ class FakeAdService implements AdService {
     interstitialsRequested++;
     if (!canStart || !interstitialFills) return null;
     return LoadedInterstitial(
-      show: () async => interstitialsShown++,
+      show: () async {
+        final wasShown = interstitialShowSucceeds;
+        if (wasShown) interstitialsShown++;
+        return wasShown;
+      },
       dispose: () async => interstitialsDropped++,
     );
   }
@@ -1337,7 +1350,13 @@ class FakeUpdates implements UpdateService {
     this.offered = false,
     this.downloads = true,
     bool downloaded = false,
-  }) : alreadyDownloaded = downloaded;
+    this.duringAvailable,
+    this.duringDownload,
+    // Can't initialize the field directly with `this.downloaded`:
+    // `UpdateService.downloaded()` is a method of that same name, so the
+    // mutable field needs one of its own.
+    // ignore: prefer_initializing_formals
+  }) : _downloaded = downloaded;
 
   @override
   final bool supported;
@@ -1349,9 +1368,21 @@ class FakeUpdates implements UpdateService {
   /// or failing.
   final bool downloads;
 
-  /// Whether Play already has a finished download waiting from an earlier
-  /// run (UPD-1), so [download] should never be called.
-  final bool alreadyDownloaded;
+  /// Awaited inside [available], so a test can act -- typically opening a
+  /// form -- while the real check would still be waiting on Play (UPD-2,
+  /// pr58#7).
+  final Future<void> Function()? duringAvailable;
+
+  /// Same for [download], whose real download can run 30 to 60 seconds
+  /// (UPD-1, pr58#7).
+  final Future<void> Function()? duringDownload;
+
+  /// Whether Play currently has a finished download waiting, so [download]
+  /// should never be called (UPD-1). Starts as the constructor's
+  /// `downloaded`, and turns true on its own once [download] succeeds, the
+  /// way `DeviceUpdates.downloaded()` queries Play's live status rather
+  /// than remembering what this app last did.
+  bool _downloaded;
 
   /// How many times Play was asked whether anything is waiting.
   int checked = 0;
@@ -1365,17 +1396,20 @@ class FakeUpdates implements UpdateService {
   @override
   Future<bool> available() async {
     checked++;
+    if (duringAvailable != null) await duringAvailable!();
     return offered;
   }
 
   @override
   Future<bool> download() async {
     started++;
+    if (duringDownload != null) await duringDownload!();
+    if (downloads) _downloaded = true;
     return downloads;
   }
 
   @override
-  Future<bool> downloaded() async => alreadyDownloaded;
+  Future<bool> downloaded() async => _downloaded;
 
   @override
   Future<void> install() async => installed++;

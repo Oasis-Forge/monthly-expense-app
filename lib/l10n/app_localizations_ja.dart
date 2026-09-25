@@ -387,6 +387,54 @@ class AppLocalizationsJa extends AppLocalizations {
   String get categoryNameTaken => 'その名前はすでに使われています';
 
   @override
+  String get categoryColorPurple => '紫';
+
+  @override
+  String get categoryColorTeal => 'ティール';
+
+  @override
+  String get categoryColorRust => '錆色';
+
+  @override
+  String get categoryColorBlue => '青';
+
+  @override
+  String get categoryColorPink => 'ピンク';
+
+  @override
+  String get categoryColorGreen => '緑';
+
+  @override
+  String get categoryColorMagenta => 'マゼンタ';
+
+  @override
+  String get categoryColorCyan => 'シアン';
+
+  @override
+  String get categoryColorBrown => '茶色';
+
+  @override
+  String get categoryColorIndigo => '藍色';
+
+  @override
+  String get categoryColorRed => '赤';
+
+  @override
+  String get categoryColorSlate => 'スレート';
+
+  @override
+  String get categoryColorOrange => 'オレンジ';
+
+  @override
+  String get categoryColorEmerald => 'エメラルド';
+
+  @override
+  String get categoryColorViolet => 'バイオレット';
+
+  @override
+  String get categoryColorRaspberry => 'ラズベリー';
+
+  @override
   String get archiveAction => 'アーカイブ';
 
   @override
@@ -1119,6 +1167,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expensesのロックを解除';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
 
   @override
   String get appLockPromptHint => '本人確認をしてください';

@@ -96,6 +96,19 @@ void main() {
     expect(authenticator.lastCancelButton, 'Annuler');
   });
 
+  testWidgets('the system prompt gives its title and its reason different '
+      "text, so the same line doesn't appear twice (LOCK-1)", (tester) async {
+    await showApp(tester, appLock: true);
+
+    expect(authenticator.requests, 1);
+    expect(authenticator.lastTitle, isNotNull);
+    expect(
+      authenticator.lastTitle,
+      isNot(authenticator.lastReason),
+      reason: 'the prompt title and its reason/description must differ',
+    );
+  });
+
   testWidgets('it locks again after a minute in the background (LOCK-2)', (
     tester,
   ) async {

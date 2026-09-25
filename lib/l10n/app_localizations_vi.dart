@@ -392,6 +392,54 @@ class AppLocalizationsVi extends AppLocalizations {
   String get categoryNameTaken => 'Tên này đã được dùng';
 
   @override
+  String get categoryColorPurple => 'Tím';
+
+  @override
+  String get categoryColorTeal => 'Xanh mòng két';
+
+  @override
+  String get categoryColorRust => 'Màu gỉ sắt';
+
+  @override
+  String get categoryColorBlue => 'Xanh dương';
+
+  @override
+  String get categoryColorPink => 'Hồng';
+
+  @override
+  String get categoryColorGreen => 'Xanh lá';
+
+  @override
+  String get categoryColorMagenta => 'Đỏ tươi';
+
+  @override
+  String get categoryColorCyan => 'Xanh lơ';
+
+  @override
+  String get categoryColorBrown => 'Nâu';
+
+  @override
+  String get categoryColorIndigo => 'Chàm';
+
+  @override
+  String get categoryColorRed => 'Đỏ';
+
+  @override
+  String get categoryColorSlate => 'Xám xanh';
+
+  @override
+  String get categoryColorOrange => 'Cam';
+
+  @override
+  String get categoryColorEmerald => 'Xanh ngọc lục bảo';
+
+  @override
+  String get categoryColorViolet => 'Tím than';
+
+  @override
+  String get categoryColorRaspberry => 'Mâm xôi';
+
+  @override
   String get archiveAction => 'Lưu trữ';
 
   @override
@@ -1146,6 +1194,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get appLockReason => 'Mở khóa Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
 
   @override
   String get appLockPromptHint => 'Xác nhận danh tính của bạn';

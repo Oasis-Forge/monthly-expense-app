@@ -33,7 +33,10 @@ Future<void> Function() ratingRequest(BuildContext context) {
         askedOn.day == today.day;
 
     final due = ratingIsDue(
-      entries: transactions.transactions.length,
+      // RATE-1's "recorded at least fifteen entries" means entries typed
+      // in and saved by hand, not a row a recurring rule posted on its own
+      // (RCR-4), a CSV import brought in, or a backup restored (pr57#10).
+      entries: settings.manualEntriesRecorded,
       firstOpened: settings.firstOpenedAt,
       now: today,
       version: version,

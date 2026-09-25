@@ -397,6 +397,54 @@ class AppLocalizationsHi extends AppLocalizations {
   String get categoryNameTaken => 'यह नाम पहले से इस्तेमाल हो रहा है';
 
   @override
+  String get categoryColorPurple => 'बैंगनी';
+
+  @override
+  String get categoryColorTeal => 'फ़िरोज़ी हरा';
+
+  @override
+  String get categoryColorRust => 'जंग रंग';
+
+  @override
+  String get categoryColorBlue => 'नीला';
+
+  @override
+  String get categoryColorPink => 'गुलाबी';
+
+  @override
+  String get categoryColorGreen => 'हरा';
+
+  @override
+  String get categoryColorMagenta => 'मैजेंटा';
+
+  @override
+  String get categoryColorCyan => 'सियान';
+
+  @override
+  String get categoryColorBrown => 'भूरा';
+
+  @override
+  String get categoryColorIndigo => 'नीलम रंग';
+
+  @override
+  String get categoryColorRed => 'लाल';
+
+  @override
+  String get categoryColorSlate => 'स्लेटी नीला';
+
+  @override
+  String get categoryColorOrange => 'नारंगी';
+
+  @override
+  String get categoryColorEmerald => 'पन्ना हरा';
+
+  @override
+  String get categoryColorViolet => 'बैंगनी नीला';
+
+  @override
+  String get categoryColorRaspberry => 'रास्पबेरी';
+
+  @override
   String get archiveAction => 'आर्काइव करें';
 
   @override
@@ -1148,6 +1196,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expenses अनलॉक करें';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
 
   @override
   String get appLockPromptHint => 'अपनी पहचान की पुष्टि करें';

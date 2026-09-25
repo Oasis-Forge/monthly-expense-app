@@ -714,8 +714,12 @@ void main() {
 
       expect(categories, isNotEmpty);
       expect(categories.where((c) => c.color == null), isEmpty);
-      // Only colours the app itself offers, so an upgraded database and a
-      // fresh one are picking from the same sixteen.
+      // Upgrading all the way to the latest schema also runs
+      // migrateToVersion12, which remaps every colour migrateToVersion10
+      // handed out to whatever categoryPalette now carries (pr58#9): an
+      // upgraded database and a fresh one must end up drawing from the
+      // same live palette, not from migrateToVersion10's own frozen list
+      // (restored below as a separate, narrower check of that one step).
       expect(
         categories.where((c) => !categoryPalette.contains(c.color)),
         isEmpty,
@@ -724,6 +728,86 @@ void main() {
       // colour repeated.
       expect(categories.first.color, isNot(categories[1].color));
     });
+
+    test(
+      'migrateToVersion10 itself hands out its own frozen palette (CAT-6)',
+      () async {
+        // Documents what the merged step itself wrote, which must never
+        // change (migrations.dart's own doc comment): checked by upgrading
+        // only as far as migrateToVersion10, not to the latest schema.
+        final steps = DBHelper.schemaMigrations;
+        final v10Index = steps.indexOf(migrateToVersion10);
+        final before = helperAt('colours-v10.db', steps.sublist(0, v10Index));
+        await before.database;
+        await before.close();
+
+        final atV10 = helperAt(
+          'colours-v10.db',
+          steps.sublist(0, v10Index + 1),
+        );
+        final categories = await atV10.fetchCategories();
+
+        const migrationV10Palette = [
+          0xFF6C5CE7,
+          0xFF00897B,
+          0xFFD84315,
+          0xFF1E88E5,
+          0xFFC2185B,
+          0xFF2E7D32,
+          0xFF8E24AA,
+          0xFF00838F,
+          0xFF5D4037,
+          0xFF3949AB,
+          0xFFE53935,
+          0xFF546E7A,
+          0xFFEF6C00,
+          0xFF00695C,
+          0xFF4527A0,
+          0xFFAD1457,
+        ];
+        expect(categories, isNotEmpty);
+        expect(
+          categories.where((c) => !migrationV10Palette.contains(c.color)),
+          isEmpty,
+        );
+      },
+    );
+
+    test(
+      'the palette-contrast step remaps every category still on '
+      "migrateToVersion10's retired colours (CAT-6, THEME-4, pr58#9)",
+      () async {
+        final steps = DBHelper.schemaMigrations;
+        // Stops right after migrateToVersion11, so the database carries
+        // migrateToVersion10's old colours the way any install that
+        // upgraded before this fix shipped would.
+        final before = helperAt(
+          'recolour.db',
+          steps.sublist(0, steps.indexOf(migrateToVersion11) + 1),
+        );
+        await before.database;
+        await before.close();
+
+        final upgraded = helperAt('recolour.db');
+        final categories = await upgraded.fetchCategories();
+
+        const retired = {
+          0xFF8E24AA,
+          0xFF5D4037,
+          0xFF3949AB,
+          0xFF00695C,
+          0xFF4527A0,
+          0xFFAD1457,
+          0xFFEF6C00,
+        };
+        expect(categories, isNotEmpty);
+        expect(categories.where((c) => retired.contains(c.color)), isEmpty);
+        expect(
+          categories.where((c) => !categoryPalette.contains(c.color)),
+          isEmpty,
+        );
+      },
+    );
 
     test(
       'the colour step wraps around once every colour is handed out (CAT-6)',

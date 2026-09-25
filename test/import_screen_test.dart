@@ -2,10 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
@@ -362,5 +364,49 @@ void main() {
 
     expect(find.byType(ImportScreen), findsOne);
     expect(find.text('Choose a file'), findsOne);
+  });
+
+  testWidgets('a finished import shows the full-screen ad (ADS-11, '
+      'rules-22-25-31-35#11)', (tester) async {
+    final earnedSettings = await testSettings({
+      'setup_done': true,
+      'walkthrough_seen': true,
+      'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+      'ad_activity': SettingsProvider.adActivityThreshold,
+      'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
+    });
+    final ads = FakeAdService(canStart: true, interstitialFills: true);
+    fileHolds('date,amount,type,title\n2026-09-01,12.50,expense,Coffee\n');
+
+    tester.view.physicalSize = const Size(500, 3000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      testApp(
+        provider,
+        earnedSettings,
+        const BackupScreen(),
+        backup: testBackupService(db, files: files),
+        ads: ads,
+      ),
+    );
+    await tester.pumpAndSettle();
+    // In the app the SDK started long ago; here the provider is built on
+    // its first read, so this is what a running app already has (ADS-4).
+    Provider.of<AdsProvider>(
+      tester.element(find.byType(BackupScreen)),
+      listen: false,
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Import a CSV'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Choose a file'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Import 1 row'));
+    await tester.pumpAndSettle();
+
+    expect(provider.transactions, hasLength(1));
+    expect(ads.interstitialsShown, 1);
   });
 }

@@ -553,6 +553,25 @@ void main() {
     expect(find.byType(AddTransactionScreen), findsNothing);
   });
 
+  testWidgets('a new entry counts towards RATE-1, but editing one does not '
+      '(pr57#10)', (tester) async {
+    final lunch = await addLunch();
+    expect(settings.manualEntriesRecorded, 0);
+
+    await open(tester, editing: lunch);
+    await tapButton(tester, 'Save Changes');
+    expect(
+      settings.manualEntriesRecorded,
+      0,
+      reason: "editing an entry already recorded isn't a new one",
+    );
+
+    await open(tester);
+    await enterAmount(tester, '12.50');
+    await tapButton(tester, 'Add Transaction');
+    expect(settings.manualEntriesRecorded, 1);
+  });
+
   testWidgets('duplicate opens an unsaved copy dated today (ADD-7)', (
     tester,
   ) async {

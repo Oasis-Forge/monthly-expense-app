@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
 import 'package:monthly_expense_app/models/budget.dart';
+import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
@@ -125,6 +126,54 @@ void main() {
         startsWith('-'),
       );
     });
+  });
+
+  group('category palette against the surface (THEME-4, A11Y-3, pr58#9)', () {
+    // Swatches, dots, and pie slices carry meaning by colour alone but are
+    // never text, so THEME-4 holds them to WCAG's 3:1 non-text bar rather
+    // than the 4.5:1 text needs.
+    const nonTextContrast = 3.0;
+
+    // THEME-4 says every theme choice, not just dark and black: the light
+    // theme's own surface (and the slightly deeper surfaceContainerLow a
+    // category row can sit on) is pale enough that this needs checking on
+    // its own (pr58#9's own re-check).
+    test('every one of the sixteen clears 3:1 on the light theme', () {
+      final theme = appTheme(brightness: Brightness.light);
+      for (final bg in [
+        theme.colorScheme.surface,
+        theme.colorScheme.surfaceContainerLow,
+      ]) {
+        for (final value in categoryPalette) {
+          expect(
+            contrast(Color(value), bg),
+            greaterThanOrEqualTo(nonTextContrast),
+            reason:
+                '#${value.toRadixString(16)} must stay tellable from $bg '
+                'on light',
+          );
+        }
+      }
+    });
+
+    for (final black in [false, true]) {
+      test(
+        'every one of the sixteen clears 3:1 on ${black ? 'true black' : 'the dark surface'}',
+        () {
+          final theme = appTheme(brightness: Brightness.dark, black: black);
+          final surface = theme.colorScheme.surface;
+          for (final value in categoryPalette) {
+            expect(
+              contrast(Color(value), surface),
+              greaterThanOrEqualTo(nonTextContrast),
+              reason:
+                  '#${value.toRadixString(16)} must stay tellable from '
+                  '$surface',
+            );
+          }
+        },
+      );
+    }
   });
 
   group('budget bar colours (THEME-4, A11Y-3, BUD-8)', () {

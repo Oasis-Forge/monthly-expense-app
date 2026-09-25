@@ -58,6 +58,7 @@ class DBHelper {
     migrateToVersion9,
     migrateToVersion10,
     migrateToVersion11,
+    migrateToVersion12,
   ];
 
   static const _fileName = 'monthly_expense_app.db';

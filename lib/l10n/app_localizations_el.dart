@@ -396,6 +396,54 @@ class AppLocalizationsEl extends AppLocalizations {
   String get categoryNameTaken => 'Αυτό το όνομα χρησιμοποιείται ήδη';
 
   @override
+  String get categoryColorPurple => 'Μοβ';
+
+  @override
+  String get categoryColorTeal => 'Γαλαζοπράσινο';
+
+  @override
+  String get categoryColorRust => 'Σκουριά';
+
+  @override
+  String get categoryColorBlue => 'Μπλε';
+
+  @override
+  String get categoryColorPink => 'Ροζ';
+
+  @override
+  String get categoryColorGreen => 'Πράσινο';
+
+  @override
+  String get categoryColorMagenta => 'Ματζέντα';
+
+  @override
+  String get categoryColorCyan => 'Κυανό';
+
+  @override
+  String get categoryColorBrown => 'Καφέ';
+
+  @override
+  String get categoryColorIndigo => 'Λουλακί';
+
+  @override
+  String get categoryColorRed => 'Κόκκινο';
+
+  @override
+  String get categoryColorSlate => 'Σχιστόλιθος';
+
+  @override
+  String get categoryColorOrange => 'Πορτοκαλί';
+
+  @override
+  String get categoryColorEmerald => 'Σμαραγδί';
+
+  @override
+  String get categoryColorViolet => 'Ιώδες';
+
+  @override
+  String get categoryColorRaspberry => 'Βατόμουρο';
+
+  @override
   String get archiveAction => 'Αρχειοθέτηση';
 
   @override
@@ -1160,6 +1208,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get appLockReason => 'Ξεκλείδωμα Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
 
   @override
   String get appLockPromptHint => 'Επιβεβαίωση ταυτότητας';

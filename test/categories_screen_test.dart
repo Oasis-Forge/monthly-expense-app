@@ -88,6 +88,43 @@ void main() {
   });
 
   testWidgets(
+    'every colour swatch is labelled and announces its selection to a '
+    'screen reader (A11Y-2, rules-23-26-34#10)',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final semantics = tester.ensureSemantics();
+      await showCategories(tester);
+
+      await tester.tap(find.byTooltip('Add category'));
+      await tester.pumpAndSettle();
+
+      // A swatch with only a coloured circle and, sometimes, a bare check
+      // icon is `(no label)` to anything driving the screen without eyes
+      // (A11Y-2); each one needs its colour's name.
+      final purple = find.bySemanticsLabel('Purple');
+      final green = find.bySemanticsLabel('Green');
+      expect(purple, findsOneWidget);
+      expect(green, findsOneWidget);
+
+      bool? selected(Finder finder) =>
+          tester.getSemantics(finder).flagsCollection.isSelected.toBoolOrNull();
+
+      // The dialog opens on the next unused colour (categoryPalette[5],
+      // Green), not Purple (categoryPalette[0]).
+      expect(selected(green), isTrue);
+      expect(selected(purple), isFalse);
+
+      await tester.tap(purple);
+      await tester.pumpAndSettle();
+
+      expect(selected(find.bySemanticsLabel('Purple')), isTrue);
+      expect(selected(find.bySemanticsLabel('Green')), isFalse);
+      semantics.dispose();
+    },
+  );
+
+  testWidgets(
     'a new category defaults to the next unused colour, not palette[0] '
     '(CAT-6)',
     (tester) async {
