@@ -409,6 +409,26 @@ void main() {
     expect(find.text('🍔 Food'), findsWidgets);
   });
 
+  testWidgets(
+    "the amount field's symbol side matches the locale's display side, in "
+    'German (CUR-5, LANG-5, pr61#11)',
+    (tester) async {
+      // German writes the symbol after the figures, unlike English.
+      settings = await testSettings({'language': 'de'});
+      await openForm(tester);
+
+      final field = tester
+          .widgetList<TextField>(find.byType(TextField))
+          .firstWhere(
+            (f) =>
+                f.decoration?.prefixText != null ||
+                f.decoration?.suffixText != null,
+          );
+      expect(field.decoration?.prefixText, isNull);
+      expect(field.decoration?.suffixText, contains('\$'));
+    },
+  );
+
   testWidgets('the form rejects empty text and an unparseable amount', (
     tester,
   ) async {

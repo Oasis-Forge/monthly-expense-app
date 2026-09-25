@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../l10n/app_localizations.dart';
 import '../models/amount_expression.dart';
 import '../models/money.dart';
+import '../providers/settings_provider.dart';
 import 'haptics.dart';
 
 /// Amounts and expressions like `12.5+3` read left to right in every
@@ -75,7 +76,14 @@ mixin AmountEntry<T extends StatefulWidget> on State<T> {
       decoration: InputDecoration(
         labelText: l10n.amountLabel,
         border: const OutlineInputBorder(),
-        prefixText: '${currency.currencySymbol} ',
+        // CUR-5, pr61#11: the symbol sits where intl's own pattern for this
+        // language puts it, not always in front.
+        prefixText: SettingsProvider.symbolLeadsFigures(currency.locale)
+            ? '${currency.currencySymbol} '
+            : null,
+        suffixText: SettingsProvider.symbolLeadsFigures(currency.locale)
+            ? null
+            : ' ${currency.currencySymbol}',
         helperText: isAmountExpression(amountController.text) && result != null
             ? l10n.amountResult(currency.money(result))
             : null,

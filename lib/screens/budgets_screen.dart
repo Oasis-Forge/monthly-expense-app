@@ -219,7 +219,16 @@ class _BudgetDialogState extends State<_BudgetDialog> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: l10n.budgetLimitLabel,
-            prefixText: '${widget.currency.currencySymbol} ',
+            // CUR-5, pr61#11: the symbol sits where intl's own pattern for
+            // this language puts it, not always in front.
+            prefixText:
+                SettingsProvider.symbolLeadsFigures(widget.currency.locale)
+                ? '${widget.currency.currencySymbol} '
+                : null,
+            suffixText:
+                SettingsProvider.symbolLeadsFigures(widget.currency.locale)
+                ? null
+                : ' ${widget.currency.currencySymbol}',
             helperText: limit != null
                 ? l10n.amountResult(widget.currency.money(limit))
                 : null,

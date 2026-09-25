@@ -279,7 +279,14 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
               decoration: InputDecoration(
                 labelText: l10n.noteAmountOptionalLabel,
                 border: const OutlineInputBorder(),
-                prefixText: '${currency.currencySymbol} ',
+                // CUR-5, pr61#11: the symbol sits where intl's own pattern
+                // for this language puts it, not always in front.
+                prefixText: SettingsProvider.symbolLeadsFigures(currency.locale)
+                    ? '${currency.currencySymbol} '
+                    : null,
+                suffixText: SettingsProvider.symbolLeadsFigures(currency.locale)
+                    ? null
+                    : ' ${currency.currencySymbol}',
                 // A live preview (CUR-2), so a mistyped decimal mark is seen
                 // before it's saved wrong instead of silently.
                 helperText: _amountController.text.trim().isEmpty
