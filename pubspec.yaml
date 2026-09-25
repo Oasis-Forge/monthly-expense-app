@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.28.0+44
+version: 1.29.0+45
 
 environment:
   sdk: ^3.13.3
@@ -57,6 +57,10 @@ dependencies:
   archive: ^4.3.0
   google_mobile_ads: ^9.1.0
   in_app_purchase: ^3.3.0
+  # purchase_service.dart has to read a Google Play purchase's own billing
+  # state (GooglePlayPurchaseDetails, PurchaseStateWrapper), which
+  # in_app_purchase doesn't re-export (PAY-8).
+  in_app_purchase_android: ^0.5.3
   in_app_review: ^2.0.12
   quick_actions: ^1.1.1
   dynamic_color: ^1.7.0

@@ -96,6 +96,7 @@
   "trashTitle": "Lixeira",
   "trashEmpty": "A lixeira está vazia.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{exclusão definitiva em 1 dia} other{exclusão definitiva em {days} dias}}",
+  "trashNoteSubtitle": "{days, plural, =1{exclusão definitiva em 1 dia} other{exclusão definitiva em {days} dias}}",
   "restoreTooltip": "Restaurar",
   "categoriesTitle": "Categorias",
   "addCategoryTooltip": "Adicionar categoria",

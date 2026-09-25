@@ -32,6 +32,35 @@ void main() {
       expect(Money.tryParse('12.345', maxDecimals: 2), isNull);
     });
 
+    test('rejects a comma thousands separator instead of reading it as a '
+        '3-decimal fraction (CUR-2, MONEY-1, pr61#6)', () {
+      // For a 3-decimal currency (KWD, BHD, JOD, TND), '1,500' is
+      // ambiguous: comma-as-decimal-mark reads 1.5, comma-as-thousands-
+      // separator reads 1500. Guessing the decimal reading is silently off
+      // by 1000x, so this is rejected rather than guessed.
+      expect(Money.tryParse('1,500', maxDecimals: 3), isNull);
+      // Fewer than 3 digits after the comma isn't the ambiguous case.
+      expect(Money.tryParse('12,50', maxDecimals: 3), const Money(12500));
+      // A period stays an unambiguous decimal point: it's what editing an
+      // existing amount round-trips through (Money.toInputString).
+      expect(Money.tryParse('1.500', maxDecimals: 3), const Money(1500));
+    });
+
+    test('reads the comma as the decimal mark for a language that writes it '
+        'that way (CUR-2, review#money-setup-snackbar)', () {
+      // fr, de, tr and the other comma-decimal languages show 1.5 TND as
+      // "1,500" (intl's own formatting), so the same text typed back in is
+      // no longer ambiguous once the caller says which mark is decimal.
+      expect(
+        Money.tryParse('1,500', maxDecimals: 3, decimalMark: ','),
+        const Money(1500),
+      );
+      // Where the caller says the comma is a grouping mark instead (the
+      // default, matching en and the other comma-grouping languages), the
+      // same text stays rejected rather than guessed.
+      expect(Money.tryParse('1,500', maxDecimals: 3, decimalMark: '.'), isNull);
+    });
+
     test('adds, negates, and formats for editing', () {
       expect(const Money(12500) + const Money(500), const Money(13000));
       expect(const Money(500) - const Money(1500), const Money(-1000));
@@ -40,6 +69,14 @@ void main() {
       expect(const Money(12000).toInputString(), '12');
       expect(const Money(125).toInputString(), '0.125');
       expect(const Money(19990).toDouble(), 19.99);
+    });
+
+    test('formats a fraction under 0.01 with its leading zeros (MONEY-2)', () {
+      // The fraction is padded to 3 digits before trailing zeros are
+      // stripped, so a thousandths value under 100 still reads as
+      // thousandths, not as hundredths or tenths.
+      expect(const Money(12005).toInputString(), '12.005');
+      expect(const Money(5).toInputString(), '0.005');
     });
   });
 
@@ -196,6 +233,12 @@ void main() {
       final cleared = account.copyWith(name: null, archivedAt: null);
       expect((cleared.name, cleared.archivedAt), (null, null));
     });
+
+    test('copyWith takes a new updatedAt, so a merge sees the later edit '
+        '(BAK-3)', () {
+      final edited = account.copyWith(updatedAt: DateTime.utc(2026, 5));
+      expect(edited.updatedAt, DateTime.utc(2026, 5));
+    });
   });
 
   group('Note (NOTE-1)', () {
@@ -294,6 +337,20 @@ void main() {
       final december = Period.containing(DateTime(2026, 12, 31));
       expect(december.next.start, DateTime(2027, 1));
       expect(december.next.previous, december);
+    });
+
+    test('periods that start together but end apart are different '
+        '(PER-1, PER-2)', () {
+      // In March 2026 a start day of 28 and the last day of the month both
+      // begin on 28 February, but end on 28 and 31 March.
+      final on28 = Period.containing(DateTime(2026, 3, 10), startDay: 28);
+      final onLast = Period.containing(
+        DateTime(2026, 3, 10),
+        startDay: Period.lastDayOfMonth,
+      );
+
+      expect(on28.start, onLast.start);
+      expect(on28, isNot(onLast));
     });
   });
 

@@ -53,6 +53,14 @@ class AdsProvider extends ChangeNotifier {
   bool _started = false;
   bool _mayRequest = false;
 
+  /// Whether [_purchases.start] has returned, so [_startAdsIfReady] never
+  /// reads a settled "not owned" while the store is still answering
+  /// (Decision 42, ADS-8, PAY-5). A settings change unrelated to purchases —
+  /// such as the empty-day nudge check right after the first frame — can
+  /// notify while the store's own query is still in flight, and that must
+  /// not be read as "nothing is owned".
+  bool _storeAnswered = false;
+
   /// Whether a slot should ask for an ad at all.
   ///
   /// Not before setup and the walkthrough are finished and consent has been
@@ -79,11 +87,15 @@ class AdsProvider extends ChangeNotifier {
   /// ad SDK (ADS-4). Safe to call again; it only acts once.
   Future<void> start() async {
     await _purchases.start();
+    _storeAnswered = true;
     await _startAdsIfReady();
   }
 
   Future<void> _startAdsIfReady() async {
     if (_started) return;
+    // Decision 42: never before the store has said what is owned, however a
+    // settings change arrives in the meantime.
+    if (!_storeAnswered) return;
     // ADS-4: the first minutes of the app belong to the app, so nothing is
     // requested — and no consent form appears — until setup (RUN-3) and the
     // walkthrough (RUN-4) are behind us.
@@ -233,6 +245,11 @@ class AdActivityObserver extends NavigatorObserver {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    // A dialog, a dropdown, a popup menu and a modal sheet all push a route
+    // on this same navigator, but none of them is a screen: they are chrome
+    // inside the screen already open. Only a PageRoute is a real navigation,
+    // so only that counts towards the day's ten (ADS-12).
+    if (route is! PageRoute) return;
     // The very first route is the app opening, not a screen anyone chose.
     if (previousRoute == null) return;
     final context = navigator?.context;

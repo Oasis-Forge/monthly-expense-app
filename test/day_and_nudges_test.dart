@@ -14,7 +14,7 @@ void main() {
       expect(provider.selectedDay, DateTime(2026, 9, 30));
 
       now = DateTime(2026, 10, 1, 8);
-      provider.returnToToday();
+      await provider.returnToToday();
 
       expect(provider.selectedDay, DateTime(2026, 10, 1));
       expect(provider.period.start, DateTime(2026, 10));
@@ -27,9 +27,87 @@ void main() {
       provider.selectDay(DateTime(2026, 9, 21));
 
       now = DateTime(2026, 9, 25, 8);
-      provider.returnToToday();
+      await provider.returnToToday();
 
       expect(provider.selectedDay, DateTime(2026, 9, 21));
+    });
+
+    test(
+      'returnToToday is a no-op when the day has not changed (DAY-1)',
+      () async {
+        final now = DateTime(2026, 9, 24, 10);
+        final provider = TransactionProvider(db: FakeDB(), clock: () => now);
+        await provider.load();
+
+        var notified = 0;
+        provider.addListener(() => notified++);
+
+        // The clock has not moved to a new day since load(); resuming again
+        // must change nothing and notify no one.
+        await provider.returnToToday();
+
+        expect(notified, 0);
+      },
+    );
+
+    test('an automatic occurrence due after the app resumes on a new day, with '
+        'no reload, is posted (RCR-4, RCR-7, audit rules-6-10#7)', () async {
+      var now = DateTime(2026, 9, 30, 22);
+      final provider = TransactionProvider(
+        db: FakeDB(
+          rules: [testRule('Rent', 900, DateTime(2026, 10, 1), autoPost: true)],
+        ),
+        clock: () => now,
+      );
+      await provider.load();
+      // Loaded the evening before: the occurrence is due tomorrow, so
+      // nothing has posted yet.
+      expect(provider.transactions, isEmpty);
+
+      // The clock crosses midnight while the process stays alive (no new
+      // load()); the app comes back to the foreground on the new day,
+      // same as main.dart's AppLifecycleState.resumed handler.
+      now = DateTime(2026, 10, 1, 9);
+      await provider.returnToToday();
+
+      expect(
+        provider.transactions,
+        hasLength(1),
+        reason: 'the automatic occurrence due today should have posted',
+      );
+    });
+
+    test(
+      'a shortcut or widget tap brings a stale day forward too, so a new '
+      'entry does not land on an earlier day (DAY-1, DAY-9, NAV-8)',
+      () async {
+        var now = DateTime(2026, 9, 20, 9);
+        final provider = TransactionProvider(db: FakeDB(), clock: () => now);
+        await provider.load();
+        expect(provider.selectedDay, DateTime(2026, 9, 20));
+
+        // Four days pass in the same period, with no lifecycle-resumed event
+        // in between -- exactly what a shortcut or widget tap's _open does
+        // in main.dart before pushing the add-transaction form.
+        now = DateTime(2026, 9, 24, 10);
+        provider.showCurrentPeriod();
+
+        expect(provider.selectedDay, DateTime(2026, 9, 24));
+        expect(provider.newEntryDate, DateTime(2026, 9, 24, 10));
+      },
+    );
+
+    test('showCurrentPeriod keeps a day the user deliberately chose (WID-3, '
+        'ADD-3, DAY-9)', () async {
+      var now = DateTime(2026, 9, 24, 9);
+      final provider = TransactionProvider(db: FakeDB(), clock: () => now);
+      await provider.load();
+      provider.selectDay(DateTime(2026, 9, 21));
+
+      now = DateTime(2026, 9, 24, 10);
+      provider.showCurrentPeriod();
+
+      expect(provider.newEntryDate, DateTime(2026, 9, 21, 10));
     });
   });
 

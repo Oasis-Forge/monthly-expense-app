@@ -177,9 +177,24 @@ class AttachmentService {
   /// True while a voice note is playing.
   Stream<bool> get playing => _files.playing;
 
-  /// The full path of [name] in the attachments folder.
-  Future<String> path(String name) async =>
-      p.join((await _files.directory()).path, name);
+  /// The full path of [name] in the attachments folder. Throws if [name]
+  /// would resolve outside it: every caller is expected to pass this app's
+  /// own uuid.ext name (ATT-2), and a backup restore checks this before it
+  /// ever reaches here (data-integrity#10), but this is the last line of
+  /// defense against a name that slips through as a path.
+  Future<String> path(String name) async {
+    if (name.contains('/') ||
+        name.contains(r'\') ||
+        name == '.' ||
+        name == '..') {
+      throw ArgumentError.value(
+        name,
+        'name',
+        'must be a bare file name, not a path',
+      );
+    }
+    return p.join((await _files.directory()).path, name);
+  }
 
   Future<bool> exists(String name) async => File(await path(name)).exists();
 

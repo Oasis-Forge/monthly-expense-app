@@ -29,10 +29,27 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   AccountType _type = AccountType.bank;
   late DateTime _openingDate;
 
+  /// True while a save is in flight, so a double tap or a retry after a
+  /// slow or failed save cannot create a second account (data-integrity#5).
+  bool _saving = false;
+
   /// The name shown when the screen opened; an unchanged default name stays
   /// translated.
   String _initialName = '';
   bool _initialized = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Live preview of the parsed amount (CUR-2): the system decimal keyboard
+    // reads '.' as a thousands separator in some languages, so a mistyped
+    // amount is shown back rather than saved silently wrong.
+    _openingController.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
+  }
 
   @override
   void didChangeDependencies() {
@@ -62,20 +79,25 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   }
 
   /// An empty field means zero; a leading `-` means a negative balance.
-  static Money? _parseOpening(String input, int maxDecimals) {
+  static Money? _parseOpening(
+    String input,
+    int maxDecimals,
+    String decimalMark,
+  ) {
     final text = input.trim();
     if (text.isEmpty) return Money.zero;
     final negative = text.startsWith('-');
     final amount = Money.tryParse(
       negative ? text.substring(1) : text,
       maxDecimals: maxDecimals,
+      decimalMark: decimalMark,
     );
     if (amount == null) return null;
     return negative ? -amount : amount;
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_saving || !_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
     final messenger = ScaffoldMessenger.of(context);
@@ -86,8 +108,10 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
     final opening = _parseOpening(
       _openingController.text,
       currency.maximumFractionDigits,
+      currency.symbols.DECIMAL_SEP,
     )!;
 
+    _saving = true;
     try {
       final editing = widget.editing;
       if (editing == null) {
@@ -108,9 +132,11 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
         );
       }
     } catch (_) {
+      _saving = false;
       messenger.showSnackBar(SnackBar(content: Text(l10n.accountSaveFailed)));
       return;
     }
+    _saving = false;
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -232,9 +258,25 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
                 labelText: l10n.openingBalanceLabel,
                 border: const OutlineInputBorder(),
                 prefixText: '${currency.currencySymbol} ',
+                helperText: _openingController.text.trim().isEmpty
+                    ? null
+                    : switch (_parseOpening(
+                        _openingController.text,
+                        currency.maximumFractionDigits,
+                        currency.symbols.DECIMAL_SEP,
+                      )) {
+                        final opening? => l10n.amountResult(
+                          currency.money(opening),
+                        ),
+                        null => null,
+                      },
               ),
               validator: (value) =>
-                  _parseOpening(value ?? '', currency.maximumFractionDigits) ==
+                  _parseOpening(
+                        value ?? '',
+                        currency.maximumFractionDigits,
+                        currency.symbols.DECIMAL_SEP,
+                      ) ==
                       null
                   ? l10n.amountInvalid
                   : null,

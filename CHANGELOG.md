@@ -4,6 +4,28 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.29.0] - 2026-09-25
+
+### Fixed
+- Restoring a crafted backup could write files outside the app's folder; attachment names are now checked (ATT-2).
+- After a restore, reminders kept app lock and language off; they now follow the settings (LOCK-2, NUDGE-8).
+- A restore that failed partway could leave later edits unsaved; files are written before the data is committed (BAK-2).
+- Trash emptied on one phone came back through a Merge (BAK-3, DEL-3).
+- Opening the data with an older version is refused instead of damaging it.
+- The ad SDK's measurement now waits for consent, and never starts for people who removed ads (ADS-5, ADS-7).
+- Dialogs and menus no longer count toward the full-screen ad; a pending purchase no longer removes ads before it is paid; ads wait for the store's answer at launch (ADS, PAY-5).
+- The privacy policy now describes the full-screen ad.
+- Pausing a rule then saving un-paused it; editing a rule dropped entries already due; an account or category a rule uses could be deleted; automatic entries due overnight waited for a restart; a huge interval could stop the app loading; a double-tap on Save made two rules or accounts (RCR, ACC).
+- Leaving the form while recording kept the microphone on; macOS asked for the microphone without saying why (ATT-4).
+- With app lock on, amounts showed in the recent-apps screen (LOCK).
+- The PDF printed upcoming entries with the list turned off; the PDF from Search ignored its filters (PDF).
+- Export CSV from Home exported only the chosen account; the Insights trend ignored the chosen account; deleted notes skipped the Trash; a shortcut or widget tap opened the form before the data loaded (ACC-7, INS, NOTE-7, NAV-8).
+- Typed amounts follow the language's decimal mark; the currency chosen at setup is saved; the Restart message no longer stays forever (CUR, RUN-3).
+- A past month opened the day strip on the month before (DAY-6, DAY-3).
+
+### Tests
+- About 130 new tests, many from mutation testing.
+
 ## [1.28.0] - 2026-09-25
 
 ### Added

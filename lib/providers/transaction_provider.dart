@@ -138,6 +138,10 @@ class TransactionProvider extends ChangeNotifier {
   /// restored the same way transactions are, from the same screen.
   List<Transfer> get deletedTransfers => List.unmodifiable(_deletedTransfers);
 
+  /// Notes in the trash, most recently deleted first (DEL-5, NOTE-7). Like
+  /// transactions and transfers, they are restored from the same screen.
+  List<Note> get deletedNotes => List.unmodifiable(_deletedNotes);
+
   List<Category> get categories => List.unmodifiable(_categories);
 
   /// Every account that isn't deleted, archived ones included.
@@ -191,15 +195,23 @@ class TransactionProvider extends ChangeNotifier {
   /// Brings Home to today when the app comes back on a later day while Home
   /// was still showing the old today (DAY-1, PER-1), so an entry added then
   /// belongs to the new day (ADD-3). A day or period the user chose stays
-  /// chosen.
-  void returnToToday() {
+  /// chosen. Also posts any automatic occurrence that fell due while the app
+  /// stayed open across the day change, since otherwise only [load] does
+  /// (RCR-4, RCR-7).
+  Future<void> returnToToday() async {
     final today = _today;
     final before = _dayLastSeen;
     _dayLastSeen = today;
-    if (before == null || before == today || selectedDay != before) return;
-    _period = currentPeriod;
-    _daySelectionPeriod = null;
-    _changed();
+    final dayChanged = before != null && before != today;
+    if (dayChanged && selectedDay == before) {
+      _period = currentPeriod;
+      _daySelectionPeriod = null;
+      _changed();
+    }
+    if (dayChanged) {
+      await _postAutomaticOccurrences();
+      _changed();
+    }
   }
 
   final _loadDone = Completer<void>();
@@ -386,6 +398,9 @@ class TransactionProvider extends ChangeNotifier {
   int trashDaysLeftForTransfer(Transfer transfer) =>
       _daysLeftSince(transfer.deletedAt!);
 
+  /// The same for a trashed note (DEL-5, NOTE-7).
+  int trashDaysLeftForNote(Note note) => _daysLeftSince(note.deletedAt!);
+
   int _daysLeftSince(DateTime deletedAt) {
     final left = trashRetention.inDays - _clock().difference(deletedAt).inDays;
     return left < 1 ? 1 : left;
@@ -447,34 +462,46 @@ class TransactionProvider extends ChangeNotifier {
     final deleted = await _db.fetchDeletedTransactions();
     final transfers = await _db.fetchTransfers();
     final deletedTransfers = await _db.fetchDeletedTransfers();
-    _occurrences
-      ..clear()
-      ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
-    _transactions
-      ..clear()
-      ..addAll(loaded)
-      ..sort(_newestFirst);
-    _deleted
-      ..clear()
-      ..addAll(deleted);
-    _transfers
-      ..clear()
-      ..addAll(transfers)
-      ..sort(_newestTransferFirst);
-    // DEL-5: the trash keeps transfers across a launch, like transactions.
-    _deletedTransfers
-      ..clear()
-      ..addAll(deletedTransfers);
-    _deletedNotes.clear();
-    _reopenedNotes.clear();
-    await _postAutomaticOccurrences();
-    await rescheduleReminders(
-      appLockOn: appLockOn,
-      locale: locale,
-      nudge: nudge,
-    );
-    _loaded = true;
-    if (!_loadDone.isCompleted) _loadDone.complete();
+    final deletedNotes = await _db.fetchDeletedNotes();
+    // Everything above only reads the database; a shortcut or widget tap
+    // waiting on [whenLoaded] (WID-3, ADD-3) must still be freed even if
+    // something below throws -- a write failure in
+    // _postAutomaticOccurrences (storage full, a locked database) or a
+    // crash while building the schedule -- rather than waiting forever.
+    try {
+      _occurrences
+        ..clear()
+        ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
+      _transactions
+        ..clear()
+        ..addAll(loaded)
+        ..sort(_newestFirst);
+      _deleted
+        ..clear()
+        ..addAll(deleted);
+      _transfers
+        ..clear()
+        ..addAll(transfers)
+        ..sort(_newestTransferFirst);
+      // DEL-5: the trash keeps transfers across a launch, like transactions.
+      _deletedTransfers
+        ..clear()
+        ..addAll(deletedTransfers);
+      // DEL-5, NOTE-7: and notes, the same way.
+      _deletedNotes
+        ..clear()
+        ..addAll(deletedNotes);
+      _reopenedNotes.clear();
+      await _postAutomaticOccurrences();
+      await rescheduleReminders(
+        appLockOn: appLockOn,
+        locale: locale,
+        nudge: nudge,
+      );
+      _loaded = true;
+    } finally {
+      if (!_loadDone.isCompleted) _loadDone.complete();
+    }
     _changed();
   }
 
@@ -899,14 +926,15 @@ class TransactionProvider extends ChangeNotifier {
       _saveAccounts([accountById(id)!.copyWith(archivedAt: null)]);
 
   /// Whether any transaction or transfer, deleted ones included, uses the
-  /// account.
+  /// account, or a recurring rule still posts to it (RCR-1).
   bool isAccountUsed(String id) =>
       _transactions.any((t) => t.accountId == id) ||
       _deleted.any((t) => t.accountId == id) ||
       [
         ..._transfers,
         ..._deletedTransfers,
-      ].any((t) => t.fromAccountId == id || t.toAccountId == id);
+      ].any((t) => t.fromAccountId == id || t.toAccountId == id) ||
+      _rules.any((r) => r.accountId == id);
 
   /// Deletes an unused account. An account with history can only be
   /// archived (ACC-5), and one active account must remain; otherwise this
@@ -980,10 +1008,12 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> unarchiveCategory(String id) =>
       _saveCategories([categoryById(id)!.copyWith(archivedAt: null)]);
 
-  /// Whether any transaction, trashed ones included, uses the category.
+  /// Whether any transaction, trashed ones included, uses the category, or a
+  /// recurring rule still posts to it (RCR-1).
   bool isCategoryUsed(String id) =>
       _transactions.any((t) => t.categoryId == id) ||
-      _deleted.any((t) => t.categoryId == id);
+      _deleted.any((t) => t.categoryId == id) ||
+      _rules.any((r) => r.categoryId == id);
 
   /// Deletes an unused category. A used category can only be archived
   /// (CAT-4), so this throws a [StateError] for one.
@@ -1166,42 +1196,61 @@ class TransactionProvider extends ChangeNotifier {
 
   // Search (SRCH-1–SRCH-3).
 
-  /// Transactions matching [filter], newest first. Text matches the title,
-  /// note, [categoryName], [accountName], or an equal amount, ignoring case
-  /// and accents.
+  /// Whether [tx] matches [filter]'s text, type, and category — the same
+  /// narrowing [search] and its CSV export apply, kept separate from
+  /// [filter]'s account and dates so a caller (the report opened from
+  /// Search, PDF-1) can apply those on its own instead. Text matches the
+  /// title, note, [categoryName], [accountName], or an equal amount,
+  /// ignoring case and accents.
+  bool matchesSearch(
+    ExpenseTransaction tx,
+    TransactionFilter filter, {
+    required String Function(Category category) categoryName,
+    required String Function(Account account) accountName,
+    String decimalMark = '.',
+  }) {
+    if (filter.type != null && tx.type != filter.type) return false;
+    if (filter.categoryId != null && tx.categoryId != filter.categoryId) {
+      return false;
+    }
+    final query = foldForSearch(filter.query.trim());
+    final queryAmount = Money.tryParse(filter.query, decimalMark: decimalMark);
+    if (query.isEmpty || tx.amount == queryAmount) return true;
+    final category = categoryById(tx.categoryId);
+    final account = accountById(tx.accountId);
+    return [
+      tx.title,
+      tx.note,
+      if (category != null) categoryName(category),
+      if (account != null) accountName(account),
+    ].any((text) => text != null && foldForSearch(text).contains(query));
+  }
+
+  /// Transactions matching [filter], newest first.
   SearchResult search(
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
+    String decimalMark = '.',
   }) {
-    final query = foldForSearch(filter.query.trim());
-    final queryAmount = Money.tryParse(filter.query);
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
-
-    bool matchesText(ExpenseTransaction tx) {
-      if (query.isEmpty || tx.amount == queryAmount) return true;
-      final category = categoryById(tx.categoryId);
-      final account = accountById(tx.accountId);
-      return [
-        tx.title,
-        tx.note,
-        if (category != null) categoryName(category),
-        if (account != null) accountName(account),
-      ].any((text) => text != null && foldForSearch(text).contains(query));
-    }
 
     final matches = <ExpenseTransaction>[];
     var income = Money.zero;
     var expense = Money.zero;
     for (final tx in _transactions) {
       final day = _dayOf(tx.date);
-      if ((filter.type != null && tx.type != filter.type) ||
-          (filter.categoryId != null && tx.categoryId != filter.categoryId) ||
-          (filter.accountId != null && tx.accountId != filter.accountId) ||
+      if ((filter.accountId != null && tx.accountId != filter.accountId) ||
           (from != null && day.isBefore(from)) ||
           (to != null && day.isAfter(to)) ||
-          !matchesText(tx)) {
+          !matchesSearch(
+            tx,
+            filter,
+            categoryName: categoryName,
+            accountName: accountName,
+            decimalMark: decimalMark,
+          )) {
         continue;
       }
       matches.add(tx);
@@ -1472,14 +1521,15 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Saves an edited rule. The change applies from today onward: posted
-  /// transactions stay as they are, and earlier occurrences that weren't
-  /// handled are dropped (RCR-5).
+  /// Saves an edited rule. The edit reaches every occurrence not yet posted
+  /// or skipped, including one already waiting in Due (RCR-5); only a start
+  /// date moved later can push activeFrom forward, so an edit never makes an
+  /// occurrence that was due disappear on its own.
   Future<void> updateRecurringRule(RecurringRule rule) async {
-    final today = _today;
+    final floor = recurringRuleById(rule.id)?.activeFrom ?? rule.activeFrom;
     await _saveRule(
       rule.copyWith(
-        activeFrom: rule.startDate.isAfter(today) ? rule.startDate : today,
+        activeFrom: rule.startDate.isAfter(floor) ? rule.startDate : floor,
         updatedAt: _clock().toUtc(),
       ),
     );
@@ -1495,18 +1545,28 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Resumes a rule. Occurrences that came due while it was paused are
-  /// skipped, not caught up (RCR-6).
+  /// Resumes a rule. Occurrences that fell due between the pause and now are
+  /// skipped one by one, not caught up (RCR-6); an occurrence that was
+  /// already waiting in Due before the pause started stays waiting (RCR-5).
   Future<void> resumeRecurringRule(String id) async {
     final rule = recurringRuleById(id)!;
-    final today = _today;
-    await _saveRule(
-      rule.copyWith(
-        pausedAt: null,
-        activeFrom: rule.activeFrom.isAfter(today) ? rule.activeFrom : today,
-        updatedAt: _clock().toUtc(),
-      ),
-    );
+    final pausedAt = rule.pausedAt;
+    if (pausedAt != null) {
+      final now = _clock().toUtc();
+      for (final date in rule.occurrencesBetween(pausedAt, _today)) {
+        final key = occurrenceKey(rule.id, date);
+        if (_occurrences.containsKey(key)) continue;
+        final record = RecurringOccurrence(
+          ruleId: rule.id,
+          date: date,
+          status: OccurrenceStatus.skipped,
+          createdAt: now,
+        );
+        await _db.insertOccurrence(record);
+        _occurrences[record.key] = record;
+      }
+    }
+    await _saveRule(rule.copyWith(pausedAt: null, updatedAt: _clock().toUtc()));
     await _postAutomaticOccurrences();
     _changed();
   }
@@ -1583,6 +1643,17 @@ class TransactionProvider extends ChangeNotifier {
   /// [periodTransfers] grouped by day, newest day first.
   Map<DateTime, List<Transfer>> get transfersByDay => _current.transfersByDay;
 
+  /// [periodTransactions] across every account, whatever [accountFilterId]
+  /// is set to. The CSV export reads these instead of [periodTransactions]:
+  /// like budgets, it is one of the things the account choice must not
+  /// reach, because a partial file that looks complete is worse than an
+  /// extra step (ACC-7, BAK-5).
+  List<ExpenseTransaction> get everyAccountPeriodTransactions =>
+      _everyAccount.transactions;
+
+  /// [periodTransfers] across every account (ACC-7, BAK-5).
+  List<Transfer> get everyAccountPeriodTransfers => _everyAccount.transfers;
+
   Money get periodIncome => _current.income;
   Money get periodExpense => _current.expense;
 
@@ -1609,19 +1680,23 @@ class TransactionProvider extends ChangeNotifier {
   DateTime get today => _today;
 
   /// Counted income and expense of the [count] periods that end with the
-  /// selected one, oldest first (INS-2, BAL-4).
+  /// selected one, oldest first. Follows the chosen account exactly as the
+  /// other Insights views do, so a chart and the total above it are never
+  /// about different money (INS-2, BAL-4, ACC-7).
   List<PeriodTotals> trend(int count) {
     assert(count > 0, 'A trend needs at least one period');
     final periods = [_period];
     while (periods.length < count) {
       periods.insert(0, periods.first.previous);
     }
+    final account = accountFilterId;
     final income = List.filled(count, Money.zero);
     final expense = List.filled(count, Money.zero);
     for (final tx in _transactions) {
       if (isUpcoming(tx) ||
           tx.date.isBefore(periods.first.start) ||
-          !tx.date.isBefore(_period.end)) {
+          !tx.date.isBefore(_period.end) ||
+          (account != null && tx.accountId != account)) {
         continue;
       }
       final index = periods.indexWhere((period) => period.contains(tx.date));
@@ -1640,8 +1715,12 @@ class TransactionProvider extends ChangeNotifier {
   // The home-screen widget (WID-1–WID-6).
 
   /// Shows the period that contains today, whatever was selected before
-  /// (WID-3).
+  /// (WID-3). A shortcut or widget tap is a fresh start, so a day chosen on
+  /// an earlier visit is brought forward to today first, the same as the
+  /// app resuming does (DAY-1, DAY-9): otherwise a stale day survives within
+  /// the same period and a new entry lands on it instead of today.
   void showCurrentPeriod() {
+    returnToToday();
     final current = currentPeriod;
     if (current == _period) return;
     _period = current;
@@ -1754,12 +1833,18 @@ class TransactionProvider extends ChangeNotifier {
       _previous.expenseByCategory;
   Map<String, Money> get previousIncomeByCategory => _previous.incomeByCategory;
 
-  /// Whether anything at all was recorded before the selected period. The
-  /// earliest period on record has nothing to compare itself with, and a
-  /// comparison against nothing reads as "you spent nothing last month"
-  /// (INS-6).
-  bool get hasEarlierRecords =>
-      _transactions.any((tx) => tx.date.isBefore(_period.start));
+  /// Whether anything at all was recorded before the selected period, for
+  /// the chosen account. The earliest period on record has nothing to
+  /// compare itself with, and a comparison against nothing reads as "you
+  /// spent nothing last month" (INS-6, ACC-7).
+  bool get hasEarlierRecords {
+    final account = accountFilterId;
+    return _transactions.any(
+      (tx) =>
+          tx.date.isBefore(_period.start) &&
+          (account == null || tx.accountId == account),
+    );
+  }
 
   /// The period across every account, whatever [accountFilterId] is set to.
   /// A budget is a limit on a category and has no account (BUD-1), so

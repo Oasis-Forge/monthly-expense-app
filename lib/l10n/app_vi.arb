@@ -96,6 +96,7 @@
   "trashTitle": "Thùng rác",
   "trashEmpty": "Thùng rác trống.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{xóa vĩnh viễn sau 1 ngày} other{xóa vĩnh viễn sau {days} ngày}}",
+  "trashNoteSubtitle": "{days, plural, =1{xóa vĩnh viễn sau 1 ngày} other{xóa vĩnh viễn sau {days} ngày}}",
   "restoreTooltip": "Khôi phục",
   "categoriesTitle": "Danh mục",
   "addCategoryTooltip": "Thêm danh mục",

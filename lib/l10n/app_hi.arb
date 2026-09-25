@@ -96,6 +96,7 @@
   "trashTitle": "ट्रैश",
   "trashEmpty": "ट्रैश खाली है।",
   "trashItemSubtitle": "{amount} · {days, plural, =1{1 दिन में हमेशा के लिए हट जाएगा} other{{days} दिनों में हमेशा के लिए हट जाएगा}}",
+  "trashNoteSubtitle": "{days, plural, =1{1 दिन में हमेशा के लिए हट जाएगा} other{{days} दिनों में हमेशा के लिए हट जाएगा}}",
   "restoreTooltip": "रीस्टोर",
   "categoriesTitle": "श्रेणियां",
   "addCategoryTooltip": "श्रेणी जोड़ें",

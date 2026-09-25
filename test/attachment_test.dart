@@ -147,6 +147,13 @@ void main() {
       expect(await attachments.read('note.m4a'), [1, 2, 3, 4]);
       expect(await attachments.totalBytes(), 4);
     });
+
+    test('path refuses a name that would resolve outside the folder '
+        '(ATT-2, data-integrity#10)', () async {
+      for (final name in ['a/b.jpg', '..\\x.jpg', '..']) {
+        await expectLater(attachments.path(name), throwsArgumentError);
+      }
+    });
   });
 
   group('the provider clears up files (ATT-5)', () {
@@ -225,6 +232,26 @@ void main() {
       expect(read.transactionCount, 1);
     });
 
+    test('a voice note alone still makes the backup a zip that carries it '
+        '(ATT-6)', () async {
+      await attachments.write('note1.m4a', const [5, 5]);
+      final service = serviceFor(
+        FakeDB(
+          transactions: [
+            testTx('a', expense, 10, now).copyWith(voiceFile: 'note1.m4a'),
+          ],
+        ),
+      );
+
+      await service.saveBackup(await testSettings());
+
+      expect(saved.saved.keys.single, endsWith('.zip'));
+      final read = await service.read(saved.saved.values.single);
+      expect(read.files, {
+        'note1.m4a': [5, 5],
+      });
+    });
+
     test('a backup without attachments stays a JSON file', () async {
       final service = serviceFor(FakeDB(transactions: [withPhoto(null)]));
 
@@ -274,6 +301,24 @@ void main() {
 
       expect(files.played, [await attachments.path('note.m4a')]);
       expect(heard, [true, false]);
+    });
+  });
+
+  group('the mic permission is declared on every platform that offers it '
+      '(ATT-2, ATT-4)', () {
+    // The Record button has no platform guard (attachment_field.dart), so
+    // every platform that requests mic access at runtime must also declare
+    // why in its own permission plist, or the OS kills the app outright
+    // instead of asking.
+    test('macOS declares NSMicrophoneUsageDescription', () {
+      final plist = File('macos/Runner/Info.plist').readAsStringSync();
+      expect(
+        plist.contains('NSMicrophoneUsageDescription'),
+        isTrue,
+        reason:
+            'record_macos requests mic access; without this key macOS TCC '
+            'terminates the app instead of asking.',
+      );
     });
   });
 }

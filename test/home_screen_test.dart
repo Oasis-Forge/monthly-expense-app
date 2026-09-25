@@ -780,6 +780,37 @@ void main() {
       expect(find.text('No transactions in this period yet.'), findsOneWidget);
     });
 
+    testWidgets('a past month opens on a week mostly its own, and the days '
+        'of another month are dimmed (DAY-6, DAY-3)', (tester) async {
+      await showHome(tester);
+      final strip = find.byType(DayStrip);
+      Finder inStrip(String day) =>
+          find.descendant(of: strip, matching: find.text(day));
+
+      await tester.tap(find.byTooltip('Previous period'));
+      await tester.pumpAndSettle();
+
+      // 1 August 2026 is a Saturday, so its week is six days of July: one
+      // tap on any of them used to take Home to July. The strip opens on
+      // 2–8 August instead.
+      for (final day in ['2', '3', '4', '5', '6', '7', '8']) {
+        expect(inStrip(day), findsOneWidget, reason: 'August $day');
+      }
+      expect(inStrip('26'), findsNothing);
+
+      // A swipe back reaches 26 July – 1 August, July's days dimmed.
+      await tester.drag(strip, const Offset(600, 0));
+      await tester.pumpAndSettle();
+      double dimming(String day) => tester
+          .widget<Opacity>(
+            find.ancestor(of: inStrip(day), matching: find.byType(Opacity)),
+          )
+          .opacity;
+      expect(dimming('26'), outsidePeriodOpacity);
+      expect(dimming('1'), 1);
+      expect(find.text('August 2026'), findsOneWidget);
+    });
+
     testWidgets('a day shows its own income and expense (DAY-7)', (
       tester,
     ) async {

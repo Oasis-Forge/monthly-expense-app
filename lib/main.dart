@@ -284,11 +284,31 @@ class _ShortcutTapsState extends State<_ShortcutTaps> {
   void _open(String type) {
     final navigator = MonthlyExpenseApp.navigatorKey.currentState;
     if (navigator == null) return;
+    final settings = navigator.context.read<SettingsProvider>();
+    // Setup and the walkthrough come first (RUN-5): a shortcut chosen before
+    // either is done would let an entry be recorded before the currency and
+    // language are even chosen, and would open the form over that screen.
+    if (!settings.setupDone || !settings.walkthroughSeen) return;
+    final provider = navigator.context.read<TransactionProvider>();
+    unawaited(_openWhenLoaded(navigator, provider, type));
+  }
+
+  /// The category and account the form opens with come from the loaded data
+  /// (ADD-3), so a shortcut chosen before the load finishes -- the usual
+  /// case for a process the OS had killed -- waits for it, rather than
+  /// opening on defaults that stay empty forever (WID-3).
+  Future<void> _openWhenLoaded(
+    NavigatorState navigator,
+    TransactionProvider provider,
+    String type,
+  ) async {
+    await provider.whenLoaded;
+    if (!navigator.mounted) return;
     // Whatever was open before is not what was asked for.
     navigator.popUntil((route) => route.isFirst);
     // A shortcut is a fresh start, so the form opens on the period the app
     // is for today rather than wherever Home was last left (DAY-9).
-    navigator.context.read<TransactionProvider>().showCurrentPeriod();
+    provider.showCurrentPeriod();
     navigator.push(
       MaterialPageRoute(
         builder: (_) => switch (type) {
@@ -336,11 +356,31 @@ class _WidgetTapsState extends State<_WidgetTaps> {
     tappedWidgetAction.value = null;
     final navigator = MonthlyExpenseApp.navigatorKey.currentState;
     if (navigator == null) return;
+    final settings = navigator.context.read<SettingsProvider>();
+    // Setup and the walkthrough come first (RUN-5): a widget tap before
+    // either is done would let an entry be recorded before the currency and
+    // language are even chosen, and would open the form over that screen.
+    if (!settings.setupDone || !settings.walkthroughSeen) return;
+    final provider = navigator.context.read<TransactionProvider>();
+    unawaited(_openWhenLoaded(navigator, provider, action));
+  }
+
+  /// The category and account the form opens with come from the loaded data
+  /// (ADD-3), so a widget tap that arrives before the load finishes -- the
+  /// usual case for a process the OS had killed -- waits for it, rather than
+  /// opening on defaults that stay empty forever (WID-3).
+  Future<void> _openWhenLoaded(
+    NavigatorState navigator,
+    TransactionProvider provider,
+    HomeWidgetAction action,
+  ) async {
+    await provider.whenLoaded;
+    if (!navigator.mounted) return;
     // Whatever was open before the tap is not what was asked for.
     navigator.popUntil((route) => route.isFirst);
     // The numbers on the widget are the current period's, so Home shows that
     // one however it was left (WID-2, WID-3).
-    navigator.context.read<TransactionProvider>().showCurrentPeriod();
+    provider.showCurrentPeriod();
     if (action == HomeWidgetAction.openHome) return;
     navigator.push(
       MaterialPageRoute(
@@ -392,11 +432,12 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     super.dispose();
   }
 
-  /// Back in the app on a later day, Home moves on to today (DAY-1).
+  /// Back in the app on a later day, Home moves on to today (DAY-1) and any
+  /// automatic occurrence due since then posts (RCR-4).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
-    context.read<TransactionProvider>().returnToToday();
+    unawaited(context.read<TransactionProvider>().returnToToday());
   }
 
   void _open() {

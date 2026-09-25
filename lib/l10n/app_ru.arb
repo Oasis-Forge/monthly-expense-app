@@ -96,6 +96,7 @@
   "trashTitle": "Корзина",
   "trashEmpty": "Корзина пуста.",
   "trashItemSubtitle": "{amount} · {days, plural, one{удалится навсегда через {days} день} few{удалится навсегда через {days} дня} many{удалится навсегда через {days} дней} other{удалится навсегда через {days} дней}}",
+  "trashNoteSubtitle": "{days, plural, one{удалится навсегда через {days} день} few{удалится навсегда через {days} дня} many{удалится навсегда через {days} дней} other{удалится навсегда через {days} дней}}",
   "restoreTooltip": "Восстановить",
   "categoriesTitle": "Категории",
   "addCategoryTooltip": "Добавить категорию",

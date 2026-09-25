@@ -12,6 +12,17 @@ import 'package:monthly_expense_app/screens/recurring_screen.dart';
 
 import 'helpers.dart';
 
+/// A [FakeDB] whose recurring-rule insert takes a beat, wide enough for a
+/// second Save tap to land before the first save finishes
+/// (data-integrity#5).
+class _SlowRuleDB extends FakeDB {
+  @override
+  Future<void> insertRecurringRule(RecurringRule rule) async {
+    await Future.delayed(const Duration(milliseconds: 60));
+    await super.insertRecurringRule(rule);
+  }
+}
+
 void main() {
   late FakeDB fake;
   late TransactionProvider provider;
@@ -185,6 +196,27 @@ void main() {
       expect(provider.recurringRuleById('Rent'), isNull);
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
+
+    testWidgets('pausing or resuming and then saving keeps the change '
+        '(RCR-5, RCR-6, audit rules-6-10#3)', (tester) async {
+      await showRecurring(tester);
+
+      await tester.tap(find.text('Rent').last);
+      await tester.pumpAndSettle();
+      await tapInForm(tester, find.byTooltip('Pause'));
+      expect(provider.recurringRuleById('Rent')!.isPaused, isTrue);
+
+      await save(tester);
+      expect(provider.recurringRuleById('Rent')!.isPaused, isTrue);
+
+      await tester.tap(find.text('Rent').last);
+      await tester.pumpAndSettle();
+      await tapInForm(tester, find.byTooltip('Resume'));
+      expect(provider.recurringRuleById('Rent')!.isPaused, isFalse);
+
+      await save(tester);
+      expect(provider.recurringRuleById('Rent')!.isPaused, isFalse);
+    });
   });
 
   group('rule form (RCR-1)', () {
@@ -201,6 +233,58 @@ void main() {
         (false, const Money(15000), RecurrenceFrequency.month, 1),
       );
       expect(find.byType(RecurringRuleScreen), findsNothing);
+    });
+
+    testWidgets('double-tapping Save on a new rule creates only one '
+        '(audit data-integrity#5)', (tester) async {
+      final slowFake = _SlowRuleDB();
+      final slowProvider = TransactionProvider(
+        db: slowFake,
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await slowProvider.load();
+      final slowSettings = await testSettings();
+
+      // Push the form as a route, the way the Recurring screen does, so a
+      // completed save can pop back to a real screen underneath.
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          slowProvider,
+          slowSettings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const RecurringRuleScreen(),
+                  ),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      final amountField = find.widgetWithText(TextFormField, 'Amount');
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '900');
+
+      final saveButton = find.widgetWithText(FilledButton, 'Save');
+      await revealInForm(tester, saveButton);
+
+      // Two taps close together, as a real double-tap (or a retry after a
+      // slow first save) would land.
+      await tester.tap(saveButton);
+      await tester.pump(const Duration(milliseconds: 30));
+      await tester.tap(saveButton);
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pumpAndSettle();
+
+      expect(slowProvider.recurringRules, hasLength(1));
     });
 
     testWidgets('frequency, interval, end, and auto-post are saved', (
@@ -249,6 +333,22 @@ void main() {
       );
       expect(find.text('Enter a whole number from 1'), findsNWidgets(2));
     });
+
+    testWidgets(
+      'an interval large enough to overflow the date range is rejected '
+      '(audit money-time#7)',
+      (tester) async {
+        await openForm(tester);
+
+        await enter(tester, 'Amount', '20');
+        await enter(tester, 'Every', '300000');
+        await save(tester);
+
+        expect(find.byType(RecurringRuleScreen), findsOneWidget);
+        // Only the two rules from setUp (Rent, Gym); nothing new was saved.
+        expect(provider.recurringRules, hasLength(2));
+      },
+    );
 
     testWidgets('an end date before the start is rejected', (tester) async {
       final invalid = testRule(

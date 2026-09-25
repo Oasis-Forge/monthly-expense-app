@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
@@ -344,6 +348,59 @@ void main() {
       expect(entry.expense, money(37));
       expect(entry.income, money(200));
     });
+
+    testWidgets('Export CSV carries every account, not just the chosen one '
+        '(ACC-7, BAK-5)', (tester) async {
+      const savings = 'acct-savings';
+      final db = twoAccounts(
+        extraTransfers: [
+          testTransfer('t1', cash, savings, 10, DateTime(2026, 9, 13)),
+        ],
+      );
+      db.accounts.add(testAccount(savings, opening: 0));
+      final provider = await loaded(db);
+      final settings = await testSettings();
+      final files = FakeBackupFiles();
+
+      provider.selectAccountFilter(bank);
+      await settings.setAccountFilterId(bank);
+
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          const HomeScreen(),
+          backup: testBackupService(FakeDB(), files: files),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Open navigation menu'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Export CSV'),
+        120,
+        scrollable: find
+            .descendant(
+              of: find.byType(Drawer),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Export CSV'));
+      await tester.pumpAndSettle();
+
+      final csv = utf8.decode(
+        files.saved['monthly-expenses-2026-09-01_2026-09-30.csv']!,
+      );
+      // ACC-7: the CSV export is one of the things the account choice must
+      // not reach, so with Bank chosen, Cash's rows are still there.
+      expect(csv, contains('cash-spend'));
+      expect(csv, contains('bank-spend'));
+      expect(csv, contains(cash));
+      expect(csv, contains(savings));
+    });
   });
 
   group('driving it on Home', () {
@@ -628,5 +685,22 @@ void main() {
       await settings.setAccountFilterId(null);
       expect(settings.accountFilterId, isNull);
     });
+
+    test(
+      'both the choice and its clearing survive a relaunch (ACC-6)',
+      () async {
+        final settings = await testSettings();
+        Future<String?> relaunched() async =>
+            SettingsProvider(await SharedPreferences.getInstance())
+                .accountFilterId;
+
+        await settings.setAccountFilterId(bank);
+        expect(await relaunched(), bank);
+
+        // "All accounts" chosen: the next launch opens on every account.
+        await settings.setAccountFilterId(null);
+        expect(await relaunched(), isNull);
+      },
+    );
   });
 }

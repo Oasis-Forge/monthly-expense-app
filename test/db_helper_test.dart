@@ -75,6 +75,33 @@ void main() {
         expect(await columns(v3, 'labels'), ['id']);
       },
     );
+
+    test('a build with fewer migration steps refuses to open a database a '
+        'newer build already upgraded, and never lowers its schema version '
+        '(data-integrity#9)', () async {
+      final current = DBHelper().version;
+      final newer = helperAt('app.db');
+      await newer.database;
+      await newer.close();
+
+      // An older build (fewer migration steps) opens the same file, as
+      // TestFlight, `adb install -d`, or a desktop installer downgrade
+      // allow. It must refuse rather than silently lower `user_version`.
+      final older = helperAt(
+        'app.db',
+        DBHelper.schemaMigrations.sublist(
+          0,
+          DBHelper.schemaMigrations.length - 1,
+        ),
+      );
+      await expectLater(older.database, throwsA(isA<StateError>()));
+      await older.close();
+
+      // The newer build is installed again: it must still open cleanly,
+      // proving `user_version` was left as it was rather than lowered.
+      final newerAgain = helperAt('app.db');
+      expect(await (await newerAgain.database).getVersion(), current);
+    });
   });
 
   group('app schema', () {
@@ -128,6 +155,29 @@ void main() {
       expect({for (final t in byId.values) t.accountId}, {Account.cashId});
     });
 
+    test('upgrading version 1 rounds fractional cents instead of truncating '
+        '(MONEY-1)', () async {
+      // $2.01 as a double is 2.0099999999999998, so multiplying by 1000
+      // and truncating (rather than rounding) loses a thousandth.
+      final v1 = helperAt('app.db', []);
+      final raw = await v1.database;
+      await raw.insert('transactions', {
+        'id': 'a',
+        'title': 'Toll',
+        'amount': 2.01,
+        'category': 'Transport',
+        'type': 'expense',
+        'date': '2026-09-13T12:00:00.000',
+        'note': null,
+      });
+      await v1.close();
+
+      final current = helperAt('app.db');
+      final stored = (await current.fetchTransactions()).single;
+
+      expect(stored.amount, const Money(2010));
+    });
+
     test(
       'a fresh install has the defaults and matches an upgraded install',
       () async {
@@ -160,6 +210,27 @@ void main() {
       },
     );
 
+    test(
+      "the built-in Cash account's opening date has no time of day (ACC-2)",
+      () async {
+        // Every other account is opened at midnight (see
+        // account_edit_screen's default), and code elsewhere compares
+        // openingDate directly against period boundaries, so Cash must match.
+        final fresh = helperAt('fresh.db');
+
+        final cash = (await fresh.fetchAccounts()).single;
+
+        expect(
+          cash.openingDate,
+          DateTime(
+            cash.openingDate.year,
+            cash.openingDate.month,
+            cash.openingDate.day,
+          ),
+        );
+      },
+    );
+
     test('soft-deleted rows move from the list to the trash', () async {
       final helper = helperAt('app.db');
       final lunch = testTx('a', expense, 12.5, DateTime(2026, 9, 13));
@@ -176,6 +247,23 @@ void main() {
         [for (final t in await helper.fetchDeletedTransactions()) t.id],
         ['a'],
       );
+    });
+
+    test('inserting a transaction again replaces it, not fails', () async {
+      // insertTransaction deliberately uses ConflictAlgorithm.replace, so an
+      // id that already exists is an upsert rather than a thrown exception.
+      final helper = helperAt('app.db');
+      final original = testTx('dup', expense, 5, DateTime(2026, 9, 1));
+      await helper.insertTransaction(original);
+
+      await helper.insertTransaction(
+        original.copyWith(title: 'Replaced', amount: const Money(9000)),
+      );
+
+      final stored = (await helper.fetchTransactions()).single;
+      expect(stored.id, 'dup');
+      expect(stored.title, 'Replaced');
+      expect(stored.amount, const Money(9000));
     });
 
     test('purgeDeletedBefore removes only older trash (DEL-3)', () async {
@@ -221,6 +309,31 @@ void main() {
       );
       expect(await (await helper.database).query('transfers'), isEmpty);
     });
+
+    test(
+      'purgeDeletedBefore keeps a row deleted exactly at the cutoff (DEL-3)',
+      () async {
+        // DEL-3: 30 days in the trash, so a row deleted at the exact moment
+        // of the cutoff has not yet finished its 30 days and must survive.
+        final helper = helperAt('app.db');
+        final cutoff = DateTime.utc(2026, 9, 10);
+        await helper.insertTransaction(
+          testTx(
+            'on-cutoff',
+            expense,
+            1,
+            DateTime(2026, 8, 10),
+          ).copyWith(deletedAt: cutoff),
+        );
+
+        await helper.purgeDeletedBefore(cutoff);
+
+        expect(
+          [for (final t in await helper.fetchDeletedTransactions()) t.id],
+          ['on-cutoff'],
+        );
+      },
+    );
 
     test('categories can be added and updated', () async {
       final helper = helperAt('app.db');
@@ -394,6 +507,75 @@ void main() {
       await helper.purgeDeletedBefore(DateTime.utc(2026, 9));
       expect(await (await helper.database).query('notes'), isEmpty);
     });
+
+    test('deleted notes are kept and read back, most recent first (DEL-5, '
+        'NOTE-7)', () async {
+      final helper = helperAt('app.db');
+      final kept = testNote('keep', 'Still open');
+      final first = testNote('first', 'Deleted first');
+      final second = testNote('second', 'Deleted second');
+      await helper.insertNote(kept);
+      await helper.insertNote(first);
+      await helper.insertNote(second);
+
+      await helper.updateNote(
+        first.copyWith(deletedAt: DateTime.utc(2026, 9, 4)),
+      );
+      await helper.updateNote(
+        second.copyWith(deletedAt: DateTime.utc(2026, 9, 5)),
+      );
+
+      expect([for (final n in await helper.fetchNotes()) n.id], ['keep']);
+      final deleted = await helper.fetchDeletedNotes();
+      expect([for (final n in deleted) n.id], ['second', 'first']);
+      expect(deleted.first.deletedAt, DateTime.utc(2026, 9, 5));
+      expect(deleted.last.deletedAt, DateTime.utc(2026, 9, 4));
+    });
+
+    test('a database from before the purge step upgrades and purges trash in '
+        'every table (DEL-3, BAK-3, rules-1-5#7)', () async {
+      final steps = DBHelper.schemaMigrations;
+      // Everything before the purge-tombstone step, named rather than
+      // counted back from the end for the same reason as the attachments
+      // upgrade test above.
+      final before = helperAt(
+        'purge-upgrade.db',
+        steps.sublist(0, steps.indexOf(migrateToVersion11)),
+      );
+      await before.insertTransaction(
+        testTx(
+          'old-tx',
+          expense,
+          5,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime.utc(2026, 7, 1)),
+      );
+      await before.insertTransfer(
+        testTransfer(
+          'old-transfer',
+          Account.cashId,
+          'bank',
+          5,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime.utc(2026, 7, 1)),
+      );
+      await before.insertNote(
+        testNote(
+          'old-note',
+          'Pay rent',
+        ).copyWith(deletedAt: DateTime.utc(2026, 7, 1)),
+      );
+      await before.close();
+
+      final upgraded = helperAt('purge-upgrade.db');
+      await upgraded.purgeDeletedBefore(DateTime.utc(2026, 9, 1));
+
+      expect((await upgraded.fetchPurgedIds()).keys, {
+        'old-tx',
+        'old-transfer',
+        'old-note',
+      });
+    });
   });
 
   group('attachments (ATT-1, ATT-5)', () {
@@ -466,6 +648,43 @@ void main() {
       // colour repeated.
       expect(categories.first.color, isNot(categories[1].color));
     });
+
+    test(
+      'the colour step wraps around once every colour is handed out (CAT-6)',
+      () async {
+        // The 15 built-in categories never reach the palette's 16 colours by
+        // themselves, so this only shows up once the user has added enough
+        // categories of their own to run past the end of the palette.
+        final steps = DBHelper.schemaMigrations;
+        final before = helperAt(
+          'colours.db',
+          steps.sublist(0, steps.indexOf(migrateToVersion10)),
+        );
+        final made = DateTime.utc(2026, 9, 1).toIso8601String();
+        final raw = await before.database;
+        // 15 defaults already exist at sort_order 0-14; two more make 17.
+        for (var i = 0; i < 2; i++) {
+          await raw.insert('categories', {
+            'id': 'cat-extra-$i',
+            'type': 'expense',
+            'name': 'Extra $i',
+            'icon': '⭐',
+            'sort_order': 15 + i,
+            'created_at': made,
+            'updated_at': made,
+          });
+        }
+        await before.close();
+
+        final upgraded = helperAt('colours.db');
+        final categories = await upgraded.fetchCategories();
+        final seventeenth = categories.firstWhere((c) => c.id == 'cat-extra-1');
+
+        expect(categories, hasLength(17));
+        // The 17th category (index 16) wraps back to the first colour.
+        expect(seventeenth.color, categoryPalette[0]);
+      },
+    );
 
     test('the colour step leaves everything else alone (CAT-6)', () async {
       final steps = DBHelper.schemaMigrations;

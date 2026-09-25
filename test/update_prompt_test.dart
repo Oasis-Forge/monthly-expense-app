@@ -133,6 +133,68 @@ void main() {
     expect(updates.installed, 1);
   });
 
+  testWidgets('a later message still gets through after the restart offer '
+      '(UPD-1, pr58#3)', (tester) async {
+    final (provider, settings) = await established();
+    final updates = FakeUpdates(offered: true);
+
+    await tester.pumpWidget(
+      testApp(
+        provider,
+        settings,
+        Builder(
+          builder: (context) => Scaffold(
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () => afterSave(context),
+                  child: const Text('save'),
+                ),
+                TextButton(
+                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not save.')),
+                  ),
+                  child: const Text('fail'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        reviews: FakeReviews(supported: false),
+        updates: updates,
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('save'));
+    await tester.pumpAndSettle();
+    expect(find.text('An update has been downloaded.'), findsOneWidget);
+
+    await tester.tap(find.text('fail'));
+    await tester.pump();
+    // Comfortably longer than the restart bar's own 10 second duration, so a
+    // message that isn't stuck behind it would have had its turn by now.
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Could not save.'), findsOneWidget);
+  });
+
+  testWidgets(
+    'a download Play already finished offers the restart without starting '
+    'another (UPD-1)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(downloaded: true);
+
+      await runSeam(tester, provider, settings, updates: updates);
+
+      expect(find.text('An update has been downloaded.'), findsOneWidget);
+      expect(updates.started, 0);
+      expect(settings.updateAskedOn, isNotNull);
+    },
+  );
+
   testWidgets('a download that never finished says nothing (UPD-1)', (
     tester,
   ) async {

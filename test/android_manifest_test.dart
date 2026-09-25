@@ -105,4 +105,44 @@ void main() {
       }
     });
   });
+
+  // The ad SDK reads its manifest/plist flags before Dart ever runs, and by
+  // default it starts sending app-measurement events to Google immediately
+  // at process start — before AdsProvider.start() ever calls
+  // MobileAds.instance.initialize(), which is gated on setup, the walkthrough
+  // and consent (ADS-4, ADS-5). Without the delay flags below, that native
+  // auto-start happens on every launch, for every user, including someone
+  // who bought "Remove ads" — which docs/privacy-policy.md promises never
+  // starts the ad software at all (ADS-6, ADS-8, PAY-1).
+  group('the ad SDK waits for initialize() (ADS-4, ADS-5, ADS-6, PAY-1)', () {
+    test('Android delays app measurement', () {
+      expect(
+        manifest,
+        contains(
+          RegExp(
+            r'com\.google\.android\.gms\.ads\.DELAY_APP_MEASUREMENT_INIT"\s*'
+            r'android:value="true"',
+          ),
+        ),
+        reason:
+            'Without DELAY_APP_MEASUREMENT_INIT, the ad SDK sends '
+            'user-level events to Google at app launch, before setup, the '
+            'walkthrough and consent, and even for someone who bought '
+            '"Remove ads".',
+      );
+    });
+
+    test('iOS delays app measurement', () {
+      final plist = File('ios/Runner/Info.plist').readAsStringSync();
+      expect(
+        plist,
+        contains(RegExp(r'<key>GADDelayAppMeasurementInit</key>\s*<true\s*/>')),
+        reason:
+            'Without GADDelayAppMeasurementInit, the ad SDK sends '
+            'user-level events to Google at app launch, before setup, the '
+            'walkthrough and consent, and even for someone who bought '
+            '"Remove ads".',
+      );
+    });
+  });
 }

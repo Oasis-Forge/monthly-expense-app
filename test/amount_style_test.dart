@@ -91,6 +91,14 @@ void main() {
       },
     );
 
+    testWidgets('an amount is coloured for the side it is on (CUR-5)', (
+      tester,
+    ) async {
+      final context = await themed(tester, Brightness.light);
+      expect(signedColor(context, isIncome: true), incomeColor(context));
+      expect(signedColor(context, isIncome: false), expenseColor(context));
+    });
+
     test('money in takes a plus, money out a minus', () {
       expect(
         signedAmount(currency, const Money(12500), isIncome: true),

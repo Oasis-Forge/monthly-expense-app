@@ -219,6 +219,10 @@ class FakeDB extends DBHelper {
 
   /// Every posted or skipped occurrence.
   final List<RecurringOccurrence> occurrences = [];
+
+  /// Every ID ever purged from the trash, and its `updated_at` when purged
+  /// (DEL-3, rules-1-5#7).
+  final Map<String, String> purgedIds = {};
   bool failWrites = false;
 
   void _checkWrite() {
@@ -244,6 +248,19 @@ class FakeDB extends DBHelper {
       for (final row in rows)
         if (old(row.deletedAt)) row,
     ];
+    for (final row in going) {
+      purgedIds[row.id] = row.updatedAt.toUtc().toIso8601String();
+    }
+    for (final t in transfers) {
+      if (old(t.deletedAt)) {
+        purgedIds[t.id] = t.updatedAt.toUtc().toIso8601String();
+      }
+    }
+    for (final n in notes) {
+      if (old(n.deletedAt)) {
+        purgedIds[n.id] = n.updatedAt.toUtc().toIso8601String();
+      }
+    }
     rows.removeWhere((row) => old(row.deletedAt));
     transfers.removeWhere((t) => old(t.deletedAt));
     notes.removeWhere((n) => old(n.deletedAt));
@@ -251,6 +268,9 @@ class FakeDB extends DBHelper {
       for (final row in going) ...[?row.photoFile, ?row.voiceFile],
     ];
   }
+
+  @override
+  Future<Map<String, String>> fetchPurgedIds() async => {...purgedIds};
 
   @override
   Future<void> insertTransaction(ExpenseTransaction tx) async {
@@ -381,6 +401,12 @@ class FakeDB extends DBHelper {
     for (final note in notes)
       if (note.deletedAt == null) note,
   ];
+
+  @override
+  Future<List<Note>> fetchDeletedNotes() async => [
+    for (final note in notes)
+      if (note.deletedAt != null) note,
+  ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
   @override
   Future<void> insertNote(Note note) async {
@@ -978,6 +1004,9 @@ class FakeAttachments implements AttachmentService {
   String? _recording;
   int _next = 0;
 
+  /// Whether a recording in progress was ever cancelled (ATT-4, ATT-5).
+  bool cancelled = false;
+
   String _name(String extension) => 'file${++_next}.$extension';
 
   @override
@@ -1006,6 +1035,7 @@ class FakeAttachments implements AttachmentService {
 
   @override
   Future<void> cancelRecording() async {
+    cancelled = true;
     stored.remove(_recording);
     _recording = null;
   }
@@ -1098,7 +1128,8 @@ class FakeUpdates implements UpdateService {
     this.supported = true,
     this.offered = false,
     this.downloads = true,
-  });
+    bool downloaded = false,
+  }) : alreadyDownloaded = downloaded;
 
   @override
   final bool supported;
@@ -1109,6 +1140,10 @@ class FakeUpdates implements UpdateService {
   /// Whether the background download finishes, rather than being declined
   /// or failing.
   final bool downloads;
+
+  /// Whether Play already has a finished download waiting from an earlier
+  /// run (UPD-1), so [download] should never be called.
+  final bool alreadyDownloaded;
 
   /// How many times Play was asked whether anything is waiting.
   int checked = 0;
@@ -1130,6 +1165,9 @@ class FakeUpdates implements UpdateService {
     started++;
     return downloads;
   }
+
+  @override
+  Future<bool> downloaded() async => alreadyDownloaded;
 
   @override
   Future<void> install() async => installed++;

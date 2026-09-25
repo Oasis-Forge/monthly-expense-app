@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/backup.dart';
+import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
@@ -140,6 +141,66 @@ void main() {
     expect(titles(), ['Lunch']);
     expect(settings.currencyCode, 'USD');
   });
+
+  testWidgets(
+    'a restore reschedules reminders with the real app lock, language, and '
+    'nudge setting, not the load() defaults (LOCK-2, NOTE-6, NUDGE-8, '
+    'NUDGE-9, pr59#6)',
+    (tester) async {
+      fake.notes.add(
+        testNote(
+          'note-1',
+          'Pay Dr. X 300',
+          dueDate: DateTime(2026, 9, 20),
+          reminderAt: DateTime(2026, 9, 20, 9),
+        ),
+      );
+      final reminders = FakeReminderService();
+      provider = TransactionProvider(
+        db: fake,
+        clock: () => today,
+        reminders: reminders,
+      );
+      // The real settings at launch: app lock on, empty-day nudge on.
+      await provider.load(
+        appLockOn: true,
+        locale: const Locale('en'),
+        nudge: const NudgeSettings(on: true, hour: 20, minute: 0),
+      );
+      expect(reminders.scheduled['note-1'], isTrue);
+      expect(reminders.nudgesLocked, isTrue);
+
+      files.toOpen = await otherDeviceBackup();
+      settings = await testSettings({
+        'app_lock': true,
+        'empty_day_nudge': true,
+      }, () => today);
+      await tester.pumpWidget(
+        testApp(provider, settings, const BackupScreen(), backup: service),
+      );
+      await tester.pumpAndSettle();
+
+      await openFile(tester);
+      await tapRestore(tester);
+
+      // note-1 is still open after the merge; it should keep being
+      // scheduled with the real, current app lock -- not the false/en/off
+      // defaults `transactions.load()` falls back to when called with no
+      // arguments.
+      expect(
+        reminders.scheduled['note-1'],
+        isTrue,
+        reason:
+            'the note reminder body should still be hidden behind app '
+            'lock after a restore',
+      );
+      expect(
+        reminders.nudgesLocked,
+        isTrue,
+        reason: 'the empty-day nudge should still be worded for app lock on',
+      );
+    },
+  );
 
   testWidgets('cancelling a restore changes nothing', (tester) async {
     files.toOpen = await otherDeviceBackup();

@@ -97,7 +97,14 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
         _show(l10n.backupRestoreFailed);
         return;
       }
-      await transactions.load();
+      // The backup may carry its own app lock, language, or nudge setting
+      // (BAK-2); reschedule reminders with what they are now (LOCK-2,
+      // NOTE-6, NUDGE-8, NUDGE-9, pr59#6).
+      await transactions.load(
+        appLockOn: settings.appLock,
+        locale: effectiveAppLocale(settings.locale),
+        nudge: settings.nudgeSettings,
+      );
       transactions.setStartDay(settings.startDay);
       await settings.completeWalkthrough();
     } finally {

@@ -7,6 +7,9 @@ import '../models/period.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 
+/// How strongly a day of another period is dimmed in the strip (DAY-3).
+const outsidePeriodOpacity = 0.4;
+
 /// One week of days under the period selector on Home: today keeps a mark of
 /// its own, the chosen day is filled, and a day with entries carries a dot
 /// (DAY-2, DAY-4). Swiping moves a week at a time, and a day outside the
@@ -83,11 +86,18 @@ class _DayStripState extends State<DayStrip> {
     final today = provider.today;
     final selected = provider.selectedDay;
     // Where the strip sits when it hasn't been swiped: the chosen day's week,
-    // else today's if this period holds it, else the period's first (DAY-6).
-    final followWeek = startOfWeek(
-      selected ?? (period.contains(today) ? today : period.start),
-      firstWeekday,
-    );
+    // else today's if this period holds it, else the period's first week
+    // that lies mostly inside it (DAY-6). A month starting on a Saturday
+    // would otherwise open on six days of the month before.
+    final DateTime followWeek;
+    if (selected != null || period.contains(today)) {
+      followWeek = startOfWeek(selected ?? today, firstWeekday);
+    } else {
+      final first = startOfWeek(period.start, firstWeekday);
+      followWeek = daysBetween(first, period.start) > 3
+          ? DateTime(first.year, first.month, first.day + 7)
+          : first;
+    }
     // A changed first day of the week leaves the old anchor off the grid.
     if (_anchorWeek != null && daysBetween(_anchorWeek!, followWeek) % 7 != 0) {
       _anchorWeek = null;
@@ -116,14 +126,21 @@ class _DayStripState extends State<DayStrip> {
                   builder: (context) {
                     final day = DateTime(week.year, week.month, week.day + i);
                     return Expanded(
-                      child: _DayChip(
-                        day: day,
-                        isSelected: day == selected,
-                        isToday: day == today,
-                        hasEntries: entryDays.contains(day),
-                        onTap: () => day == selected
-                            ? provider.clearSelectedDay()
-                            : provider.selectDay(day),
+                      // A day of another period is dimmed, so choosing it
+                      // and landing in that period is no surprise (DAY-3).
+                      child: Opacity(
+                        opacity: period.contains(day)
+                            ? 1
+                            : outsidePeriodOpacity,
+                        child: _DayChip(
+                          day: day,
+                          isSelected: day == selected,
+                          isToday: day == today,
+                          hasEntries: entryDays.contains(day),
+                          onTap: () => day == selected
+                              ? provider.clearSelectedDay()
+                              : provider.selectDay(day),
+                        ),
                       ),
                     );
                   },

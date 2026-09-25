@@ -712,6 +712,12 @@ abstract class AppLocalizations {
   /// **'{amount} · {days, plural, =1{deleted for good in 1 day} other{deleted for good in {days} days}}'**
   String trashItemSubtitle(String amount, int days);
 
+  /// Days left before a trashed note is purged for good (DEL-5, NOTE-7); unlike trashItemSubtitle, this has no amount, since a note need not have one.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{deleted for good in 1 day} other{deleted for good in {days} days}}'**
+  String trashNoteSubtitle(int days);
+
   /// No description provided for @restoreTooltip.
   ///
   /// In en, this message translates to:

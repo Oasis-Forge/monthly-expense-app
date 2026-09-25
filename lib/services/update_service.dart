@@ -19,6 +19,14 @@ abstract class UpdateService {
   /// or was cancelled -- all of which are the same to the app.
   Future<bool> download();
 
+  /// Whether Play is already holding a finished download from an earlier
+  /// run of the app, so the restart can be offered again without starting
+  /// another download (UPD-1): the ask is at most once a day, but a
+  /// download that finished in the background and lost its restart offer
+  /// (the app was closed, or a later message pushed it off screen) would
+  /// otherwise sit there with no way back in.
+  Future<bool> downloaded();
+
   /// Installs what was downloaded, which restarts the app.
   Future<void> install();
 }
@@ -53,6 +61,16 @@ class DeviceUpdates implements UpdateService {
   }
 
   @override
+  Future<bool> downloaded() async {
+    try {
+      final info = await InAppUpdate.checkForUpdate();
+      return info.installStatus == InstallStatus.downloaded;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<void> install() async {
     try {
       await InAppUpdate.completeFlexibleUpdate();
@@ -76,6 +94,9 @@ class NoUpdates implements UpdateService {
 
   @override
   Future<bool> download() async => false;
+
+  @override
+  Future<bool> downloaded() async => false;
 
   @override
   Future<void> install() async {}

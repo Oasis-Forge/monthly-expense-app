@@ -96,6 +96,7 @@
   "trashTitle": "ถังขยะ",
   "trashEmpty": "ถังขยะว่างเปล่า",
   "trashItemSubtitle": "{amount} · {days, plural, =1{ลบถาวรใน 1 วัน} other{ลบถาวรใน {days} วัน}}",
+  "trashNoteSubtitle": "{days, plural, =1{ลบถาวรใน 1 วัน} other{ลบถาวรใน {days} วัน}}",
   "restoreTooltip": "กู้คืน",
   "categoriesTitle": "หมวดหมู่",
   "addCategoryTooltip": "เพิ่มหมวดหมู่",

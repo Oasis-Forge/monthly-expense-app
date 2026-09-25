@@ -96,6 +96,7 @@
   "trashTitle": "Papelera",
   "trashEmpty": "La papelera está vacía.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{se borrará definitivamente en 1 día} other{se borrará definitivamente en {days} días}}",
+  "trashNoteSubtitle": "{days, plural, =1{se borrará definitivamente en 1 día} other{se borrará definitivamente en {days} días}}",
   "restoreTooltip": "Restaurar",
   "categoriesTitle": "Categorías",
   "addCategoryTooltip": "Añadir categoría",

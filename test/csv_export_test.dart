@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/csv_export.dart';
+import 'package:monthly_expense_app/models/csv_import.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 
 import 'helpers.dart';
@@ -82,5 +83,74 @@ void main() {
       [for (final line in lines(csv)) line.split(',').elementAtOrNull(7)],
       ["'=SUM(A1)", "'-5 refund", "'@home", "'+1 extra", null],
     );
+  });
+
+  test('every text column gets the formula apostrophe, not only the title '
+      '(BAK-5)', () {
+    final csv = buildCsv(
+      transactions: [
+        testTx(
+          'a',
+          expense,
+          1,
+          DateTime(2026, 9, 1),
+          title: 'Lunch',
+        ).copyWith(note: '=1+1'),
+      ],
+      transfers: [
+        testTransfer(
+          't',
+          Account.cashId,
+          'bank',
+          5,
+          DateTime(2026, 9, 2),
+        ).copyWith(note: '-fee'),
+      ],
+      currencyCode: 'USD',
+      categoryName: (_) => '+Tips',
+      accountName: (id) => id == Account.cashId ? '@Wallet' : '-Savings',
+    );
+
+    expect(lines(csv), [
+      "2026-09-01,expense,1,USD,'+Tips,'@Wallet,,Lunch,'=1+1",
+      "2026-09-02,transfer,5,USD,,'@Wallet,'-Savings,,'-fee",
+      '',
+    ]);
+  });
+
+  test('a sign or an @ further into the text is left alone (BAK-5)', () {
+    final csv = csvOf([
+      testTx(
+        'a',
+        expense,
+        1,
+        DateTime(2026, 9, 1),
+        title: 'Wi-Fi + phone',
+        note: 'me@home = 2',
+      ),
+    ]);
+
+    expect(
+      lines(csv).first,
+      '2026-09-01,expense,1,USD,Food,Cash,,Wi-Fi + phone,me@home = 2',
+    );
+  });
+
+  test('a tab before a formula gets the apostrophe too (BAK-5)', () {
+    final csv = csvOf([
+      testTx('a', expense, 1, DateTime(2026, 9, 1), title: '\t=1+1'),
+    ]);
+
+    expect(lines(csv).first.split(',')[7], "'\t=1+1");
+  });
+
+  test('a lone carriage return stays inside its cell (BAK-5, IMP-2)', () {
+    final csv = csvOf([
+      testTx('a', expense, 1, DateTime(2026, 9, 1), note: 'one\rtwo'),
+    ]);
+
+    final table = parseCsv(csv);
+    expect(table.rows, hasLength(1));
+    expect(table.rows.single.last, 'one\rtwo');
   });
 }

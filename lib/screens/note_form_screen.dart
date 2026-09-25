@@ -54,6 +54,14 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
         _reminderTime = TimeOfDay.fromDateTime(reminderAt);
       }
     }
+    // Live preview of the parsed amount (CUR-2): the system decimal keyboard
+    // reads '.' as a thousands separator in some languages, so a mistyped
+    // amount is shown back rather than saved silently wrong.
+    _amountController.addListener(_refresh);
+  }
+
+  void _refresh() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -132,6 +140,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
         : Money.tryParse(
             amountText,
             maxDecimals: currency.maximumFractionDigits,
+            decimalMark: currency.symbols.DECIMAL_SEP,
           );
 
     _saving = true;
@@ -271,12 +280,27 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
                 labelText: l10n.noteAmountOptionalLabel,
                 border: const OutlineInputBorder(),
                 prefixText: '${currency.currencySymbol} ',
+                // A live preview (CUR-2), so a mistyped decimal mark is seen
+                // before it's saved wrong instead of silently.
+                helperText: _amountController.text.trim().isEmpty
+                    ? null
+                    : switch (Money.tryParse(
+                        _amountController.text,
+                        maxDecimals: currency.maximumFractionDigits,
+                        decimalMark: currency.symbols.DECIMAL_SEP,
+                      )) {
+                        final amount? => l10n.amountResult(
+                          currency.money(amount),
+                        ),
+                        null => null,
+                      },
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) return null;
                 final amount = Money.tryParse(
                   value,
                   maxDecimals: currency.maximumFractionDigits,
+                  decimalMark: currency.symbols.DECIMAL_SEP,
                 );
                 return amount == null || !amount.isPositive
                     ? l10n.amountInvalid

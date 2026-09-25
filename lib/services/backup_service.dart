@@ -176,7 +176,14 @@ class BackupService {
       if (file.name == backupEntry) {
         json = utf8.decode(content);
       } else if (file.name.startsWith('$attachmentsEntry/')) {
-        files[file.name.split('/').last] = content;
+        // A zip entry name is untrusted (it need not come from this app's
+        // own encoder, which is the only thing that would have rewritten a
+        // `\`-separated traversal to `/`): keep only names that are this
+        // app's own uuid.ext pattern, never a path, so a crafted backup
+        // can't write outside the attachments folder (ATT-2,
+        // data-integrity#10).
+        final name = file.name.split('/').last;
+        if (isSafeAttachmentName(name)) files[name] = content;
       }
     }
     if (json == null) throw const BackupException(BackupProblem.invalid);
@@ -186,6 +193,13 @@ class BackupService {
   /// Keeps an automatic backup of the current data, then restores [backup]
   /// (BAK-2, BAK-3). Replace also applies the backup's settings; Merge keeps
   /// this device's settings.
+  ///
+  /// Writes the attachment files before committing either the database or
+  /// the settings: if a file write fails part-way through (a full disk, a
+  /// large zip), nothing has been committed yet, so the caller's failure
+  /// path finds the data exactly as it was rather than a database that
+  /// already holds the backup while providers still hold the old data
+  /// (BAK-2, ATT-6, data-integrity#8).
   Future<RestoreResult> restore(
     BackupData backup,
     RestoreMode mode,
@@ -194,14 +208,18 @@ class BackupService {
     await keepCurrentData(settings);
     switch (mode) {
       case RestoreMode.replace:
-        await _db.replaceAllData(backup.tables);
         await _writeFiles(backup);
+        await _db.replaceAllData(backup.tables);
         await settings.restoreBackupValues(backup.settings);
         return RestoreResult.replaced(backup.transactionCount);
       case RestoreMode.merge:
-        final plan = planMerge(await _db.exportTables(), backup.tables);
-        await _db.applyMerge(plan);
+        final plan = planMerge(
+          await _db.exportTables(),
+          backup.tables,
+          purgedIds: await _db.fetchPurgedIds(),
+        );
         await _writeFiles(backup);
+        await _db.applyMerge(plan);
         return RestoreResult.merged(plan);
     }
   }

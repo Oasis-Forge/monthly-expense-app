@@ -353,6 +353,17 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String trashNoteSubtitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days দিনে চিরতরে মুছে যাবে',
+      one: '1 দিনে চিরতরে মুছে যাবে',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get restoreTooltip => 'ফিরিয়ে আনুন';
 
   @override

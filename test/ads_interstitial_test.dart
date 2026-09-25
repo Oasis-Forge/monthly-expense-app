@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -136,6 +137,48 @@ void main() {
 
       expect(settings.adActivity, 1);
     });
+
+    test('nor is a count from the same date a month or a year ago', () async {
+      for (final day in [
+        DateTime(2026, 8, 20, 12),
+        DateTime(2025, 9, 20, 12),
+      ]) {
+        final settings = await settled(activity: earned, activityDay: day);
+
+        expect(settings.adActivity, 0, reason: '$day');
+        expect(settings.adActivityEarned, isFalse, reason: '$day');
+      }
+    });
+
+    test("today is the phone's own day, either side of midnight UTC", () async {
+      // Stored in UTC, as noteAdActivity writes it. East of UTC the first
+      // minutes of the day fall on yesterday's UTC date, and west of it the
+      // last ones on tomorrow's, so both ends of today are tried.
+      for (final at in [
+        DateTime(2026, 9, 20, 0, 30),
+        DateTime(2026, 9, 20, 23, 30),
+      ]) {
+        final settings = await settled(activity: earned, activityDay: at);
+
+        expect(settings.adActivity, earned, reason: '$at');
+      }
+    });
+
+    test('a restart the same day does not bring a spent count back', () async {
+      final ads = filling();
+      final provider = await started(await settled(activity: earned), ads);
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
+      final reopened = SettingsProvider(
+        await SharedPreferences.getInstance(),
+        clock: () => now,
+      );
+
+      expect(ads.interstitialsShown, 1);
+      expect(reopened.adActivity, 0);
+      expect(reopened.adActivityEarned, isFalse);
+    });
   });
 
   group('never during the run that installed it (ADS-12)', () {
@@ -210,6 +253,36 @@ void main() {
       await provider.primeInterstitial();
 
       expect(ads.interstitialsRequested, 1);
+    });
+
+    test(
+      'nor does priming again while the first is still on its way',
+      () async {
+        final ads = filling();
+        final provider = await started(await settled(), ads);
+
+        // Insights left and opened again before the first fetch came back.
+        await Future.wait([
+          provider.primeInterstitial(),
+          provider.primeInterstitial(),
+        ]);
+
+        expect(ads.interstitialsRequested, 1);
+      },
+    );
+  });
+
+  group('what the rating sheet reads (RATE-3)', () {
+    test('an ad really seen marks the visit as interrupted', () async {
+      final ads = filling();
+      final provider = await started(await settled(), ads);
+      expect(provider.interstitialShown, isFalse);
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
+
+      expect(ads.interstitialsShown, 1);
+      expect(provider.interstitialShown, isTrue);
     });
   });
 
@@ -343,6 +416,123 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(settings.adActivity, 1);
+    });
+
+    // A dialog, a dropdown and a popup menu each push a route on the same
+    // root navigator that AdActivityObserver watches, but none of them is a
+    // new screen (ADS-12): they are chrome inside the screen already open —
+    // the category dropdown, the date picker, a row's menu — and counting
+    // them let a single entry earn most of a full-screen ad by itself.
+    testWidgets('a dialog does not count as a screen opened', (tester) async {
+      final settings = await settled(activity: 0);
+      final ads = AdsProvider(
+        settings,
+        ads: FakeAdService(),
+        purchases: FakePurchases(),
+      );
+      addTearDown(ads.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdsProvider>.value(
+          value: ads,
+          child: MaterialApp(
+            navigatorObservers: [AdActivityObserver()],
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const AlertDialog(title: Text('hi')),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(
+        settings.adActivity,
+        0,
+        reason: 'a dialog is not a screen opened, only a page route is',
+      );
+    });
+
+    testWidgets('a dropdown does not count as a screen opened', (tester) async {
+      final settings = await settled(activity: 0);
+      final ads = AdsProvider(
+        settings,
+        ads: FakeAdService(),
+        purchases: FakePurchases(),
+      );
+      addTearDown(ads.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdsProvider>.value(
+          value: ads,
+          child: MaterialApp(
+            navigatorObservers: [AdActivityObserver()],
+            home: Scaffold(
+              body: DropdownButtonFormField<int>(
+                initialValue: 1,
+                items: const [
+                  DropdownMenuItem(value: 1, child: Text('one')),
+                  DropdownMenuItem(value: 2, child: Text('two')),
+                ],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('one'));
+      await tester.pumpAndSettle();
+
+      expect(
+        settings.adActivity,
+        0,
+        reason: 'a dropdown is not a screen opened, only a page route is',
+      );
+    });
+
+    testWidgets('a popup menu does not count as a screen opened', (
+      tester,
+    ) async {
+      final settings = await settled(activity: 0);
+      final ads = AdsProvider(
+        settings,
+        ads: FakeAdService(),
+        purchases: FakePurchases(),
+      );
+      addTearDown(ads.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdsProvider>.value(
+          value: ads,
+          child: MaterialApp(
+            navigatorObservers: [AdActivityObserver()],
+            home: Scaffold(
+              body: PopupMenuButton<int>(
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 1, child: Text('one')),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(PopupMenuButton<int>));
+      await tester.pumpAndSettle();
+
+      expect(
+        settings.adActivity,
+        0,
+        reason: 'a popup menu is not a screen opened, only a page route is',
+      );
     });
   });
 

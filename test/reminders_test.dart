@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/recurring_rule.dart';
@@ -95,6 +96,26 @@ void main() {
 
       expect(reminders, isEmpty);
     });
+
+    test('not even on the first day past it (NUDGE-5)', () {
+      final reminders = plan(
+        upcoming: [occurrence('Salary', reminderHorizonDays)],
+      );
+
+      expect(reminders, isEmpty);
+    });
+
+    test('one a month out is not announced on this month\'s same date '
+        '(NUDGE-2)', () {
+      // The upcoming list runs thirty days ahead: 22 and 23 October share
+      // their day numbers with today and tomorrow.
+      final reminders = plan(
+        at: DateTime(2026, 9, 22, 7),
+        upcoming: [occurrence('Rent', 30), occurrence('Gym', 31)],
+      );
+
+      expect(reminders, isEmpty);
+    });
   });
 
   group('the day with nothing in it (NUDGE-4)', () {
@@ -128,6 +149,16 @@ void main() {
       );
 
       expect(reminders.first.at, DateTime(2026, 9, 23, 21));
+    });
+
+    test('at the minute the user chose, not just the hour (NUDGE-4)', () {
+      final reminders = plan(emptyDayOn: true, hour: 21, minute: 30);
+
+      expect(reminders.map((r) => r.at), [
+        DateTime(2026, 9, 22, 21, 30),
+        DateTime(2026, 9, 23, 21, 30),
+        DateTime(2026, 9, 24, 21, 30),
+      ]);
     });
 
     test('three at a time, so an app never opened again falls silent '
@@ -172,6 +203,21 @@ void main() {
     test('eight is the earliest it may speak', () {
       expect(plan(emptyDayOn: true, hour: quietUntilHour), isNotEmpty);
     });
+  });
+
+  test('only the phones schedule reminders (NUDGE-10)', () {
+    try {
+      for (final platform in TargetPlatform.values) {
+        debugDefaultTargetPlatformOverride = platform;
+        expect(
+          remindersSupported,
+          platform == TargetPlatform.android || platform == TargetPlatform.iOS,
+          reason: '$platform',
+        );
+      }
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   group('three ignored in a row and it stops (NUDGE-5)', () {
@@ -242,6 +288,22 @@ void main() {
         ),
         3,
         reason: 'two before, one more tonight',
+      );
+    });
+
+    test('a nudge counted at the last look is not counted again (NUDGE-5)', () {
+      // Opened at ten, after tonight's nudge, and again at eleven: still the
+      // one nudge, or three launches in an evening would stop it.
+      expect(
+        countIgnoredNudges(
+          now: DateTime(2026, 9, 22, 23),
+          since: DateTime(2026, 9, 22, 22),
+          hour: 21,
+          minute: 0,
+          daysWithEntries: const {},
+          ignoredSoFar: 1,
+        ),
+        1,
       );
     });
 

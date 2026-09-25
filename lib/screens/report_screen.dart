@@ -9,8 +9,11 @@ import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
+import '../models/account.dart';
+import '../models/category.dart';
 import '../models/csv_export.dart' show isoDate;
 import '../models/report.dart';
+import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
 import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
@@ -19,13 +22,46 @@ import '../services/report_fonts.dart';
 import '../services/report_pdf.dart';
 import 'form_fields.dart';
 
+/// The predicate a report opened from Search should narrow its *display* by:
+/// matching text, type and category, the same way the CSV export from
+/// Search already does (PDF-1, BAK-5). Dates and the account are left to the
+/// report's own controls instead (seeded from [filter], but the user can
+/// still change them there), so they play no part here. Null means no
+/// narrowing filter is set, so [buildReport] shows everything, as it did
+/// before this filter existed.
+///
+/// Every transaction still counts toward the opening and closing balances
+/// regardless of this predicate — only [buildReport] does that combining, so
+/// this never pre-filters the list [buildReport] is given (BAL-2, BAL-3).
+bool Function(ExpenseTransaction)? reportMatchesFor(
+  TransactionProvider provider,
+  TransactionFilter? filter, {
+  required String Function(Category category) categoryName,
+  required String Function(Account account) accountName,
+}) {
+  if (filter == null ||
+      (filter.query.trim().isEmpty &&
+          filter.type == null &&
+          filter.categoryId == null)) {
+    return null;
+  }
+  return (tx) => provider.matchesSearch(
+    tx,
+    filter,
+    categoryName: categoryName,
+    accountName: accountName,
+  );
+}
+
 /// Chooses what a PDF report covers and what it leaves out, then builds and
 /// previews it (PDF-1, PDF-3, PDF-4).
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key, this.filter});
 
   /// Set from Search, so the report covers what's on screen there (PDF-1,
-  /// BAK-5). Its dates seed the custom range.
+  /// BAK-5): its dates and account seed this screen's own controls, and its
+  /// text, type and category narrow the transactions the report is built
+  /// from until the user changes something here.
   final TransactionFilter? filter;
 
   @override
@@ -52,6 +88,17 @@ class _ReportScreenState extends State<ReportScreen> {
     _year = period.start.year;
     if (filter != null && (filter.from != null || filter.to != null)) {
       _range = ReportRange.custom;
+    }
+    // PDF-1: the account being searched carries over too, same as the
+    // dates above; only when it still exists, archived or not — Search
+    // itself offers archived accounts, and falling back to "All accounts"
+    // here would report on every account instead of just the one being
+    // searched, the exact over-sharing this filter exists to avoid. The
+    // dropdown below adds the archived account as an item so this value
+    // always has a match.
+    if (filter?.accountId != null &&
+        provider.accounts.any((account) => account.id == filter!.accountId)) {
+      _accountId = filter!.accountId;
     }
   }
 
@@ -113,6 +160,12 @@ class _ReportScreenState extends State<ReportScreen> {
         transfers: provider.transfers,
         accounts: provider.accounts,
         accountId: _accountId,
+        matches: reportMatchesFor(
+          provider,
+          widget.filter,
+          categoryName: (category) => category.label(l10n),
+          accountName: (account) => account.label(l10n),
+        ),
         budgetLimit: (id) => provider.budgetLimit(id),
         startDay: provider.startDay,
         options: _options,
@@ -244,6 +297,16 @@ class _ReportScreenState extends State<ReportScreen> {
             ),
             items: [
               DropdownMenuItem(child: Text(l10n.reportAllAccounts)),
+              // The account seeded from Search (PDF-1) may be archived and
+              // so missing from activeAccounts; add it so the value above
+              // always has a matching item instead of falling back to "All
+              // accounts" and reporting on every account.
+              if (_accountId != null &&
+                  !provider.activeAccounts.any((a) => a.id == _accountId))
+                DropdownMenuItem(
+                  value: _accountId,
+                  child: Text(provider.accountById(_accountId!)!.label(l10n)),
+                ),
               for (final account in provider.activeAccounts)
                 DropdownMenuItem(
                   value: account.id,

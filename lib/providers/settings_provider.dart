@@ -69,6 +69,15 @@ class SettingsProvider extends ChangeNotifier {
     if (!_prefs.containsKey(_setupDoneKey)) {
       unawaited(_prefs.setBool(_setupDoneKey, _setupDone));
     }
+    // CUR-1, CUR-3: setup already showed this currency (or, on an update onto
+    // a device that has used the app before, would have if it had run), so
+    // it's the one saved — otherwise it keeps re-deriving from the device
+    // locale on every later launch, silently relabelling old amounts if that
+    // locale ever changes. This also catches an install from before
+    // completeSetup itself saved it (below).
+    if (_setupDone && !_prefs.containsKey(_currencyKey)) {
+      unawaited(_prefs.setString(_currencyKey, _currencyCode));
+    }
     if (!_prefs.containsKey(_walkthroughSeenKey)) {
       unawaited(_prefs.setBool(_walkthroughSeenKey, _walkthroughSeen));
     }
@@ -666,9 +675,15 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Records that setup is finished (RUN-3, RUN-5).
+  /// Records that setup is finished (RUN-3, RUN-5). Also stores the
+  /// currency in effect, which until now was only ever preselected from the
+  /// device locale (CUR-1): without this, a user who taps Continue without
+  /// opening the currency picker never gets a stored choice, and it keeps
+  /// silently re-deriving from the device locale on every later launch
+  /// (CUR-3).
   Future<void> completeSetup() async {
     if (_setupDone) return;
+    await _prefs.setString(_currencyKey, _currencyCode);
     await _prefs.setBool(_setupDoneKey, true);
     _setupDone = true;
     notifyListeners();

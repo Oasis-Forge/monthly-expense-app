@@ -68,6 +68,13 @@
 		     lib/services/ads_config.dart, and a test fails if it doesn't. -->
 		<key>GADApplicationIdentifier</key>
 		<string>ca-app-pub-8287765177319119~8155905694</string>
+		<!-- Without this, the SDK starts sending app-measurement events to
+		     Google as soon as the process starts, before Dart ever calls
+		     MobileAds.instance.initialize() — which AdsProvider gates on
+		     setup, the walkthrough and consent (ADS-4, ADS-5), and never
+		     calls at all once "Remove ads" is bought (ADS-8, PAY-1). -->
+		<key>GADDelayAppMeasurementInit</key>
+		<true/>
 		<key>NSCameraUsageDescription</key>
 		<string>The camera takes a photo of a receipt to keep with a transaction. Photos stay on this device.</string>
 		<key>NSMicrophoneUsageDescription</key>

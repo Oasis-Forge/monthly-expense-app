@@ -402,10 +402,10 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 
 - **DAY-1** Home opens on today: the strip chooses it and the list shows that day alone. Adding an entry is then always on the day it belongs to.
 - **DAY-2** The strip sits under the period selector: seven days, the weekday over the date, ordered by the first day of the week (PER-4) and the locale's direction (LANG-5). Today keeps a mark of its own even when another day is chosen. The strip is on every Home there is, the first-run welcome included, so the day a first entry lands on is never a surprise.
-- **DAY-3** Swiping the strip moves a week at a time. Choosing a day outside the shown period moves the period to the one that contains it, whatever day that period starts on (PER-1, PER-2).
+- **DAY-3** Swiping the strip moves a week at a time. Days outside the shown period are dimmed. Choosing a day outside the shown period moves the period to the one that contains it, whatever day that period starts on (PER-1, PER-2).
 - **DAY-4** A day carrying any entry shows a dot under its date, so a week's activity reads at a glance.
 - **DAY-5** Tapping the chosen day again clears it: the list goes back to every day in the period, newest first.
-- **DAY-6** The choice follows the period: a period holding today opens on today, and any other period opens with no day chosen and shows all of its days. Looking back over history stays a month at a time.
+- **DAY-6** The choice follows the period: a period holding today opens on today, and any other period opens with no day chosen and shows all of its days. Its strip opens on the first week lying mostly inside it, so a month starting late in the week does not open on the days of the month before. Looking back over history stays a month at a time.
 - **DAY-7** The chosen day shows its entries under its date, with its own income and expense beside it; a day holding nothing says so rather than showing an empty screen. Every day in the whole-period list carries that same total.
 - **DAY-8** The summary card and the budgets card stay on the period (BAL-3, BUD-7): the strip changes which entries are listed, not what the period means.
 - **DAY-9** A new entry opened while a day is chosen starts on that day, at the current time; with no day chosen it starts on today. A duplicate and a recorded note are still dated today (ADD-7, NOTE-4).
