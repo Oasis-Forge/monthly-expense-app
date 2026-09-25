@@ -368,10 +368,12 @@ class _NoteReminderTaps extends StatefulWidget {
   State<_NoteReminderTaps> createState() => _NoteReminderTapsState();
 }
 
-class _NoteReminderTapsState extends State<_NoteReminderTaps> {
+class _NoteReminderTapsState extends State<_NoteReminderTaps>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     tappedNoteId.addListener(_open);
     tappedReminder.addListener(_openReminder);
     // A tap that launched the app from cold may already be pending.
@@ -384,9 +386,17 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     tappedNoteId.removeListener(_open);
     tappedReminder.removeListener(_openReminder);
     super.dispose();
+  }
+
+  /// Back in the app on a later day, Home moves on to today (DAY-1).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed) return;
+    context.read<TransactionProvider>().returnToToday();
   }
 
   void _open() {
@@ -427,6 +437,9 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps> {
   Future<void> _countIgnoredNudges() async {
     final settings = context.read<SettingsProvider>();
     final transactions = context.read<TransactionProvider>();
+    // Days with entries are the answer to a nudge; counted before they are
+    // read, every day looks ignored and the nudge stops itself (NUDGE-5).
+    await transactions.whenLoaded;
     final now = DateTime.now();
     final since = settings.nudgeCheckedAt;
     final wasOn = settings.emptyDayNudge;

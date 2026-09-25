@@ -1,4 +1,6 @@
-import 'package:flutter/foundation.dart' show ChangeNotifier;
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show ChangeNotifier, listEquals;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:uuid/uuid.dart';
 
@@ -181,6 +183,31 @@ class TransactionProvider extends ChangeNotifier {
 
   /// The period that contains today; budget changes apply from it (BUD-5).
   Period get currentPeriod => Period.containing(_clock(), startDay: _startDay);
+
+  /// The day Home last took for today, so a return on a later day can tell
+  /// whether Home was still on the old one.
+  DateTime? _dayLastSeen;
+
+  /// Brings Home to today when the app comes back on a later day while Home
+  /// was still showing the old today (DAY-1, PER-1), so an entry added then
+  /// belongs to the new day (ADD-3). A day or period the user chose stays
+  /// chosen.
+  void returnToToday() {
+    final today = _today;
+    final before = _dayLastSeen;
+    _dayLastSeen = today;
+    if (before == null || before == today || selectedDay != before) return;
+    _period = currentPeriod;
+    _daySelectionPeriod = null;
+    _changed();
+  }
+
+  final _loadDone = Completer<void>();
+
+  /// Completes once [load] has read everything, for work that must see the
+  /// user's entries first: counting ignored nudges before them would count
+  /// days with entries as ignored (NUDGE-5).
+  Future<void> get whenLoaded => _loadDone.future;
   int get startDay => _startDay;
 
   /// Categories of [type] that aren't archived, in display order.
@@ -406,6 +433,7 @@ class TransactionProvider extends ChangeNotifier {
     Locale locale = const Locale('en'),
     NudgeSettings nudge = NudgeSettings.off,
   }) async {
+    _dayLastSeen = _today;
     await _attachments.deleteAll(
       await _db.purgeDeletedBefore(_clock().subtract(trashRetention)),
     );
@@ -446,6 +474,7 @@ class TransactionProvider extends ChangeNotifier {
       nudge: nudge,
     );
     _loaded = true;
+    if (!_loadDone.isCompleted) _loadDone.complete();
     _changed();
   }
 
@@ -460,24 +489,37 @@ class TransactionProvider extends ChangeNotifier {
   }) async {
     _appLockOn = appLockOn;
     _locale = locale;
+    _nudge = nudge;
     for (final note in _notes) {
       await _reminders.schedule(note, appLockOn: appLockOn, locale: locale);
     }
     // The app's own reminders are planned from what is due and what the
     // user has asked for, and replace whatever was scheduled before
     // (NUDGE-1).
-    await _reminders.scheduleNudges(
-      planReminders(
-        now: _clock(),
-        due: dueOccurrences,
-        upcoming: upcomingOccurrences,
-        emptyDayOn: nudge.on,
-        emptyDayHour: nudge.hour,
-        emptyDayMinute: nudge.minute,
-        recordedToday: recordedToday,
-      ),
-      appLockOn: appLockOn,
-      locale: locale,
+    await _scheduleNudges(_nudgePlan());
+  }
+
+  NudgeSettings _nudge = NudgeSettings.off;
+  List<PlannedReminder>? _plannedNudges;
+
+  List<PlannedReminder> _nudgePlan() => planReminders(
+    now: _clock(),
+    due: dueOccurrences,
+    upcoming: upcomingOccurrences,
+    emptyDayOn: _nudge.on,
+    emptyDayHour: _nudge.hour,
+    emptyDayMinute: _nudge.minute,
+    recordedToday: recordedToday,
+  );
+
+  /// Hands [plan] to the device and remembers it, so an unchanged plan is
+  /// not sent again.
+  Future<void> _scheduleNudges(List<PlannedReminder> plan) {
+    _plannedNudges = plan;
+    return _reminders.scheduleNudges(
+      plan,
+      appLockOn: _appLockOn,
+      locale: _locale,
     );
   }
 
@@ -1676,6 +1718,13 @@ class TransactionProvider extends ChangeNotifier {
     _everyAccountSummary = null;
     _previousSummary = null;
     notifyListeners();
+    // What the app's own reminders say follows the records: an entry made
+    // today calls off tonight's empty-day nudge, and a due entry posted or
+    // skipped stops being announced (NUDGE-4). Only a changed plan goes to
+    // the device.
+    if (!_loaded) return;
+    final plan = _nudgePlan();
+    if (!listEquals(plan, _plannedNudges)) unawaited(_scheduleNudges(plan));
   }
 
   /// The period before the selected one, for the comparison the category
