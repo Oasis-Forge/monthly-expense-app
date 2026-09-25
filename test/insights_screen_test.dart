@@ -132,6 +132,26 @@ void main() {
       expect(find.text('Rent', skipOffstage: false), findsOneWidget);
     });
 
+    testWidgets("each row shows its own category's amount, not another's "
+        '(INS-3)', (tester) async {
+      await showInsights(tester, spending);
+
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Food', skipOffstage: false),
+          matching: find.text('\$30', skipOffstage: false),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Rent', skipOffstage: false),
+          matching: find.text('\$10', skipOffstage: false),
+        ),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('income has its own chart', (tester) async {
       await showInsights(tester, [
         ...spending,
