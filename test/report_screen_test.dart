@@ -227,6 +227,7 @@ void main() {
             null,
             categoryName: categoryName,
             accountName: accountName,
+            decimalMark: '.',
           ),
           isNull,
         );
@@ -244,6 +245,7 @@ void main() {
             ),
             categoryName: categoryName,
             accountName: accountName,
+            decimalMark: '.',
           ),
           isNull,
         );
@@ -255,6 +257,7 @@ void main() {
           const TransactionFilter(type: TransactionType.income),
           categoryName: categoryName,
           accountName: accountName,
+          decimalMark: '.',
         );
         expect(all.where(matches!), [all[2]]);
       });
@@ -268,6 +271,7 @@ void main() {
             const TransactionFilter(query: 'Rent'),
             categoryName: categoryName,
             accountName: accountName,
+            decimalMark: '.',
           );
 
           ReportData build({bool Function(ExpenseTransaction)? matches}) =>
@@ -297,6 +301,52 @@ void main() {
             unfiltered.byDay.values.expand((e) => e).any((e) => e.isTransfer),
             isTrue,
           );
+        },
+      );
+
+      test(
+        'a comma-decimal query gives the same matches through reportMatchesFor '
+        "as through the provider's own search (CUR-2, review-money-1, "
+        'review-state-2)',
+        () async {
+          // Reproduces the merge artifact directly: search_screen.dart
+          // passes the currency's own decimal mark to provider.search, and
+          // reportMatchesFor has to be given the same thing rather than
+          // silently falling back to '.' (which would read "1,500" as
+          // ambiguous and reject it instead of matching the 1.5 entry).
+          final tnd = testTx(
+            'tnd',
+            TransactionType.expense,
+            1.5,
+            DateTime(2026, 9, 6),
+          );
+          provider = TransactionProvider(
+            db: FakeDB(transactions: [...all, tnd]),
+            clock: () => DateTime(2026, 9, 15),
+          );
+          await provider.load();
+
+          const filter = TransactionFilter(query: '1,500');
+          final searchIds = provider
+              .search(
+                filter,
+                categoryName: categoryName,
+                accountName: accountName,
+                decimalMark: ',',
+              )
+              .transactions
+              .map((tx) => tx.id);
+          final matches = reportMatchesFor(
+            provider,
+            filter,
+            categoryName: categoryName,
+            accountName: accountName,
+            decimalMark: ',',
+          )!;
+          final reportIds = [tnd, ...all].where(matches).map((tx) => tx.id);
+
+          expect(reportIds, unorderedEquals(searchIds));
+          expect(reportIds, contains('tnd'));
         },
       );
     },

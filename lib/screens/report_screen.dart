@@ -38,6 +38,10 @@ bool Function(ExpenseTransaction)? reportMatchesFor(
   TransactionFilter? filter, {
   required String Function(Category category) categoryName,
   required String Function(Account account) accountName,
+  // Required rather than defaulted to '.': search_screen.dart passes the
+  // currency's own separator, and a caller here that forgot to would
+  // silently read a comma-decimal amount query the wrong way (CUR-2).
+  required String decimalMark,
 }) {
   if (filter == null ||
       (filter.query.trim().isEmpty &&
@@ -50,6 +54,7 @@ bool Function(ExpenseTransaction)? reportMatchesFor(
     filter,
     categoryName: categoryName,
     accountName: accountName,
+    decimalMark: decimalMark,
   );
 }
 
@@ -165,6 +170,10 @@ class _ReportScreenState extends State<ReportScreen> {
           widget.filter,
           categoryName: (category) => category.label(l10n),
           accountName: (account) => account.label(l10n),
+          decimalMark: settings
+              .currencyFormat(l10n.localeName)
+              .symbols
+              .DECIMAL_SEP,
         ),
         budgetLimit: (id) => provider.budgetLimit(id),
         startDay: provider.startDay,

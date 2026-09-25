@@ -1207,7 +1207,10 @@ class TransactionProvider extends ChangeNotifier {
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
-    String decimalMark = '.',
+    // Required rather than defaulted to '.': a caller that forgets this reads
+    // a comma-decimal amount query as if the currency used '.', which silently
+    // rejects a correctly-typed amount instead of matching it (CUR-2).
+    required String decimalMark,
   }) {
     if (filter.type != null && tx.type != filter.type) return false;
     if (filter.categoryId != null && tx.categoryId != filter.categoryId) {
@@ -1231,7 +1234,8 @@ class TransactionProvider extends ChangeNotifier {
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
-    String decimalMark = '.',
+    // Required, not defaulted: see matchesSearch above (CUR-2).
+    required String decimalMark,
   }) {
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
