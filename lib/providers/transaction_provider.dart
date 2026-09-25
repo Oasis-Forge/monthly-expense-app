@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show ChangeNotifier, listEquals;
+import 'package:flutter/foundation.dart'
+    show ChangeNotifier, debugPrint, listEquals;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:uuid/uuid.dart';
 
@@ -549,8 +550,17 @@ class TransactionProvider extends ChangeNotifier {
       );
       _loaded = true;
       _loadError = null;
-    } catch (e) {
+    } catch (e, st) {
       _loadError = e;
+      // A refused downgrade open already has its own screen
+      // (x-downgrade-message); anything else -- a query SQLite 3.9 rejects,
+      // a bad row after a restore, a full-disk write -- would otherwise
+      // vanish silently now that this catch stops it reaching the zone's
+      // uncaught-error handler, so it still goes to the log
+      // (debugPrint also prints in release builds).
+      if (e is! DatabaseDowngradeError) {
+        debugPrint('TransactionProvider.load failed: $e\n$st');
+      }
     } finally {
       if (!_loadDone.isCompleted) _loadDone.complete();
     }

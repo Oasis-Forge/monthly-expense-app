@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -780,6 +781,37 @@ void main() {
 
       expect(provider.loadError, isNull);
       expect(provider.isLoaded, isTrue);
+    });
+
+    test('does not log the failure: DatabaseTooNewScreen already explains '
+        'it', () async {
+      final logged = <String>[];
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logged.add(message);
+      };
+      addTearDown(() => debugPrint = debugPrintThrottled);
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      await provider.load();
+
+      expect(logged, isEmpty);
+    });
+
+    test('any other load failure is logged, since nothing else would show '
+        'it (x-downgrade-message)', () async {
+      final logged = <String>[];
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logged.add(message);
+      };
+      addTearDown(() => debugPrint = debugPrintThrottled);
+      final fake = FakeDB()..failLoadWith = StateError('disk full');
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      await provider.load();
+
+      expect(provider.loadError, isA<StateError>());
+      expect(logged, contains(contains('TransactionProvider.load failed')));
     });
   });
 
