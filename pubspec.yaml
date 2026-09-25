@@ -57,6 +57,10 @@ dependencies:
   archive: ^4.3.0
   google_mobile_ads: ^9.1.0
   in_app_purchase: ^3.3.0
+  # purchase_service.dart has to read a Google Play purchase's own billing
+  # state (GooglePlayPurchaseDetails, PurchaseStateWrapper), which
+  # in_app_purchase doesn't re-export (PAY-8).
+  in_app_purchase_android: ^0.5.3
   in_app_review: ^2.0.12
   quick_actions: ^1.1.1
   dynamic_color: ^1.7.0

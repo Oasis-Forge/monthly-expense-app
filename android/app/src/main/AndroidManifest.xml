@@ -93,6 +93,14 @@
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-8287765177319119~2977310217" />
+        <!-- Without this, the SDK starts sending app-measurement events to
+             Google as soon as the process starts, before Dart ever calls
+             MobileAds.instance.initialize() — which AdsProvider gates on
+             setup, the walkthrough and consent (ADS-4, ADS-5), and never
+             calls at all once "Remove ads" is bought (ADS-8, PAY-1). -->
+        <meta-data
+            android:name="com.google.android.gms.ads.DELAY_APP_MEASUREMENT_INIT"
+            android:value="true" />
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

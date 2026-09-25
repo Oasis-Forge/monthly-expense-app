@@ -417,6 +417,123 @@ void main() {
 
       expect(settings.adActivity, 1);
     });
+
+    // A dialog, a dropdown and a popup menu each push a route on the same
+    // root navigator that AdActivityObserver watches, but none of them is a
+    // new screen (ADS-12): they are chrome inside the screen already open —
+    // the category dropdown, the date picker, a row's menu — and counting
+    // them let a single entry earn most of a full-screen ad by itself.
+    testWidgets('a dialog does not count as a screen opened', (tester) async {
+      final settings = await settled(activity: 0);
+      final ads = AdsProvider(
+        settings,
+        ads: FakeAdService(),
+        purchases: FakePurchases(),
+      );
+      addTearDown(ads.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdsProvider>.value(
+          value: ads,
+          child: MaterialApp(
+            navigatorObservers: [AdActivityObserver()],
+            home: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => const AlertDialog(title: Text('hi')),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(
+        settings.adActivity,
+        0,
+        reason: 'a dialog is not a screen opened, only a page route is',
+      );
+    });
+
+    testWidgets('a dropdown does not count as a screen opened', (tester) async {
+      final settings = await settled(activity: 0);
+      final ads = AdsProvider(
+        settings,
+        ads: FakeAdService(),
+        purchases: FakePurchases(),
+      );
+      addTearDown(ads.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdsProvider>.value(
+          value: ads,
+          child: MaterialApp(
+            navigatorObservers: [AdActivityObserver()],
+            home: Scaffold(
+              body: DropdownButtonFormField<int>(
+                initialValue: 1,
+                items: const [
+                  DropdownMenuItem(value: 1, child: Text('one')),
+                  DropdownMenuItem(value: 2, child: Text('two')),
+                ],
+                onChanged: (_) {},
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('one'));
+      await tester.pumpAndSettle();
+
+      expect(
+        settings.adActivity,
+        0,
+        reason: 'a dropdown is not a screen opened, only a page route is',
+      );
+    });
+
+    testWidgets('a popup menu does not count as a screen opened', (
+      tester,
+    ) async {
+      final settings = await settled(activity: 0);
+      final ads = AdsProvider(
+        settings,
+        ads: FakeAdService(),
+        purchases: FakePurchases(),
+      );
+      addTearDown(ads.dispose);
+
+      await tester.pumpWidget(
+        ChangeNotifierProvider<AdsProvider>.value(
+          value: ads,
+          child: MaterialApp(
+            navigatorObservers: [AdActivityObserver()],
+            home: Scaffold(
+              body: PopupMenuButton<int>(
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 1, child: Text('one')),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.byType(PopupMenuButton<int>));
+      await tester.pumpAndSettle();
+
+      expect(
+        settings.adActivity,
+        0,
+        reason: 'a popup menu is not a screen opened, only a page route is',
+      );
+    });
   });
 
   group('the seams themselves (ADS-11)', () {

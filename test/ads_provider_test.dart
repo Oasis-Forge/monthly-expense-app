@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,6 +9,23 @@ import 'package:monthly_expense_app/services/ads_config.dart';
 import 'package:monthly_expense_app/services/purchase_service.dart';
 
 import 'helpers.dart';
+
+/// A store that has been asked but has not yet answered: unlike
+/// [FakePurchases], whose `start` settles before it returns, this one hangs
+/// on [answer] so a settings change can land while ownership is still
+/// unknown — the ordering every device produces (Decision 42).
+class _SlowPurchases extends FakePurchases {
+  _SlowPurchases() : super(stage: PurchaseStage.checking, owns: true);
+
+  final answer = Completer<void>();
+
+  @override
+  Future<void> start() async {
+    started = true;
+    await answer.future;
+    settle(PurchaseStage.owned);
+  }
+}
 
 void main() {
   /// Settings for someone past the first run, which is when ads are allowed
@@ -92,6 +111,38 @@ void main() {
       await provider.start();
 
       expect(purchases.started, isTrue);
+    });
+
+    test('a settings change while the store is still answering does not start '
+        'ads (Decision 42, ADS-8, PAY-5)', () async {
+      // The shape of a real launch: AdsProvider.start() is already running
+      // (the store connection and its network query are in flight) when a
+      // settings write unrelated to purchases — such as
+      // _countIgnoredNudges' recordNudgesIgnored right after the first
+      // frame — lands and notifies. That must not be read as "the store
+      // said nothing is owned".
+      final settings = await settled();
+      final ads = FakeAdService(canStart: true);
+      final purchases = _SlowPurchases();
+      final provider = build(settings, ads: ads, purchases: purchases);
+
+      final started = provider.start();
+      await settings.recordNudgesIgnored(0, DateTime.now());
+
+      expect(
+        ads.started,
+        isFalse,
+        reason: 'the ad SDK must wait for the store to say what is owned',
+      );
+      expect(provider.showAds, isFalse);
+
+      purchases.answer.complete();
+      await started;
+
+      // Once the store has actually answered "owned", the SDK still never
+      // starts (Decision 42's guarantee holds for this path too).
+      expect(ads.started, isFalse);
+      expect(provider.adsRemoved, isTrue);
     });
   });
 
