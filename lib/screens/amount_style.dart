@@ -33,8 +33,10 @@ Color signedColor(BuildContext context, {required bool isIncome}) =>
     isIncome ? incomeColor(context) : expenseColor(context);
 
 /// The colour of a figure that can fall either way — a balance, a net, an
-/// account, a day's own total. It is coloured only below zero (CUR-5), and
-/// null leaves the text its ordinary colour.
+/// account. It is coloured only below zero (CUR-5), and null leaves the text
+/// its ordinary colour. A day's own total isn't one of these: Home shows a
+/// day's income and expense apart rather than netting them (DAY-7), so each
+/// goes through [signedColor] instead.
 Color? balanceColor(BuildContext context, Money amount) =>
     amount.isNegative ? expenseColor(context) : null;
 
