@@ -394,6 +394,22 @@ void main() {
     expect(find.byType(AddTransactionScreen), findsNothing);
   });
 
+  testWidgets(
+    'tapping Amount on the edit form opens the keypad, since autofocus is '
+    'off there (ADD-2, LANG-5, test-quality#12)',
+    (tester) async {
+      final lunch = await addLunch();
+
+      await open(tester, editing: lunch);
+      expect(find.byType(AmountKeypad), findsNothing);
+
+      await tester.tap(amountField);
+      await tester.pump();
+
+      expect(find.byType(AmountKeypad), findsOneWidget);
+    },
+  );
+
   testWidgets('duplicate opens an unsaved copy dated today (ADD-7)', (
     tester,
   ) async {

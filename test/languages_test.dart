@@ -229,7 +229,14 @@ void main() {
             expect(find.text(l10n.walkthroughBringTitle), findsOne);
           }
           if (screen is AddTransactionScreen) {
-            await tester.tap(find.text(l10n.amountLabel));
+            // The label's own text lands on the field's RenderEditable
+            // rather than the floating label once autofocus has already
+            // opened the keypad, so this used to tap without proving
+            // anything about tapping Amount actually opening it
+            // (test-quality#12); the field itself is always hit-testable.
+            await tester.tap(
+              find.widgetWithText(TextFormField, l10n.amountLabel),
+            );
             await tester.pump();
             expect(find.byType(AmountKeypad), findsOneWidget);
             // The keypad pushes the Save buttons further down the form's
@@ -333,7 +340,9 @@ void main() {
 
     testWidgets('the keypad and the amount stay left to right', (tester) async {
       await show(tester, 'ar', const AddTransactionScreen());
-      await tester.tap(find.text(l10n.amountLabel));
+      // The field's own RenderEditable, not the floating label text, which
+      // autofocus already moved out from under the tap (test-quality#12).
+      await tester.tap(find.widgetWithText(TextFormField, l10n.amountLabel));
       await tester.pump();
 
       Finder key(String label) => find.descendant(
