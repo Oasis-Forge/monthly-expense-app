@@ -266,7 +266,7 @@ void main() {
 
     for (final brightness in Brightness.values) {
       testWidgets(
-        "Home draws the day header in dayHeaderColor, ${brightness.name} "
+        'Home draws the day header in dayHeaderColor, ${brightness.name} '
         '(A11Y-3, DAY-7, pr58_4)',
         (tester) async {
           final today = DateTime(2026, 9, 15, 10);
