@@ -92,6 +92,52 @@ class NoopReminderService implements ReminderService {
   }) async {}
 }
 
+/// Passes every call to [inner], and logs and swallows whatever it throws.
+/// A reminder is a courtesy on top of the user's records: when the device's
+/// notifications cannot be reached (a stripped icon in a release build, a
+/// platform the plugin needs more settings for), loading and saving must go
+/// on as if reminders were off, never stop halfway (NOTE-6, NUDGE-1).
+class SafeReminderService implements ReminderService {
+  const SafeReminderService(this.inner);
+
+  final ReminderService inner;
+
+  Future<T> _guard<T>(Future<T> Function() call, T fallback) async {
+    try {
+      return await call();
+    } catch (error, stack) {
+      debugPrint('Reminders unavailable: $error\n$stack');
+      return fallback;
+    }
+  }
+
+  @override
+  Future<bool> requestPermission() => _guard(inner.requestPermission, false);
+
+  @override
+  Future<void> schedule(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) => _guard(
+    () => inner.schedule(note, appLockOn: appLockOn, locale: locale),
+    null,
+  );
+
+  @override
+  Future<void> cancel(Note note) => _guard(() => inner.cancel(note), null);
+
+  @override
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+  }) => _guard(
+    () => inner.scheduleNudges(plan, appLockOn: appLockOn, locale: locale),
+    null,
+  );
+}
+
 /// Schedules real device notifications through `flutter_local_notifications`.
 class DeviceReminderService implements ReminderService {
   final _plugin = FlutterLocalNotificationsPlugin();

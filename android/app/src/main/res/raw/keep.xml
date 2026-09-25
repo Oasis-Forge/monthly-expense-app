@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Resources the shrinker cannot see in use. The notifications plugin looks
+     its icon up by name from Dart, so release builds dropped it and every
+     launch failed to initialise notifications (NOTE-6). Any drawable that
+     lib/ names as "@drawable/..." belongs here; test/android_manifest_test.dart
+     checks that it does. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_notification" />

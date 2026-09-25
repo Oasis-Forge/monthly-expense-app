@@ -92,7 +92,9 @@ class MonthlyExpenseApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final reminderService = reminders ?? DeviceReminderService();
+    final reminderService = SafeReminderService(
+      reminders ?? DeviceReminderService(),
+    );
     final attachmentService = AttachmentService();
     return MultiProvider(
       providers: [

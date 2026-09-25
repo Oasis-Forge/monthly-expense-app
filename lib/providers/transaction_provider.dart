@@ -40,7 +40,9 @@ class TransactionProvider extends ChangeNotifier {
   }) : _db = db ?? DBHelper.instance,
        _clock = clock ?? DateTime.now,
        _startDay = startDay,
-       _reminders = reminders ?? const NoopReminderService(),
+       _reminders = SafeReminderService(
+         reminders ?? const NoopReminderService(),
+       ),
        _attachments = attachments ?? AttachmentService(),
        _period = Period.containing(
          (clock ?? DateTime.now)(),
