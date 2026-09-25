@@ -371,6 +371,48 @@ void main() {
     expect((old.setupDone, old.walkthroughSeen), (true, true));
   });
 
+  test('the currency preselected at setup is saved, not re-derived every '
+      'launch (CUR-1, CUR-3, RUN-3, rules-11-13-20-21#6)', () async {
+    final prefs = await prefsWith({});
+    final setup = SettingsProvider(prefs, deviceLocale: 'ar_EG');
+    expect(setup.currencyCode, 'EGP');
+
+    // Continue on the setup page only calls completeSetup: most people
+    // never open the currency picker (RUN-3).
+    await setup.completeSetup();
+
+    // The device's language changes later; the currency chosen at setup
+    // must not silently follow it.
+    final relaunched = SettingsProvider(prefs, deviceLocale: 'en_US');
+    expect(relaunched.currencyCode, 'EGP');
+  });
+
+  test('an existing install backfills the currency it already showed, not '
+      'just a fresh one (CUR-1, CUR-3, RUN-3, RUN-5, '
+      'review#money-setup-snackbar)', () async {
+    // An install from before this fix: setup_done is already true (either
+    // completeSetup ran under the old code, which never saved the
+    // currency, or the RUN-5 update path derived it from first_opened_at),
+    // and currency_code was never written.
+    final prefs = await prefsWith({
+      'first_opened_at': '2026-01-04T08:00:00.000Z',
+      'setup_done': true,
+    });
+    final launch = SettingsProvider(prefs, deviceLocale: 'ar_EG');
+    expect(launch.currencyCode, 'EGP');
+
+    // The backfill write in the constructor is unawaited (RUN-5's own
+    // setup_done write-back is the same shape), so it needs a turn of the
+    // event loop before a second read of the same prefs would see it.
+    await Future<void>.delayed(Duration.zero);
+
+    // The device's language changes later; the currency this device has
+    // always shown must not silently follow it, even though this
+    // provider never called completeSetup itself.
+    final relaunched = SettingsProvider(prefs, deviceLocale: 'en_US');
+    expect(relaunched.currencyCode, 'EGP');
+  });
+
   test('language follows the device until one is chosen (LANG-1)', () async {
     final prefs = await prefsWith({'language': 'xx'});
     final settings = SettingsProvider(prefs);

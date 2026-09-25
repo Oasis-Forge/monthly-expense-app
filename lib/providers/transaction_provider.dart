@@ -1207,13 +1207,14 @@ class TransactionProvider extends ChangeNotifier {
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
+    String decimalMark = '.',
   }) {
     if (filter.type != null && tx.type != filter.type) return false;
     if (filter.categoryId != null && tx.categoryId != filter.categoryId) {
       return false;
     }
     final query = foldForSearch(filter.query.trim());
-    final queryAmount = Money.tryParse(filter.query);
+    final queryAmount = Money.tryParse(filter.query, decimalMark: decimalMark);
     if (query.isEmpty || tx.amount == queryAmount) return true;
     final category = categoryById(tx.categoryId);
     final account = accountById(tx.accountId);
@@ -1230,6 +1231,7 @@ class TransactionProvider extends ChangeNotifier {
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
+    String decimalMark = '.',
   }) {
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
@@ -1247,6 +1249,7 @@ class TransactionProvider extends ChangeNotifier {
             filter,
             categoryName: categoryName,
             accountName: accountName,
+            decimalMark: decimalMark,
           )) {
         continue;
       }

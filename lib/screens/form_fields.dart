@@ -51,6 +51,7 @@ mixin AmountEntry<T extends StatefulWidget> on State<T> {
   Money? parsedAmount(NumberFormat currency) => evaluateAmount(
     amountController.text,
     maxDecimals: currency.maximumFractionDigits,
+    decimalMark: currency.symbols.DECIMAL_SEP,
   );
 
   Widget amountField(
