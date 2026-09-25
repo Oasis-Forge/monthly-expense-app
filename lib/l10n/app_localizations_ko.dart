@@ -1727,12 +1727,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dueEntryChannelName => '기한이 지난 입력';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title이(가) 오늘 예정이었고 아직 대기 중입니다.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title($amount)이(가) 오늘 예정이었고 아직 대기 중입니다.';
   }
 
   @override
-  String get dueEntryReminderUntitled => '반복 항목이 오늘 예정이었고 아직 대기 중입니다.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title($amount)이(가) $date 예정이었고 아직 대기 중입니다.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return '반복 항목($amount)이 오늘 예정이었고 아직 대기 중입니다.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return '반복 항목($amount)이 $date 예정이었고 아직 대기 중입니다.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1741,6 +1753,17 @@ class AppLocalizationsKo extends AppLocalizations {
       locale: localeName,
       other: '오늘 예정된 반복 항목이 $count개 있습니다.',
       one: '오늘 예정된 반복 항목이 $count개 있습니다.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '대기 중인 반복 항목이 $count개 있습니다.',
+      one: '대기 중인 반복 항목이 $count개 있습니다.',
     );
     return '$_temp0';
   }

@@ -1265,6 +1265,44 @@ void main() {
         expect(provider.accountsTotal, const Money(150000));
         expect(provider.trend(1).single.income, const Money(50000));
       });
+
+      test('daysUsed credits an entry to its local calendar day, not the UTC '
+          'one createdAt is stamped in (money-time#8)', () async {
+        // createdAt is always UTC. Late evening UTC rolls into the next
+        // calendar day for anyone east of UTC (this machine's own zone
+        // among them), so a naive read of the UTC year/month/day would
+        // credit the entry to the wrong day and could wrongly mark that
+        // later day as already recorded on (NUDGE-3, NUDGE-5).
+        final utcEvening = DateTime.utc(2026, 9, 25, 22);
+        final localDay = DateTime(
+          utcEvening.toLocal().year,
+          utcEvening.toLocal().month,
+          utcEvening.toLocal().day,
+        );
+        final utcDay = DateTime(
+          utcEvening.year,
+          utcEvening.month,
+          utcEvening.day,
+        );
+
+        final provider = await loaded(
+          FakeDB(
+            transactions: [
+              testTx(
+                'evening',
+                expense,
+                5,
+                DateTime(2026, 9, 25),
+              ).copyWith(createdAt: utcEvening, updatedAt: utcEvening),
+            ],
+          ),
+        );
+
+        expect(provider.daysUsed, contains(localDay));
+        if (localDay != utcDay) {
+          expect(provider.daysUsed, isNot(contains(utcDay)));
+        }
+      });
     },
   );
 

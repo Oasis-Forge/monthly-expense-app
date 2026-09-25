@@ -1,8 +1,12 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/reminders.dart';
+import 'package:monthly_expense_app/models/transaction.dart';
 
 import 'helpers.dart';
 
@@ -46,8 +50,55 @@ void main() {
           kind: ReminderKind.dueEntry,
           at: DateTime(2026, 9, 23, dueEntryHour),
           title: 'Salary',
+          dueDate: DateTime(2026, 9, 23),
+          amount: const Money(100000),
         ),
       ]);
+    });
+
+    test('the single named entry carries its own due date and amount '
+        '(NUDGE-2, rules-23-26-34#9)', () {
+      final reminders = plan(upcoming: [occurrence('Salary', 1)]);
+
+      expect(reminders.single.dueDate, DateTime(2026, 9, 23));
+      expect(reminders.single.amount, const Money(100000));
+      expect(reminders.single.isIncome, isFalse);
+    });
+
+    test('an income rule is carried as income, for the sign it is shown with '
+        '(CUR-5, rules-23-26-34#9)', () {
+      final reminders = plan(
+        upcoming: [
+          ScheduledOccurrence(
+            testRule(
+              'Salary',
+              100,
+              day(1),
+            ).copyWith(type: TransactionType.income),
+            day(1),
+          ),
+        ],
+      );
+
+      expect(reminders.single.isIncome, isTrue);
+    });
+
+    test('one already waiting keeps its own, earlier due date, not the '
+        'morning it is finally announced (NUDGE-2, rules-23-26-34#9)', () {
+      final reminders = plan(due: [occurrence('Salary', -3)]);
+
+      expect(reminders.single.dueDate, day(-3));
+      expect(reminders.single.at, DateTime(2026, 9, 23, dueEntryHour));
+    });
+
+    test('several due the same day carry no date or amount of their own '
+        '(NUDGE-2)', () {
+      final reminders = plan(
+        upcoming: [occurrence('Salary', 1), occurrence('Rent', 1)],
+      );
+
+      expect(reminders.single.dueDate, isNull);
+      expect(reminders.single.amount, isNull);
     });
 
     test('two on the same day are one reminder, counted not listed', () {
@@ -58,6 +109,27 @@ void main() {
       expect(reminders, hasLength(1));
       expect(reminders.single.count, 2);
       expect(reminders.single.title, isNull, reason: 'a count, not a list');
+    });
+
+    test('two falling due the same day are not carried over, so the group '
+        'is not marked overdue (rules-23-26-34#9)', () {
+      final reminders = plan(
+        upcoming: [occurrence('Salary', 1), occurrence('Rent', 1)],
+      );
+
+      expect(reminders.single.anyOverdue, isFalse);
+    });
+
+    test('a group with an overdue occurrence carried in from an earlier day '
+        'is marked overdue, so it does not claim they were all due today '
+        '(rules-23-26-34#9)', () {
+      final reminders = plan(
+        due: [occurrence('Salary', -2), occurrence('Rent', -2)],
+        upcoming: [occurrence('Utilities', 1)],
+      );
+
+      expect(reminders.single.count, 3);
+      expect(reminders.single.anyOverdue, isTrue);
     });
 
     test('one already waiting is announced tomorrow morning, since this '
@@ -320,5 +392,24 @@ void main() {
         0,
       );
     });
+
+    test('a nudge just before midnight UTC but after 21:00 in a western zone '
+        'is still counted, since since is read back from storage in UTC but '
+        'the day it names is the local one (money-time#8); a CI-only guard, '
+        'since it needs a real non-UTC zone to fail without the fix -- run '
+        'with TZ=America/New_York', () {
+      expect(
+        countIgnoredNudges(
+          // 00:30 UTC 26 Sep is 20:30 in America/New_York on 25 Sep --
+          // before that evening's 21:00 nudge, not after it.
+          since: DateTime.utc(2026, 9, 26, 0, 30),
+          now: DateTime(2026, 9, 25, 22),
+          hour: 21,
+          minute: 0,
+          daysWithEntries: const {},
+        ),
+        1,
+      );
+    }, skip: Platform.environment['TZ'] != 'America/New_York');
   });
 }

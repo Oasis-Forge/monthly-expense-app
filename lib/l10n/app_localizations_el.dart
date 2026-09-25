@@ -1795,13 +1795,24 @@ class AppLocalizationsEl extends AppLocalizations {
   String get dueEntryChannelName => 'Ληξιπρόθεσμες καταχωρίσεις';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return 'Το $title οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+  String dueEntryReminderOne(String title, String amount) {
+    return 'Το $title ($amount) οφειλόταν σήμερα και εκκρεμεί ακόμα.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Μια επαναλαμβανόμενη καταχώριση οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return 'Το $title ($amount) οφειλόταν στις $date και εκκρεμεί ακόμα.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Μια επαναλαμβανόμενη καταχώριση ($amount) οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Μια επαναλαμβανόμενη καταχώριση ($amount) οφειλόταν στις $date και εκκρεμεί ακόμα.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1810,6 +1821,17 @@ class AppLocalizationsEl extends AppLocalizations {
       locale: localeName,
       other: '$count τακτικές καταχωρίσεις οφείλονταν σήμερα.',
       one: '1 τακτική καταχώριση οφειλόταν σήμερα.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count τακτικές καταχωρίσεις εκκρεμούν.',
+      one: '1 τακτική καταχώριση εκκρεμεί.',
     );
     return '$_temp0';
   }

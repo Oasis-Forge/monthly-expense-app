@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../l10n/app_localizations.dart';
+import '../models/money.dart';
 import '../models/note.dart';
 import '../models/reminders.dart';
 
@@ -77,6 +79,52 @@ bool shouldCancelPassedReminder({
 /// one exactly as it is, or cancel it outright.
 enum ReminderAction { schedule, keep, cancel }
 
+/// While [ReminderAction.keep] leaves a passed-but-pending reminder alone,
+/// app lock being on is still a reason to touch it: whatever the device has
+/// for it must carry the locked wording, not the note's own text (LOCK-2).
+/// What that takes depends on what the device actually has, not on any
+/// remembered history of the app's own (x-reminder-lock-keep) -- a cold
+/// start has no such history, but the device's own active and pending
+/// lists are always there to ask.
+enum LockKeepAction {
+  /// App lock is off, the device has nothing for this reminder, or whatever
+  /// the device has already carries the locked wording (x-reminder-lock-keep):
+  /// leave it exactly as it is.
+  none,
+
+  /// Already delivered and sitting in the tray: shown again with the same
+  /// ID and the locked wording, which replaces it in place rather than
+  /// adding a second one (LOCK-2).
+  reshow,
+
+  /// Not yet delivered: the pending alarm still carries the note's own
+  /// text, so it is cancelled and laid again a minute out with the locked
+  /// wording, rather than shown this instant (NUDGE-9's own inexact
+  /// delivery, kept even here).
+  reschedule,
+}
+
+/// The decision [DeviceReminderService.schedule]'s keep path makes for a
+/// note reminder, from what the device currently has for it -- never from
+/// memory of what app lock used to be, so it holds after a cold start too.
+/// [alreadyLocked] is whether the device's own copy already carries the
+/// locked wording (its title is the locked title and it has no body): when
+/// it is, this is a no-op, so a reshow does not alert again on every
+/// reschedule and a still-pending alarm is not cancelled and re-laid a
+/// minute later on every one either (x-reminder-lock-keep).
+LockKeepAction lockKeepActionFor({
+  required bool appLockOn,
+  required bool isActive,
+  required bool isPending,
+  bool alreadyLocked = false,
+}) {
+  if (!appLockOn) return LockKeepAction.none;
+  if (alreadyLocked) return LockKeepAction.none;
+  if (isActive) return LockKeepAction.reshow;
+  if (isPending) return LockKeepAction.reschedule;
+  return LockKeepAction.none;
+}
+
 /// The single decision [DeviceReminderService.schedule] and
 /// `FakeReminderService.schedule` (test/helpers.dart) must agree on, so a
 /// test that only drives the fake proves something true of the device too
@@ -122,11 +170,16 @@ abstract class ReminderService {
   /// cancelled only when that time changed or it passed more than
   /// [passedReminderGrace] ago; otherwise whatever is already pending (the
   /// device's own inexact alarm) is left alone rather than dropped for good
-  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]) -- unless app lock
-  /// just turned on, in which case that pending alarm is replaced right
-  /// away with the locked wording, so it never keeps showing the note's
-  /// text once locked. With [appLockOn], the notification names only the
-  /// app, not the note's text (LOCK-2).
+  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]) -- except that with
+  /// app lock on, every such reschedule checks what the device itself
+  /// currently has for it (never a memory of whether app lock just turned
+  /// on, which a cold start has none of) and rewords it once with the
+  /// locked wording: a delivered one still in the tray is replaced in
+  /// place, without alerting again, and a still-pending one is cancelled
+  /// and re-laid about a minute out with it. Once that copy already
+  /// carries the locked wording, later reschedules leave it alone
+  /// (x-reminder-lock-keep, see [lockKeepActionFor]). With [appLockOn], the
+  /// notification names only the app, not the note's text (LOCK-2).
   Future<void> schedule(
     Note note, {
     required bool appLockOn,
@@ -138,11 +191,13 @@ abstract class ReminderService {
 
   /// Replaces every reminder the app sends on its own with [plan], cancelling
   /// whatever was scheduled before (NUDGE-1). With [appLockOn] they name
-  /// nothing but the app itself (NUDGE-8).
+  /// nothing but the app itself (NUDGE-8). [currency] formats a due entry's
+  /// amount the same way the rest of the app shows it (CUR-2, NUDGE-2).
   Future<void> scheduleNudges(
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   });
 }
 
@@ -173,6 +228,7 @@ class NoopReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async {}
 }
 
@@ -220,8 +276,14 @@ class SafeReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) => _guard(
-    () => inner.scheduleNudges(plan, appLockOn: appLockOn, locale: locale),
+    () => inner.scheduleNudges(
+      plan,
+      appLockOn: appLockOn,
+      locale: locale,
+      currency: currency,
+    ),
     null,
   );
 }
@@ -237,12 +299,14 @@ class DeviceReminderService implements ReminderService {
   /// the tapped notification's note a second time.
   Future<void>? _initializing;
 
-  /// The time each note's reminder was last scheduled for, and whether app
-  /// lock was on then, so a passed time can be told apart from one that
-  /// changed (pr59-style in-memory record; see [shouldCancelPassedReminder])
-  /// and so app lock turning on while that reminder is still pending can be
-  /// noticed (LOCK-2, NOTE-6).
-  final _lastScheduledAt = <String, ({DateTime at, bool appLockOn})>{};
+  /// The time each note's reminder was last scheduled for, so a passed time
+  /// can be told apart from one that changed (pr59-style in-memory record;
+  /// see [shouldCancelPassedReminder]). Nothing about app lock is kept here
+  /// any more: whether a pending reminder needs the locked wording is
+  /// decided from the device's own state every time (see
+  /// [lockKeepActionFor]), not from a memory that a cold start would start
+  /// out empty (x-reminder-lock-keep).
+  final _lastScheduledAt = <String, DateTime>{};
 
   Future<void> _ensureInitialized() {
     final initializing = _initializing ??= _doInitialize();
@@ -334,37 +398,19 @@ class DeviceReminderService implements ReminderService {
     final at = note.reminderAt;
     final last = _lastScheduledAt[note.id];
     final now = DateTime.now();
-    switch (reminderActionFor(note, lastScheduledAt: last?.at, now: now)) {
+    switch (reminderActionFor(note, lastScheduledAt: last, now: now)) {
       case ReminderAction.cancel:
         await cancel(note);
         return;
       case ReminderAction.keep:
         // Still within the grace window and unchanged: leave whatever the
-        // device already has pending alone (NOTE-6) -- unless app lock just
-        // turned on, in which case that pending alarm would still show the
-        // note's text on the lock screen: replace it right away with the
-        // locked wording instead (LOCK-2).
-        if (last != null && !last.appLockOn && appLockOn) {
-          await _ensureInitialized();
-          final l10n = await AppLocalizations.delegate.load(locale);
-          await _plugin.cancel(id: reminderNotificationId(note.id));
-          await _plugin.show(
-            id: reminderNotificationId(note.id),
-            title: l10n.noteReminderLockedTitle,
-            notificationDetails: NotificationDetails(
-              android: AndroidNotificationDetails(
-                'note_reminders',
-                noteChannelName(l10n),
-                importance: Importance.defaultImportance,
-              ),
-              iOS: const DarwinNotificationDetails(),
-              macOS: const DarwinNotificationDetails(),
-              linux: const LinuxNotificationDetails(),
-            ),
-            payload: note.id,
-          );
-        }
-        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        // device already has pending alone (NOTE-6) -- unless app lock is
+        // on, in which case whatever the device has for it must not still
+        // carry the note's own text (LOCK-2). Asked of the device itself,
+        // not remembered, so this holds after a cold start too
+        // (x-reminder-lock-keep).
+        await _applyLockKeep(note, appLockOn: appLockOn, locale: locale);
+        _lastScheduledAt[note.id] = at!;
         return;
       case ReminderAction.schedule:
         break;
@@ -389,7 +435,82 @@ class DeviceReminderService implements ReminderService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: note.id,
     );
-    _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
+    _lastScheduledAt[note.id] = at;
+  }
+
+  /// Makes sure whatever the device has for [note]'s reminder carries the
+  /// locked wording while app lock is on (LOCK-2), per [lockKeepActionFor].
+  Future<void> _applyLockKeep(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async {
+    if (!appLockOn) return;
+    await _ensureInitialized();
+    final id = reminderNotificationId(note.id);
+    final l10n = await AppLocalizations.delegate.load(locale);
+    final active = await _plugin.getActiveNotifications();
+    final pending = await _plugin.pendingNotificationRequests();
+    // Already carrying the locked wording -- itself, not the note's own
+    // text -- means a previous reschedule already handled this one; doing
+    // it again would alert a second time for nothing (x-reminder-lock-keep).
+    bool isLocked(String? title, String? body) =>
+        title == l10n.noteReminderLockedTitle && body == null;
+    final action = lockKeepActionFor(
+      appLockOn: appLockOn,
+      isActive: active.any((n) => n.id == id),
+      isPending: pending.any((p) => p.id == id),
+      alreadyLocked:
+          active
+              .where((n) => n.id == id)
+              .any((n) => isLocked(n.title, n.body)) ||
+          pending
+              .where((p) => p.id == id)
+              .any((p) => isLocked(p.title, p.body)),
+    );
+    if (action == LockKeepAction.none) return;
+
+    final details = NotificationDetails(
+      android: AndroidNotificationDetails(
+        'note_reminders',
+        noteChannelName(l10n),
+        importance: Importance.defaultImportance,
+        // Reshowing an already-delivered notification in place must not
+        // alert again -- Android treats an update as a new alert unless
+        // told otherwise (x-reminder-lock-keep).
+        onlyAlertOnce: true,
+      ),
+      iOS: const DarwinNotificationDetails(),
+      macOS: const DarwinNotificationDetails(),
+      linux: const LinuxNotificationDetails(),
+    );
+    switch (action) {
+      case LockKeepAction.reshow:
+        // Same ID: this replaces the one already in the tray rather than
+        // adding a second one (LOCK-2).
+        await _plugin.show(
+          id: id,
+          title: l10n.noteReminderLockedTitle,
+          notificationDetails: details,
+          payload: note.id,
+        );
+      case LockKeepAction.reschedule:
+        await _plugin.cancel(id: id);
+        await _plugin.zonedSchedule(
+          id: id,
+          title: l10n.noteReminderLockedTitle,
+          body: null,
+          scheduledDate: tz.TZDateTime.from(
+            DateTime.now().add(const Duration(minutes: 1)),
+            tz.local,
+          ),
+          notificationDetails: details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          payload: note.id,
+        );
+      case LockKeepAction.none:
+        break;
+    }
   }
 
   @override
@@ -418,6 +539,7 @@ class DeviceReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async {
     await _ensureInitialized();
     // Every slot goes, not only the ones about to be filled: yesterday's
@@ -438,8 +560,8 @@ class DeviceReminderService implements ReminderService {
         id: _nudgeIdBase + slot++,
         title: appLockOn
             ? l10n.reminderLockedTitle
-            : _nudgeTitle(l10n, reminder),
-        body: appLockOn ? null : _nudgeBody(l10n, reminder),
+            : nudgeTitle(l10n, reminder),
+        body: appLockOn ? null : nudgeBody(l10n, reminder, currency: currency),
         scheduledDate: tz.TZDateTime.from(reminder.at, tz.local),
         notificationDetails: NotificationDetails(
           // A channel each, so someone who wants the entries that fell due
@@ -464,21 +586,63 @@ class DeviceReminderService implements ReminderService {
       );
     }
   }
-
-  String _nudgeTitle(AppLocalizations l10n, PlannedReminder reminder) =>
-      switch (reminder.kind) {
-        ReminderKind.dueEntry => l10n.dueEntryReminderTitle,
-        ReminderKind.emptyDay => l10n.emptyDayReminderTitle,
-      };
-
-  String _nudgeBody(AppLocalizations l10n, PlannedReminder reminder) {
-    if (reminder.kind == ReminderKind.emptyDay) {
-      return l10n.emptyDayReminderBody;
-    }
-    if (reminder.count > 1) return l10n.dueEntryReminderMany(reminder.count);
-    final title = reminder.title;
-    return title == null || title.isEmpty
-        ? l10n.dueEntryReminderUntitled
-        : l10n.dueEntryReminderOne(title);
-  }
 }
+
+/// The title for one of the app's own reminders (NUDGE-1), from [l10n]
+/// rather than an English literal (LANG-2). A pure function, extracted
+/// alongside [nudgeBody] so their content is unit-testable without touching
+/// the notifications plugin (rules-23-26-34#5's own suggested_check).
+String nudgeTitle(AppLocalizations l10n, PlannedReminder reminder) =>
+    switch (reminder.kind) {
+      ReminderKind.dueEntry => l10n.dueEntryReminderTitle,
+      ReminderKind.emptyDay => l10n.emptyDayReminderTitle,
+    };
+
+/// The body for one of the app's own reminders (NUDGE-1), naming what was
+/// due and for how much (NUDGE-2): the amount in [currency]'s own format
+/// (CUR-2), and "due today" only when [reminder]'s own due date really is
+/// the day it fires on -- an occurrence carried over from an earlier,
+/// unhandled day names that day instead of claiming it is today's
+/// (rules-23-26-34#9). A grouped reminder ([reminder.count] more than one)
+/// carries no date of its own, but says "waiting" rather than "due today"
+/// when [PlannedReminder.anyOverdue] shows at least one of the group was
+/// carried over too.
+String nudgeBody(
+  AppLocalizations l10n,
+  PlannedReminder reminder, {
+  required NumberFormat currency,
+}) {
+  if (reminder.kind == ReminderKind.emptyDay) {
+    return l10n.emptyDayReminderBody;
+  }
+  if (reminder.count > 1) {
+    return reminder.anyOverdue
+        ? l10n.dueEntryReminderManyWaiting(reminder.count)
+        : l10n.dueEntryReminderMany(reminder.count);
+  }
+  final amount = reminder.amount;
+  final amountText = amount == null
+      ? ''
+      : currency.signedMoney(amount, isIncome: reminder.isIncome);
+  final dueDate = reminder.dueDate;
+  final overdue = dueDate != null && !_sameLocalDay(dueDate, reminder.at);
+  final title = reminder.title;
+  if (title == null || title.isEmpty) {
+    return overdue
+        ? l10n.dueEntryReminderUntitledOverdue(
+            amountText,
+            DateFormat.yMMMd(l10n.localeName).format(dueDate),
+          )
+        : l10n.dueEntryReminderUntitled(amountText);
+  }
+  return overdue
+      ? l10n.dueEntryReminderOneOverdue(
+          title,
+          amountText,
+          DateFormat.yMMMd(l10n.localeName).format(dueDate),
+        )
+      : l10n.dueEntryReminderOne(title, amountText);
+}
+
+bool _sameLocalDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;

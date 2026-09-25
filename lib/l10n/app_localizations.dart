@@ -3007,20 +3007,38 @@ abstract class AppLocalizations {
   /// No description provided for @dueEntryReminderOne.
   ///
   /// In en, this message translates to:
-  /// **'{title} was due today and is still waiting.'**
-  String dueEntryReminderOne(String title);
+  /// **'{title} ({amount}) was due today and is still waiting.'**
+  String dueEntryReminderOne(String title, String amount);
+
+  /// The due-entry reminder body when the occurrence's day has already passed, so it names the actual day instead of saying 'today' (NUDGE-2, rules-23-26-34#9).
+  ///
+  /// In en, this message translates to:
+  /// **'{title} ({amount}) was due {date} and is still waiting.'**
+  String dueEntryReminderOneOverdue(String title, String amount, String date);
 
   /// No description provided for @dueEntryReminderUntitled.
   ///
   /// In en, this message translates to:
-  /// **'A repeating entry was due today and is still waiting.'**
-  String get dueEntryReminderUntitled;
+  /// **'A repeating entry ({amount}) was due today and is still waiting.'**
+  String dueEntryReminderUntitled(String amount);
+
+  /// Like dueEntryReminderUntitled, but the occurrence's day has already passed (NUDGE-2, rules-23-26-34#9).
+  ///
+  /// In en, this message translates to:
+  /// **'A repeating entry ({amount}) was due {date} and is still waiting.'**
+  String dueEntryReminderUntitledOverdue(String amount, String date);
 
   /// No description provided for @dueEntryReminderMany.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 repeating entry was due today.} other{{count} repeating entries were due today.}}'**
   String dueEntryReminderMany(int count);
+
+  /// Like dueEntryReminderMany, but for a group where at least one occurrence was carried over from an earlier, unhandled day, so the notification does not claim they were all due today (rules-23-26-34#9).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 repeating entry is waiting.} other{{count} repeating entries are waiting.}}'**
+  String dueEntryReminderManyWaiting(int count);
 
   /// No description provided for @emptyDayReminderTitle.
   ///

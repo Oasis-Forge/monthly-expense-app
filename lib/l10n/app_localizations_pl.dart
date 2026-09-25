@@ -1838,13 +1838,24 @@ class AppLocalizationsPl extends AppLocalizations {
   String get dueEntryChannelName => 'Zaległe wpisy';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title miał termin dzisiaj i wciąż czeka.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) miał termin dzisiaj i wciąż czeka.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Wpis cykliczny miał termin dzisiaj i wciąż czeka.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) miał termin $date i wciąż czeka.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Wpis cykliczny ($amount) miał termin dzisiaj i wciąż czeka.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Wpis cykliczny ($amount) miał termin $date i wciąż czeka.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1855,6 +1866,19 @@ class AppLocalizationsPl extends AppLocalizations {
       many: '$count wpisów cyklicznych miało dziś termin.',
       few: '$count wpisy cykliczne miały dziś termin.',
       one: '1 wpis cykliczny miał dziś termin.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wpisów cyklicznych czeka.',
+      many: '$count wpisów cyklicznych czeka.',
+      few: '$count wpisy cykliczne czekają.',
+      one: '1 wpis cykliczny czeka.',
     );
     return '$_temp0';
   }

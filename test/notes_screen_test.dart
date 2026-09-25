@@ -271,7 +271,8 @@ void main() {
   );
 
   testWidgets(
-    'a refused reminder permission still saves, with a notice (NOTE-6)',
+    'a refused reminder permission leaves the reminder off, with a notice '
+    '(NOTE-6, NUDGE-7)',
     (tester) async {
       await openForm(
         tester,
@@ -295,9 +296,16 @@ void main() {
         ),
         findsOneWidget,
       );
+      // NUDGE-7: refused, so the switch itself must not read as on -- a
+      // switch left on with nothing that will ever arrive is worse than one
+      // that stayed off.
+      final reminderSwitch = tester.widget<SwitchListTile>(
+        find.widgetWithText(SwitchListTile, 'Remind me'),
+      );
+      expect(reminderSwitch.value, isFalse);
 
       await tapInForm(tester, find.widgetWithText(FilledButton, 'Add a note'));
-      expect(provider.notes.single.reminderAt, isNotNull);
+      expect(provider.notes.single.reminderAt, isNull);
     },
   );
 

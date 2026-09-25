@@ -121,6 +121,9 @@ class MonthlyExpenseApp extends StatelessWidget {
                   appLockOn: settings.appLock,
                   locale: effectiveAppLocale(settings.locale),
                   nudge: settings.nudgeSettings,
+                  currency: settings.currencyFormat(
+                    effectiveAppLocale(settings.locale).toLanguageTag(),
+                  ),
                 ),
         ),
         Provider<BackupService>(create: (_) => backup ?? BackupService()),
@@ -584,6 +587,9 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
         appLockOn: settings.appLock,
         locale: effectiveAppLocale(settings.locale),
         nudge: settings.nudgeSettings,
+        currency: settings.currencyFormat(
+          effectiveAppLocale(settings.locale).toLanguageTag(),
+        ),
       );
     }
   }

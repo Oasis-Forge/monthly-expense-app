@@ -1783,13 +1783,24 @@ class AppLocalizationsBn extends AppLocalizations {
   String get dueEntryChannelName => 'বকেয়া এন্ট্রি';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'একটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'একটি পুনরাবৃত্ত এন্ট্রি ($amount) আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'একটি পুনরাবৃত্ত এন্ট্রি ($amount) $date বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1799,6 +1810,18 @@ class AppLocalizationsBn extends AppLocalizations {
       other: '$countটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
       one: '1টি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
       zero: '$countটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countটি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।',
+      one: '1টি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।',
+      zero: '$countটি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।',
     );
     return '$_temp0';
   }

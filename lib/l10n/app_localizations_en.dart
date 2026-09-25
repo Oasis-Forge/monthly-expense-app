@@ -1766,13 +1766,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dueEntryChannelName => 'Entries that fell due';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title was due today and is still waiting.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) was due today and is still waiting.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'A repeating entry was due today and is still waiting.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) was due $date and is still waiting.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'A repeating entry ($amount) was due today and is still waiting.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'A repeating entry ($amount) was due $date and is still waiting.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1781,6 +1792,17 @@ class AppLocalizationsEn extends AppLocalizations {
       locale: localeName,
       other: '$count repeating entries were due today.',
       one: '1 repeating entry was due today.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count repeating entries are waiting.',
+      one: '1 repeating entry is waiting.',
     );
     return '$_temp0';
   }

@@ -1778,13 +1778,24 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dueEntryChannelName => 'बकाया प्रविष्टियाँ';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title आज देय था और अभी भी प्रतीक्षा में है।';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) आज देय था और अभी भी प्रतीक्षा में है।';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'एक आवर्ती प्रविष्टि आज देय थी और अभी भी प्रतीक्षा में है।';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date देय था और अभी भी प्रतीक्षा में है।';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'एक आवर्ती प्रविष्टि ($amount) आज देय थी और अभी भी प्रतीक्षा में है।';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'एक आवर्ती प्रविष्टि ($amount) $date देय थी और अभी भी प्रतीक्षा में है।';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1794,6 +1805,18 @@ class AppLocalizationsHi extends AppLocalizations {
       other: '$count आवर्ती प्रविष्टियाँ आज देय थीं।',
       one: '1 आवर्ती प्रविष्टि आज देय थी।',
       zero: '$count आवर्ती प्रविष्टियाँ आज देय थीं।',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count आवर्ती प्रविष्टियाँ प्रतीक्षा में हैं।',
+      one: '1 आवर्ती प्रविष्टि प्रतीक्षा में है।',
+      zero: '$count आवर्ती प्रविष्टियाँ प्रतीक्षा में हैं।',
     );
     return '$_temp0';
   }

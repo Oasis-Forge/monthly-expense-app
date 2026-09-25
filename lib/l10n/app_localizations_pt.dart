@@ -1804,13 +1804,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dueEntryChannelName => 'Lançamentos vencidos';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title venceu hoje e ainda está pendente.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) venceu hoje e ainda está pendente.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Um lançamento recorrente venceu hoje e ainda está pendente.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) venceu em $date e ainda está pendente.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Um lançamento recorrente ($amount) venceu hoje e ainda está pendente.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Um lançamento recorrente ($amount) venceu em $date e ainda está pendente.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1820,6 +1831,18 @@ class AppLocalizationsPt extends AppLocalizations {
       other: '$count lançamentos recorrentes venceram hoje.',
       one: '1 lançamento recorrente venceu hoje.',
       zero: '$count lançamentos recorrentes venceram hoje.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count lançamentos recorrentes ainda aguardam.',
+      one: '1 lançamento recorrente ainda aguarda.',
+      zero: '$count lançamentos recorrentes ainda aguardam.',
     );
     return '$_temp0';
   }

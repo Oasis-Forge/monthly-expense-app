@@ -1833,13 +1833,24 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dueEntryChannelName => 'Просроченные записи';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return 'Срок $title наступил сегодня, и запись всё ещё ждёт.';
+  String dueEntryReminderOne(String title, String amount) {
+    return 'Срок $title ($amount) наступил сегодня, и запись всё ещё ждёт.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Срок повторяющейся записи наступил сегодня, и она всё ещё ждёт.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return 'Срок $title ($amount) наступил $date, и запись всё ещё ждёт.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Срок повторяющейся записи ($amount) наступил сегодня, и она всё ещё ждёт.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Срок повторяющейся записи ($amount) наступил $date, и она всё ещё ждёт.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1850,6 +1861,19 @@ class AppLocalizationsRu extends AppLocalizations {
       many: 'У $count повторяющихся записей сегодня срок.',
       few: 'У $count повторяющихся записей сегодня срок.',
       one: 'У $count повторяющейся записи сегодня срок.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count повторяющихся записей ожидают.',
+      many: '$count повторяющихся записей ожидают.',
+      few: '$count повторяющиеся записи ожидают.',
+      one: '$count повторяющаяся запись ожидает.',
     );
     return '$_temp0';
   }

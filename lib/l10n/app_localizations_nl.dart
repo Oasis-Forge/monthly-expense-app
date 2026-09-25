@@ -1788,13 +1788,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dueEntryChannelName => 'Vervallen invoeren';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title was vandaag verschuldigd en wacht nog steeds.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) was vandaag verschuldigd en wacht nog steeds.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Een terugkerende invoer was vandaag verschuldigd en wacht nog.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) was verschuldigd op $date en wacht nog steeds.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Een terugkerende invoer ($amount) was vandaag verschuldigd en wacht nog.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Een terugkerende invoer ($amount) was verschuldigd op $date en wacht nog.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1803,6 +1814,17 @@ class AppLocalizationsNl extends AppLocalizations {
       locale: localeName,
       other: '$count vaste posten stonden vandaag open.',
       one: '1 vaste post stond vandaag open.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vaste posten staan nog open.',
+      one: '1 vaste post staat nog open.',
     );
     return '$_temp0';
   }

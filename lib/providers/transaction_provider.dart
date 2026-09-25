@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ChangeNotifier, listEquals;
 import 'package:flutter/widgets.dart' show Locale;
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../db/db_helper.dart';
@@ -85,6 +86,12 @@ class TransactionProvider extends ChangeNotifier {
   /// re-arming a reminder away from a screen that could pass its own.
   bool _appLockOn = false;
   Locale _locale = const Locale('en');
+
+  /// How a due entry's amount is shown in its own reminder (CUR-2,
+  /// NUDGE-2), the same way the rest of the app shows it. Falls back to a
+  /// locale-only guess for a caller that has not passed the real one
+  /// (settings' own currency choice), such as most tests.
+  NumberFormat? _currency;
 
   /// Handled occurrences by [RecurringOccurrence.key].
   final Map<String, RecurringOccurrence> _occurrences = {};
@@ -483,6 +490,7 @@ class TransactionProvider extends ChangeNotifier {
     bool appLockOn = false,
     Locale locale = const Locale('en'),
     NudgeSettings nudge = NudgeSettings.off,
+    NumberFormat? currency,
   }) async {
     _dayLastSeen = _today;
     await _attachments.deleteAll(
@@ -533,6 +541,7 @@ class TransactionProvider extends ChangeNotifier {
         appLockOn: appLockOn,
         locale: locale,
         nudge: nudge,
+        currency: currency,
       );
       _loaded = true;
     } finally {
@@ -549,10 +558,12 @@ class TransactionProvider extends ChangeNotifier {
     required bool appLockOn,
     required Locale locale,
     NudgeSettings nudge = NudgeSettings.off,
+    NumberFormat? currency,
   }) async {
     _appLockOn = appLockOn;
     _locale = locale;
     _nudge = nudge;
+    _currency = currency;
     for (final note in _notes) {
       await _reminders.schedule(note, appLockOn: appLockOn, locale: locale);
     }
@@ -583,6 +594,9 @@ class TransactionProvider extends ChangeNotifier {
       plan,
       appLockOn: _appLockOn,
       locale: _locale,
+      currency:
+          _currency ??
+          NumberFormat.simpleCurrency(locale: _locale.toLanguageTag()),
     );
   }
 
@@ -1557,18 +1571,12 @@ class TransactionProvider extends ChangeNotifier {
   /// answers a nudge that has already fired (NUDGE-5). Built once per data
   /// change rather than on every read (lifecycle-perf#10).
   Set<DateTime> get daysUsed => _daysUsedCache ??= {
-    for (final transaction in _transactions)
-      DateTime(
-        transaction.createdAt.year,
-        transaction.createdAt.month,
-        transaction.createdAt.day,
-      ),
-    for (final transfer in _transfers)
-      DateTime(
-        transfer.createdAt.year,
-        transfer.createdAt.month,
-        transfer.createdAt.day,
-      ),
+    // createdAt is always stamped in UTC (MONEY-1-style consistency); the
+    // local calendar day is what the person actually used the app on
+    // (money-time#8), and skipping .toLocal() here credited late-night and
+    // evening entries to the wrong day for anyone away from UTC.
+    for (final transaction in _transactions) _localDay(transaction.createdAt),
+    for (final transfer in _transfers) _localDay(transfer.createdAt),
   };
 
   /// Whether today has anything dated to it, which is what keeps it from
@@ -2023,7 +2031,11 @@ class TransactionProvider extends ChangeNotifier {
     int days = 31,
   }) {
     final today = _today;
-    final last = today.add(Duration(days: days));
+    // Calendar days, not elapsed time (money-time#9): a Duration added
+    // across a DST change can be an hour short or long, landing `last` on
+    // the wrong side of midnight and leaving the widget one day short of
+    // real days ahead.
+    final last = DateTime(today.year, today.month, today.day + days);
 
     final changeDays = <DateTime>{today};
     for (final tx in _transactions) {
@@ -2353,3 +2365,8 @@ class _PeriodSummary {
 
 DateTime _dayOf(DateTime moment) =>
     DateTime(moment.year, moment.month, moment.day);
+
+/// The local calendar day a UTC-stamped moment (such as `createdAt`) falls
+/// on, at midnight local (money-time#8): [DateTime.toLocal] before reading
+/// the calendar fields, never [_dayOf] directly on a UTC value.
+DateTime _localDay(DateTime moment) => _dayOf(moment.toLocal());

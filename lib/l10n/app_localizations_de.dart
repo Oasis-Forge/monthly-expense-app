@@ -1789,13 +1789,24 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dueEntryChannelName => 'Fällige Einträge';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title war heute fällig und wartet noch.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) war heute fällig und wartet noch.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Ein wiederkehrender Eintrag war heute fällig und wartet noch.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) war am $date fällig und wartet noch.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Ein wiederkehrender Eintrag ($amount) war heute fällig und wartet noch.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Ein wiederkehrender Eintrag ($amount) war am $date fällig und wartet noch.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1804,6 +1815,17 @@ class AppLocalizationsDe extends AppLocalizations {
       locale: localeName,
       other: '$count wiederkehrende Einträge waren heute fällig.',
       one: '1 wiederkehrender Eintrag war heute fällig.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wiederkehrende Einträge warten noch.',
+      one: '1 wiederkehrender Eintrag wartet noch.',
     );
     return '$_temp0';
   }

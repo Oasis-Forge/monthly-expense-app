@@ -1766,13 +1766,24 @@ class AppLocalizationsTr extends AppLocalizations {
   String get dueEntryChannelName => 'Vadesi gelen girişler';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title bugün vadesi geldi ve hâlâ bekliyor.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) bugün vadesi geldi ve hâlâ bekliyor.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Tekrarlanan bir kayıt bugün vadesi geldi ve hâlâ bekliyor.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date vadesi geldi ve hâlâ bekliyor.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Tekrarlanan bir kayıt ($amount) bugün vadesi geldi ve hâlâ bekliyor.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Tekrarlanan bir kayıt ($amount) $date vadesi geldi ve hâlâ bekliyor.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1781,6 +1792,17 @@ class AppLocalizationsTr extends AppLocalizations {
       locale: localeName,
       other: '$count tekrarlanan kayıt bugün vadesi geldi.',
       one: '1 tekrarlanan kayıt bugün vadesi geldi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tekrarlanan kayıt bekliyor.',
+      one: '1 tekrarlanan kayıt bekliyor.',
     );
     return '$_temp0';
   }

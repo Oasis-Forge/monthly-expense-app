@@ -1775,13 +1775,24 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dueEntryChannelName => 'Voci scadute';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title era previsto per oggi ed è ancora in attesa.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) era previsto per oggi ed è ancora in attesa.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Una voce ricorrente era prevista per oggi ed è ancora in attesa.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) era previsto per il $date ed è ancora in attesa.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Una voce ricorrente ($amount) era prevista per oggi ed è ancora in attesa.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Una voce ricorrente ($amount) era prevista per il $date ed è ancora in attesa.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1790,6 +1801,17 @@ class AppLocalizationsIt extends AppLocalizations {
       locale: localeName,
       other: '$count voci ricorrenti erano previste per oggi.',
       one: '1 voce ricorrente era prevista per oggi.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voci ricorrenti sono ancora in attesa.',
+      one: '1 voce ricorrente è ancora in attesa.',
     );
     return '$_temp0';
   }
