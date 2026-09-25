@@ -121,6 +121,38 @@ void main() {
       expect(circles[1].backgroundColor, sections[1].color);
     });
 
+    testWidgets(
+      "a slice's percent uses the language's own digits, like the amounts "
+      'beside it (LANG-3, pr61#10)',
+      (tester) async {
+        await showInsights(
+          tester,
+          [
+            testTx('f', expense, 10, DateTime(2026, 9, 5)),
+            testTx(
+              'r',
+              expense,
+              30,
+              DateTime(2026, 9, 6),
+              categoryId: 'cat-rent',
+            ),
+          ],
+          settingsValues: {'language': 'bn'},
+        );
+
+        final sections = tester
+            .widget<PieChart>(find.byType(PieChart))
+            .data
+            .sections;
+
+        expect(sections, hasLength(2));
+        // Bengali digits (rent 75%, food 25%), not the Latin ones
+        // toStringAsFixed would give.
+        expect(sections.first.title, '৭৫%');
+        expect(sections[1].title, '২৫%');
+      },
+    );
+
     testWidgets('lists spending by category with the total', (tester) async {
       await showInsights(tester, spending);
 

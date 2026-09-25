@@ -216,8 +216,13 @@ class _CategoriesTabState extends State<_CategoriesTab> {
                     PieChartSectionData(
                       value: entries[i].value.toDouble(),
                       color: swatches[i],
-                      title:
-                          '${(entries[i].value.thousandths / total.thousandths * 100).toStringAsFixed(0)}%',
+                      // LANG-3: the language's own digits and percent sign,
+                      // the same formatter the change label beside each
+                      // category already uses, rather than Latin digits and
+                      // a hard-coded '%'.
+                      title: percent.format(
+                        entries[i].value.thousandths / total.thousandths,
+                      ),
                       radius: 70,
                       titleStyle: const TextStyle(
                         fontSize: 12,
