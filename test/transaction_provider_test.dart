@@ -802,6 +802,41 @@ void main() {
         expect(provider.deletedTransactions.single.id, 'a');
       });
 
+      test('deleting reopens the note in time for the notice, and restoring '
+          'relinks it, by the last notification of each (NOTE-5)', () async {
+        final fake = FakeDB(
+          transactions: [testTx('a', expense, 30, DateTime(2026, 9, 10))],
+          notes: [
+            testNote(
+              'n',
+              'Pay rent',
+              dueDate: DateTime(2026, 9, 20),
+            ).copyWith(transactionId: 'a', doneAt: DateTime(2026, 9, 10)),
+          ],
+        );
+        final provider = await loaded(fake);
+        var lastDueCount = provider.notesDueInPeriod.length;
+        provider.addListener(() {
+          lastDueCount = provider.notesDueInPeriod.length;
+        });
+        expect(lastDueCount, 0);
+
+        await provider.deleteTransaction('a');
+
+        // The note is reopened and due again by the last notification of
+        // the delete, not just once some later, unrelated change notifies
+        // (data-integrity#12).
+        expect(lastDueCount, 1);
+        expect(provider.notesDueInPeriod.single.id, 'n');
+
+        await provider.restoreTransaction('a');
+
+        // Restoring relinks and marks it done again, gone from the notice
+        // by the last notification of the restore.
+        expect(lastDueCount, 0);
+        expect(provider.notesDueInPeriod, isEmpty);
+      });
+
       test('updating a transaction updates totals even when attachment cleanup '
           'fails afterward', () async {
         final fake = FakeDB(

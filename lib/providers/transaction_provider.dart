@@ -711,9 +711,17 @@ class TransactionProvider extends ChangeNotifier {
     _transactions.removeWhere((t) => t.id == id);
     _deleted.insert(0, deleted);
     // As in updateTransaction, ahead of the note side effect (NOTE-4)
-    // rather than after it (data-integrity#12).
+    // rather than after it (data-integrity#12), so totals follow the
+    // committed write even if the note step below throws. A second,
+    // dataChanged: false notification follows the note step, since it can
+    // change whether a note reads as due (NOTE-5) with no earlier
+    // notification of its own to piggyback on (data-integrity#12).
     _changed();
-    await _reopenNoteFor(id);
+    try {
+      await _reopenNoteFor(id);
+    } finally {
+      _changed(dataChanged: false);
+    }
   }
 
   /// Takes the transaction out of the trash with its original ID, date, and
@@ -732,9 +740,15 @@ class TransactionProvider extends ChangeNotifier {
       ..add(restored)
       ..sort(_newestFirst);
     // Same ordering as delete and update, ahead of the note relink
-    // (data-integrity#12).
+    // (data-integrity#12), and the same second notification once the
+    // relink finishes, so a note it marks done stops reading as due
+    // (NOTE-5) without waiting on some unrelated change.
     _changed();
-    await _relinkNoteFor(id);
+    try {
+      await _relinkNoteFor(id);
+    } finally {
+      _changed(dataChanged: false);
+    }
   }
 
   /// Saves a new transfer (ACC-3). Throws an [ArgumentError] when both sides
