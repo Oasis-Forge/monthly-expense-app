@@ -307,6 +307,7 @@
   "appLockSubtitle": "ปลดล็อกด้วยลายนิ้วมือ ใบหน้า หรือรหัสล็อกหน้าจอ",
   "appLockUnavailable": "ตั้งค่าการล็อกหน้าจอบนอุปกรณ์นี้เพื่อใช้ล็อกแอป",
   "appLockReason": "ปลดล็อก Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "ยืนยันตัวตนของคุณ",
   "appLockFailed": "ยืนยันตัวตนไม่สำเร็จ การล็อกแอปไม่มีการเปลี่ยนแปลง",
   "lockedTitle": "Monthly Expenses ถูกล็อกอยู่",

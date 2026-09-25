@@ -21,12 +21,15 @@ abstract class Authenticator {
   /// Whether this device has biometrics or a screen lock the app can use.
   Future<bool> isAvailable();
 
-  /// Asks the user to authenticate, showing [reason] as the prompt's title,
-  /// [hint] as its subtitle, and [cancelButton] on the button that backs
-  /// out — all from the caller's own translations (LANG-2), so the dialog
-  /// isn't left in local_auth's untranslated English defaults.
+  /// Asks the user to authenticate, showing [reason] as the description of
+  /// why the app is asking, [title] as the prompt's own title (kept
+  /// distinct from [reason] so the same line never appears twice), [hint]
+  /// as its subtitle, and [cancelButton] on the button that backs out — all
+  /// from the caller's own translations (LANG-2), so the dialog isn't left
+  /// in local_auth's untranslated English defaults.
   Future<AuthResult> authenticate(
     String reason, {
+    String? title,
     String? hint,
     String? cancelButton,
   });
@@ -35,14 +38,17 @@ abstract class Authenticator {
 /// The per-platform auth messages `local_auth` shows, built from the
 /// caller's own translations (LANG-2) rather than its untranslated English
 /// defaults. A pure function so a test can check the Android title and hint
-/// without a device or a fake plugin.
+/// without a device or a fake plugin. [title] falls back to [reason] only
+/// when the caller has none of its own, so an old caller keeps working
+/// rather than showing a blank title.
 List<AuthMessages> authMessagesFor(
   String reason, {
+  String? title,
   String? hint,
   String? cancelButton,
 }) => [
   AndroidAuthMessages(
-    signInTitle: reason,
+    signInTitle: title ?? reason,
     signInHint: hint,
     cancelButton: cancelButton,
   ),
@@ -78,6 +84,7 @@ class DeviceAuthenticator implements Authenticator {
   @override
   Future<AuthResult> authenticate(
     String reason, {
+    String? title,
     String? hint,
     String? cancelButton,
   }) async {
@@ -88,6 +95,7 @@ class DeviceAuthenticator implements Authenticator {
         persistAcrossBackgrounding: true,
         authMessages: authMessagesFor(
           reason,
+          title: title,
           hint: hint,
           cancelButton: cancelButton,
         ),

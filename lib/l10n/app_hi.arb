@@ -307,6 +307,7 @@
   "appLockSubtitle": "फिंगरप्रिंट, फेस या स्क्रीन लॉक से अनलॉक करें",
   "appLockUnavailable": "ऐप लॉक इस्तेमाल करने के लिए इस डिवाइस पर स्क्रीन लॉक सेट करें",
   "appLockReason": "Monthly Expenses अनलॉक करें",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "अपनी पहचान की पुष्टि करें",
   "appLockFailed": "आपकी पहचान की पुष्टि नहीं हो सकी। ऐप लॉक नहीं बदला गया।",
   "lockedTitle": "Monthly Expenses लॉक है",

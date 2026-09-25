@@ -307,6 +307,7 @@
   "appLockSubtitle": "Ξεκλειδώστε με δαχτυλικό αποτύπωμα, πρόσωπο ή κλείδωμα οθόνης",
   "appLockUnavailable": "Ρυθμίστε κλείδωμα οθόνης σε αυτή τη συσκευή για να χρησιμοποιήσετε το κλείδωμα εφαρμογής",
   "appLockReason": "Ξεκλείδωμα Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Επιβεβαίωση ταυτότητας",
   "appLockFailed": "Δεν ήταν δυνατή η επιβεβαίωση ταυτότητας. Το κλείδωμα εφαρμογής δεν άλλαξε.",
   "lockedTitle": "Το Monthly Expenses είναι κλειδωμένο",

@@ -1172,6 +1172,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appLockReason => 'افتح قفل Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'تأكيد الهوية';
 
   @override

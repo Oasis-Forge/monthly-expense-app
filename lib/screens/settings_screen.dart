@@ -307,6 +307,7 @@ class _AppLockTileState extends State<_AppLockTile> {
     setState(() => _busy = true);
     final result = await authenticator.authenticate(
       l10n.appLockReason,
+      title: l10n.appLockTitle,
       hint: l10n.appLockPromptHint,
       cancelButton: l10n.cancelButton,
     );

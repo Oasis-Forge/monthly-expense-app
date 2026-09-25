@@ -1134,6 +1134,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses کھولیں';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'اپنی شناخت کی تصدیق کریں';
 
   @override

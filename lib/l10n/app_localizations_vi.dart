@@ -1137,6 +1137,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appLockReason => 'Mở khóa Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Xác nhận danh tính của bạn';
 
   @override

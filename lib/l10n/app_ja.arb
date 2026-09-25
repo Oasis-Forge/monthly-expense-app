@@ -307,6 +307,7 @@
   "appLockSubtitle": "指紋、顔、または画面ロックで解除します",
   "appLockUnavailable": "アプリロックを使うには、この端末で画面ロックを設定してください",
   "appLockReason": "Monthly Expensesのロックを解除",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "本人確認をしてください",
   "appLockFailed": "本人確認ができませんでした。アプリロックは変更されていません。",
   "lockedTitle": "Monthly Expensesはロックされています",

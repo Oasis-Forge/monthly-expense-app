@@ -1148,6 +1148,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get appLockReason => 'Ontgrendel Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Identiteit bevestigen';
 
   @override

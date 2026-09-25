@@ -1156,6 +1156,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get appLockReason => 'Desbloquear o Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Confirme sua identidade';
 
   @override

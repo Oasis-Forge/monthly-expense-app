@@ -307,6 +307,7 @@
   "appLockSubtitle": "지문, 얼굴, 또는 화면 잠금으로 잠금 해제해요",
   "appLockUnavailable": "앱 잠금을 사용하려면 이 기기에 화면 잠금을 설정하세요",
   "appLockReason": "Monthly Expenses 잠금 해제",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "본인 확인",
   "appLockFailed": "본인 확인에 실패했어요. 앱 잠금이 변경되지 않았어요.",
   "lockedTitle": "Monthly Expenses가 잠겨 있어요",

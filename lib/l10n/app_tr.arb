@@ -307,6 +307,7 @@
   "appLockSubtitle": "Parmak iziniz, yüzünüz veya ekran kilidinizle açın",
   "appLockUnavailable": "Uygulama kilidini kullanmak için bu cihazda bir ekran kilidi ayarlayın",
   "appLockReason": "Monthly Expenses kilidini aç",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Kimliğini doğrula",
   "appLockFailed": "Kimliğiniz doğrulanamadı. Uygulama kilidi değiştirilmedi.",
   "lockedTitle": "Monthly Expenses kilitli",

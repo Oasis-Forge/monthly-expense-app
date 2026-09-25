@@ -307,6 +307,7 @@
   "appLockSubtitle": "使用指纹、面容或屏幕锁解锁",
   "appLockUnavailable": "请先在设备上设置屏幕锁，才能使用应用锁",
   "appLockReason": "解锁 Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "确认是你",
   "appLockFailed": "无法确认身份，应用锁设置未更改。",
   "lockedTitle": "Monthly Expenses 已锁定",

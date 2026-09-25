@@ -307,6 +307,7 @@
   "appLockSubtitle": "Déverrouillez avec votre empreinte, votre visage ou le verrouillage de l’écran",
   "appLockUnavailable": "Configurez un verrouillage d’écran sur cet appareil pour utiliser le verrouillage de l’app",
   "appLockReason": "Déverrouiller Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Confirmez votre identité",
   "appLockFailed": "Impossible de confirmer votre identité. Le verrouillage de l’app n’a pas changé.",
   "lockedTitle": "Monthly Expenses est verrouillé",

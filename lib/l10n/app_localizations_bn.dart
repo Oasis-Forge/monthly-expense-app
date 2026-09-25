@@ -1145,6 +1145,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses আনলক করুন';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'আপনার পরিচয় নিশ্চিত করুন';
 
   @override

@@ -307,6 +307,7 @@
   "appLockSubtitle": "اپنے فنگر پرنٹ، چہرے، یا اسکرین لاک سے کھولیں",
   "appLockUnavailable": "ایپ لاک استعمال کرنے کے لیے اس ڈیوائس پر اسکرین لاک سیٹ کریں",
   "appLockReason": "Monthly Expenses کھولیں",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "اپنی شناخت کی تصدیق کریں",
   "appLockFailed": "آپ کی تصدیق نہیں ہو سکی۔ ایپ لاک تبدیل نہیں ہوا۔",
   "lockedTitle": "Monthly Expenses مقفل ہے",

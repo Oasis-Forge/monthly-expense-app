@@ -1175,6 +1175,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appLockReason => 'Разблокировать Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Подтвердите, что это вы';
 
   @override

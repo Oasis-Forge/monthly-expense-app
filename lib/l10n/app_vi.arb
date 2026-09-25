@@ -307,6 +307,7 @@
   "appLockSubtitle": "Mở khóa bằng vân tay, khuôn mặt, hoặc khóa màn hình",
   "appLockUnavailable": "Thiết lập khóa màn hình trên thiết bị này để dùng khóa ứng dụng",
   "appLockReason": "Mở khóa Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Xác nhận danh tính của bạn",
   "appLockFailed": "Không thể xác nhận đó là bạn. Khóa ứng dụng chưa được thay đổi.",
   "lockedTitle": "Monthly Expenses đang khóa",

@@ -307,6 +307,7 @@
   "appLockSubtitle": "Разблокировка отпечатком, лицом или паролем устройства",
   "appLockUnavailable": "Настройте блокировку экрана устройства, чтобы использовать эту функцию",
   "appLockReason": "Разблокировать Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Подтвердите, что это вы",
   "appLockFailed": "Не удалось подтвердить личность. Настройка блокировки не изменена.",
   "lockedTitle": "Monthly Expenses заблокировано",

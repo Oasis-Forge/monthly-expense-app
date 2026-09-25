@@ -307,6 +307,7 @@
   "appLockSubtitle": "ফিঙ্গারপ্রিন্ট, ফেস বা স্ক্রিন লক দিয়ে আনলক করুন",
   "appLockUnavailable": "অ্যাপ লক ব্যবহার করতে এই ডিভাইসে স্ক্রিন লক সেট করুন",
   "appLockReason": "Monthly Expenses আনলক করুন",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "আপনার পরিচয় নিশ্চিত করুন",
   "appLockFailed": "আপনাকে শনাক্ত করা যায়নি। অ্যাপ লক পরিবর্তন হয়নি।",
   "lockedTitle": "Monthly Expenses লক করা আছে",

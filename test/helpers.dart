@@ -594,6 +594,7 @@ class FakeAuthenticator implements Authenticator {
   /// from the caller's own translations rather than left in English
   /// (LANG-2, LOCK-1).
   String? lastReason;
+  String? lastTitle;
   String? lastHint;
   String? lastCancelButton;
 
@@ -603,11 +604,13 @@ class FakeAuthenticator implements Authenticator {
   @override
   Future<AuthResult> authenticate(
     String reason, {
+    String? title,
     String? hint,
     String? cancelButton,
   }) async {
     requests++;
     lastReason = reason;
+    lastTitle = title;
     lastHint = hint;
     lastCancelButton = cancelButton;
     return available ? result : AuthResult.unavailable;

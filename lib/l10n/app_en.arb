@@ -859,6 +859,10 @@
   "appLockSubtitle": "Unlock with your fingerprint, face, or screen lock",
   "appLockUnavailable": "Set up a screen lock on this device to use app lock",
   "appLockReason": "Unlock Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
+  "@appLockTitle": {
+    "description": "The system unlock prompt's title, kept distinct from appLockReason (its description), so the prompt does not show the same text twice (LOCK-1)."
+  },
   "appLockPromptHint": "Confirm it's you",
   "@appLockPromptHint": {
     "description": "The subtitle under the app-lock prompt's title (LOCK-1)."

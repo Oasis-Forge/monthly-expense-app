@@ -307,6 +307,7 @@
   "appLockSubtitle": "Desbloqueie com sua digital, rosto ou bloqueio de tela",
   "appLockUnavailable": "Configure um bloqueio de tela neste aparelho para usar o bloqueio do app",
   "appLockReason": "Desbloquear o Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Confirme sua identidade",
   "appLockFailed": "Não foi possível confirmar que é você. O bloqueio do app não foi alterado.",
   "lockedTitle": "O Monthly Expenses está bloqueado",

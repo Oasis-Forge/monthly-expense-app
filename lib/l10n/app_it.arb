@@ -307,6 +307,7 @@
   "appLockSubtitle": "Sblocca con impronta, viso o blocco schermo",
   "appLockUnavailable": "Imposta un blocco schermo su questo dispositivo per usare il blocco app",
   "appLockReason": "Sblocca Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Confermare l'identità",
   "appLockFailed": "Impossibile confermare la tua identità. Il blocco app non è stato modificato.",
   "lockedTitle": "Monthly Expenses è bloccata",

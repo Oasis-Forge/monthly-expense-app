@@ -1135,6 +1135,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get appLockReason => 'Buka kunci Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Konfirmasi identitas Anda';
 
   @override

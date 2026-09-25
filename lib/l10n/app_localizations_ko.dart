@@ -1110,6 +1110,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses 잠금 해제';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => '본인 확인';
 
   @override

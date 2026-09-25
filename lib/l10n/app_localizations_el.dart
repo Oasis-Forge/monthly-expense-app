@@ -1151,6 +1151,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get appLockReason => 'Ξεκλείδωμα Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Επιβεβαίωση ταυτότητας';
 
   @override

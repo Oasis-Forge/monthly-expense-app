@@ -1130,6 +1130,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get appLockReason => 'ปลดล็อก Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'ยืนยันตัวตนของคุณ';
 
   @override

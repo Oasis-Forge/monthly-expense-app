@@ -307,6 +307,7 @@
   "appLockSubtitle": "Buka dengan sidik jari, wajah, atau kunci layar Anda",
   "appLockUnavailable": "Atur kunci layar di perangkat ini untuk menggunakan kunci aplikasi",
   "appLockReason": "Buka kunci Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Konfirmasi identitas Anda",
   "appLockFailed": "Gagal mengonfirmasi identitas Anda. Kunci aplikasi tidak diubah.",
   "lockedTitle": "Monthly Expenses terkunci",

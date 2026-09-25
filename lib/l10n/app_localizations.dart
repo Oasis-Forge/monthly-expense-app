@@ -1978,6 +1978,12 @@ abstract class AppLocalizations {
   /// **'Unlock Monthly Expenses'**
   String get appLockReason;
 
+  /// The system unlock prompt's title, kept distinct from appLockReason (its description), so the prompt does not show the same text twice (LOCK-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Expenses'**
+  String get appLockTitle;
+
   /// The subtitle under the app-lock prompt's title (LOCK-1).
   ///
   /// In en, this message translates to:

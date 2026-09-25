@@ -1111,6 +1111,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appLockReason => 'Monthly Expensesのロックを解除';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => '本人確認をしてください';
 
   @override

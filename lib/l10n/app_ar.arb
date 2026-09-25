@@ -307,6 +307,7 @@
   "appLockSubtitle": "افتح القفل ببصمتك أو وجهك أو قفل الشاشة",
   "appLockUnavailable": "اضبط قفل شاشة على هذا الجهاز لاستخدام قفل التطبيق",
   "appLockReason": "افتح قفل Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "تأكيد الهوية",
   "appLockFailed": "تعذّر التحقق من هويتك. لم يتغير قفل التطبيق.",
   "lockedTitle": "Monthly Expenses مقفل",

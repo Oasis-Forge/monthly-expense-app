@@ -1133,6 +1133,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appLockReason => 'Unlock Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Confirm it\'s you';
 
   @override

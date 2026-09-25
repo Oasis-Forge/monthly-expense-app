@@ -1106,6 +1106,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appLockReason => '解锁 Monthly Expenses';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => '确认是你';
 
   @override

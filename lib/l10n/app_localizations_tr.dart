@@ -1134,6 +1134,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses kilidini aç';
 
   @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
   String get appLockPromptHint => 'Kimliğini doğrula';
 
   @override

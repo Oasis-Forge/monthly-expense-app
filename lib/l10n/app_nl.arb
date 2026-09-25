@@ -307,6 +307,7 @@
   "appLockSubtitle": "Ontgrendel met je vingerafdruk, gezicht of schermvergrendeling",
   "appLockUnavailable": "Stel een schermvergrendeling in op dit apparaat om app-vergrendeling te gebruiken",
   "appLockReason": "Ontgrendel Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Identiteit bevestigen",
   "appLockFailed": "Kan niet bevestigen dat jij het bent. App-vergrendeling is niet gewijzigd.",
   "lockedTitle": "Monthly Expenses is vergrendeld",

@@ -307,6 +307,7 @@
   "appLockSubtitle": "Mit Fingerabdruck, Gesicht oder Displaysperre entsperren",
   "appLockUnavailable": "Richte auf diesem Gerät eine Displaysperre ein, um die App-Sperre zu nutzen",
   "appLockReason": "Monthly Expenses entsperren",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Identität bestätigen",
   "appLockFailed": "Deine Identität konnte nicht bestätigt werden. Die App-Sperre wurde nicht geändert.",
   "lockedTitle": "Monthly Expenses ist gesperrt",

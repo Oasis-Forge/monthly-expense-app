@@ -307,6 +307,7 @@
   "appLockSubtitle": "Odblokuj odciskiem palca, twarzą lub blokadą ekranu",
   "appLockUnavailable": "Ustaw blokadę ekranu na tym urządzeniu, aby używać blokady aplikacji",
   "appLockReason": "Odblokuj Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
   "appLockPromptHint": "Potwierdź, że to Ty",
   "appLockFailed": "Nie udało się potwierdzić tożsamości. Blokada aplikacji nie została zmieniona.",
   "lockedTitle": "Monthly Expenses jest zablokowane",
