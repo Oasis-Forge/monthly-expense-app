@@ -2117,10 +2117,15 @@ class TransactionProvider extends ChangeNotifier {
 
   /// The day [_previous] bounds itself to, so a category with nothing
   /// dated on or before it reads the same as a category with no earlier
-  /// record at all (pr56+60#4).
+  /// record at all (pr56+60#4). Counted on the calendar with [daysBetween]
+  /// and rebuilt with the plain [DateTime] constructor, not
+  /// `.difference().inDays` and `.add(Duration(...))`: those go through
+  /// the wall clock, so a daylight-saving change inside either span makes
+  /// the count a day short or the rebuilt date land on the wrong day.
   DateTime _previousAsOf(DateTime today) {
-    final elapsedDays = today.difference(_period.start).inDays;
-    return _period.previous.start.add(Duration(days: elapsedDays));
+    final elapsedDays = daysBetween(_period.start, today);
+    final start = _period.previous.start;
+    return DateTime(start.year, start.month, start.day + elapsedDays);
   }
 
   _PeriodSummary get _previous {
