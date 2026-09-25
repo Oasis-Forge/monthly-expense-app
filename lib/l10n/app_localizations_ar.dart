@@ -1768,6 +1768,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get privacyOptionsTitle => 'خيارات الخصوصية';
 
   @override
+  String get privacyPolicyTitle => 'سياسة الخصوصية';
+
+  @override
   String get privacyOptionsSubtitle => 'غيّر اختيارك بشأن الإعلانات المخصصة';
 
   @override

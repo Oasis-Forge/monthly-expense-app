@@ -1181,6 +1181,10 @@
   "@privacyOptionsTitle": {
     "description": "Settings row that reopens the ad network's consent form (ADS-5)."
   },
+  "privacyPolicyTitle": "Privacy policy",
+  "@privacyPolicyTitle": {
+    "description": "Settings row that opens the app's published privacy policy in the phone's browser (Play User Data policy, App Store 5.1.1(i))."
+  },
   "privacyOptionsSubtitle": "Change your choice about personalised ads",
   "@privacyOptionsSubtitle": {
     "description": "Subtitle of the Privacy options row (ADS-5)."

@@ -1661,6 +1661,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privacyOptionsTitle => '隐私选项';
 
   @override
+  String get privacyPolicyTitle => '隐私政策';
+
+  @override
   String get privacyOptionsSubtitle => '更改你对个性化广告的选择';
 
   @override

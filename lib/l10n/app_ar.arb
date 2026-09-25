@@ -463,6 +463,7 @@
   "plusComingSoon": "قريبًا",
   "plusBody": "ربط مع البنك يجلب معاملاتك لتأكيدها. لم يكتمل بعد، فلا يوجد شيء للشراء حاليًا.",
   "privacyOptionsTitle": "خيارات الخصوصية",
+  "privacyPolicyTitle": "سياسة الخصوصية",
   "privacyOptionsSubtitle": "غيّر اختيارك بشأن الإعلانات المخصصة",
   "dueEntryReminderTitle": "إدخال متكرر مستحق",
   "dueEntryReminderOne": "{title} كان مستحقًا اليوم ولا يزال بانتظارك.",

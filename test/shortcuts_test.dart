@@ -1,7 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/main.dart';
+import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
 import 'package:monthly_expense_app/services/home_widget_service.dart';
@@ -42,6 +45,19 @@ void main() {
     await tester.pump();
     // The app loads its real database in the background; without letting
     // that finish, sqflite's lock timer outlives the test that started it.
+    // One fixed wait was too short on a slower machine. The database answers
+    // in real time and the load goes on in the test's own, so give each its
+    // turn until the load is in, then once more for what follows it.
+    final transactions = tester
+        .element(find.byType(MaterialApp))
+        .read<TransactionProvider>();
+    for (var i = 0; i < 200 && !transactions.isLoaded; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
+    expect(transactions.isLoaded, isTrue, reason: 'the database never loaded');
     await tester.runAsync(
       () => Future<void>.delayed(const Duration(milliseconds: 50)),
     );

@@ -1703,6 +1703,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get privacyOptionsTitle => 'गोपनीयता विकल्प';
 
   @override
+  String get privacyPolicyTitle => 'गोपनीयता नीति';
+
+  @override
   String get privacyOptionsSubtitle =>
       'व्यक्तिगत विज्ञापनों के बारे में अपनी पसंद बदलें';
 

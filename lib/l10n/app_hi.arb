@@ -463,6 +463,7 @@
   "plusComingSoon": "जल्द आ रहा है",
   "plusBody": "एक बैंक कनेक्शन जो लेन-देन लाकर पुष्टि के लिए दिखाता है। यह अभी पूरा नहीं हुआ, इसलिए खरीदने के लिए कुछ नहीं है।",
   "privacyOptionsTitle": "गोपनीयता विकल्प",
+  "privacyPolicyTitle": "गोपनीयता नीति",
   "privacyOptionsSubtitle": "व्यक्तिगत विज्ञापनों के बारे में अपनी पसंद बदलें",
   "dueEntryReminderTitle": "एक प्रविष्टि बाकी थी",
   "dueEntryReminderOne": "{title} आज देय था और अभी भी प्रतीक्षा में है।",

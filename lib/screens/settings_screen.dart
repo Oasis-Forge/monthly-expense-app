@@ -13,6 +13,7 @@ import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/authenticator.dart';
+import '../services/links.dart';
 import '../services/reminder_service.dart';
 import 'accounts_screen.dart';
 import 'backup_screen.dart';
@@ -162,6 +163,14 @@ class SettingsScreen extends StatelessWidget {
             trailing: const Icon(Icons.chevron_right),
             // RUN-4: the same four pages, closing back to Settings.
             onTap: () => _open(context, const WalkthroughScreen(replay: true)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: Text(l10n.privacyPolicyTitle),
+            trailing: const Icon(Icons.open_in_new),
+            // In the device's browser, so the app itself fetches nothing
+            // (RUN-2); every build shows it, the desktop ones included.
+            onTap: () => openInBrowser(privacyPolicyUrl),
           ),
           const _AdsRows(),
         ],

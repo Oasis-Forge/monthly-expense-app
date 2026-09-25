@@ -1706,6 +1706,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get privacyOptionsTitle => 'Gizlilik seçenekleri';
 
   @override
+  String get privacyPolicyTitle => 'Gizlilik politikası';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Kişiselleştirilmiş reklam tercihinizi değiştirin';
 

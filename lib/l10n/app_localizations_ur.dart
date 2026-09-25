@@ -1707,6 +1707,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get privacyOptionsTitle => 'رازداری کے اختیارات';
 
   @override
+  String get privacyPolicyTitle => 'رازداری کی پالیسی';
+
+  @override
   String get privacyOptionsSubtitle =>
       'ذاتی نوعیت کے اشتہارات کے بارے میں اپنی پسند تبدیل کریں';
 

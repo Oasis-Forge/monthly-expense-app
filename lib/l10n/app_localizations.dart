@@ -2914,6 +2914,12 @@ abstract class AppLocalizations {
   /// **'Privacy options'**
   String get privacyOptionsTitle;
 
+  /// Settings row that opens the app's published privacy policy in the phone's browser (Play User Data policy, App Store 5.1.1(i)).
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get privacyPolicyTitle;
+
   /// Subtitle of the Privacy options row (ADS-5).
   ///
   /// In en, this message translates to:

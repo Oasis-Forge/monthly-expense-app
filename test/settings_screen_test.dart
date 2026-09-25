@@ -10,6 +10,7 @@ import 'package:monthly_expense_app/screens/remove_ads_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
 import 'package:monthly_expense_app/screens/trash_screen.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
+import 'package:monthly_expense_app/services/links.dart';
 import 'package:monthly_expense_app/services/purchase_service.dart';
 
 import 'helpers.dart';
@@ -254,6 +255,27 @@ void main() {
       await tester.pageBack();
       await tester.pumpAndSettle();
     }
+  });
+
+  testWidgets('the privacy policy opens in the browser, not in the app', (
+    tester,
+  ) async {
+    final opened = <Uri>[];
+    final before = openInBrowser;
+    openInBrowser = (url) async {
+      opened.add(url);
+      return true;
+    };
+    addTearDown(() => openInBrowser = before);
+    await showSettings(tester);
+
+    await tester.scrollUntilVisible(find.text('Privacy policy'), 200);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Privacy policy'));
+    await tester.pumpAndSettle();
+
+    expect(opened, [privacyPolicyUrl]);
+    expect(privacyPolicyUrl.scheme, 'https');
   });
 
   testWidgets('choosing a language applies at once (LANG-1)', (tester) async {

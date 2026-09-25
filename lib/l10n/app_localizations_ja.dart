@@ -1670,6 +1670,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get privacyOptionsTitle => 'プライバシー設定';
 
   @override
+  String get privacyPolicyTitle => 'プライバシーポリシー';
+
+  @override
   String get privacyOptionsSubtitle => 'パーソナライズ広告の設定を変更';
 
   @override

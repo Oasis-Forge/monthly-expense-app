@@ -1729,6 +1729,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get privacyOptionsTitle => 'Datenschutzoptionen';
 
   @override
+  String get privacyPolicyTitle => 'Datenschutzerklärung';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Ändere deine Wahl zu personalisierter Werbung';
 

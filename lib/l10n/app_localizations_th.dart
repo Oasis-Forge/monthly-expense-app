@@ -1701,6 +1701,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get privacyOptionsTitle => 'ตัวเลือกความเป็นส่วนตัว';
 
   @override
+  String get privacyPolicyTitle => 'นโยบายความเป็นส่วนตัว';
+
+  @override
   String get privacyOptionsSubtitle =>
       'เปลี่ยนตัวเลือกเกี่ยวกับโฆษณาที่ปรับให้เหมาะกับคุณ';
 

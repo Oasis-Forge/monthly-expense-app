@@ -1710,6 +1710,9 @@ class AppLocalizationsId extends AppLocalizations {
   String get privacyOptionsTitle => 'Opsi privasi';
 
   @override
+  String get privacyPolicyTitle => 'Kebijakan privasi';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Ubah pilihanmu tentang iklan yang dipersonalisasi';
 

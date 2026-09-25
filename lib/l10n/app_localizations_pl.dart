@@ -1778,6 +1778,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get privacyOptionsTitle => 'Opcje prywatności';
 
   @override
+  String get privacyPolicyTitle => 'Polityka prywatności';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Zmień ustawienia reklam spersonalizowanych';
 

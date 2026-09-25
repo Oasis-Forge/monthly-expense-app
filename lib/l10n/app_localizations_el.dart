@@ -1735,6 +1735,9 @@ class AppLocalizationsEl extends AppLocalizations {
   String get privacyOptionsTitle => 'Επιλογές απορρήτου';
 
   @override
+  String get privacyPolicyTitle => 'Πολιτική απορρήτου';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Άλλαξε την επιλογή σου για εξατομικευμένες διαφημίσεις';
 
