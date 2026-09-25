@@ -124,7 +124,9 @@ Future<Uint8List> buildReportPdf({
     }
   }
 
-  if (data.upcoming.isNotEmpty) {
+  // Off follows the same rule as the day-by-day list above (PDF-2, PDF-3):
+  // this is still the transaction list, just for entries dated ahead.
+  if (options.transactions && data.upcoming.isNotEmpty) {
     content
       ..add(_heading(l10n.reportUpcomingHeader))
       ..add(_run(l10n.reportUpcomingNote, style: _muted))

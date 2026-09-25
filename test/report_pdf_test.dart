@@ -11,6 +11,7 @@ import 'package:monthly_expense_app/services/report_fonts.dart';
 import 'package:monthly_expense_app/services/report_pdf.dart';
 
 import 'helpers.dart';
+import 'pdf_text.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -138,6 +139,49 @@ void main() {
       );
 
       expect(withoutDetails.length, lessThan(full.length));
+    });
+
+    test('turning the transaction list off also hides upcoming titles, notes '
+        'and accounts (PDF-2)', () async {
+      const options = ReportOptions(transactions: false);
+      final data = buildReport(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        today: today,
+        transactions: [
+          testTx(
+            'future',
+            TransactionType.expense,
+            40,
+            DateTime(2026, 9, 25), // after `today` -> goes to `upcoming`.
+            title: 'SecretFutureTitle',
+            note: 'PrivateNote',
+            accountId: 'savings',
+          ),
+        ],
+        transfers: const [],
+        accounts: [
+          testAccount('cash', opening: 100),
+          testAccount('savings', opening: 200),
+        ],
+        options: options,
+      );
+      expect(data.upcoming, isNotEmpty);
+
+      final bytes = await buildReportPdf(
+        data: data,
+        options: options,
+        labels: await labelsFor('en'),
+        fonts: await ReportFonts.forLocale(const Locale('en')),
+        createdAt: createdAt,
+        pageFormat: PdfPageFormat.a4,
+        compress: false,
+      );
+
+      final text = pdfText(bytes);
+      expect(text, isNot(contains('SecretFutureTitle')));
+      expect(text, isNot(contains('PrivateNote')));
+      expect(text, isNot(contains('savings')));
     });
   });
 
