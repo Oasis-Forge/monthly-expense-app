@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/insights.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
@@ -10,6 +11,8 @@ import 'helpers.dart';
 void main() {
   const expense = TransactionType.expense;
   const income = TransactionType.income;
+  const cash = Account.cashId;
+  const bank = 'acct-bank';
   final today = DateTime(2026, 9, 15);
 
   Future<TransactionProvider> providerWith(
@@ -116,6 +119,34 @@ void main() {
     );
   });
 
+  test('trend follows the chosen account, like the other Insights views '
+      '(ACC-7, INS-2)', () async {
+    final provider = TransactionProvider(
+      db: FakeDB(
+        transactions: [
+          testTx('cash-spend', expense, 30, DateTime(2026, 9, 10)),
+          testTx(
+            'bank-spend',
+            expense,
+            7,
+            DateTime(2026, 9, 12),
+            accountId: bank,
+          ),
+        ],
+        accounts: [testAccount(cash), testAccount(bank)],
+      ),
+      clock: () => today,
+    );
+    await provider.load();
+
+    provider.selectAccountFilter(cash);
+    expect(provider.trend(1).last.expense, const Money(30000));
+
+    // Clearing the choice goes back to every account (ACC-6).
+    provider.selectAccountFilter(null);
+    expect(provider.trend(1).last.expense, const Money(37000));
+  });
+
   group('this period against the one before (INS-6)', () {
     test('a share of what a category was, and nothing to divide by', () {
       expect(
@@ -179,6 +210,35 @@ void main() {
       provider.nextPeriod();
       expect(provider.hasEarlierRecords, isTrue);
     });
+
+    test(
+      'hasEarlierRecords follows the chosen account too, so the '
+      'comparison never runs against another account\'s history (ACC-7)',
+      () async {
+        final provider = TransactionProvider(
+          db: FakeDB(
+            transactions: [
+              testTx(
+                'bank-aug',
+                expense,
+                20,
+                DateTime(2026, 8, 20),
+                accountId: bank,
+              ),
+            ],
+            accounts: [testAccount(cash), testAccount(bank)],
+          ),
+          clock: () => today,
+        );
+        await provider.load();
+
+        provider.selectAccountFilter(cash);
+        expect(provider.hasEarlierRecords, isFalse);
+
+        provider.selectAccountFilter(bank);
+        expect(provider.hasEarlierRecords, isTrue);
+      },
+    );
 
     test('income has a previous period of its own', () async {
       final provider = await providerWith([

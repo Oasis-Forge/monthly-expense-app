@@ -1620,19 +1620,23 @@ class TransactionProvider extends ChangeNotifier {
   DateTime get today => _today;
 
   /// Counted income and expense of the [count] periods that end with the
-  /// selected one, oldest first (INS-2, BAL-4).
+  /// selected one, oldest first. Follows the chosen account exactly as the
+  /// other Insights views do, so a chart and the total above it are never
+  /// about different money (INS-2, BAL-4, ACC-7).
   List<PeriodTotals> trend(int count) {
     assert(count > 0, 'A trend needs at least one period');
     final periods = [_period];
     while (periods.length < count) {
       periods.insert(0, periods.first.previous);
     }
+    final account = accountFilterId;
     final income = List.filled(count, Money.zero);
     final expense = List.filled(count, Money.zero);
     for (final tx in _transactions) {
       if (isUpcoming(tx) ||
           tx.date.isBefore(periods.first.start) ||
-          !tx.date.isBefore(_period.end)) {
+          !tx.date.isBefore(_period.end) ||
+          (account != null && tx.accountId != account)) {
         continue;
       }
       final index = periods.indexWhere((period) => period.contains(tx.date));
@@ -1765,12 +1769,18 @@ class TransactionProvider extends ChangeNotifier {
       _previous.expenseByCategory;
   Map<String, Money> get previousIncomeByCategory => _previous.incomeByCategory;
 
-  /// Whether anything at all was recorded before the selected period. The
-  /// earliest period on record has nothing to compare itself with, and a
-  /// comparison against nothing reads as "you spent nothing last month"
-  /// (INS-6).
-  bool get hasEarlierRecords =>
-      _transactions.any((tx) => tx.date.isBefore(_period.start));
+  /// Whether anything at all was recorded before the selected period, for
+  /// the chosen account. The earliest period on record has nothing to
+  /// compare itself with, and a comparison against nothing reads as "you
+  /// spent nothing last month" (INS-6, ACC-7).
+  bool get hasEarlierRecords {
+    final account = accountFilterId;
+    return _transactions.any(
+      (tx) =>
+          tx.date.isBefore(_period.start) &&
+          (account == null || tx.accountId == account),
+    );
+  }
 
   /// The period across every account, whatever [accountFilterId] is set to.
   /// A budget is a limit on a category and has no account (BUD-1), so
