@@ -192,7 +192,10 @@ class TransactionProvider extends ChangeNotifier {
   void selectAccountFilter(String? id) {
     if (id == _accountFilterId) return;
     _accountFilterId = id;
-    _changed();
+    // A filter change moves nothing [dataVersion] tracks: every figure it
+    // gates is the same, just narrowed to fewer accounts on the next read
+    // (lifecycle-perf#9).
+    _changed(dataChanged: false);
   }
 
   /// The period that contains today; budget changes apply from it (BUD-5).
@@ -591,14 +594,18 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
+  // Moving the period this way changes what a read is scoped to, not any
+  // figure itself, so [dataVersion] — and anything keyed on it alone, like
+  // the home-screen widget — doesn't move either (lifecycle-perf#9).
+
   void nextPeriod() {
     _period = _period.next;
-    _changed();
+    _changed(dataChanged: false);
   }
 
   void previousPeriod() {
     _period = _period.previous;
-    _changed();
+    _changed(dataChanged: false);
   }
 
   /// Shows one day on its own (DAY-1). A day outside the shown period moves
@@ -611,9 +618,10 @@ class TransactionProvider extends ChangeNotifier {
     }
     _selectedDay = target;
     _daySelectionPeriod = _period;
-    // Only a new period invalidates the cached totals.
+    // Only a new period invalidates the cached totals, and moving it here
+    // is the same period-scope change as nextPeriod/previousPeriod above.
     if (movedPeriod) {
-      _changed();
+      _changed(dataChanged: false);
     } else {
       notifyListeners();
     }
@@ -2037,8 +2045,14 @@ class TransactionProvider extends ChangeNotifier {
     );
   }
 
-  void _changed() {
-    _dataVersion++;
+  /// Notifies, and invalidates the totals/balance/trend/search caches, for
+  /// anything that changes what they'd compute. [dataChanged] additionally
+  /// bumps [dataVersion] — the narrower signal a listener like
+  /// [HomeWidgetUpdater] can key a refresh on instead of every notification,
+  /// since a period or account-filter move alone changes no figure, only
+  /// what the next read is scoped to (lifecycle-perf#9).
+  void _changed({bool dataChanged = true}) {
+    if (dataChanged) _dataVersion++;
     _summary = null;
     _everyAccountSummary = null;
     _previousSummary = null;

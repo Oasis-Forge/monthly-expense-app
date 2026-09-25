@@ -14,7 +14,9 @@ import 'home_widget_service.dart';
 ///
 /// It watches both providers, so anything that changes the numbers — a
 /// transaction, a budget, the currency, the language, app lock — reaches the
-/// widget. Notifications are coalesced, since one save can raise several.
+/// widget. Notifications are debounced (lifecycle-perf#9): a burst of them,
+/// whether several raised by one save or several period-arrow taps in a
+/// row, settles into at most one [refresh] a short while after the last one.
 ///
 /// It isn't a widget in the tree: the payload needs no `BuildContext`, and
 /// keeping it out means an update still happens while a dialog or a lock
@@ -32,8 +34,14 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
   final SettingsProvider _settings;
   final Future<AppLocalizations> Function(Locale) _load;
 
-  bool _pending = false;
+  Timer? _debounce;
   bool _started = false;
+
+  /// How long a burst of notifications is given to settle before
+  /// [refresh] runs, restarted on every one that lands inside it — so six
+  /// period-arrow taps in the same second coalesce into one push instead of
+  /// each queuing its own (lifecycle-perf#9).
+  static const _debounceDelay = Duration(milliseconds: 250);
 
   /// The [_transactions] data version [refresh] last pushed for, and
   /// whether something on [_settings] has changed since then. Selecting or
@@ -59,6 +67,8 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
   void dispose() {
     if (!_started) return;
     _started = false;
+    _debounce?.cancel();
+    _debounce = null;
     _transactions.removeListener(_schedule);
     _settings.removeListener(_scheduleFromSettings);
     WidgetsBinding.instance.removeObserver(this);
@@ -75,10 +85,9 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
   }
 
   void _schedule() {
-    if (_pending) return;
-    _pending = true;
-    scheduleMicrotask(() {
-      _pending = false;
+    _debounce?.cancel();
+    _debounce = Timer(_debounceDelay, () {
+      _debounce = null;
       if (_started) unawaited(refresh());
     });
   }
