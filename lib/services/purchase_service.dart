@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 /// How the one purchase the app sells is getting on (PAY-1, PAY-8).
 enum PurchaseStage {
@@ -207,14 +209,24 @@ class DevicePurchaseService extends PurchaseService {
         continue;
       }
       if (purchase.productID != PurchaseService.removeAdsId) continue;
+      // Play's restorePurchases reports every queried purchase's `status` as
+      // `purchased`/`restored`, even one still awaiting payment (a voucher,
+      // carrier billing, "ask to buy") — only the wrapped billing purchase's
+      // own state still says `pending`. Trusting `status` alone would remove
+      // the ads before anyone has actually paid (PAY-8).
+      final stillPending = _isStillPending(purchase);
       switch (purchase.status) {
         case PurchaseStatus.pending:
           _settle(PurchaseStage.pending);
         case PurchaseStatus.purchased:
         case PurchaseStatus.restored:
-          // Whatever went wrong on the way, it ended owned.
-          _lastError = null;
-          _settle(PurchaseStage.owned);
+          if (stillPending) {
+            _settle(PurchaseStage.pending);
+          } else {
+            // Whatever went wrong on the way, it ended owned.
+            _lastError = null;
+            _settle(PurchaseStage.owned);
+          }
         case PurchaseStatus.error:
           _lastError = purchase.error?.message;
           _settle(
@@ -231,11 +243,22 @@ class DevicePurchaseService extends PurchaseService {
           );
       }
       // Always, whatever the outcome: an uncompleted purchase is retried by
-      // the store and can charge twice (PAY-8).
-      if (purchase.pendingCompletePurchase) {
+      // the store and can charge twice (PAY-8). A purchase still pending
+      // payment is not acknowledged either — Play refuses that, and it will
+      // report the purchase again once it actually resolves.
+      if (purchase.pendingCompletePurchase && !stillPending) {
         await _store.completePurchase(purchase);
       }
     }
+  }
+
+  /// Whether the store's own billing purchase behind [purchase] is still
+  /// awaiting payment, whatever `purchase.status` says (PAY-8). Only Google
+  /// Play purchases carry this extra state; StoreKit is unaffected.
+  bool _isStillPending(PurchaseDetails purchase) {
+    if (purchase is! GooglePlayPurchaseDetails) return false;
+    return purchase.billingClientPurchase.purchaseState ==
+        PurchaseStateWrapper.pending;
   }
 
   /// A purchase sheet that closed without naming a product. It proves nothing

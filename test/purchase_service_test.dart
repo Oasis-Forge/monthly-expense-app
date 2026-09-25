@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+// For GooglePlayPurchaseDetails and PurchaseStateWrapper, to build a purchase
+// the way Play's plugin actually reports one still awaiting payment (PAY-8).
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 // For InAppPurchasePlatformAddition, which the fake store has to name and
 // `in_app_purchase.dart` doesn't re-export.
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
@@ -272,6 +276,43 @@ void main() {
       expect(service.adsRemoved, isTrue);
       expect(store.completed, ['remove_ads']);
     });
+
+    test(
+      'a pending Play purchase reported as "restored" stays unowned (PAY-8)',
+      () async {
+        // What Play's own restorePurchases actually delivers for a purchase
+        // still awaiting payment (a voucher, carrier billing, "ask to buy"):
+        // in_app_purchase_android maps every queried purchase's `status` to
+        // `restored`, whatever its real purchaseState, so `status` alone
+        // cannot tell this apart from an actually-paid purchase. Only the
+        // wrapped billing purchase still says `pending`.
+        final pendingBillingPurchase = const PurchaseWrapper(
+          orderId: 'order-1',
+          packageName: 'com.oasisforge.monthlyexpenses',
+          purchaseTime: 0,
+          purchaseToken: 'token-1',
+          signature: 'sig',
+          products: ['remove_ads'],
+          isAutoRenewing: false,
+          originalJson: '{}',
+          isAcknowledged: false,
+          purchaseState: PurchaseStateWrapper.pending,
+        );
+        final reportedAsRestored = GooglePlayPurchaseDetails.fromPurchase(
+          pendingBillingPurchase,
+        ).first..status = PurchaseStatus.restored;
+
+        store.send(reportedAsRestored);
+        await pumpEventQueue();
+
+        // PAY-8: "the slots stay as they were until the store confirms." The
+        // billing purchase is still pending, so the ads must not come off,
+        // and it must not be acknowledged either — Play refuses that.
+        expect(service.stage, isNot(PurchaseStage.owned));
+        expect(service.adsRemoved, isFalse);
+        expect(store.completed, isEmpty);
+      },
+    );
 
     test('pending leaves everything as it was (PAY-8)', () async {
       store.send(purchase(PurchaseStatus.pending, pendingComplete: false));
