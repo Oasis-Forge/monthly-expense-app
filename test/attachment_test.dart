@@ -55,6 +55,35 @@ void main() {
       expect(files.picked, [PhotoSource.camera]);
     });
 
+    test('on the desktop, the user\'s own file stays where it was', () async {
+      final picked = await aPhoto();
+      final desktop = AttachmentService(
+        files: files,
+        newName: () => 'desk1',
+        galleryGivesCopy: false,
+      );
+      files.toPick = picked.path;
+
+      final name = await desktop.addPhoto(PhotoSource.gallery);
+
+      expect(await desktop.read(name!), [9, 9, 9]);
+      expect(await picked.exists(), isTrue);
+    });
+
+    test('on a phone, the gallery picker\'s copy goes', () async {
+      final picked = await aPhoto();
+      final phone = AttachmentService(
+        files: files,
+        newName: () => 'phone1',
+        galleryGivesCopy: true,
+      );
+      files.toPick = picked.path;
+
+      await phone.addPhoto(PhotoSource.gallery);
+
+      expect(await picked.exists(), isFalse);
+    });
+
     test('backing out of the picker attaches nothing', () async {
       expect(await attachments.addPhoto(PhotoSource.gallery), isNull);
       expect(dir.listSync(), isEmpty);

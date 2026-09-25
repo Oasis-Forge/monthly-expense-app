@@ -103,12 +103,22 @@ class DeviceAttachmentFiles implements AttachmentFiles {
 /// Photos and voice notes kept in the app's own storage (ATT-2). A record
 /// stores only the file name; this turns that into a file.
 class AttachmentService {
-  AttachmentService({AttachmentFiles? files, String Function()? newName})
-    : _files = files ?? DeviceAttachmentFiles(),
-      _newName = newName ?? const Uuid().v4;
+  AttachmentService({
+    AttachmentFiles? files,
+    String Function()? newName,
+    bool? galleryGivesCopy,
+  }) : _files = files ?? DeviceAttachmentFiles(),
+       _newName = newName ?? const Uuid().v4,
+       _galleryGivesCopy =
+           galleryGivesCopy ?? (Platform.isAndroid || Platform.isIOS);
 
   final AttachmentFiles _files;
   final String Function() _newName;
+
+  /// Whether a photo picked from the gallery arrives as the picker's own
+  /// copy. On Android and iOS it does; on the desktop the picker hands back
+  /// the user's file itself, which must never be deleted (ATT-3).
+  final bool _galleryGivesCopy;
 
   /// The longest side a stored photo keeps (ATT-3).
   static const photoMaxSide = 1600.0;
@@ -126,6 +136,7 @@ class AttachmentService {
     final name = '${_newName()}.jpg';
     final source0 = File(picked);
     await source0.copy(await path(name));
+    if (source == PhotoSource.gallery && !_galleryGivesCopy) return name;
     try {
       await source0.delete();
     } on FileSystemException {

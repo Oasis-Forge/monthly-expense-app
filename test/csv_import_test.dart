@@ -731,4 +731,41 @@ void main() {
       expect(provider.importIdentities, isEmpty);
     });
   });
+
+  group('this app\'s own export reads back exactly (IMP-2)', () {
+    for (final amount in const [12345, 375, 2125, 1234567]) {
+      test('${Money(amount).toInputString()} at three decimals', () {
+        final tx = testTx(
+          't1',
+          TransactionType.expense,
+          0,
+          DateTime(2026, 9, 1),
+        ).copyWith(amount: Money(amount));
+        final csv = buildCsv(
+          transactions: [tx],
+          currencyCode: 'KWD',
+          categoryName: (_) => 'Food',
+          accountName: (_) => 'Cash',
+        );
+
+        final plan = planImport(
+          table: parseCsv(csv),
+          categoryIdFor: (_) => 'cat-food',
+          accountIdFor: (_) => Account.cashId,
+        );
+
+        expect(plan.rows.single.amount, Money(amount));
+      });
+    }
+
+    test('another file\'s "1,234" is still grouped thousands', () {
+      final plan = planImport(
+        table: parseCsv('date,amount\n2026-09-01,"1,234"\n'),
+        categoryIdFor: (_) => 'cat-food',
+        accountIdFor: (_) => Account.cashId,
+      );
+
+      expect(plan.rows.single.amount, const Money(1234000));
+    });
+  });
 }
