@@ -58,6 +58,16 @@ bool Function(ExpenseTransaction)? reportMatchesFor(
   );
 }
 
+/// Whether [filter] narrows a report's display at all (PDF-1) — the same
+/// condition [reportMatchesFor] uses to decide between a predicate and null,
+/// kept separate so the screen can show a notice without needing a
+/// [TransactionProvider] or the label functions just to ask.
+bool isNarrowingFilter(TransactionFilter? filter) =>
+    filter != null &&
+    (filter.query.trim().isNotEmpty ||
+        filter.type != null ||
+        filter.categoryId != null);
+
 /// Chooses what a PDF report covers and what it leaves out, then builds and
 /// previews it (PDF-1, PDF-3, PDF-4).
 class ReportScreen extends StatefulWidget {
@@ -157,6 +167,30 @@ class _ReportScreenState extends State<ReportScreen> {
     );
 
     try {
+      final matches = reportMatchesFor(
+        provider,
+        widget.filter,
+        categoryName: (category) => category.label(l10n),
+        accountName: (account) => account.label(l10n),
+        decimalMark: settings
+            .currencyFormat(l10n.localeName)
+            .symbols
+            .DECIMAL_SEP,
+      );
+      // PDF-1, ACC-6: the header and summary need to say the report is
+      // narrowed to the search, not just narrow what it shows.
+      ReportSearchInfo? searchInfo;
+      if (matches != null && widget.filter != null) {
+        final categoryId = widget.filter!.categoryId;
+        final category = categoryId == null
+            ? null
+            : provider.categoryById(categoryId);
+        searchInfo = ReportSearchInfo(
+          query: widget.filter!.query.trim(),
+          type: widget.filter!.type,
+          categoryName: category?.label(l10n),
+        );
+      }
       final data = buildReport(
         from: from,
         to: to,
@@ -165,16 +199,8 @@ class _ReportScreenState extends State<ReportScreen> {
         transfers: provider.transfers,
         accounts: provider.accounts,
         accountId: _accountId,
-        matches: reportMatchesFor(
-          provider,
-          widget.filter,
-          categoryName: (category) => category.label(l10n),
-          accountName: (account) => account.label(l10n),
-          decimalMark: settings
-              .currencyFormat(l10n.localeName)
-              .symbols
-              .DECIMAL_SEP,
-        ),
+        matches: matches,
+        searchInfo: searchInfo,
         budgetLimit: (id) => provider.budgetLimit(id),
         startDay: provider.startDay,
         options: _options,
@@ -245,6 +271,39 @@ class _ReportScreenState extends State<ReportScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // PDF-1, ACC-6: a report opened from Search stays narrowed to it
+          // until the user leaves this screen, so it has to say so — a
+          // filtered figure that reads like the whole of the money is worse
+          // than no filter at all.
+          if (isNarrowingFilter(widget.filter)) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_alt_outlined,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.reportNarrowedNotice,
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           Text(l10n.reportCoversHeader, style: _sectionStyle(context)),
           const SizedBox(height: 8),
           SegmentedButton<ReportRange>(

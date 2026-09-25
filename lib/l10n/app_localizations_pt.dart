@@ -1317,12 +1317,26 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Restrito a: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Página $page de $pages';
   }
 
   @override
   String get reportNet => 'Líquido';
+
+  @override
+  String get reportMatchingIncome => 'Receita correspondente';
+
+  @override
+  String get reportMatchingExpense => 'Despesa correspondente';
+
+  @override
+  String get reportMatchingNet => 'Líquido correspondente';
 
   @override
   String get reportOpeningBalance => 'Saldo inicial';
@@ -1387,6 +1401,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'O que ele abrange';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Este relatório permanece restrito à sua pesquisa.';
 
   @override
   String get reportRangePeriod => 'Este período';

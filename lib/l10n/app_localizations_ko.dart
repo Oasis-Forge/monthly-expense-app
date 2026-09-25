@@ -1271,12 +1271,26 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return '좁힘: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return '$pages 중 $page페이지';
   }
 
   @override
   String get reportNet => '순액';
+
+  @override
+  String get reportMatchingIncome => '일치하는 수입';
+
+  @override
+  String get reportMatchingExpense => '일치하는 지출';
+
+  @override
+  String get reportMatchingNet => '일치하는 순액';
 
   @override
   String get reportOpeningBalance => '시작 잔액';
@@ -1340,6 +1354,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get reportCoversHeader => '포함 범위';
+
+  @override
+  String get reportNarrowedNotice => '이 보고서는 검색 결과로 좁혀진 상태입니다.';
 
   @override
   String get reportRangePeriod => '이번 기간';

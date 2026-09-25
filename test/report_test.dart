@@ -185,6 +185,26 @@ void main() {
     });
   });
 
+  group('a report narrowed to a search (PDF-1, ACC-6, review-money-2)', () {
+    test('carries no budget, even within one period', () {
+      final data = report(
+        transactions: [
+          testTx(
+            'a',
+            TransactionType.expense,
+            60,
+            DateTime(2026, 9, 2),
+            categoryId: 'cat-food',
+          ),
+        ],
+        matches: (tx) => true,
+        budgetLimit: (id) => id == 'cat-food' ? const Money(100000) : null,
+      );
+
+      expect(data.expenseCategories.single.budget, isNull);
+    });
+  });
+
   group('report trend (PDF-2, INS-2)', () {
     test('a short range draws a point a day, including empty ones', () {
       final data = report(

@@ -1320,12 +1320,26 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Περιορισμένο σε: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Σελίδα $page από $pages';
   }
 
   @override
   String get reportNet => 'Καθαρό';
+
+  @override
+  String get reportMatchingIncome => 'Αντίστοιχο εισόδημα';
+
+  @override
+  String get reportMatchingExpense => 'Αντίστοιχο έξοδο';
+
+  @override
+  String get reportMatchingNet => 'Αντίστοιχο καθαρό';
 
   @override
   String get reportOpeningBalance => 'Αρχικό υπόλοιπο';
@@ -1391,6 +1405,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Τι περιλαμβάνει';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Αυτή η αναφορά παραμένει περιορισμένη στην αναζήτησή σας.';
 
   @override
   String get reportRangePeriod => 'Αυτή η περίοδος';

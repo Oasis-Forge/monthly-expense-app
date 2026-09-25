@@ -1295,12 +1295,26 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'จำกัดเฉพาะ: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'หน้า $page จาก $pages';
   }
 
   @override
   String get reportNet => 'ยอดสุทธิ';
+
+  @override
+  String get reportMatchingIncome => 'รายรับที่ตรงกัน';
+
+  @override
+  String get reportMatchingExpense => 'รายจ่ายที่ตรงกัน';
+
+  @override
+  String get reportMatchingNet => 'ยอดสุทธิที่ตรงกัน';
 
   @override
   String get reportOpeningBalance => 'ยอดยกมา';
@@ -1365,6 +1379,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'ครอบคลุมช่วงใด';
+
+  @override
+  String get reportNarrowedNotice => 'รายงานนี้ยังคงจำกัดเฉพาะการค้นหาของคุณ';
 
   @override
   String get reportRangePeriod => 'งวดนี้';

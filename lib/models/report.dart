@@ -76,6 +76,21 @@ class ReportCategoryLine {
   }
 }
 
+/// Describes the search a report was narrowed to, so the header and summary
+/// can say so instead of reading like the whole range's figures (PDF-1,
+/// ACC-6). Null on a report opened from Home or Insights.
+class ReportSearchInfo {
+  const ReportSearchInfo({required this.query, this.type, this.categoryName});
+
+  /// The text searched for, trimmed; empty when the search matched by type or
+  /// category alone.
+  final String query;
+  final TransactionType? type;
+
+  /// The searched category's own label, already resolved, or null for none.
+  final String? categoryName;
+}
+
 /// One entry in the report's day-by-day list: a transaction, or a transfer
 /// between accounts, which is marked as such and left out of the totals
 /// (PDF-2).
@@ -108,6 +123,7 @@ class ReportData {
     required this.byDay,
     required this.upcoming,
     required this.entryCount,
+    this.searchInfo,
   });
 
   /// The first and last day the report covers, both included.
@@ -141,6 +157,11 @@ class ReportData {
   /// How many entries the report lays out, for the progress it reports while
   /// building (PDF-6).
   final int entryCount;
+
+  /// Set when [matches] narrowed this report to a search (PDF-1, ACC-6): the
+  /// summary and header say so instead of reading like the whole range's
+  /// figures.
+  final ReportSearchInfo? searchInfo;
 
   Money get net => income - expense;
 
@@ -187,8 +208,14 @@ enum ReportTrendGrain { day, period }
 /// never states a false balance (BAL-2, BAL-3).
 ///
 /// [budgetLimit] answers the limit in force for a category, or null; pass
-/// [TransactionProvider.budgetLimit]. [startDay] is the first day of a period
-/// (PER-2), used to group a long range's trend.
+/// [TransactionProvider.budgetLimit]. It is left out of a search-narrowed
+/// report entirely, since a search's expense total is a slice of the
+/// category, not the whole period's spending (PDF-1, PDF-2, ACC-6).
+/// [startDay] is the first day of a period (PER-2), used to group a long
+/// range's trend.
+///
+/// [searchInfo], when given, is carried onto [ReportData.searchInfo] purely
+/// for the header and summary to describe; it plays no part in what counts.
 ReportData buildReport({
   required DateTime from,
   required DateTime to,
@@ -201,6 +228,7 @@ ReportData buildReport({
   Money? Function(String categoryId)? budgetLimit,
   int startDay = 1,
   ReportOptions options = const ReportOptions(),
+  ReportSearchInfo? searchInfo,
 }) {
   final first = _dayOf(from);
   final last = _dayOf(to);
@@ -336,6 +364,11 @@ ReportData buildReport({
   upcoming.sort((a, b) => a.date.compareTo(b.date));
   final orderedDays = byDay.keys.toList()..sort();
 
+  // A search-narrowed report's expense total is a slice of the category
+  // rather than the whole period's spending, so no budget figure belongs
+  // next to it (PDF-1, PDF-2, ACC-6).
+  final showBudget = matches == null;
+
   return ReportData(
     from: first,
     to: last,
@@ -344,12 +377,17 @@ ReportData buildReport({
     openingBalance: opening,
     closingBalance:
         opening + openingDuring + trueIncome - trueExpense + transferNet,
-    expenseCategories: _lines(expenseByCategory, expense, budgetLimit),
+    expenseCategories: _lines(
+      expenseByCategory,
+      expense,
+      showBudget ? budgetLimit : null,
+    ),
     incomeCategories: _lines(incomeByCategory, income, null),
     trend: _trend(first, last, now, dayTotals, startDay),
     byDay: {for (final day in orderedDays) day: byDay[day]!},
     upcoming: upcoming,
     entryCount: entryCount,
+    searchInfo: searchInfo,
   );
 }
 
