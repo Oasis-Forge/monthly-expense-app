@@ -728,6 +728,91 @@ void main() {
     expect([for (final t in await device.fetchTransactions()) t.id], ['mine']);
   });
 
+  test(
+    'a Merge restore whose file write fails should not have already '
+    'committed the database (BAK-2, ATT-6, data-integrity#8, review-data-5)',
+    () async {
+      final device = helperAt('merge-write-fail.db');
+      await device.insertTransaction(tx('mine', title: 'Mine'));
+
+      final other = helperAt('other-merge-write-fail.db');
+      // Only in the backup, so Merge inserts it and its file must be
+      // written.
+      await other.insertTransaction(
+        tx('dinner', title: 'Dinner').copyWith(photoFile: 'photo1.jpg'),
+      );
+      final settings = await testSettings();
+      final backup = (await testBackupService(other).create(settings))
+          .withFiles({
+            'photo1.jpg': const [9],
+          });
+
+      final service = testBackupService(
+        device,
+        attachments: _ThrowingAttachments(),
+      );
+
+      await expectLater(
+        service.restore(backup, RestoreMode.merge, settings),
+        throwsException,
+      );
+
+      // Files are written before the merge is applied to the database
+      // (review-data-5): reverting that order would let this pass with the
+      // merge already committed despite the failed file write.
+      expect(
+        [for (final t in await device.fetchTransactions()) t.id],
+        ['mine'],
+      );
+    },
+  );
+
+  test('Merge writes only the files rows it inserts or updates refer to, not '
+      "a tombstoned row's, even if the zip still carries it (ATT-5, ATT-6, "
+      'review-data-3)', () async {
+    final device = helperAt('merge-orphan-file.db');
+    // Already purged on this device (DEL-3): its photo file is gone, and
+    // Merge must leave it out and not write the file back.
+    await device.insertTransaction(
+      tx(
+        'gone',
+        title: 'Gone',
+        updated: DateTime.utc(2026, 7, 1),
+        deleted: DateTime.utc(2026, 7, 1),
+      ),
+    );
+    await device.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+    expect(
+      (await device.fetchPurgedIds())['gone'],
+      DateTime.utc(2026, 7, 1).toIso8601String(),
+    );
+
+    final other = helperAt('other-merge-orphan-file.db');
+    // An older backup, from before the deletion, still carries the row
+    // and its photo (updated before the Jul 1 tombstone, so the merge
+    // leaves it out, per rules-1-5#7).
+    await other.insertTransaction(
+      tx(
+        'gone',
+        title: 'Gone',
+        updated: DateTime.utc(2026, 6, 1),
+      ).copyWith(photoFile: 'receipt.jpg'),
+    );
+    final settings = await testSettings();
+    final backup = (await testBackupService(other).create(settings)).withFiles({
+      'receipt.jpg': const [9],
+    });
+
+    final attachments = FakeAttachments();
+    final service = testBackupService(device, attachments: attachments);
+
+    final result = await service.restore(backup, RestoreMode.merge, settings);
+
+    expect(result.added, 0);
+    expect(result.updated, 0);
+    expect(attachments.stored.keys, isNot(contains('receipt.jpg')));
+  });
+
   test('a failed replace leaves the data as it was', () async {
     final helper = helperAt('app.db');
     await helper.insertTransaction(tx('mine'));

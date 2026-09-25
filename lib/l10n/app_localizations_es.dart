@@ -650,6 +650,9 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo guardar la transacción recurrente. Inténtalo de nuevo.';
 
   @override
+  String get recurringDeleted => 'Transacción recurrente eliminada';
+
+  @override
   String get everyLabel => 'Cada';
 
   @override
@@ -744,6 +747,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Introduce un número entero desde 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Introduce un número entero de 1 a $max';
+  }
 
   @override
   String get endDateInvalid => 'La fecha de fin debe ser posterior al inicio';
@@ -1317,12 +1325,26 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Limitado a: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Página $page de $pages';
   }
 
   @override
   String get reportNet => 'Neto';
+
+  @override
+  String get reportMatchingIncome => 'Ingresos coincidentes';
+
+  @override
+  String get reportMatchingExpense => 'Gasto coincidente';
+
+  @override
+  String get reportMatchingNet => 'Neto coincidente';
 
   @override
   String get reportOpeningBalance => 'Saldo inicial';
@@ -1387,6 +1409,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Qué abarca';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Este informe permanece limitado a tu búsqueda.';
 
   @override
   String get reportRangePeriod => 'Este periodo';

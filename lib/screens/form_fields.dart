@@ -246,11 +246,54 @@ class DateField extends StatelessWidget {
   }
 }
 
+/// The guarded form currently on screen, if any (there is ever at most one
+/// at a time): set while it is mounted, so a shortcut or widget tap that
+/// would otherwise silently replace it can ask the same ADD-9 question the
+/// back button does, instead of dropping unsaved edits without a word
+/// (pr57#3).
+UnsavedFormGuard? activeUnsavedFormGuard;
+
+/// What a shortcut or widget tap needs from the form currently on screen,
+/// without depending on its State type.
+class UnsavedFormGuard {
+  UnsavedFormGuard({
+    required this.hasUnsavedEdits,
+    required this.confirmDiscard,
+  });
+
+  /// Whether there's something on the form to lose right now.
+  final bool Function() hasUnsavedEdits;
+
+  /// Shows the same "Discard changes?" question the back button does
+  /// (ADD-9). Resolves to true once it's fine to replace the form, false to
+  /// keep it as it is.
+  final Future<bool> Function() confirmDiscard;
+}
+
 /// Back on a form: the keypad first, then a question before edits are
 /// dropped (ADD-9). A form carries a snapshot of how it opened, so a form
 /// nothing was typed into leaves without a word.
 mixin UnsavedGuard<T extends StatefulWidget> on AmountEntry<T> {
   String? _opened;
+
+  late final UnsavedFormGuard _formGuard = UnsavedFormGuard(
+    hasUnsavedEdits: () => hasUnsavedEdits,
+    confirmDiscard: _confirmDiscard,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    activeUnsavedFormGuard = _formGuard;
+  }
+
+  @override
+  void dispose() {
+    if (identical(activeUnsavedFormGuard, _formGuard)) {
+      activeUnsavedFormGuard = null;
+    }
+    super.dispose();
+  }
 
   /// Every value the user can change, in one string. Each form writes its
   /// own; two snapshots that differ mean there is something to lose.
@@ -272,19 +315,7 @@ mixin UnsavedGuard<T extends StatefulWidget> on AmountEntry<T> {
     child: child,
   );
 
-  Future<void> handleBack() async {
-    // The keypad or the keyboard goes first, and the form stays (ADD-9).
-    final typing =
-        amountFocus.hasFocus || MediaQuery.viewInsetsOf(context).bottom > 0;
-    if (typing) {
-      FocusScope.of(context).unfocus();
-      return;
-    }
-    final navigator = Navigator.of(context);
-    if (!hasUnsavedEdits) {
-      navigator.pop();
-      return;
-    }
+  Future<bool> _confirmDiscard() async {
     final l10n = AppLocalizations.of(context);
     final discard = await showDialog<bool>(
       context: context,
@@ -303,6 +334,23 @@ mixin UnsavedGuard<T extends StatefulWidget> on AmountEntry<T> {
         ],
       ),
     );
-    if ((discard ?? false) && mounted) navigator.pop();
+    return discard ?? false;
+  }
+
+  Future<void> handleBack() async {
+    // The keypad or the keyboard goes first, and the form stays (ADD-9).
+    final typing =
+        amountFocus.hasFocus || MediaQuery.viewInsetsOf(context).bottom > 0;
+    if (typing) {
+      FocusScope.of(context).unfocus();
+      return;
+    }
+    final navigator = Navigator.of(context);
+    if (!hasUnsavedEdits) {
+      navigator.pop();
+      return;
+    }
+    final discard = await _confirmDiscard();
+    if (discard && mounted) navigator.pop();
   }
 }

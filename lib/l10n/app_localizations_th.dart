@@ -638,6 +638,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get recurringSaveFailed => 'บันทึกรายการประจำไม่สำเร็จ ลองอีกครั้ง';
 
   @override
+  String get recurringDeleted => 'ลบรายการประจำแล้ว';
+
+  @override
   String get everyLabel => 'ทุก';
 
   @override
@@ -732,6 +735,11 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'กรอกจำนวนเต็มตั้งแต่ 1 ขึ้นไป';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'ป้อนจำนวนเต็มตั้งแต่ 1 ถึง $max';
+  }
 
   @override
   String get endDateInvalid => 'วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มต้น';
@@ -1295,12 +1303,26 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'จำกัดเฉพาะ: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'หน้า $page จาก $pages';
   }
 
   @override
   String get reportNet => 'ยอดสุทธิ';
+
+  @override
+  String get reportMatchingIncome => 'รายรับที่ตรงกัน';
+
+  @override
+  String get reportMatchingExpense => 'รายจ่ายที่ตรงกัน';
+
+  @override
+  String get reportMatchingNet => 'ยอดสุทธิที่ตรงกัน';
 
   @override
   String get reportOpeningBalance => 'ยอดยกมา';
@@ -1365,6 +1387,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'ครอบคลุมช่วงใด';
+
+  @override
+  String get reportNarrowedNotice => 'รายงานนี้ยังคงจำกัดเฉพาะการค้นหาของคุณ';
 
   @override
   String get reportRangePeriod => 'งวดนี้';

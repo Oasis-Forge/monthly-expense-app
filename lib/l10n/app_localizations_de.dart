@@ -651,6 +651,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die wiederkehrende Buchung konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
+  String get recurringDeleted => 'Wiederkehrende Buchung gelöscht';
+
+  @override
   String get everyLabel => 'Alle';
 
   @override
@@ -745,6 +748,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Gib eine ganze Zahl ab 1 ein';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Gib eine ganze Zahl von 1 bis $max ein';
+  }
 
   @override
   String get endDateInvalid => 'Das Enddatum muss nach dem Beginn liegen';
@@ -1316,12 +1324,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Eingegrenzt auf: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Seite $page von $pages';
   }
 
   @override
   String get reportNet => 'Netto';
+
+  @override
+  String get reportMatchingIncome => 'Passendes Einkommen';
+
+  @override
+  String get reportMatchingExpense => 'Passende Ausgabe';
+
+  @override
+  String get reportMatchingNet => 'Passender Saldo';
 
   @override
   String get reportOpeningBalance => 'Anfangssaldo';
@@ -1386,6 +1408,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Was er abdeckt';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Dieser Bericht bleibt auf deine Suche eingegrenzt.';
 
   @override
   String get reportRangePeriod => 'Dieser Zeitraum';

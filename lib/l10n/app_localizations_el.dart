@@ -650,6 +650,9 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν ήταν δυνατή η αποθήκευση της επαναλαμβανόμενης συναλλαγής. Δοκιμάστε ξανά.';
 
   @override
+  String get recurringDeleted => 'Η επαναλαμβανόμενη συναλλαγή διαγράφηκε';
+
+  @override
   String get everyLabel => 'Κάθε';
 
   @override
@@ -744,6 +747,11 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Εισαγάγετε ακέραιο αριθμό από το 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Εισαγάγετε ακέραιο αριθμό από 1 έως $max';
+  }
 
   @override
   String get endDateInvalid =>
@@ -1320,12 +1328,26 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Περιορισμένο σε: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Σελίδα $page από $pages';
   }
 
   @override
   String get reportNet => 'Καθαρό';
+
+  @override
+  String get reportMatchingIncome => 'Αντίστοιχο εισόδημα';
+
+  @override
+  String get reportMatchingExpense => 'Αντίστοιχο έξοδο';
+
+  @override
+  String get reportMatchingNet => 'Αντίστοιχο καθαρό';
 
   @override
   String get reportOpeningBalance => 'Αρχικό υπόλοιπο';
@@ -1391,6 +1413,10 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Τι περιλαμβάνει';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Αυτή η αναφορά παραμένει περιορισμένη στην αναζήτησή σας.';
 
   @override
   String get reportRangePeriod => 'Αυτή η περίοδος';

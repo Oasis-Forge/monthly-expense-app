@@ -286,5 +286,52 @@ void main() {
         findsOneWidget,
       );
     });
+
+    testWidgets(
+      'a phone currently blocking notifications is flagged even though '
+      'the switch stayed on (NUDGE-7)',
+      (tester) async {
+        await start(tester, saved: {'empty_day_nudge': true});
+        settings.setNotificationsBlocked(true);
+        await showSettings(tester);
+
+        await tester.scrollUntilVisible(
+          find.text('Remind me on an empty day'),
+          200,
+        );
+
+        final tile = tester.widget<SwitchListTile>(
+          find.widgetWithText(SwitchListTile, 'Remind me on an empty day'),
+        );
+        // NUDGE-7: the switch stays as the user left it -- this is not a
+        // refusal, and turning it off is the user's call, not the app's.
+        expect(tile.value, isTrue);
+        expect(
+          find.text(
+            'Turn on notifications in system settings to get reminders.',
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets(
+      'a phone that allows them again shows the ordinary row (NUDGE-7)',
+      (tester) async {
+        await start(tester, saved: {'empty_day_nudge': true});
+        settings.setNotificationsBlocked(false);
+        await showSettings(tester);
+
+        await tester.scrollUntilVisible(
+          find.text('Remind me on an empty day'),
+          200,
+        );
+
+        expect(
+          find.textContaining('Turn on notifications in system settings'),
+          findsNothing,
+        );
+      },
+    );
   });
 }

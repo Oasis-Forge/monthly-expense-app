@@ -145,6 +145,8 @@ const _aliases = <ImportField, List<String>>{
     'posted',
     'posting date',
     'value date',
+    'value dt',
+    'dt',
     'when',
     'tarih',
     'التاريخ',
@@ -229,6 +231,7 @@ const _aliases = <ImportField, List<String>>{
   ],
   ImportField.category: [
     'category',
+    'category name',
     'categories',
     'group',
     'tag',
@@ -254,10 +257,12 @@ const _aliases = <ImportField, List<String>>{
   ],
   ImportField.account: [
     'account',
+    'account name',
     'from account',
     'source',
     'source account',
     'wallet',
+    'wallet name',
     'payment method',
     'paid with',
     'hesap',
@@ -402,15 +407,55 @@ Map<ImportField, int> matchColumns(List<String> header) {
   // Exact names first, so a file with both "account" and "to account" can't
   // have the second one swallowed by a loose match on the first.
   for (final exact in [true, false]) {
-    for (final entry in _aliases.entries) {
+    for (final entry in _foldedAliases.entries) {
       if (matched.containsKey(entry.key)) continue;
       for (var column = 0; column < folded.length; column++) {
         if (taken.contains(column) || folded[column].isEmpty) continue;
         final name = folded[column];
-        final hit = entry.value.any(
-          (alias) => exact ? name == alias : name.contains(alias),
-        );
+        final words = name.split(' ');
+        final hit = entry.value.any((alias) {
+          if (exact) return name == alias;
+          // Chinese, Japanese, Korean and Thai headers are often one unspaced
+          // compound ("交易日期", "取引金額", "거래금액", "วันที่ทำรายการ"), so a
+          // non-Latin alias still matches anywhere in the header, as before
+          // the word rules below were added for Latin aliases.
+          if (!_isLatin(alias)) return name.contains(alias);
+          // The loose pass matches a whole word of the header, never a
+          // substring buried inside another word ("Counterparty" must not
+          // match the type alias "art" just because "party" contains it).
+          // Latin aliases of three letters or fewer ("art", "tag", "day"...)
+          // are common enough as fragments of unrelated words that they are
+          // trusted only on an exact whole-header match, never loosely. A
+          // short CJK or Hangul alias ("金额", "날짜") is not a fragment the
+          // same way a short Latin one is — two characters there is already
+          // a whole word — so the limit does not apply to it.
+          final short = alias.length <= 3 && _isLatin(alias);
+          if (short) return false;
+          if (_wholeWordMatch(words, alias)) return true;
+          // A bank's own compound word ("Buchungsdatum", "transactiondate")
+          // is one folded word with no space for a whole-word match to find,
+          // but it still ends with the alias ("datum", "date"): trusted the
+          // same as a whole word, since a fragment this long ("date" or
+          // longer) is not the kind of coincidental substring the whole-word
+          // rule above guards against ("art" inside "party").
+          if (alias.length >= 4 && _isLatin(alias) && !alias.contains(' ')) {
+            return words.any((word) => word.endsWith(alias));
+          }
+          return false;
+        });
         if (!hit) continue;
+        if (!exact && entry.key == ImportField.amount && _readsAsADate(words)) {
+          // "Value Dt" reads as both the amount alias "value" and the date
+          // alias "dt": a column with competing meanings is left out rather
+          // than guessed at (IMP-3), instead of the loose pass picking one
+          // arbitrarily. The veto is narrow on purpose — only for the
+          // amount/date collision that actually causes harm (a date column
+          // read as a numeric amount) — so a generic alias like the title
+          // field's "name" (as in "Category name" or "Account Name") does
+          // not block a different field's loose match just because it also
+          // appears in the header.
+          continue;
+        }
         matched[entry.key] = column;
         taken.add(column);
         break;
@@ -420,14 +465,61 @@ Map<ImportField, int> matchColumns(List<String> header) {
   return matched;
 }
 
+/// Whether the header words also whole-word match a date alias, regardless
+/// of alias length: a short alias like "dt" is not trusted to pick the date
+/// column on its own, but it is trusted to veto the amount field's loose
+/// match on the same header ("Value Dt" is both "value" and "dt").
+bool _readsAsADate(List<String> words) => _foldedAliases[ImportField.date]!.any(
+  (alias) => _wholeWordMatch(words, alias),
+);
+
+/// Whether [text] is made up only of Latin letters (already folded to plain
+/// a–z by [_foldHeader]) and spaces. A non-Latin alias — Arabic, CJK,
+/// Hangul, Cyrillic and the rest — has no letter-by-letter fragments the way
+/// short Latin words do, so the length-based rules above don't apply to it.
+bool _isLatin(String text) => RegExp(r'^[a-z ]*$').hasMatch(text);
+
+/// Whether [alias] (one or more space-separated words) appears as a
+/// contiguous run of whole words inside [nameWords].
+bool _wholeWordMatch(List<String> nameWords, String alias) {
+  final aliasWords = alias.split(' ');
+  if (aliasWords.length > nameWords.length) return false;
+  for (var start = 0; start + aliasWords.length <= nameWords.length; start++) {
+    var match = true;
+    for (var i = 0; i < aliasWords.length; i++) {
+      if (nameWords[start + i] != aliasWords[i]) {
+        match = false;
+        break;
+      }
+    }
+    if (match) return true;
+  }
+  return false;
+}
+
 /// Folds a header for comparison and reduces whatever separates its words —
 /// spaces, underscores, hyphens, brackets — to single spaces. Only
 /// punctuation goes: letters in any script stay, or an Arabic header would
-/// fold away to nothing.
+/// fold away to nothing. A camelCase boundary ("TransactionDate") is split
+/// into its own space before case is folded away, since `foldForSearch`
+/// lowercases first and would otherwise weld the two words into one.
 String _foldHeader(String name) =>
-    foldForSearch(name)
+    foldForSearch(_splitCamelCase(name))
         .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
         .trim();
+
+/// [_aliases] folded the same way as a header, so an alias with accents or
+/// combining marks ("ngày", "ημερομηνία", the vowel signs in "วันที่") can
+/// match a header that [_foldHeader] has already stripped of them.
+final _foldedAliases = <ImportField, List<String>>{
+  for (final MapEntry(key: field, value: aliases) in _aliases.entries)
+    field: [for (final alias in aliases) _foldHeader(alias)],
+};
+
+String _splitCamelCase(String name) => name.replaceAllMapped(
+  RegExp(r'(\p{Ll}|\p{N})(\p{Lu})', unicode: true),
+  (match) => '${match[1]} ${match[2]}',
+);
 
 /// What a row said its type was, or null when the column can't be read that
 /// way. A file with no type column says so with a signed amount instead.

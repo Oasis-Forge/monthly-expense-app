@@ -640,6 +640,9 @@ class AppLocalizationsTr extends AppLocalizations {
       'Tekrarlanan işlem kaydedilemedi. Tekrar deneyin.';
 
   @override
+  String get recurringDeleted => 'Tekrarlanan işlem silindi';
+
+  @override
   String get everyLabel => 'Her';
 
   @override
@@ -734,6 +737,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1 veya daha büyük bir tam sayı girin';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1 ile $max arasında bir tam sayı girin';
+  }
 
   @override
   String get endDateInvalid => 'Bitiş tarihi başlangıçtan sonra olmalı';
@@ -1299,12 +1307,26 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Şuna daraltıldı: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Sayfa $page / $pages';
   }
 
   @override
   String get reportNet => 'Net';
+
+  @override
+  String get reportMatchingIncome => 'Eşleşen gelir';
+
+  @override
+  String get reportMatchingExpense => 'Eşleşen gider';
+
+  @override
+  String get reportMatchingNet => 'Eşleşen net';
 
   @override
   String get reportOpeningBalance => 'Açılış bakiyesi';
@@ -1369,6 +1391,10 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Kapsamı';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Bu rapor aramanıza daraltılmış olarak kalır.';
 
   @override
   String get reportRangePeriod => 'Bu dönem';

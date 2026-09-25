@@ -333,6 +333,29 @@ void main() {
     await expectInForm(tester, 'Enter a valid amount');
   });
 
+  // review-money-4: AmountEntry.parsedAmount passes the currency's decimal
+  // mark to evaluateAmount (form_fields.dart). Without it, evaluateAmount
+  // falls back to '.', and "1,500" is ambiguous for a 3-decimal currency
+  // (CUR-2), so it would be rejected instead of read as 1.5 TND.
+  testWidgets(
+    'a comma decimal amount is read for a 3-decimal currency in French '
+    '(CUR-2, review-money-4)',
+    (tester) async {
+      settings = await testSettings({'currency_code': 'TND', 'language': 'fr'});
+
+      await open(tester);
+      final montant = find.widgetWithText(TextFormField, 'Montant');
+      await revealInForm(tester, montant);
+      await tester.enterText(montant, '1,500');
+      await tapInForm(
+        tester,
+        find.widgetWithText(FilledButton, 'Ajouter la transaction'),
+      );
+
+      expect(provider.transactions.single.amount, const Money(1500));
+    },
+  );
+
   testWidgets('a failed save keeps the screen open and shows an error', (
     tester,
   ) async {

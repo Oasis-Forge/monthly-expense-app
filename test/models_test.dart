@@ -108,6 +108,39 @@ void main() {
       expect(isAmountExpression('12.5+3'), isTrue);
       expect(isAmountExpression('12−3'), isTrue);
     });
+
+    // review-money-4: this passthrough had no test at all — removing it (or
+    // the one in AmountEntry.parsedAmount / provider.matchesSearch) fell back
+    // to '.', silently rejecting "1,500" for a comma-decimal language with a
+    // 3-decimal currency (TND/KWD/BHD/JOD/OMR), and no test would fail.
+    test(
+      'passes decimalMark through to each operand (CUR-2, review-money-4)',
+      () {
+        expect(
+          evaluateAmount('1,500+3', maxDecimals: 3, decimalMark: ','),
+          const Money(4500),
+        );
+        // The default stays '.': the same text is ambiguous (a 3-decimal
+        // fraction or a thousands separator) and stays rejected.
+        expect(
+          evaluateAmount('1,500+3', maxDecimals: 3, decimalMark: '.'),
+          isNull,
+        );
+        // The comma amount as a later operand: dropping decimalMark from
+        // the second Money.tryParse call (amount_expression.dart) still
+        // passes the case above, because '3' parses the same under either
+        // mark — this covers the operand that a regression there would
+        // actually break.
+        expect(
+          evaluateAmount('3+1,500', maxDecimals: 3, decimalMark: ','),
+          const Money(4500),
+        );
+        expect(
+          evaluateAmount('3+1,500', maxDecimals: 3, decimalMark: '.'),
+          isNull,
+        );
+      },
+    );
   });
 
   group('ExpenseTransaction', () {

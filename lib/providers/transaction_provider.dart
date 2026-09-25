@@ -1207,7 +1207,10 @@ class TransactionProvider extends ChangeNotifier {
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
-    String decimalMark = '.',
+    // Required rather than defaulted to '.': a caller that forgets this reads
+    // a comma-decimal amount query as if the currency used '.', which silently
+    // rejects a correctly-typed amount instead of matching it (CUR-2).
+    required String decimalMark,
   }) {
     if (filter.type != null && tx.type != filter.type) return false;
     if (filter.categoryId != null && tx.categoryId != filter.categoryId) {
@@ -1231,7 +1234,8 @@ class TransactionProvider extends ChangeNotifier {
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
-    String decimalMark = '.',
+    // Required, not defaulted: see matchesSearch above (CUR-2).
+    required String decimalMark,
   }) {
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
@@ -1271,15 +1275,45 @@ class TransactionProvider extends ChangeNotifier {
   Money? budgetLimit(String? categoryId, [Period? period]) =>
       limitFor(_budgets, categoryId, period ?? _period);
 
+  /// What every account spent in the period before the current one, for the
+  /// overall budget's first figure (BUD-11, ACC-7). It does not follow the
+  /// selected period: the budget it seeds starts from the current one.
+  Money get lastPeriodExpense {
+    final period = currentPeriod.previous;
+    var total = Money.zero;
+    for (final tx in _transactions) {
+      if (tx.type == TransactionType.expense &&
+          period.contains(tx.date) &&
+          !isUpcoming(tx)) {
+        total += tx.amount;
+      }
+    }
+    return total;
+  }
+
   /// Sets a budget, or removes it with a null [limit], from the current
   /// period onward; earlier periods keep their limits (BUD-5).
+  ///
+  /// A version that starts later inside the current period (one set before
+  /// the month start day moved earlier in the calendar, PER-2) would keep
+  /// outranking the new one, so it is removed: the new version always wins
+  /// for the current period. It never applied to an earlier period, so none
+  /// of them changes.
   Future<void> setBudget(String? categoryId, Money? limit) async {
-    final from = currentPeriod.start;
+    final current = currentPeriod;
+    final from = current.start;
     final now = _clock().toUtc();
     Budget? existing;
+    final superseded = <Budget>[];
     for (final budget in _budgets) {
-      if (budget.categoryId == categoryId && budget.effectiveFrom == from) {
+      if (budget.categoryId != categoryId || budget.deletedAt != null) {
+        continue;
+      }
+      if (budget.effectiveFrom == from) {
         existing = budget;
+      } else if (budget.effectiveFrom.isAfter(from) &&
+          budget.effectiveFrom.isBefore(current.end)) {
+        superseded.add(budget);
       }
     }
 
@@ -1305,7 +1339,17 @@ class TransactionProvider extends ChangeNotifier {
       await _db.insertBudget(budget);
       _budgets = [..._budgets, budget];
     }
-    _changed();
+    try {
+      for (final budget in superseded) {
+        await _db.updateBudget(budget.copyWith(deletedAt: now, updatedAt: now));
+        _budgets = [
+          for (final kept in _budgets)
+            if (kept.id != budget.id) kept,
+        ];
+      }
+    } finally {
+      _changed();
+    }
   }
 
   /// Progress of every budget in the selected period: the overall budget
@@ -1339,7 +1383,11 @@ class TransactionProvider extends ChangeNotifier {
       ?statusFor(null, _everyAccount.expense),
       for (final category in [
         ...categoriesFor(TransactionType.expense),
-        ...archivedCategoriesFor(TransactionType.expense),
+        // An archived category's budget has no tile left to change it on, so
+        // it stops counting from the current period on; a past period still
+        // shows the result it had (BUD-5, BUD-6, CAT-4).
+        if (timing == PeriodTiming.past)
+          ...archivedCategoriesFor(TransactionType.expense),
       ])
         ?statusFor(category.id, byCategory[category.id] ?? Money.zero),
     ];
@@ -1521,21 +1569,91 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Saves an edited rule. The edit reaches every occurrence not yet posted
-  /// or skipped, including one already waiting in Due (RCR-5); only a start
-  /// date moved later can push activeFrom forward, so an edit never makes an
-  /// occurrence that was due disappear on its own.
+  /// Saves an edited rule (RCR-5).
+  ///
+  /// An edit that leaves the schedule alone (amount, title, category and so
+  /// on) reaches every occurrence not yet posted or skipped, including one
+  /// already waiting in Due; only a start date moved later can push
+  /// activeFrom forward, so such an edit never makes a due occurrence
+  /// disappear on its own.
+  ///
+  /// An edit to the schedule (how often, the start, or the end) never posts
+  /// or queues a date of the new schedule before today. An occurrence that
+  /// was already waiting in Due stays waiting if it also falls on the new
+  /// schedule; every other new date before today is skipped, the way a
+  /// resume skips what fell due while paused (RCR-6). Extending a rule that
+  /// had ended therefore picks up from today, not from where it stopped.
   Future<void> updateRecurringRule(RecurringRule rule) async {
-    final floor = recurringRuleById(rule.id)?.activeFrom ?? rule.activeFrom;
-    await _saveRule(
-      rule.copyWith(
-        activeFrom: rule.startDate.isAfter(floor) ? rule.startDate : floor,
-        updatedAt: _clock().toUtc(),
-      ),
+    final old = recurringRuleById(rule.id);
+    final now = _clock().toUtc();
+    if (old == null || !_scheduleChanged(old, rule)) {
+      final floor = old?.activeFrom ?? rule.activeFrom;
+      await _saveRule(
+        rule.copyWith(
+          activeFrom: rule.startDate.isAfter(floor) ? rule.startDate : floor,
+          updatedAt: now,
+        ),
+      );
+      await _postAutomaticOccurrences();
+      _changed();
+      return;
+    }
+
+    final today = _today;
+    final yesterday = DateTime(today.year, today.month, today.day - 1);
+    final startDay = DateTime(
+      rule.startDate.year,
+      rule.startDate.month,
+      rule.startDate.day,
     );
+    final unbounded = rule.copyWith(activeFrom: startDay);
+    // The old rule's unhandled occurrences before today that the new
+    // schedule also has: these were waiting in Due and keep waiting.
+    final kept = <DateTime>{
+      for (final date in old.occurrencesBetween(old.activeFrom, yesterday))
+        if (!_occurrences.containsKey(occurrenceKey(rule.id, date)) &&
+            unbounded.occurrencesBetween(date, date).isNotEmpty)
+          date,
+    };
+    final earliestKept = kept.isEmpty
+        ? null
+        : kept.reduce((a, b) => a.isBefore(b) ? a : b);
+    var activeFrom = earliestKept ?? today;
+    if (startDay.isAfter(activeFrom)) activeFrom = startDay;
+    final updated = rule.copyWith(activeFrom: activeFrom, updatedAt: now);
+
+    // Skip every other date of the new schedule before today, first, so a
+    // failed save can never leave a rule that reaches back unguarded.
+    for (final date in updated.occurrencesBetween(activeFrom, yesterday)) {
+      final key = occurrenceKey(rule.id, date);
+      if (_occurrences.containsKey(key) || kept.contains(date)) continue;
+      final record = RecurringOccurrence(
+        ruleId: rule.id,
+        date: date,
+        status: OccurrenceStatus.skipped,
+        createdAt: now,
+      );
+      await _db.insertOccurrence(record);
+      _occurrences[record.key] = record;
+    }
+    await _saveRule(updated);
     await _postAutomaticOccurrences();
     _changed();
   }
+
+  static bool _scheduleChanged(RecurringRule a, RecurringRule b) =>
+      a.frequency != b.frequency ||
+      a.interval != b.interval ||
+      !_sameDay(a.startDate, b.startDate) ||
+      a.endType != b.endType ||
+      a.endCount != b.endCount ||
+      !_sameOptionalDay(a.endDate, b.endDate);
+
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  static bool _sameOptionalDay(DateTime? a, DateTime? b) =>
+      a == null || b == null ? a == b : _sameDay(a, b);
 
   Future<void> pauseRecurringRule(String id) async {
     final now = _clock().toUtc();
@@ -1571,12 +1689,29 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Deletes a rule; the transactions it posted stay (RCR-5).
-  Future<void> deleteRecurringRule(String id) async {
+  /// Deletes a rule; the transactions it posted stay (RCR-5). Returns the
+  /// rule as it was, for [restoreRecurringRule] (DEL-2).
+  Future<RecurringRule> deleteRecurringRule(String id) async {
+    final rule = recurringRuleById(id)!;
     final now = _clock().toUtc();
-    await _saveRule(
-      recurringRuleById(id)!.copyWith(deletedAt: now, updatedAt: now),
+    await _saveRule(rule.copyWith(deletedAt: now, updatedAt: now));
+    _changed();
+    return rule;
+  }
+
+  /// Brings back a rule deleted by [deleteRecurringRule], by clearing its
+  /// deletedAt (DEL-2); automatic rules then post whatever fell due.
+  Future<void> restoreRecurringRule(RecurringRule rule) async {
+    if (recurringRuleById(rule.id) != null) return;
+    final restored = rule.copyWith(
+      deletedAt: null,
+      updatedAt: _clock().toUtc(),
     );
+    await _db.updateRecurringRule(restored);
+    // Back in its place: rules are listed in the order they were created.
+    final at = _rules.indexWhere((r) => r.createdAt.isAfter(rule.createdAt));
+    _rules = [..._rules]..insert(at < 0 ? _rules.length : at, restored);
+    await _postAutomaticOccurrences();
     _changed();
   }
 

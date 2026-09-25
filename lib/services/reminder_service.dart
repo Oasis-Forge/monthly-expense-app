@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -41,6 +43,13 @@ abstract class ReminderService {
   /// only when the user sets a reminder for the first time (NOTE-6).
   Future<bool> requestPermission();
 
+  /// Whether the OS is currently letting this app's notifications through
+  /// (NUDGE-7): checked again on launch and resume, since permission granted
+  /// once can be taken back later in the phone's own settings, not only
+  /// through this app. True on a platform with no way to ask, so nothing
+  /// here shows a false warning.
+  Future<bool> areNotificationsEnabled();
+
   /// Schedules [note]'s reminder, replacing any earlier one for it, in
   /// [locale]. Does nothing (and cancels any existing one) when the note has
   /// no reminder, is done, is deleted, or the reminder time has passed. With
@@ -73,6 +82,9 @@ class NoopReminderService implements ReminderService {
 
   @override
   Future<bool> requestPermission() async => false;
+
+  @override
+  Future<bool> areNotificationsEnabled() async => true;
 
   @override
   Future<void> schedule(
@@ -115,6 +127,10 @@ class SafeReminderService implements ReminderService {
   Future<bool> requestPermission() => _guard(inner.requestPermission, false);
 
   @override
+  Future<bool> areNotificationsEnabled() =>
+      _guard(inner.areNotificationsEnabled, true);
+
+  @override
   Future<void> schedule(
     Note note, {
     required bool appLockOn,
@@ -141,10 +157,26 @@ class SafeReminderService implements ReminderService {
 /// Schedules real device notifications through `flutter_local_notifications`.
 class DeviceReminderService implements ReminderService {
   final _plugin = FlutterLocalNotificationsPlugin();
-  bool _initialized = false;
 
-  Future<void> _ensureInitialized() async {
-    if (_initialized) return;
+  /// Memoized rather than a `bool` flag (pr59#8): two callers racing each
+  /// other -- the first-frame notification-permission check and the load's
+  /// own [scheduleNudges], say -- must share the one initialize and the one
+  /// delivery of a launch payload below, not each run it and each deliver
+  /// the tapped notification's note a second time.
+  Future<void>? _initializing;
+
+  Future<void> _ensureInitialized() {
+    final initializing = _initializing ??= _doInitialize();
+    // A failed attempt is not cached: the next call starts a fresh one,
+    // exactly as the old `bool` flag (left false on failure) did. This does
+    // not touch what `initializing` resolves with for whoever is awaiting
+    // it here and elsewhere -- Dart lets more than one caller listen to the
+    // same future independently.
+    unawaited(initializing.catchError((_) => _initializing = null));
+    return initializing;
+  }
+
+  Future<void> _doInitialize() async {
     tz_data.initializeTimeZones();
     try {
       final here = await FlutterTimezone.getLocalTimezone();
@@ -168,7 +200,6 @@ class DeviceReminderService implements ReminderService {
     if (launch?.didNotificationLaunchApp ?? false) {
       _deliver(launch?.notificationResponse?.payload);
     }
-    _initialized = true;
   }
 
   @override
@@ -196,6 +227,22 @@ class DeviceReminderService implements ReminderService {
       return await macOS.requestPermissions(alert: true, sound: true) ?? false;
     }
     // Windows and Linux notifications don't ask permission up front.
+    return true;
+  }
+
+  @override
+  Future<bool> areNotificationsEnabled() async {
+    await _ensureInitialized();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android != null) {
+      return await android.areNotificationsEnabled() ?? true;
+    }
+    // iOS, macOS, Windows and Linux have no equivalent live check in the
+    // plugin, so nothing here reports a phone as blocking when it may not
+    // be (NUDGE-7).
     return true;
   }
 

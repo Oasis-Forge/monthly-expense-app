@@ -75,6 +75,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count रिकरिंग लेनदेन देय हैं',
       one: '1 रिकरिंग लेनदेन देय है',
+      zero: '$count रिकरिंग लेनदेन देय हैं',
     );
     return '$_temp0';
   }
@@ -98,6 +99,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count बजट तय',
       one: '1 बजट तय',
+      zero: '$count बजट तय',
     );
     return '$_temp0';
   }
@@ -349,6 +351,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$days दिनों में हमेशा के लिए हट जाएगा',
       one: '1 दिन में हमेशा के लिए हट जाएगा',
+      zero: '$days दिनों में हमेशा के लिए हट जाएगा',
     );
     return '$amount · $_temp0';
   }
@@ -360,6 +363,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$days दिनों में हमेशा के लिए हट जाएगा',
       one: '1 दिन में हमेशा के लिए हट जाएगा',
+      zero: '$days दिनों में हमेशा के लिए हट जाएगा',
     );
     return '$_temp0';
   }
@@ -503,6 +507,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count नतीजे',
       one: '1 नतीजा',
+      zero: '$count नतीजे',
     );
     return '$_temp0 · आय $income · खर्च $expense';
   }
@@ -642,6 +647,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'रिकरिंग लेनदेन सेव नहीं हो सका। फिर कोशिश करें।';
 
   @override
+  String get recurringDeleted => 'रिकरिंग लेनदेन हटाया गया';
+
+  @override
   String get everyLabel => 'हर';
 
   @override
@@ -736,6 +744,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1 से पूरी संख्या दर्ज करें';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1 से $max तक पूरी संख्या दर्ज करें';
+  }
 
   @override
   String get endDateInvalid => 'समाप्ति तारीख़ शुरुआत के बाद होनी चाहिए';
@@ -852,6 +865,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count महीने',
       one: '1 महीना',
+      zero: '$count महीने',
     );
     return '$_temp0';
   }
@@ -1043,6 +1057,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count लेनदेन',
       one: '1 लेनदेन',
+      zero: '$count लेनदेन',
     );
     return '$date · $_temp0';
   }
@@ -1100,6 +1115,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count लेनदेन रीस्टोर हुए',
       one: '1 लेनदेन रीस्टोर हुआ',
+      zero: '$count लेनदेन रीस्टोर हुए',
     );
     return '$_temp0';
   }
@@ -1267,6 +1283,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count नोट देय हैं',
       one: '1 नोट देय है',
+      zero: '$count नोट देय हैं',
     );
     return '$_temp0';
   }
@@ -1295,12 +1312,26 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'सीमित: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'पेज $page / $pages';
   }
 
   @override
   String get reportNet => 'नेट';
+
+  @override
+  String get reportMatchingIncome => 'मिलान आय';
+
+  @override
+  String get reportMatchingExpense => 'मिलान व्यय';
+
+  @override
+  String get reportMatchingNet => 'मिलान शुद्ध';
 
   @override
   String get reportOpeningBalance => 'शुरुआती बैलेंस';
@@ -1365,6 +1396,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'इसमें क्या शामिल है';
+
+  @override
+  String get reportNarrowedNotice => 'यह रिपोर्ट आपकी खोज तक सीमित रहती है।';
 
   @override
   String get reportRangePeriod => 'इस अवधि';
@@ -1504,6 +1538,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियों की तारीख़ ऐप नहीं पढ़ सकता',
       one: '1 पंक्ति की तारीख़ ऐप नहीं पढ़ सकता',
+      zero: '$count पंक्तियों की तारीख़ ऐप नहीं पढ़ सकता',
     );
     return '$_temp0';
   }
@@ -1515,6 +1550,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियों की राशि ऐप नहीं पढ़ सकता',
       one: '1 पंक्ति की राशि ऐप नहीं पढ़ सकता',
+      zero: '$count पंक्तियों की राशि ऐप नहीं पढ़ सकता',
     );
     return '$_temp0';
   }
@@ -1526,6 +1562,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियों में कोई राशि नहीं है',
       one: '1 पंक्ति में कोई राशि नहीं है',
+      zero: '$count पंक्तियों में कोई राशि नहीं है',
     );
     return '$_temp0';
   }
@@ -1537,6 +1574,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियां पहले से ऐप में हैं',
       one: '1 पंक्ति पहले से ऐप में है',
+      zero: '$count पंक्तियां पहले से ऐप में हैं',
     );
     return '$_temp0';
   }
@@ -1548,6 +1586,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count ट्रांसफर में सिर्फ़ एक खाता है',
       one: '1 ट्रांसफर में सिर्फ़ एक खाता है',
+      zero: '$count ट्रांसफर में सिर्फ़ एक खाता है',
     );
     return '$_temp0';
   }
@@ -1584,6 +1623,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count और',
       one: '1 और',
+      zero: '$count और',
     );
     return '$_temp0';
   }
@@ -1607,6 +1647,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count रिकॉर्ड इम्पोर्ट हुए',
       one: '1 रिकॉर्ड इम्पोर्ट हुआ',
+      zero: '$count रिकॉर्ड इम्पोर्ट हुए',
     );
     return '$_temp0';
   }
@@ -1739,6 +1780,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count आवर्ती प्रविष्टियाँ आज देय थीं।',
       one: '1 आवर्ती प्रविष्टि आज देय थी।',
+      zero: '$count आवर्ती प्रविष्टियाँ आज देय थीं।',
     );
     return '$_temp0';
   }

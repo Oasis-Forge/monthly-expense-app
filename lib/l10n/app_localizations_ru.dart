@@ -661,6 +661,9 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось сохранить повторяющуюся операцию. Попробуйте ещё раз.';
 
   @override
+  String get recurringDeleted => 'Повторяющаяся операция удалена';
+
+  @override
   String get everyLabel => 'Каждые';
 
   @override
@@ -767,6 +770,11 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Введите целое число от 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Введите целое число от 1 до $max';
+  }
 
   @override
   String get endDateInvalid => 'Дата окончания должна быть позже даты начала';
@@ -1345,12 +1353,26 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Сужено до: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Страница $page из $pages';
   }
 
   @override
   String get reportNet => 'Итого';
+
+  @override
+  String get reportMatchingIncome => 'Соответствующий доход';
+
+  @override
+  String get reportMatchingExpense => 'Соответствующий расход';
+
+  @override
+  String get reportMatchingNet => 'Соответствующий итог';
 
   @override
   String get reportOpeningBalance => 'Начальный баланс';
@@ -1415,6 +1437,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Что учитывается';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Этот отчёт остаётся суженным до вашего поиска.';
 
   @override
   String get reportRangePeriod => 'Текущий период';

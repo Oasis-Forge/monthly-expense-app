@@ -75,17 +75,25 @@ Future<void> showOverallBudgetDialog(
   );
   final change = await showDialog<({Money? limit})>(
     context: context,
+    // A starting figure, not a budget in force: nothing to remove.
     builder: (_) => _BudgetDialog(
       name: l10n.overallBudget,
-      current: prefill,
+      current: null,
+      prefill: prefill,
       currency: currency,
     ),
   );
-  if (change == null) return;
+  final limit = change?.limit;
+  // Only offered while the current period has no overall budget; if one
+  // appeared meanwhile, this never overwrites it.
+  if (limit == null ||
+      provider.budgetLimit(null, provider.currentPeriod) != null) {
+    return;
+  }
   try {
     // BUD-5: it starts from the current period, whichever period Home was
     // showing when it was asked for.
-    await provider.setBudget(null, change.limit);
+    await provider.setBudget(null, limit);
   } catch (_) {
     messenger.showSnackBar(SnackBar(content: Text(l10n.budgetSaveFailed)));
   }
@@ -147,11 +155,17 @@ class _BudgetDialog extends StatefulWidget {
   const _BudgetDialog({
     required this.name,
     required this.current,
+    this.prefill,
     required this.currency,
   });
 
   final String name;
+
+  /// The limit in force, which the box starts with and Remove clears.
   final Money? current;
+
+  /// What the box starts with when there is no [current] limit.
+  final Money? prefill;
   final NumberFormat currency;
 
   @override
@@ -161,7 +175,7 @@ class _BudgetDialog extends StatefulWidget {
 class _BudgetDialogState extends State<_BudgetDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _controller = TextEditingController(
-    text: widget.current?.toInputString() ?? '',
+    text: (widget.current ?? widget.prefill)?.toInputString() ?? '',
   );
 
   @override

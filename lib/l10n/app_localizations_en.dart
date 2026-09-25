@@ -641,6 +641,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t save the recurring transaction. Try again.';
 
   @override
+  String get recurringDeleted => 'Recurring transaction deleted';
+
+  @override
   String get everyLabel => 'Every';
 
   @override
@@ -735,6 +738,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Enter a whole number from 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Enter a whole number from 1 to $max';
+  }
 
   @override
   String get endDateInvalid => 'The end date must be after the start';
@@ -1298,12 +1306,26 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Narrowed to: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Page $page of $pages';
   }
 
   @override
   String get reportNet => 'Net';
+
+  @override
+  String get reportMatchingIncome => 'Matching income';
+
+  @override
+  String get reportMatchingExpense => 'Matching expense';
+
+  @override
+  String get reportMatchingNet => 'Matching net';
 
   @override
   String get reportOpeningBalance => 'Opening balance';
@@ -1368,6 +1390,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'What it covers';
+
+  @override
+  String get reportNarrowedNotice =>
+      'This report stays narrowed to your search.';
 
   @override
   String get reportRangePeriod => 'This period';

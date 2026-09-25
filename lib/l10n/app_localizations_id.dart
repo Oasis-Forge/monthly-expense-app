@@ -641,6 +641,9 @@ class AppLocalizationsId extends AppLocalizations {
       'Transaksi berulang gagal disimpan. Coba lagi.';
 
   @override
+  String get recurringDeleted => 'Transaksi berulang dihapus';
+
+  @override
   String get everyLabel => 'Setiap';
 
   @override
@@ -735,6 +738,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Masukkan bilangan bulat mulai dari 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Masukkan bilangan bulat dari 1 sampai $max';
+  }
 
   @override
   String get endDateInvalid => 'Tanggal akhir harus setelah tanggal mulai';
@@ -1300,12 +1308,26 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Dipersempit ke: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Halaman $page dari $pages';
   }
 
   @override
   String get reportNet => 'Bersih';
+
+  @override
+  String get reportMatchingIncome => 'Pendapatan cocok';
+
+  @override
+  String get reportMatchingExpense => 'Pengeluaran cocok';
+
+  @override
+  String get reportMatchingNet => 'Bersih cocok';
 
   @override
   String get reportOpeningBalance => 'Saldo awal';
@@ -1370,6 +1392,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Cakupan laporan';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Laporan ini tetap dipersempit ke pencarian Anda.';
 
   @override
   String get reportRangePeriod => 'Periode ini';

@@ -12,6 +12,7 @@ import '../l10n/labels.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/csv_export.dart' show isoDate;
+import '../models/period.dart';
 import '../models/report.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
@@ -38,6 +39,10 @@ bool Function(ExpenseTransaction)? reportMatchesFor(
   TransactionFilter? filter, {
   required String Function(Category category) categoryName,
   required String Function(Account account) accountName,
+  // Required rather than defaulted to '.': search_screen.dart passes the
+  // currency's own separator, and a caller here that forgot to would
+  // silently read a comma-decimal amount query the wrong way (CUR-2).
+  required String decimalMark,
 }) {
   if (filter == null ||
       (filter.query.trim().isEmpty &&
@@ -50,6 +55,72 @@ bool Function(ExpenseTransaction)? reportMatchesFor(
     filter,
     categoryName: categoryName,
     accountName: accountName,
+    decimalMark: decimalMark,
+  );
+}
+
+/// Whether [filter] narrows a report's display at all (PDF-1) — the same
+/// condition [reportMatchesFor] uses to decide between a predicate and null,
+/// kept separate so the screen can show a notice without needing a
+/// [TransactionProvider] or the label functions just to ask.
+bool isNarrowingFilter(TransactionFilter? filter) =>
+    filter != null &&
+    (filter.query.trim().isNotEmpty ||
+        filter.type != null ||
+        filter.categoryId != null);
+
+/// Builds the report [ReportScreen] previews and exports, so the wiring from
+/// its filter and options to [buildReport] is one function a test can call
+/// directly instead of only through the whole screen (PDF-1).
+ReportData reportDataFor({
+  required TransactionProvider provider,
+  required TransactionFilter? filter,
+  required DateTime from,
+  required DateTime to,
+  String? accountId,
+  ReportOptions options = const ReportOptions(),
+  required String Function(Category category) categoryName,
+  required String Function(Account account) accountName,
+  required String decimalMark,
+}) {
+  final matches = reportMatchesFor(
+    provider,
+    filter,
+    categoryName: categoryName,
+    accountName: accountName,
+    decimalMark: decimalMark,
+  );
+  ReportSearchInfo? searchInfo;
+  if (matches != null && filter != null) {
+    final category = filter.categoryId == null
+        ? null
+        : provider.categoryById(filter.categoryId!);
+    searchInfo = ReportSearchInfo(
+      query: filter.query.trim(),
+      type: filter.type,
+      categoryName: category == null ? null : categoryName(category),
+    );
+  }
+  return buildReport(
+    from: from,
+    to: to,
+    today: provider.today,
+    transactions: provider.transactions,
+    transfers: provider.transfers,
+    accounts: provider.accounts,
+    accountId: accountId,
+    matches: matches,
+    searchInfo: searchInfo,
+    // buildReport itself only ever attaches this when [from, to] is exactly
+    // one period, so passing the period matching *this* range — rather than
+    // whatever period Home happens to be showing — is what makes that single
+    // case price against the right month's limit (BUD-2).
+    budgetLimit: (id) => provider.budgetLimit(
+      id,
+      Period.containing(from, startDay: provider.startDay),
+    ),
+    startDay: provider.startDay,
+    options: options,
   );
 }
 
@@ -152,23 +223,19 @@ class _ReportScreenState extends State<ReportScreen> {
     );
 
     try {
-      final data = buildReport(
+      final data = reportDataFor(
+        provider: provider,
+        filter: widget.filter,
         from: from,
         to: to,
-        today: provider.today,
-        transactions: provider.transactions,
-        transfers: provider.transfers,
-        accounts: provider.accounts,
         accountId: _accountId,
-        matches: reportMatchesFor(
-          provider,
-          widget.filter,
-          categoryName: (category) => category.label(l10n),
-          accountName: (account) => account.label(l10n),
-        ),
-        budgetLimit: (id) => provider.budgetLimit(id),
-        startDay: provider.startDay,
         options: _options,
+        categoryName: (category) => category.label(l10n),
+        accountName: (account) => account.label(l10n),
+        decimalMark: settings
+            .currencyFormat(l10n.localeName)
+            .symbols
+            .DECIMAL_SEP,
       );
       final bytes = await buildReportPdf(
         data: data,
@@ -236,6 +303,39 @@ class _ReportScreenState extends State<ReportScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // PDF-1, ACC-6: a report opened from Search stays narrowed to it
+          // until the user leaves this screen, so it has to say so — a
+          // filtered figure that reads like the whole of the money is worse
+          // than no filter at all.
+          if (isNarrowingFilter(widget.filter)) ...[
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.filter_alt_outlined,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      l10n.reportNarrowedNotice,
+                      style: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSecondaryContainer,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           Text(l10n.reportCoversHeader, style: _sectionStyle(context)),
           const SizedBox(height: 8),
           SegmentedButton<ReportRange>(

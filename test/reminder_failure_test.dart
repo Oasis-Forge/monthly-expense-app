@@ -27,6 +27,9 @@ class _BrokenReminders implements ReminderService {
   Future<bool> requestPermission() async => _fail();
 
   @override
+  Future<bool> areNotificationsEnabled() async => _fail();
+
+  @override
   Future<void> schedule(
     Note note, {
     required bool appLockOn,

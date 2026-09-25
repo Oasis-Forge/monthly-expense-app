@@ -181,6 +181,157 @@ void main() {
 
       expect(matched.keys, {ImportField.date, ImportField.amount});
     });
+
+    test('a short alias only matches whole words, not a substring of another '
+        'word (IMP-3, IMP-6)', () {
+      // "Counterparty" contains the letters "art", the type alias, only
+      // as part of "party" -- it must not be read as the type column.
+      final matched = matchColumns(['Date', 'Amount', 'Counterparty']);
+
+      expect(matched.containsKey(ImportField.type), isFalse);
+    });
+
+    test('a bank statement "Value Dt" column is not guessed as the amount '
+        '(IMP-3, IMP-6, IMP-5)', () {
+      // The common Indian bank-statement layout: withdrawal and deposit
+      // are separate columns, neither of which is a recognised amount
+      // alias, and "Value Dt" reads as both the amount alias "value" and
+      // the date alias "dt". Guessing either would plan nonsense (a date
+      // read as a numeric amount, or a random column as the type); IMP-3
+      // says an unconfident column is left out, not guessed at.
+      final header = [
+        'Date',
+        'Narration',
+        'Chq./Ref.No.',
+        'Value Dt',
+        'Withdrawal Amt.',
+        'Deposit Amt.',
+        'Closing Balance',
+      ];
+
+      final matched = matchColumns(header);
+
+      expect(matched.containsKey(ImportField.amount), isFalse);
+      expect(matched[ImportField.date], 0);
+    });
+
+    test('a compound word is matched by the alias it ends with, and camelCase '
+        'is split before folding (IMP-3, IMP-6)', () {
+      // DKB and Sparkasse (German banks) run the field name straight into a
+      // longer compound word; ABN AMRO (Dutch) runs two English words
+      // together in lower case; a CSV written by a spreadsheet may instead
+      // camelCase the header. None of these are a whole-word match on their
+      // own, but the date reads out of every one of them.
+      final dkb = matchColumns([
+        'Buchungsdatum',
+        'Verwendungszweck',
+        'Betrag (EUR)',
+      ]);
+      expect(dkb[ImportField.date], 0, reason: 'Buchungsdatum');
+      expect(dkb[ImportField.amount], 2, reason: 'Betrag (EUR)');
+
+      final sparkasse = matchColumns(['Valutadatum', 'Buchungstext', 'Betrag']);
+      expect(sparkasse[ImportField.date], 0, reason: 'Valutadatum');
+
+      final abnAmro = matchColumns([
+        'transactiondate',
+        'amount',
+        'counterparty',
+      ]);
+      expect(abnAmro[ImportField.date], 0, reason: 'transactiondate');
+
+      final camelCase = matchColumns(['TransactionDate', 'Amount']);
+      expect(camelCase[ImportField.date], 0, reason: 'TransactionDate');
+    });
+
+    test('a CJK or Hangul alias of two characters is trusted as a whole '
+        'word, unlike a short Latin alias (IMP-3, IMP-6)', () {
+      // The 3-letter rule that keeps "art" from claiming "Counterparty"
+      // makes no sense for scripts with no letter-by-letter fragments: a
+      // two-character CJK or Hangul word is a whole word, not a fragment.
+      final chinese = matchColumns(['日期', '金额(元)', '分类']);
+      expect(chinese[ImportField.date], 0, reason: '日期');
+      expect(chinese[ImportField.amount], 1, reason: '金额(元)');
+
+      final japanese = matchColumns(['日付', '金額(円)', 'カテゴリ']);
+      expect(japanese[ImportField.date], 0, reason: '日付');
+      expect(japanese[ImportField.amount], 1, reason: '金額(円)');
+
+      final korean = matchColumns(['날짜', '금액(원)', '카테고리']);
+      expect(korean[ImportField.date], 0, reason: '날짜');
+      expect(korean[ImportField.amount], 1, reason: '금액(원)');
+    });
+
+    test('an unspaced CJK, Hangul or Thai compound header still matches its '
+        'alias inside it (IMP-3, IMP-6)', () {
+      // Banks in these scripts write "transaction date" as one word with no
+      // space for a whole-word match to find.
+      final chinese = matchColumns(['交易日期', '交易金额', '分类']);
+      expect(chinese[ImportField.date], 0, reason: '交易日期');
+      expect(chinese[ImportField.amount], 1, reason: '交易金额');
+
+      final japanese = matchColumns(['取引日付', '取引金額']);
+      expect(japanese[ImportField.date], 0, reason: '取引日付');
+      expect(japanese[ImportField.amount], 1, reason: '取引金額');
+
+      final korean = matchColumns(['거래날짜', '거래금액']);
+      expect(korean[ImportField.date], 0, reason: '거래날짜');
+      expect(korean[ImportField.amount], 1, reason: '거래금액');
+
+      final thai = matchColumns(['วันที่ทำรายการ', 'จำนวนเงินบาท']);
+      expect(thai[ImportField.date], 0, reason: 'วันที่ทำรายการ');
+      expect(thai[ImportField.amount], 1, reason: 'จำนวนเงินบาท');
+    });
+
+    test('an alias with accents or vowel signs matches a header that folding '
+        'stripped of them (IMP-3, IMP-6)', () {
+      final vietnamese = matchColumns(['Ngày giao dịch', 'Số tiền']);
+      expect(vietnamese[ImportField.date], 0, reason: 'Ngày giao dịch');
+      expect(vietnamese[ImportField.amount], 1, reason: 'Số tiền');
+
+      final greek = matchColumns(['Ημερομηνία', 'Ποσό']);
+      expect(greek[ImportField.date], 0, reason: 'Ημερομηνία');
+      expect(greek[ImportField.amount], 1, reason: 'Ποσό');
+
+      final hindi = matchColumns(['दिनांक', 'राशि']);
+      expect(hindi[ImportField.date], 0, reason: 'दिनांक');
+      expect(hindi[ImportField.amount], 1, reason: 'राशि');
+
+      final thai = matchColumns(['วันที่', 'จำนวนเงิน']);
+      expect(thai[ImportField.date], 0, reason: 'วันที่');
+      expect(thai[ImportField.amount], 1, reason: 'จำนวนเงิน');
+    });
+
+    test(
+      'the cross-field veto only blocks the amount/date collision, not '
+      'every column that also names another field loosely (IMP-3, IMP-6)',
+      () {
+        // Spendee names its category column "Category name" and Mint names
+        // its account column "Account Name": the generic title alias "name"
+        // must not veto either just because it also appears in the header.
+        final spendee = matchColumns([
+          'Date',
+          'Wallet',
+          'Type',
+          'Category name',
+          'Amount',
+        ]);
+        expect(spendee[ImportField.category], 3, reason: 'Category name');
+        expect(spendee[ImportField.amount], 4, reason: 'Amount');
+
+        final mint = matchColumns(['Date', 'Account Name', 'Amount']);
+        expect(mint[ImportField.account], 1, reason: 'Account Name');
+
+        // "Tip Amount" also contains the type alias "tip", but the veto is
+        // for the amount/date collision alone ("Value Dt"), not every field.
+        final tip = matchColumns(['Tip Amount', 'Date']);
+        expect(tip[ImportField.amount], 0, reason: 'Tip Amount');
+
+        // The amount/date collision itself must still be refused.
+        final valueDt = matchColumns(['Value Dt', 'Narration']);
+        expect(valueDt.containsKey(ImportField.amount), isFalse);
+      },
+    );
   });
 
   group('reading a type (IMP-3)', () {

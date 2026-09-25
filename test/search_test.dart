@@ -79,11 +79,14 @@ void main() {
       await provider.load();
     });
 
-    SearchResult run(TransactionFilter filter) => provider.search(
-      filter,
-      categoryName: (category) => category.defaultKey ?? category.name ?? '',
-      accountName: (account) => account.name ?? '',
-    );
+    SearchResult run(TransactionFilter filter, {String decimalMark = '.'}) =>
+        provider.search(
+          filter,
+          categoryName: (category) =>
+              category.defaultKey ?? category.name ?? '',
+          accountName: (account) => account.name ?? '',
+          decimalMark: decimalMark,
+        );
 
     List<String> ids(TransactionFilter filter) => [
       for (final tx in run(filter).transactions) tx.id,
@@ -134,4 +137,48 @@ void main() {
       expect(result.expense, const Money(952500));
     });
   });
+
+  group(
+    'the decimal mark an amount query is read with (CUR-2, review-money-1)',
+    () {
+      // "1,500" is the ambiguous case Money.tryParse guards: a 3-decimal
+      // fraction (1.5) under a comma-decimal language, or a thousands
+      // separator (1500) under everything else. decimalMark has no default
+      // here, so a caller that forgot it (as report_screen.dart once did)
+      // silently read every amount query as '.', missing a comma-decimal
+      // language's own amounts entirely.
+      late TransactionProvider provider;
+
+      setUp(() async {
+        provider = TransactionProvider(
+          db: FakeDB(
+            transactions: [testTx('tnd', expense, 1.5, DateTime(2026, 9, 10))],
+          ),
+          clock: () => DateTime(2026, 9, 15),
+        );
+        await provider.load();
+      });
+
+      List<String> idsWith(String decimalMark) => [
+        for (final tx
+            in provider
+                .search(
+                  const TransactionFilter(query: '1,500'),
+                  categoryName: (category) => category.name ?? '',
+                  accountName: (account) => account.name ?? '',
+                  decimalMark: decimalMark,
+                )
+                .transactions)
+          tx.id,
+      ];
+
+      test('a comma-decimal language matches the 1.5 entry', () {
+        expect(idsWith(','), ['tnd']);
+      });
+
+      test('everything else does not, rather than guessing 1500x too much', () {
+        expect(idsWith('.'), isEmpty);
+      });
+    },
+  );
 }

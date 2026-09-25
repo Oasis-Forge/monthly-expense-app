@@ -10,6 +10,7 @@ import '../models/recurring_rule.dart';
 import '../models/transaction.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'delete_snack_bar.dart';
 import 'form_fields.dart';
 
 /// Adds or edits a recurring rule (RCR-1). Editing also offers pause, resume,
@@ -84,17 +85,26 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     super.dispose();
   }
 
-  /// The interval and the repeat count both take a whole number from 1 to
-  /// [_wholeNumberMax]: high enough for any real schedule, low enough that
-  /// the projected date always stays well inside what [DateTime] can
-  /// represent (money-time#7).
-  static const _wholeNumberMax = 999;
+  /// The interval takes a whole number from 1 to [_intervalMax]: high enough
+  /// for any real schedule, low enough that the projected date stays well
+  /// inside what [DateTime] can represent (money-time#7). A rule saved
+  /// before the cap keeps its own interval.
+  static const _intervalMax = 999;
 
-  static int? _wholeNumber(String? text) {
-    final value = int.tryParse(text?.trim() ?? '');
-    return value != null && value >= 1 && value <= _wholeNumberMax
+  int? _interval(String? text) {
+    final value = _wholeNumber(text);
+    if (value == null) return null;
+    return value <= _intervalMax || value == widget.editing?.interval
         ? value
         : null;
+  }
+
+  /// A whole number from 1, with no upper bound: the repeat count needs
+  /// none, since a schedule that runs past what [DateTime] can represent
+  /// simply ends there (RecurringRule.occurrence, money-time#7).
+  static int? _wholeNumber(String? text) {
+    final value = int.tryParse(text?.trim() ?? '');
+    return value != null && value >= 1 ? value : null;
   }
 
   Future<void> _save() async {
@@ -133,7 +143,7 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
       type: _type,
       note: note.isEmpty ? null : note,
       frequency: _frequency,
-      interval: _wholeNumber(_intervalController.text)!,
+      interval: _interval(_intervalController.text)!,
       startDate: _startDate,
       endType: _endType,
       endCount: _endType == RecurrenceEnd.afterCount
@@ -213,10 +223,21 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: l10n.deleteTooltip,
-              onPressed: () => _run(
-                () => provider.deleteRecurringRule(rule.id),
-                close: true,
-              ),
+              onPressed: () {
+                final messenger = ScaffoldMessenger.of(context);
+                _run(() async {
+                  final deleted = await provider.deleteRecurringRule(rule.id);
+                  // DEL-2: one tap, so Undo for five seconds, as for any
+                  // other delete.
+                  showUndoSnackBar(
+                    messenger,
+                    message: l10n.recurringDeleted,
+                    undoLabel: l10n.undoButton,
+                    failedMessage: l10n.undoFailed,
+                    onUndo: () => provider.restoreRecurringRule(deleted),
+                  );
+                }, close: true);
+              },
             ),
           ],
         ],
@@ -316,8 +337,8 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
                       labelText: l10n.everyLabel,
                       border: const OutlineInputBorder(),
                     ),
-                    validator: (value) => _wholeNumber(value) == null
-                        ? l10n.wholeNumberInvalid
+                    validator: (value) => _interval(value) == null
+                        ? l10n.wholeNumberRange(_intervalMax)
                         : null,
                   ),
                 ),

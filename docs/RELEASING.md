@@ -4,7 +4,7 @@ Releasing is by hand. Nothing on GitHub tags a commit, drafts a Release, or uplo
 
 1. **On the branch**, bump the version with `/release [major|minor|patch]` in Claude Code, or by hand: edit `pubspec.yaml` and add a `## [x.y.z] - YYYY-MM-DD` entry to `CHANGELOG.md`. CI's `Format, analyze, test` check fails if the version isn't above the one on `main`, or has no changelog entry. Dependabot PRs are exempt and ride along with the next bump.
 2. **Build it locally**: `/release --build`, or `flutter build appbundle --release` for Play and `flutter build apk --release` for a phone. The artifacts go to `dist/` (gitignored) as `monthly-expenses-X.Y.Z.aab` and `monthly-expenses-X.Y.Z.apk`, signed with the upload key through `android/key.properties`.
-3. **Check the signer before every upload**, because the fall back to a debug key is silent: `keytool -printcert -jarfile dist/monthly-expenses-X.Y.Z.aab` must show your certificate, not `CN=Android Debug`. On Windows `keytool` may not be on PATH — call it as `"$JAVA_HOME/bin/keytool.exe"`, since a bare `keytool` prints nothing and reads as a pass.
+3. **Check the signer before every upload**: a release build without `android/key.properties` now fails fast (see below) rather than silently falling back to a debug key, but `keytool -printcert -jarfile dist/monthly-expenses-X.Y.Z.aab` showing your certificate, not `CN=Android Debug`, is still the final check — a debug-signed build made deliberately with `-PallowDebugSigning=true` would pass the build step but must never be uploaded. On Windows `keytool` may not be on PATH — call it as `"$JAVA_HOME/bin/keytool.exe"`, since a bare `keytool` prints nothing and reads as a pass.
 4. **Upload it by hand** in Play Console, and paste `store/play/release-notes/X.Y.Z.txt` into the release notes box on each track it goes to.
 
 The three workflows in the Actions tab build the same artifacts on GitHub's runners, started by hand and never on their own: **`build-android.yml`** (APK and App Bundle in the run's artifacts), **`build-desktop.yml`** (the Linux archive for Flathub and the Windows MSIX) and **`release-ios.yml`** (an unsigned compile check, or a signed IPA to TestFlight with `upload: true`). They are there for a clean build from a machine that isn't yours. Without the Android signing secrets below, a `build-android.yml` APK is signed with a throwaway debug key and can't update an installed copy.
@@ -62,6 +62,8 @@ No store credentials are needed here: every upload to Play, TestFlight, Partner 
    ```
 4. In Play Console, create the app with package `com.oasisforge.monthlyexpenses` and keep Play App Signing enabled.
 5. **Upload every AAB by hand** in Play Console → Testing → Internal testing. Build it with `flutter build appbundle --release` (after step 3).
+
+Without `android/key.properties`, an Android release build (including `flutter run --release`) now fails fast with a clear error instead of silently producing a debug-signed AAB/APK that Play Console would reject; pass `-PallowDebugSigning=true` (or set `ORG_GRADLE_PROJECT_allowDebugSigning=true`) for a local debug-signed test build without a keystore.
 
 ## One-time setup: iOS
 

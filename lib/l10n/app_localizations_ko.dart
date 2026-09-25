@@ -635,6 +635,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get recurringSaveFailed => '반복 거래를 저장하지 못했어요. 다시 시도해 주세요.';
 
   @override
+  String get recurringDeleted => '반복 거래가 삭제되었어요';
+
+  @override
   String get everyLabel => '매';
 
   @override
@@ -729,6 +732,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1 이상의 정수를 입력하세요';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1에서 $max 사이의 정수를 입력하세요';
+  }
 
   @override
   String get endDateInvalid => '종료일은 시작일 이후여야 해요';
@@ -1271,12 +1279,26 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return '좁힘: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return '$pages 중 $page페이지';
   }
 
   @override
   String get reportNet => '순액';
+
+  @override
+  String get reportMatchingIncome => '일치하는 수입';
+
+  @override
+  String get reportMatchingExpense => '일치하는 지출';
+
+  @override
+  String get reportMatchingNet => '일치하는 순액';
 
   @override
   String get reportOpeningBalance => '시작 잔액';
@@ -1340,6 +1362,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get reportCoversHeader => '포함 범위';
+
+  @override
+  String get reportNarrowedNotice => '이 보고서는 검색 결과로 좁혀진 상태입니다.';
 
   @override
   String get reportRangePeriod => '이번 기간';

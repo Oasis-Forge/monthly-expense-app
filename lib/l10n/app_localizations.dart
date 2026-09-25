@@ -1192,6 +1192,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save the recurring transaction. Try again.'**
   String get recurringSaveFailed;
 
+  /// Snack bar after a recurring rule is deleted, with Undo (DEL-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transaction deleted'**
+  String get recurringDeleted;
+
   /// No description provided for @everyLabel.
   ///
   /// In en, this message translates to:
@@ -1323,6 +1329,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a whole number from 1'**
   String get wholeNumberInvalid;
+
+  /// Error under the repeat interval field when it is not a whole number in range.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number from 1 to {max}'**
+  String wholeNumberRange(int max);
 
   /// No description provided for @endDateInvalid.
   ///
@@ -2278,6 +2290,12 @@ abstract class AppLocalizations {
   /// **'Created {when}'**
   String reportCreated(String when);
 
+  /// No description provided for @reportNarrowedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Narrowed to: {description}'**
+  String reportNarrowedTo(String description);
+
   /// No description provided for @reportPageOf.
   ///
   /// In en, this message translates to:
@@ -2289,6 +2307,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Net'**
   String get reportNet;
+
+  /// No description provided for @reportMatchingIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching income'**
+  String get reportMatchingIncome;
+
+  /// No description provided for @reportMatchingExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching expense'**
+  String get reportMatchingExpense;
+
+  /// No description provided for @reportMatchingNet.
+  ///
+  /// In en, this message translates to:
+  /// **'Matching net'**
+  String get reportMatchingNet;
 
   /// No description provided for @reportOpeningBalance.
   ///
@@ -2409,6 +2445,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'What it covers'**
   String get reportCoversHeader;
+
+  /// No description provided for @reportNarrowedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'This report stays narrowed to your search.'**
+  String get reportNarrowedNotice;
 
   /// No description provided for @reportRangePeriod.
   ///

@@ -659,6 +659,9 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر حفظ المعاملة المتكررة. حاول مرة أخرى.';
 
   @override
+  String get recurringDeleted => 'تم حذف المعاملة المتكررة';
+
+  @override
   String get everyLabel => 'كل';
 
   @override
@@ -765,6 +768,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'أدخل عددًا صحيحًا من 1 فأكثر';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'أدخل عددًا صحيحًا من 1 إلى $max';
+  }
 
   @override
   String get endDateInvalid => 'يجب أن يكون تاريخ الانتهاء بعد البداية';
@@ -1338,12 +1346,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'مقتصر على: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'صفحة $page من $pages';
   }
 
   @override
   String get reportNet => 'الصافي';
+
+  @override
+  String get reportMatchingIncome => 'الدخل المطابق';
+
+  @override
+  String get reportMatchingExpense => 'المصروف المطابق';
+
+  @override
+  String get reportMatchingNet => 'الصافي المطابق';
 
   @override
   String get reportOpeningBalance => 'الرصيد الافتتاحي';
@@ -1408,6 +1430,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'ما يشمله';
+
+  @override
+  String get reportNarrowedNotice => 'يظل هذا التقرير مقتصرًا على بحثك.';
 
   @override
   String get reportRangePeriod => 'هذه الفترة';

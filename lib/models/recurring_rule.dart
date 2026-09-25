@@ -35,8 +35,10 @@ class RecurringRule {
   final bool autoPost;
   final DateTime? pausedAt;
 
-  /// Occurrences before this local date are never posted or queued. It only
-  /// moves forward when the rule's own start date moves past it (RCR-5); an
+  /// Occurrences before this local date are never posted or queued. An edit
+  /// that leaves the schedule alone only moves it forward when the start
+  /// date moves past it; a schedule edit moves it to today, or to the oldest
+  /// item still waiting in Due that the new schedule keeps (RCR-5). An
   /// occurrence due while paused is skipped on its own instead (RCR-6), so
   /// one already waiting before the pause is never affected.
   final DateTime activeFrom;
@@ -76,8 +78,10 @@ class RecurringRule {
     return switch (endType) {
       RecurrenceEnd.never => true,
       RecurrenceEnd.onDate => !endDate!.isBefore(today),
+      // A last occurrence past what DateTime can represent is still to come:
+      // the count is simply larger than any calendar (review-state-3).
       RecurrenceEnd.afterCount => switch (occurrence((endCount ?? 0) - 1)) {
-        null => false,
+        null => (endCount ?? 0) > 0,
         final last => !last.isBefore(today),
       },
     };
@@ -104,6 +108,20 @@ class RecurringRule {
       return null;
     }
     final steps = index * interval;
+    // DateTime reaches about 100 million days either side of 1970, and past
+    // that the VM can wrap a date around silently instead of throwing, so
+    // stop well short of it (about 240,000 years out). Checking the product
+    // first also keeps a count near the largest int from wrapping it.
+    final daysPerStep = switch (frequency) {
+      RecurrenceFrequency.day => 1,
+      RecurrenceFrequency.week => 7,
+      RecurrenceFrequency.month => 31,
+      RecurrenceFrequency.year => 366,
+    };
+    if (index > 0 &&
+        (steps ~/ index != interval || steps > _maxDaysAhead ~/ daysPerStep)) {
+      return null;
+    }
     DateTime date;
     try {
       date = switch (frequency) {
@@ -206,6 +224,8 @@ class RecurringRule {
       deletedAt: _optionalDate(map['deleted_at']),
     );
   }
+
+  static const _maxDaysAhead = 90000000;
 
   static const Object _unset = Object();
 

@@ -650,6 +650,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de terugkerende transactie niet opslaan. Probeer het opnieuw.';
 
   @override
+  String get recurringDeleted => 'Terugkerende transactie verwijderd';
+
+  @override
   String get everyLabel => 'Elke';
 
   @override
@@ -744,6 +747,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Vul een heel getal vanaf 1 in';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Voer een heel getal van 1 tot $max in';
+  }
 
   @override
   String get endDateInvalid => 'De einddatum moet na de startdatum liggen';
@@ -1317,12 +1325,26 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Beperkt tot: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Pagina $page van $pages';
   }
 
   @override
   String get reportNet => 'Netto';
+
+  @override
+  String get reportMatchingIncome => 'Overeenkomend inkomen';
+
+  @override
+  String get reportMatchingExpense => 'Overeenkomende uitgave';
+
+  @override
+  String get reportMatchingNet => 'Overeenkomend saldo';
 
   @override
   String get reportOpeningBalance => 'Beginsaldo';
@@ -1387,6 +1409,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Wat het omvat';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Dit rapport blijft beperkt tot je zoekopdracht.';
 
   @override
   String get reportRangePeriod => 'Deze periode';

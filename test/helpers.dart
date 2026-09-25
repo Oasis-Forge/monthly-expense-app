@@ -241,6 +241,17 @@ class FakeDB extends DBHelper {
       if (row.deletedAt != null) row,
   ]..sort((a, b) => b.deletedAt!.compareTo(a.deletedAt!));
 
+  /// Records a purge like the real `purged_records` table does: the LATEST
+  /// `updated_at` for [id] wins, not the first (review-data-1). A purge
+  /// with an earlier `updated_at` than one already on file leaves the
+  /// existing, later tombstone in place.
+  void _recordPurge(String id, String updatedAt) {
+    final existing = purgedIds[id];
+    if (existing == null || existing.compareTo(updatedAt) < 0) {
+      purgedIds[id] = updatedAt;
+    }
+  }
+
   @override
   Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
     bool old(DateTime? deletedAt) => deletedAt?.isBefore(cutoff) ?? false;
@@ -249,16 +260,16 @@ class FakeDB extends DBHelper {
         if (old(row.deletedAt)) row,
     ];
     for (final row in going) {
-      purgedIds[row.id] = row.updatedAt.toUtc().toIso8601String();
+      _recordPurge(row.id, row.updatedAt.toUtc().toIso8601String());
     }
     for (final t in transfers) {
       if (old(t.deletedAt)) {
-        purgedIds[t.id] = t.updatedAt.toUtc().toIso8601String();
+        _recordPurge(t.id, t.updatedAt.toUtc().toIso8601String());
       }
     }
     for (final n in notes) {
       if (old(n.deletedAt)) {
-        purgedIds[n.id] = n.updatedAt.toUtc().toIso8601String();
+        _recordPurge(n.id, n.updatedAt.toUtc().toIso8601String());
       }
     }
     rows.removeWhere((row) => old(row.deletedAt));
@@ -628,6 +639,12 @@ class FakeReminderService implements ReminderService {
     permissionRequests++;
     return permissionGranted;
   }
+
+  /// The same flag [requestPermission] answers with: a phone that already
+  /// refuses new requests is also a phone whose existing notifications are
+  /// blocked (NUDGE-7).
+  @override
+  Future<bool> areNotificationsEnabled() async => permissionGranted;
 
   @override
   Future<void> schedule(
@@ -1007,6 +1024,11 @@ class FakeAttachments implements AttachmentService {
   /// Whether a recording in progress was ever cancelled (ATT-4, ATT-5).
   bool cancelled = false;
 
+  /// Makes [stopRecording] throw once, the way a `PlatformException` from
+  /// the recorder plugin would after an audio-focus loss or a phone call
+  /// (review-money-5).
+  bool stopThrows = false;
+
   String _name(String extension) => 'file${++_next}.$extension';
 
   @override
@@ -1027,6 +1049,10 @@ class FakeAttachments implements AttachmentService {
 
   @override
   Future<String?> stopRecording() async {
+    if (stopThrows) {
+      stopThrows = false;
+      throw StateError('stop failed');
+    }
     final name = _recording;
     _recording = null;
     if (name != null) stored[name] = const [2];

@@ -661,6 +661,9 @@ class AppLocalizationsPl extends AppLocalizations {
       'Nie udało się zapisać cyklicznej transakcji. Spróbuj ponownie.';
 
   @override
+  String get recurringDeleted => 'Cykliczna transakcja usunięta';
+
+  @override
   String get everyLabel => 'Co';
 
   @override
@@ -767,6 +770,11 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Podaj liczbę całkowitą od 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Wpisz liczbę całkowitą od 1 do $max';
+  }
 
   @override
   String get endDateInvalid =>
@@ -1349,12 +1357,26 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Zawężono do: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Strona $page z $pages';
   }
 
   @override
   String get reportNet => 'Netto';
+
+  @override
+  String get reportMatchingIncome => 'Pasujący przychód';
+
+  @override
+  String get reportMatchingExpense => 'Pasujący wydatek';
+
+  @override
+  String get reportMatchingNet => 'Pasujące saldo';
 
   @override
   String get reportOpeningBalance => 'Saldo początkowe';
@@ -1419,6 +1441,10 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Co obejmuje';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Ten raport pozostaje zawężony do Twojego wyszukiwania.';
 
   @override
   String get reportRangePeriod => 'Ten okres';

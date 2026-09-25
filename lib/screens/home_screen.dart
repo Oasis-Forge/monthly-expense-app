@@ -56,13 +56,39 @@ class HomeScreen extends StatefulWidget {
   /// is fetched on the way in — never waited for — and offered on the way
   /// back, once the screen it belonged to has gone (ADS-13, ADS-14).
   static void _open(BuildContext context, Widget screen) {
+    // Home's own route, captured before the push: still there under
+    // whatever [screen] pushes.
+    final homeRoute = ModalRoute.of(context);
     final opened = Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => screen));
     if (screen is! InsightsScreen) return;
     // The providers outlive the route, so the way back needs no context.
     final ads = context.read<AdsProvider>();
+    // Captured before the wait, so a shortcut or widget tap that fires while
+    // Insights is open is caught even when it moves on to nothing at all —
+    // popping straight back to Home for HomeWidgetAction.openHome, say —
+    // and so leaves Home looking like the current route again by the time
+    // this runs (rules-22-25-31-35#6).
+    final navigationEpoch = ads.navigationEpoch;
     unawaited(ads.primeInterstitial());
-    unawaited(opened.then((_) => ads.showAtSeam(AdSeam.leftInsights)));
+    unawaited(
+      opened.then((_) async {
+        // A shortcut or widget tap can pop back to Home and immediately
+        // push a fresh form in the same beat Insights' route future
+        // resolves in, so Home is no longer on top by the time this runs.
+        // Treat that exactly like ADS-13's "no ad ready" case rather than
+        // show the full-screen ad over whatever opened instead (ADS-1,
+        // ADS-11, ADS-14, rules-22-25-31-35#6). The same tap can also leave
+        // Home on top with nothing pushed at all, which looks identical to
+        // an ordinary "back to Home" unless the navigation epoch moved.
+        if (homeRoute?.isCurrent != true ||
+            ads.navigationEpoch != navigationEpoch) {
+          await ads.dropPrimedInterstitial();
+          return;
+        }
+        await ads.showAtSeam(AdSeam.leftInsights);
+      }),
+    );
   }
 
   /// Exports the selected period's transactions and transfers, across every
@@ -246,14 +272,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       heroLine: chosenAccount == null
                           ? provider.heroLine
                           : null,
-                      // BUD-11: offered only when there is no overall budget
-                      // to lead with, prefilled from the period before the
-                      // one on screen so the first budget is a correction.
+                      // BUD-11: offered only while the current period has no
+                      // overall budget, whichever period is on screen, and
+                      // prefilled from the period before the current one so
+                      // the first budget is a correction.
                       onSetBudget:
                           chosenAccount == null &&
-                              provider.budgetLimit(null) == null
+                              provider.budgetLimit(
+                                    null,
+                                    provider.currentPeriod,
+                                  ) ==
+                                  null
                           ? () {
-                              final last = provider.trend(2).first.expense;
+                              final last = provider.lastPeriodExpense;
                               // Nothing spent last period is nothing to learn
                               // from: an empty box beats a prefilled zero,
                               // which reads like a budget of none.

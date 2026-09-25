@@ -493,6 +493,10 @@
   "skipButton": "Skip",
   "postFailed": "Couldn't post the transaction. Try again.",
   "recurringSaveFailed": "Couldn't save the recurring transaction. Try again.",
+  "recurringDeleted": "Recurring transaction deleted",
+  "@recurringDeleted": {
+    "description": "Snack bar after a recurring rule is deleted, with Undo (DEL-2)."
+  },
   "everyLabel": "Every",
   "frequencyDays": "Days",
   "frequencyWeeks": "Weeks",
@@ -562,6 +566,15 @@
   "timesLabel": "Times",
   "endsOnLabel": "Ends on",
   "wholeNumberInvalid": "Enter a whole number from 1",
+  "wholeNumberRange": "Enter a whole number from 1 to {max}",
+  "@wholeNumberRange": {
+    "description": "Error under the repeat interval field when it is not a whole number in range.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "endDateInvalid": "The end date must be after the start",
   "autoPostLabel": "Post automatically",
   "autoPostSubtitle": "Otherwise it waits in Due for a tap",
@@ -925,6 +938,14 @@
       }
     }
   },
+  "reportNarrowedTo": "Narrowed to: {description}",
+  "@reportNarrowedTo": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
   "reportPageOf": "Page {page} of {pages}",
   "@reportPageOf": {
     "placeholders": {
@@ -937,6 +958,9 @@
     }
   },
   "reportNet": "Net",
+  "reportMatchingIncome": "Matching income",
+  "reportMatchingExpense": "Matching expense",
+  "reportMatchingNet": "Matching net",
   "reportOpeningBalance": "Opening balance",
   "reportClosingBalance": "Closing balance",
   "reportSpendingHeader": "Spending by category",
@@ -973,6 +997,7 @@
   },
   "reportPreviewTitle": "Report",
   "reportCoversHeader": "What it covers",
+  "reportNarrowedNotice": "This report stays narrowed to your search.",
   "reportRangePeriod": "This period",
   "reportRangeCustom": "Dates",
   "reportRangeYear": "Year",

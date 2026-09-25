@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
 import 'package:monthly_expense_app/l10n/languages.dart';
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/report.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/services/report_fonts.dart';
@@ -182,6 +183,73 @@ void main() {
       expect(text, isNot(contains('SecretFutureTitle')));
       expect(text, isNot(contains('PrivateNote')));
       expect(text, isNot(contains('savings')));
+    });
+  });
+
+  group('a report narrowed to a search (PDF-1, PDF-2, BAL-3, BUD-2, ACC-6, '
+      'review-money-2)', () {
+    test('states the search, labels the summary as matching, and drops the '
+        'balances and the budget column', () async {
+      final data = buildReport(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        today: today,
+        transactions: [
+          testTx(
+            'rent',
+            TransactionType.expense,
+            800,
+            DateTime(2026, 9, 1),
+            categoryId: 'cat-rent',
+          ),
+        ],
+        transfers: const [],
+        accounts: [testAccount('cash', opening: 100)],
+        matches: (tx) => tx.id == 'rent',
+        budgetLimit: (id) => id == 'cat-rent' ? const Money(100000) : null,
+        searchInfo: const ReportSearchInfo(
+          query: 'rent',
+          type: TransactionType.expense,
+        ),
+      );
+      // Matched by a text and type filter within a single period, so
+      // this would carry a budget without the search-narrowing rule
+      // (BUD-2) — the case money-time#5's period rule alone wouldn't
+      // catch.
+      expect(data.expenseCategories.single.budget, isNull);
+
+      final bytes = await buildReportPdf(
+        data: data,
+        options: const ReportOptions(),
+        labels: await labelsFor('en'),
+        fonts: await ReportFonts.forLocale(const Locale('en')),
+        createdAt: createdAt,
+        compress: false,
+      );
+      final text = pdfText(bytes);
+
+      expect(text, contains('"rent"'));
+      expect(text, contains(squashed('Matching income')));
+      expect(text, contains(squashed('Matching expense')));
+      expect(text, contains(squashed('Matching net')));
+      expect(text, isNot(contains(squashed('Opening balance'))));
+      expect(text, isNot(contains(squashed('Closing balance'))));
+      expect(text, isNot(contains('Budget')));
+    });
+
+    test('an unnarrowed report still shows both balances (BAL-3)', () async {
+      final bytes = await buildReportPdf(
+        data: dataWith(manyEntries(4)),
+        options: const ReportOptions(),
+        labels: await labelsFor('en'),
+        fonts: await ReportFonts.forLocale(const Locale('en')),
+        createdAt: createdAt,
+        compress: false,
+      );
+      final text = pdfText(bytes);
+
+      expect(text, contains(squashed('Opening balance')));
+      expect(text, contains(squashed('Closing balance')));
     });
   });
 

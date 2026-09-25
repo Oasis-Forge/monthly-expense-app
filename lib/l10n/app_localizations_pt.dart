@@ -75,6 +75,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transações recorrentes pendentes',
       one: '1 transação recorrente pendente',
+      zero: '$count transações recorrentes pendentes',
     );
     return '$_temp0';
   }
@@ -98,6 +99,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count orçamentos definidos',
       one: '1 orçamento definido',
+      zero: '$count orçamentos definidos',
     );
     return '$_temp0';
   }
@@ -351,6 +353,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'exclusão definitiva em $days dias',
       one: 'exclusão definitiva em 1 dia',
+      zero: 'exclusão definitiva em $days dias',
     );
     return '$amount · $_temp0';
   }
@@ -362,6 +365,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'exclusão definitiva em $days dias',
       one: 'exclusão definitiva em 1 dia',
+      zero: 'exclusão definitiva em $days dias',
     );
     return '$_temp0';
   }
@@ -508,6 +512,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count resultados',
       one: '1 resultado',
+      zero: '$count resultados',
     );
     return '$_temp0 · Receita $income · Despesa $expense';
   }
@@ -649,6 +654,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível salvar a transação recorrente. Tente novamente.';
 
   @override
+  String get recurringDeleted => 'Transação recorrente excluída';
+
+  @override
   String get everyLabel => 'A cada';
 
   @override
@@ -743,6 +751,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Informe um número inteiro a partir de 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Digite um número inteiro de 1 a $max';
+  }
 
   @override
   String get endDateInvalid => 'A data final deve ser depois da inicial';
@@ -860,6 +873,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count meses',
       one: '1 mês',
+      zero: '$count meses',
     );
     return '$_temp0';
   }
@@ -1057,6 +1071,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transações',
       one: '1 transação',
+      zero: '$count transações',
     );
     return '$date · $_temp0';
   }
@@ -1116,6 +1131,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transações restauradas',
       one: '1 transação restaurada',
+      zero: '$count transações restauradas',
     );
     return '$_temp0';
   }
@@ -1289,6 +1305,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count notas venceram',
       one: '1 nota venceu',
+      zero: '$count notas venceram',
     );
     return '$_temp0';
   }
@@ -1317,12 +1334,26 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Restrito a: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Página $page de $pages';
   }
 
   @override
   String get reportNet => 'Líquido';
+
+  @override
+  String get reportMatchingIncome => 'Receita correspondente';
+
+  @override
+  String get reportMatchingExpense => 'Despesa correspondente';
+
+  @override
+  String get reportMatchingNet => 'Líquido correspondente';
 
   @override
   String get reportOpeningBalance => 'Saldo inicial';
@@ -1387,6 +1418,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'O que ele abrange';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Este relatório permanece restrito à sua pesquisa.';
 
   @override
   String get reportRangePeriod => 'Este período';
@@ -1529,6 +1564,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas têm uma data que o app não consegue ler',
       one: '1 linha tem uma data que o app não consegue ler',
+      zero: '$count linhas têm uma data que o app não consegue ler',
     );
     return '$_temp0';
   }
@@ -1540,6 +1576,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas têm um valor que o app não consegue ler',
       one: '1 linha tem um valor que o app não consegue ler',
+      zero: '$count linhas têm um valor que o app não consegue ler',
     );
     return '$_temp0';
   }
@@ -1551,6 +1588,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas não têm nenhum valor',
       one: '1 linha não tem nenhum valor',
+      zero: '$count linhas não têm nenhum valor',
     );
     return '$_temp0';
   }
@@ -1562,6 +1600,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas já estão no app',
       one: '1 linha já está no app',
+      zero: '$count linhas já estão no app',
     );
     return '$_temp0';
   }
@@ -1573,6 +1612,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transferências indicam só uma conta',
       one: '1 transferência indica só uma conta',
+      zero: '$count transferências indicam só uma conta',
     );
     return '$_temp0';
   }
@@ -1609,6 +1649,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'e mais $count',
       one: 'e mais 1',
+      zero: 'e mais $count',
     );
     return '$_temp0';
   }
@@ -1632,6 +1673,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count registros importados',
       one: '1 registro importado',
+      zero: '$count registros importados',
     );
     return '$_temp0';
   }
@@ -1764,6 +1806,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count lançamentos recorrentes venceram hoje.',
       one: '1 lançamento recorrente venceu hoje.',
+      zero: '$count lançamentos recorrentes venceram hoje.',
     );
     return '$_temp0';
   }

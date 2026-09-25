@@ -518,6 +518,20 @@ class SettingsProvider extends ChangeNotifier {
   /// Whether it turned itself off, so Settings can say why (NUDGE-5).
   bool get nudgeStopped => _nudgeStopped;
 
+  /// Whether a live check of the OS found it currently blocking this app's
+  /// notifications (NUDGE-7): checked on launch and resume, never
+  /// persisted, since it reflects what the phone says right now rather than
+  /// something to remember across runs.
+  bool get notificationsBlocked => _notificationsBlocked;
+  bool _notificationsBlocked = false;
+
+  /// Records what the latest live check found (NUDGE-7).
+  void setNotificationsBlocked(bool blocked) {
+    if (blocked == _notificationsBlocked) return;
+    _notificationsBlocked = blocked;
+    notifyListeners();
+  }
+
   /// When the unanswered ones were last counted, so the same day is never
   /// counted twice.
   DateTime? get nudgeCheckedAt => _nudgeCheckedAt;
@@ -589,6 +603,16 @@ class SettingsProvider extends ChangeNotifier {
   /// (UPD-4).
   Future<void> markUpdateAsked(DateTime day) async {
     await _prefs.setString(_updateAskedKey, _stamp(day));
+  }
+
+  /// Marks a check as done at [checkedAt] without moving the ignored count
+  /// (NUDGE-5, NUDGE-7): used while the phone is currently blocking
+  /// notifications, so that stretch is never later counted as ignored once
+  /// the block lifts, but nothing during it counts against the nudge either.
+  Future<void> recordNudgeCheckedAt(DateTime checkedAt) async {
+    _nudgeCheckedAt = checkedAt;
+    await _prefs.setString(_nudgeCheckedKey, _stamp(checkedAt));
+    notifyListeners();
   }
 
   /// Records what [countIgnoredNudges] found, and stops the nudge once
