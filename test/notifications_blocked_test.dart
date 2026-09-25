@@ -88,8 +88,14 @@ void main() {
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
       tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-      await tester.pump();
-      await tester.pump();
+      // Resume also starts returnToToday on the real database, so under a
+      // loaded full-suite run a fixed pair of pumps isn't always enough.
+      for (var i = 0; i < 100 && !settings.notificationsBlocked; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
 
       expect(settings.notificationsBlocked, isTrue);
     });
