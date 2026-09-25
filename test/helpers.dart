@@ -1000,6 +1000,26 @@ Future<void> waitForRealLoad(WidgetTester tester) async {
   }
 }
 
+/// Waits for a real dart:io file-read error (a missing photo, ATT-7) to
+/// surface through an [Image]'s error listener: it needs a real event-loop
+/// turn, not just [WidgetTester.pumpAndSettle], and a fixed pump count
+/// flakes under a loaded full-suite run, so this polls in a bounded loop
+/// instead. Clear [imageCache] first when a prior test's [Image] may have
+/// resolved the same fake missing path, so this wait proves the error
+/// surfaces again rather than reusing a stale cache entry.
+Future<void> waitForMissingPhoto(
+  WidgetTester tester,
+  Finder finder, {
+  int atLeast = 1,
+}) async {
+  for (var i = 0; i < 20 && finder.evaluate().length < atLeast; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+  }
+}
+
 /// Scrolls the open form from the top until [finder] is built and visible.
 /// Forms are lazy lists, so fields off screen may not exist yet.
 Future<void> revealInForm(WidgetTester tester, Finder finder) async {
