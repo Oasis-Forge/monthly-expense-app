@@ -640,6 +640,12 @@ class FakeReminderService implements ReminderService {
     return permissionGranted;
   }
 
+  /// The same flag [requestPermission] answers with: a phone that already
+  /// refuses new requests is also a phone whose existing notifications are
+  /// blocked (NUDGE-7).
+  @override
+  Future<bool> areNotificationsEnabled() async => permissionGranted;
+
   @override
   Future<void> schedule(
     Note note, {

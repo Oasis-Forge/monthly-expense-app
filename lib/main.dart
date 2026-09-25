@@ -18,6 +18,7 @@ import 'providers/transaction_provider.dart';
 import 'screens/add_transaction_screen.dart';
 import 'screens/app_lock.dart';
 import 'screens/first_run_gate.dart';
+import 'screens/form_fields.dart' show activeUnsavedFormGuard;
 import 'screens/note_form_screen.dart';
 import 'screens/theme.dart';
 import 'screens/notes_screen.dart';
@@ -304,7 +305,18 @@ class _ShortcutTapsState extends State<_ShortcutTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
-    // Whatever was open before is not what was asked for.
+    // Whatever was open before is not what was asked for, but a form with
+    // something typed into it asks the same ADD-9 question the back button
+    // would, rather than being silently dropped (pr57#3).
+    final guard = activeUnsavedFormGuard;
+    if (guard != null && guard.hasUnsavedEdits()) {
+      final discard = await guard.confirmDiscard();
+      if (!discard || !navigator.mounted) return;
+    }
+    // Marked before the pop, so an Insights seam still waiting on its route
+    // future treats this as a fresh navigation even when it lands back on
+    // Home with nothing pushed over it (rules-22-25-31-35#6).
+    navigator.context.read<AdsProvider>().noteExternalNavigation();
     navigator.popUntil((route) => route.isFirst);
     // A shortcut is a fresh start, so the form opens on the period the app
     // is for today rather than wherever Home was last left (DAY-9).
@@ -376,7 +388,19 @@ class _WidgetTapsState extends State<_WidgetTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
-    // Whatever was open before the tap is not what was asked for.
+    // Whatever was open before the tap is not what was asked for, but a
+    // form with something typed into it asks the same ADD-9 question the
+    // back button would, rather than being silently dropped (pr57#3).
+    final guard = activeUnsavedFormGuard;
+    if (guard != null && guard.hasUnsavedEdits()) {
+      final discard = await guard.confirmDiscard();
+      if (!discard || !navigator.mounted) return;
+    }
+    // Marked before the pop, so an Insights seam still waiting on its route
+    // future treats this as a fresh navigation even when it lands back on
+    // Home with nothing pushed over it, as HomeWidgetAction.openHome does
+    // (rules-22-25-31-35#6).
+    navigator.context.read<AdsProvider>().noteExternalNavigation();
     navigator.popUntil((route) => route.isFirst);
     // The numbers on the widget are the current period's, so Home shows that
     // one however it was left (WID-2, WID-3).
@@ -420,7 +444,7 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _open();
       _openReminder();
-      unawaited(_countIgnoredNudges());
+      unawaited(_checkNotificationsThenIgnored());
     });
   }
 
@@ -433,18 +457,52 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
   }
 
   /// Back in the app on a later day, Home moves on to today (DAY-1) and any
-  /// automatic occurrence due since then posts (RCR-4).
+  /// automatic occurrence due since then posts (RCR-4). Also rechecked here:
+  /// the phone's notification permission (NUDGE-7), since it can be taken
+  /// back in the phone's own settings while the app sits in the background,
+  /// not only through this app.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     unawaited(context.read<TransactionProvider>().returnToToday());
+    unawaited(_refreshNotificationsBlocked());
+  }
+
+  /// Whether the phone is currently blocking notifications, so Settings can
+  /// say so (NUDGE-7) and the ignored-nudge count can leave that stretch out
+  /// of it (NUDGE-5). Only asked while the nudge is on: nothing to warn
+  /// about otherwise.
+  Future<void> _refreshNotificationsBlocked() async {
+    final settings = context.read<SettingsProvider>();
+    if (!settings.emptyDayNudge) {
+      settings.setNotificationsBlocked(false);
+      return;
+    }
+    final reminders = context.read<ReminderService>();
+    final enabled = await reminders.areNotificationsEnabled();
+    if (!mounted) return;
+    context.read<SettingsProvider>().setNotificationsBlocked(!enabled);
   }
 
   void _open() {
     final id = tappedNoteId.value;
     if (id == null) return;
     tappedNoteId.value = null;
-    MonthlyExpenseApp.navigatorKey.currentState?.push(
+    unawaited(_openNote(id));
+  }
+
+  /// The tapped note comes from the loaded database (NOTE-6), so a tap that
+  /// arrives before the load finishes -- the usual case for a cold start,
+  /// including one that delivered a launch payload before the load had even
+  /// opened the database -- waits for it, rather than reading an empty list
+  /// and opening the notes screen in the note's place (pr59#8).
+  Future<void> _openNote(String id) async {
+    final navigator = MonthlyExpenseApp.navigatorKey.currentState;
+    if (navigator == null) return;
+    final provider = navigator.context.read<TransactionProvider>();
+    await provider.whenLoaded;
+    if (!navigator.mounted) return;
+    navigator.push(
       MaterialPageRoute(
         builder: (context) {
           final note = context.read<TransactionProvider>().noteById(id);
@@ -472,6 +530,14 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     );
   }
 
+  /// Checks the phone's notification permission before counting anything
+  /// (NUDGE-7), so a phone that is currently blocking notifications never
+  /// has this stretch counted as ignored (NUDGE-5).
+  Future<void> _checkNotificationsThenIgnored() async {
+    await _refreshNotificationsBlocked();
+    await _countIgnoredNudges();
+  }
+
   /// Counts the nudges that fired while the app was closed and went
   /// unanswered, and lets the nudge stop itself after three in a row
   /// (NUDGE-5). Stopping cancels what was still scheduled.
@@ -481,6 +547,14 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     // Days with entries are the answer to a nudge; counted before they are
     // read, every day looks ignored and the nudge stops itself (NUDGE-5).
     await transactions.whenLoaded;
+    // A phone that is blocking notifications never had a chance to see one,
+    // so nothing here counts as ignored while it does (NUDGE-5, NUDGE-7).
+    // The day is still marked checked, so this stretch is never counted
+    // once the block lifts either.
+    if (settings.notificationsBlocked) {
+      await settings.recordNudgeCheckedAt(DateTime.now());
+      return;
+    }
     final now = DateTime.now();
     final since = settings.nudgeCheckedAt;
     final wasOn = settings.emptyDayNudge;

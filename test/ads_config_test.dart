@@ -23,7 +23,27 @@ void main() {
         );
       }
       expect(AdsConfig.appId, startsWith('ca-app-pub-3940256099942544~'));
+      // ADS-10, ADS-16: the full-screen ad has its own unit, and it must
+      // never go live-configured in anything but a release build either.
+      expect(
+        AdsConfig.interstitialUnitId,
+        startsWith('ca-app-pub-3940256099942544/'),
+      );
+      expect(AdsConfig.interstitialConfigured, isTrue);
     });
+
+    test(
+      'a development build asks with test units on iOS too (ADS-10, ADS-16)',
+      () {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+        expect(
+          AdsConfig.interstitialUnitId,
+          startsWith('ca-app-pub-3940256099942544/'),
+        );
+        expect(AdsConfig.interstitialConfigured, isTrue);
+      },
+    );
 
     test('each platform gets its own units', () {
       debugDefaultTargetPlatformOverride = TargetPlatform.android;

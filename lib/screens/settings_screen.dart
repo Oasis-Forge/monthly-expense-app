@@ -508,8 +508,13 @@ class _NudgeTile extends StatelessWidget {
           // though the user turned it off themselves (NUDGE-5).
           // NUDGE-9: while it is on, the row also owns up to the delay,
           // because a reminder that lands at 9:04 is not a broken one.
+          // NUDGE-7: a phone currently blocking notifications says so, on
+          // top of everything else, since a switch left on with nothing
+          // arriving is worse than one that explains itself.
           subtitle: Text(
-            settings.nudgeStopped
+            settings.emptyDayNudge && settings.notificationsBlocked
+                ? l10n.nudgePermissionDenied
+                : settings.nudgeStopped
                 ? l10n.nudgeStoppedNotice
                 : settings.emptyDayNudge
                 ? '${l10n.nudgeSettingsSubtitle} ${l10n.reminderMayBeLate}'

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -155,5 +156,57 @@ void main() {
 
       expect(settings.nudgeCheckedAt, isNotNull);
     });
+  });
+
+  group('a phone blocking notifications (NUDGE-7)', () {
+    test('not blocked to start with', () async {
+      final settings = await testSettings();
+
+      expect(settings.notificationsBlocked, isFalse);
+    });
+
+    test('a live check can flag it, and clear it again', () async {
+      final settings = await testSettings();
+
+      settings.setNotificationsBlocked(true);
+      expect(settings.notificationsBlocked, isTrue);
+
+      settings.setNotificationsBlocked(false);
+      expect(settings.notificationsBlocked, isFalse);
+    });
+
+    test(
+      'is not persisted: it reflects a live check, not a remembered one',
+      () async {
+        var settings = await testSettings();
+        settings.setNotificationsBlocked(true);
+
+        // A fresh instance over the same store, as a relaunch would build.
+        settings = SettingsProvider(
+          await SharedPreferences.getInstance(),
+          deviceLocale: 'en_US',
+        );
+
+        expect(settings.notificationsBlocked, isFalse);
+      },
+    );
+  });
+
+  group('marking a check done without moving the count (NUDGE-5, NUDGE-7)', () {
+    test(
+      'records when, and leaves the ignored count and stopped flag alone',
+      () async {
+        final settings = await testSettings();
+        await settings.setEmptyDayNudge(true);
+        await settings.recordNudgesIgnored(2, DateTime(2026, 9, 22));
+
+        await settings.recordNudgeCheckedAt(DateTime(2026, 9, 24));
+
+        expect(settings.nudgeCheckedAt, DateTime(2026, 9, 24));
+        expect(settings.nudgeIgnored, 2);
+        expect(settings.nudgeStopped, isFalse);
+        expect(settings.emptyDayNudge, isTrue);
+      },
+    );
   });
 }
