@@ -99,7 +99,7 @@ void main() {
   testWidgets(
     'backgrounding the app hides its content immediately in Dart itself, so '
     'the first frame drawn after returning never shows it, even before '
-    "resumed runs (LOCK-2, review-ads-1)",
+    'resumed runs (LOCK-2, review-ads-1)',
     (tester) async {
       await showApp(tester, appLock: true);
       expect(content.hitTestable(), findsOneWidget);
