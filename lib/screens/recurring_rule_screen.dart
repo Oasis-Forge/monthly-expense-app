@@ -353,53 +353,82 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
                 ),
               ],
               const SizedBox(height: 16),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 96,
-                    child: TextFormField(
-                      controller: _intervalController,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      decoration: InputDecoration(
-                        labelText: l10n.everyLabel,
-                        border: const OutlineInputBorder(),
-                        // The message names the maximum, which can run past
-                        // one line at normal text size or larger (LANG-6).
-                        errorMaxLines: 3,
-                      ),
-                      validator: (value) => _interval(value) == null
-                          ? l10n.wholeNumberRange(_intervalMax)
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<RecurrenceFrequency>(
-                      isExpanded: true,
-                      initialValue: _frequency,
-                      decoration: const InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
-                      items: [
-                        for (final (frequency, label) in [
-                          (RecurrenceFrequency.day, l10n.frequencyDays),
-                          (RecurrenceFrequency.week, l10n.frequencyWeeks),
-                          (RecurrenceFrequency.month, l10n.frequencyMonths),
-                          (RecurrenceFrequency.year, l10n.frequencyYears),
-                        ])
-                          DropdownMenuItem(
-                            value: frequency,
-                            child: Text(label),
+              // The Every field is only 96px wide — not enough room for its
+              // own error message, which names the maximum and can run to
+              // several lines at normal text size or larger (LANG-6). A
+              // FormField wraps the whole row instead: it validates the
+              // interval and draws the message full-width below the row.
+              // The field's own decoration still turns its outline red
+              // (a non-null but empty errorText), so the message is never
+              // drawn twice.
+              FormField<String>(
+                validator: (_) => _interval(_intervalController.text) == null
+                    ? l10n.wholeNumberRange(_intervalMax)
+                    : null,
+                builder: (field) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 96,
+                          child: TextFormField(
+                            controller: _intervalController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            decoration: InputDecoration(
+                              labelText: l10n.everyLabel,
+                              border: const OutlineInputBorder(),
+                              errorText: field.errorText == null ? null : '',
+                            ),
                           ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: DropdownButtonFormField<RecurrenceFrequency>(
+                            isExpanded: true,
+                            initialValue: _frequency,
+                            decoration: const InputDecoration(
+                              border: OutlineInputBorder(),
+                            ),
+                            items: [
+                              for (final (frequency, label) in [
+                                (RecurrenceFrequency.day, l10n.frequencyDays),
+                                (RecurrenceFrequency.week, l10n.frequencyWeeks),
+                                (
+                                  RecurrenceFrequency.month,
+                                  l10n.frequencyMonths,
+                                ),
+                                (RecurrenceFrequency.year, l10n.frequencyYears),
+                              ])
+                                DropdownMenuItem(
+                                  value: frequency,
+                                  child: Text(label),
+                                ),
+                            ],
+                            onChanged: (value) {
+                              if (value != null) {
+                                setState(() => _frequency = value);
+                              }
+                            },
+                          ),
+                        ),
                       ],
-                      onChanged: (value) {
-                        if (value != null) setState(() => _frequency = value);
-                      },
                     ),
-                  ),
-                ],
+                    if (field.errorText != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        field.errorText!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               DateField(

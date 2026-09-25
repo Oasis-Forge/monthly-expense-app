@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
@@ -446,27 +447,60 @@ void main() {
       expect(provider.recurringRules, hasLength(2));
     });
 
+    /// Types an invalid interval at 1.3x text size in [code] and checks the
+    /// error names its maximum without clipping it (LANG-6, review
+    /// follow-up). The message used to live inside the 96px Every field,
+    /// which clipped it with an ellipsis at this size regardless of
+    /// errorMaxLines; it is now a full-width Text below the row, so its
+    /// RenderParagraph must never report exceeding its lines.
+    Future<void> expectUnclippedIntervalError(
+      WidgetTester tester,
+      String code,
+      String amountLabel,
+      String everyLabel,
+      String saveLabel,
+      String message,
+    ) async {
+      settings = await testSettings({'language': code});
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await openForm(tester);
+
+      await enter(tester, amountLabel, '20');
+      await enter(tester, everyLabel, '1000');
+      await tapInForm(tester, find.widgetWithText(FilledButton, saveLabel));
+
+      final errorFinder = find.text(message);
+      await revealInForm(tester, errorFinder);
+      expect(errorFinder, findsOneWidget);
+      final paragraph = tester.renderObject<RenderParagraph>(errorFinder);
+      expect(paragraph.didExceedMaxLines, isFalse);
+    }
+
     testWidgets(
-      'the interval error wraps instead of clipping the maximum at normal '
-      'and larger text sizes (LANG-6)',
-      (tester) async {
-        tester.platformDispatcher.textScaleFactorTestValue = 1.3;
-        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-        await openForm(tester);
+      'the interval error never clips its maximum at 1.3x text size '
+      '(LANG-6, review follow-up)',
+      (tester) => expectUnclippedIntervalError(
+        tester,
+        'en',
+        'Amount',
+        'Every',
+        'Save',
+        'Enter a whole number from 1 to 999',
+      ),
+    );
 
-        await enter(tester, 'Amount', '20');
-        await enter(tester, 'Every', '1000');
-        await save(tester);
-
-        final errorFinder = find.text('Enter a whole number from 1 to 999');
-        await revealInForm(tester, errorFinder);
-        // The default single-line ellipsis (InputDecoration.errorMaxLines
-        // null) would cut off the maximum; the field must allow more than
-        // one line so the whole message lays out.
-        final error = tester.widget<Text>(errorFinder);
-        expect(error.maxLines, isNotNull);
-        expect(error.maxLines! >= 2, isTrue);
-      },
+    testWidgets(
+      'nor does it in German, longer than English (LANG-6, review '
+      'follow-up)',
+      (tester) => expectUnclippedIntervalError(
+        tester,
+        'de',
+        'Betrag',
+        'Alle',
+        'Speichern',
+        'Gib eine ganze Zahl von 1 bis 999 ein',
+      ),
     );
 
     testWidgets('the repeat count has no cap, so a rule with a long count '
