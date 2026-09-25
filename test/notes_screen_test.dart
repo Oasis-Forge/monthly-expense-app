@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -9,11 +12,17 @@ import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
 import 'package:monthly_expense_app/screens/transaction_detail_screen.dart';
+import 'package:monthly_expense_app/services/home_widget_service.dart';
 import 'package:monthly_expense_app/services/reminder_service.dart';
 
 import 'helpers.dart';
 
 void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
   late FakeDB fake;
   late TransactionProvider provider;
   late SettingsProvider settings;
@@ -238,6 +247,19 @@ void main() {
         tester,
         find.widgetWithText(SwitchListTile, 'Set a due date'),
       );
+      // Toggling the due date on sets it to the real wall-clock "now"
+      // (_toggleDueDate), so on a run any time after 11am the default 9am
+      // reminder would already be more than two hours past (NOTE-6) and get
+      // cancelled instead of scheduled. Moving the due date to tomorrow
+      // keeps this test's outcome independent of the hour it happens to run.
+      final todayText = DateFormat.yMMMEd('en').format(DateTime.now());
+      await revealInForm(tester, find.text(todayText));
+      await tester.tap(find.text(todayText));
+      await tester.pumpAndSettle();
+      final tomorrow = DateTime.now().add(const Duration(days: 1));
+      await tester.tap(find.text('${tomorrow.day}'));
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
       await tapInForm(tester, find.widgetWithText(SwitchListTile, 'Remind me'));
       expect(reminders.permissionRequests, 1);
 
@@ -492,4 +514,65 @@ void main() {
     expect(find.text("Couldn't save the note. Try again."), findsOneWidget);
     expect(provider.notes, isEmpty);
   });
+
+  testWidgets(
+    'the reminder toggle survives a reminder plugin that throws, through '
+    "the real app's own wiring, not just testApp's (NOTE-6, pr59#9)",
+    (tester) async {
+      final realSettings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'language': 'en',
+      });
+      usePhoneScreen(tester);
+
+      await tester.pumpWidget(
+        MonthlyExpenseApp(
+          settings: realSettings,
+          homeWidget: const NoopHomeWidgetService(),
+          reviews: FakeReviews(supported: false),
+          updates: FakeUpdates(supported: false),
+          shortcuts: FakeShortcuts(),
+          // Without these the real ad SDK is built and leaves a timer
+          // running long after the test.
+          ads: FakeAdService(),
+          purchases: FakePurchases(),
+          reminders: ThrowingReminderService(),
+        ),
+      );
+      await tester.pump();
+      await waitForRealLoad(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Open navigation menu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Add a note'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Note'),
+        'Pay rent',
+      );
+      await tapInForm(
+        tester,
+        find.widgetWithText(SwitchListTile, 'Set a due date'),
+      );
+      await tapInForm(tester, find.widgetWithText(SwitchListTile, 'Remind me'));
+
+      // A plugin failure is treated like a refusal, never a crash: this
+      // only holds because main.dart wraps `reminders` in SafeReminderService
+      // before handing it to the widget tree -- testApp() does not.
+      expect(tester.takeException(), isNull);
+      expect(
+        find.text(
+          'Turn on notifications in system settings to get reminders for '
+          'notes.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 }

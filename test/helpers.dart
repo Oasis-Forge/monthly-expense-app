@@ -694,6 +694,47 @@ class FakeReminderService implements ReminderService {
   }
 }
 
+/// Throws on every call, as the real plugin did when a release build's
+/// shrinker had dropped the notification icon (pr59#9). Screens read
+/// `context.read<ReminderService>()` directly, trusting `main.dart` to have
+/// wrapped it in [SafeReminderService]; pumping the real [MonthlyExpenseApp]
+/// with this is how a test proves that wrapping actually holds, not just
+/// that [TransactionProvider]'s own guarded calls do (NOTE-6, NUDGE-1).
+class ThrowingReminderService implements ReminderService {
+  int calls = 0;
+
+  Never _fail() {
+    calls++;
+    throw PlatformException(
+      code: 'invalid_icon',
+      message: 'The resource @drawable/ic_notification could not be found.',
+    );
+  }
+
+  @override
+  Future<bool> requestPermission() async => _fail();
+
+  @override
+  Future<bool> areNotificationsEnabled() async => _fail();
+
+  @override
+  Future<void> schedule(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async => _fail();
+
+  @override
+  Future<void> cancel(Note note) async => _fail();
+
+  @override
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async => _fail();
+}
+
 /// A [BackupService] over [db] with fake files and a fixed app version.
 BackupService testBackupService(
   DBHelper db, {
@@ -940,6 +981,23 @@ void usePhoneScreen(WidgetTester tester) {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
+}
+
+/// Waits for the real [MonthlyExpenseApp]'s own [TransactionProvider] (built
+/// internally, over the real database, not a [FakeDB]) to finish loading.
+/// Awaiting a real-zone future inside a `FakeAsync` widget test hangs, and a
+/// fixed pump count flakes under a loaded full-suite run, so this pumps in
+/// bounded real-time steps until the load actually finishes (pr59#9).
+Future<void> waitForRealLoad(WidgetTester tester) async {
+  final transactions = tester
+      .element(find.byType(MaterialApp))
+      .read<TransactionProvider>();
+  for (var i = 0; i < 200 && !transactions.isLoaded; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
+  }
 }
 
 /// Scrolls the open form from the top until [finder] is built and visible.
