@@ -233,6 +233,11 @@ class AdActivityObserver extends NavigatorObserver {
 
   @override
   void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    // A dialog, a dropdown, a popup menu and a modal sheet all push a route
+    // on this same navigator, but none of them is a screen: they are chrome
+    // inside the screen already open. Only a PageRoute is a real navigation,
+    // so only that counts towards the day's ten (ADS-12).
+    if (route is! PageRoute) return;
     // The very first route is the app opening, not a screen anyone chose.
     if (previousRoute == null) return;
     final context = navigator?.context;
