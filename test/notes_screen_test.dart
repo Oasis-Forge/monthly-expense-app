@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart' hide TextDirection;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'package:monthly_expense_app/main.dart';
@@ -228,7 +227,19 @@ void main() {
   testWidgets(
     'a due date and reminder are saved and scheduled (NOTE-1, NOTE-6)',
     (tester) async {
-      final reminders = FakeReminderService();
+      // Toggling the due date on sets it to the real wall-clock "now"
+      // (_toggleDueDate), so the note's default 9am reminder is derived
+      // from whatever day and hour this happens to run on -- on any day's
+      // last date, "tomorrow" wraps into next month, and on a run any time
+      // after 11am today's default 9am reminder is already more than two
+      // hours past (NOTE-6). Rather than drive the date picker to a
+      // fixed offset (which itself broke on a month's last day: tapping
+      // tomorrow's day-of-month number in a picker still showing this
+      // month selects that day THIS month instead, pr59#9), the fake's own
+      // clock is pinned far in the past so today's real date is always in
+      // its future, independent of the day or hour this test happens to
+      // run on.
+      final reminders = FakeReminderService(now: () => DateTime(2000));
       // The same fake schedules for both the provider and the permission
       // request, so this exercises the whole path (NOTE-6).
       provider = TransactionProvider(
@@ -247,19 +258,6 @@ void main() {
         tester,
         find.widgetWithText(SwitchListTile, 'Set a due date'),
       );
-      // Toggling the due date on sets it to the real wall-clock "now"
-      // (_toggleDueDate), so on a run any time after 11am the default 9am
-      // reminder would already be more than two hours past (NOTE-6) and get
-      // cancelled instead of scheduled. Moving the due date to tomorrow
-      // keeps this test's outcome independent of the hour it happens to run.
-      final todayText = DateFormat.yMMMEd('en').format(DateTime.now());
-      await revealInForm(tester, find.text(todayText));
-      await tester.tap(find.text(todayText));
-      await tester.pumpAndSettle();
-      final tomorrow = DateTime.now().add(const Duration(days: 1));
-      await tester.tap(find.text('${tomorrow.day}'));
-      await tester.tap(find.text('OK'));
-      await tester.pumpAndSettle();
       await tapInForm(tester, find.widgetWithText(SwitchListTile, 'Remind me'));
       expect(reminders.permissionRequests, 1);
 
