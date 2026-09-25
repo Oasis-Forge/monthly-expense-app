@@ -1308,12 +1308,26 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Dipersempit ke: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Halaman $page dari $pages';
   }
 
   @override
   String get reportNet => 'Bersih';
+
+  @override
+  String get reportMatchingIncome => 'Pendapatan cocok';
+
+  @override
+  String get reportMatchingExpense => 'Pengeluaran cocok';
+
+  @override
+  String get reportMatchingNet => 'Bersih cocok';
 
   @override
   String get reportOpeningBalance => 'Saldo awal';
@@ -1378,6 +1392,10 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Cakupan laporan';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Laporan ini tetap dipersempit ke pencarian Anda.';
 
   @override
   String get reportRangePeriod => 'Periode ini';

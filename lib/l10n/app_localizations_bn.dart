@@ -1309,12 +1309,26 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'সংকীর্ণ: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'পৃষ্ঠা $page/$pages';
   }
 
   @override
   String get reportNet => 'নিট';
+
+  @override
+  String get reportMatchingIncome => 'মিলে যাওয়া আয়';
+
+  @override
+  String get reportMatchingExpense => 'মিলে যাওয়া খরচ';
+
+  @override
+  String get reportMatchingNet => 'মিলে যাওয়া নিট';
 
   @override
   String get reportOpeningBalance => 'শুরুর ব্যালেন্স';
@@ -1379,6 +1393,10 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'যা অন্তর্ভুক্ত থাকবে';
+
+  @override
+  String get reportNarrowedNotice =>
+      'এই প্রতিবেদনটি আপনার অনুসন্ধানে সীমাবদ্ধ থাকে।';
 
   @override
   String get reportRangePeriod => 'এই মেয়াদ';

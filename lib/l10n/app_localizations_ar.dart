@@ -1346,12 +1346,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'مقتصر على: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'صفحة $page من $pages';
   }
 
   @override
   String get reportNet => 'الصافي';
+
+  @override
+  String get reportMatchingIncome => 'الدخل المطابق';
+
+  @override
+  String get reportMatchingExpense => 'المصروف المطابق';
+
+  @override
+  String get reportMatchingNet => 'الصافي المطابق';
 
   @override
   String get reportOpeningBalance => 'الرصيد الافتتاحي';
@@ -1416,6 +1430,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'ما يشمله';
+
+  @override
+  String get reportNarrowedNotice => 'يظل هذا التقرير مقتصرًا على بحثك.';
 
   @override
   String get reportRangePeriod => 'هذه الفترة';

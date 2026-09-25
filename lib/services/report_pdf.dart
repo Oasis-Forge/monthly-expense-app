@@ -235,6 +235,7 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
   final range = data.from == data.to
       ? labels.fullDay(data.from)
       : l10n.reportRange(labels.fullDay(data.from), labels.fullDay(data.to));
+  final searchInfo = data.searchInfo;
   return pw.Container(
     margin: const pw.EdgeInsets.only(bottom: 12),
     padding: const pw.EdgeInsets.only(bottom: 8),
@@ -267,14 +268,46 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
               _run(part, style: _muted),
           ],
         ),
+        // A shared PDF has to say it is narrowed on its own, since nothing
+        // else on the page does (PDF-1, ACC-6): a filtered figure that reads
+        // like the whole of the money is worse than no filter at all.
+        if (searchInfo != null) ...[
+          pw.SizedBox(height: 4),
+          _run(
+            l10n.reportNarrowedTo(_searchDescription(searchInfo, l10n)),
+            style: const pw.TextStyle(
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+        ],
       ],
     ),
   );
 }
 
-/// Income, expense, net, and the balances either side of the range (PDF-2).
+/// The query, type, and category a report was narrowed to, joined for the
+/// header line (PDF-1). At least one part is always present, since
+/// [ReportSearchInfo] is only attached when something narrowed the report.
+String _searchDescription(ReportSearchInfo info, AppLocalizations l10n) {
+  final parts = [
+    if (info.query.isNotEmpty) '"${info.query}"',
+    if (info.type != null)
+      info.type == TransactionType.income
+          ? l10n.incomeLabel
+          : l10n.expenseLabel,
+    if (info.categoryName != null) info.categoryName!,
+  ];
+  return parts.join(' · ');
+}
+
+/// Income, expense, net, and the balances either side of the range — or, for
+/// a report narrowed to a search, those three figures labelled as matching it
+/// and no balances at all, since a search's net doesn't move a balance that
+/// counts every transaction (PDF-1, PDF-2, BAL-3, ACC-6).
 pw.Widget _summary(ReportData data, ReportLabels labels) {
   final l10n = labels.l10n;
+  final matched = data.searchInfo != null;
   pw.Widget cell(String label, Money amount, {bool strong = false}) =>
       pw.Expanded(
         child: pw.Column(
@@ -299,19 +332,31 @@ pw.Widget _summary(ReportData data, ReportLabels labels) {
     children: [
       pw.Row(
         children: [
-          cell(l10n.incomeLabel, data.income),
-          cell(l10n.expenseLabel, data.expense),
-          cell(l10n.reportNet, data.net, strong: true),
+          cell(
+            matched ? l10n.reportMatchingIncome : l10n.incomeLabel,
+            data.income,
+          ),
+          cell(
+            matched ? l10n.reportMatchingExpense : l10n.expenseLabel,
+            data.expense,
+          ),
+          cell(
+            matched ? l10n.reportMatchingNet : l10n.reportNet,
+            data.net,
+            strong: true,
+          ),
         ],
       ),
-      pw.SizedBox(height: 8),
-      pw.Row(
-        children: [
-          cell(l10n.reportOpeningBalance, data.openingBalance),
-          cell(l10n.reportClosingBalance, data.closingBalance, strong: true),
-          pw.Expanded(child: pw.SizedBox()),
-        ],
-      ),
+      if (!matched) ...[
+        pw.SizedBox(height: 8),
+        pw.Row(
+          children: [
+            cell(l10n.reportOpeningBalance, data.openingBalance),
+            cell(l10n.reportClosingBalance, data.closingBalance, strong: true),
+            pw.Expanded(child: pw.SizedBox()),
+          ],
+        ),
+      ],
     ],
   );
 }

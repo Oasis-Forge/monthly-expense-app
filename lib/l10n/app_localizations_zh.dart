@@ -1274,12 +1274,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return '已缩小至：$description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return '第 $page 页，共 $pages 页';
   }
 
   @override
   String get reportNet => '净额';
+
+  @override
+  String get reportMatchingIncome => '匹配的收入';
+
+  @override
+  String get reportMatchingExpense => '匹配的支出';
+
+  @override
+  String get reportMatchingNet => '匹配的净额';
 
   @override
   String get reportOpeningBalance => '期初余额';
@@ -1343,6 +1357,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get reportCoversHeader => '统计范围';
+
+  @override
+  String get reportNarrowedNotice => '此报告仍限定于您的搜索。';
 
   @override
   String get reportRangePeriod => '本期';

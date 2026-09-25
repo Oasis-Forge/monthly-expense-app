@@ -1280,12 +1280,26 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return '絞り込み: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return '$pagesページ中$pageページ目';
   }
 
   @override
   String get reportNet => '収支';
+
+  @override
+  String get reportMatchingIncome => '一致する収入';
+
+  @override
+  String get reportMatchingExpense => '一致する支出';
+
+  @override
+  String get reportMatchingNet => '一致する差額';
 
   @override
   String get reportOpeningBalance => '開始残高';
@@ -1349,6 +1363,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get reportCoversHeader => '対象期間';
+
+  @override
+  String get reportNarrowedNotice => 'このレポートは検索に絞り込まれたままです。';
 
   @override
   String get reportRangePeriod => '今期';

@@ -938,6 +938,14 @@
       }
     }
   },
+  "reportNarrowedTo": "Narrowed to: {description}",
+  "@reportNarrowedTo": {
+    "placeholders": {
+      "description": {
+        "type": "String"
+      }
+    }
+  },
   "reportPageOf": "Page {page} of {pages}",
   "@reportPageOf": {
     "placeholders": {
@@ -950,6 +958,9 @@
     }
   },
   "reportNet": "Net",
+  "reportMatchingIncome": "Matching income",
+  "reportMatchingExpense": "Matching expense",
+  "reportMatchingNet": "Matching net",
   "reportOpeningBalance": "Opening balance",
   "reportClosingBalance": "Closing balance",
   "reportSpendingHeader": "Spending by category",
@@ -986,6 +997,7 @@
   },
   "reportPreviewTitle": "Report",
   "reportCoversHeader": "What it covers",
+  "reportNarrowedNotice": "This report stays narrowed to your search.",
   "reportRangePeriod": "This period",
   "reportRangeCustom": "Dates",
   "reportRangeYear": "Year",

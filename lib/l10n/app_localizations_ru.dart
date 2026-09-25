@@ -1353,12 +1353,26 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String reportNarrowedTo(String description) {
+    return 'Сужено до: $description';
+  }
+
+  @override
   String reportPageOf(int page, int pages) {
     return 'Страница $page из $pages';
   }
 
   @override
   String get reportNet => 'Итого';
+
+  @override
+  String get reportMatchingIncome => 'Соответствующий доход';
+
+  @override
+  String get reportMatchingExpense => 'Соответствующий расход';
+
+  @override
+  String get reportMatchingNet => 'Соответствующий итог';
 
   @override
   String get reportOpeningBalance => 'Начальный баланс';
@@ -1423,6 +1437,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get reportCoversHeader => 'Что учитывается';
+
+  @override
+  String get reportNarrowedNotice =>
+      'Этот отчёт остаётся суженным до вашего поиска.';
 
   @override
   String get reportRangePeriod => 'Текущий период';
