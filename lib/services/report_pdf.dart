@@ -395,14 +395,28 @@ pw.Widget _header(
         // like the whole of the money is worse than no filter at all.
         if (searchInfo != null) ...[
           pw.SizedBox(height: 4),
-          _run(
-            l10n.reportNarrowedTo(
-              _searchDescription(searchInfo, l10n, options),
-            ),
-            style: const pw.TextStyle(
-              fontSize: 10,
-              fontWeight: pw.FontWeight.bold,
-            ),
+          // Each part its own run rather than one string interpolated into
+          // the label (as above, for the currency name and the created
+          // date): a query the user typed in Latin, spliced into an Arabic
+          // or Urdu sentence and left to this package's own bidi pass,
+          // comes out backwards the same way the app name once did
+          // (LANG-5, PDF-5, review-pdf-bidi).
+          pw.Wrap(
+            spacing: 4,
+            crossAxisAlignment: pw.WrapCrossAlignment.center,
+            children: [
+              for (final part in [
+                l10n.reportNarrowedTo('').trim(),
+                ..._searchParts(searchInfo, l10n, options),
+              ])
+                _run(
+                  part,
+                  style: const pw.TextStyle(
+                    fontSize: 10,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+            ],
           ),
         ],
       ],
@@ -410,15 +424,20 @@ pw.Widget _header(
   );
 }
 
-/// The query, type, and category a report was narrowed to, joined for the
-/// header line (PDF-1). The query itself is left out when titles and notes
-/// are off (PDF-3): it may be private text of the user's own, so a report
-/// that already hides titles and notes must not print it back in the header
+/// The query, type, and category a report was narrowed to, each its own
+/// piece for the header line to draw as a separate run (PDF-1, LANG-5): a
+/// query in one script joined into one string with a label in another, then
+/// handed whole to this package's bidi pass, is exactly what came out
+/// backwards before (review-pdf-bidi).
+///
+/// The query itself is left out when titles and notes are off (PDF-3): it
+/// may be private text of the user's own, so a report that already hides
+/// titles and notes must not print it back in the header
 /// (review-pdf-query-titles-off). At least one part is always present, since
 /// [ReportSearchInfo] is only attached when something narrowed the report:
 /// the type and category still show (neither is titles-and-notes text), and
 /// a query-only search falls back to naming the search itself.
-String _searchDescription(
+List<String> _searchParts(
   ReportSearchInfo info,
   AppLocalizations l10n,
   ReportOptions options,
@@ -431,7 +450,7 @@ String _searchDescription(
           : l10n.expenseLabel,
     if (info.categoryName != null) info.categoryName!,
   ];
-  return parts.isEmpty ? l10n.searchTooltip : parts.join(' · ');
+  return parts.isEmpty ? [l10n.searchTooltip] : parts;
 }
 
 /// Income, expense, net, and the balances either side of the range — or, for

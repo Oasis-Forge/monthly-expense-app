@@ -26,6 +26,8 @@ void main() {
     List<ExpenseTransaction> transactions = const [],
     String currencyCode = 'USD',
     Money? Function(String categoryId)? budgetLimit,
+    bool Function(ExpenseTransaction)? matches,
+    ReportSearchInfo? searchInfo,
   }) async {
     final l10n = await AppLocalizations.delegate.load(Locale(code));
     final settings = await testSettings({'currency_code': currencyCode});
@@ -37,6 +39,8 @@ void main() {
       transfers: const [],
       accounts: [testAccount('cash', opening: 100)],
       budgetLimit: budgetLimit,
+      matches: matches,
+      searchInfo: searchInfo,
     );
     return buildReportPdf(
       data: data,
@@ -101,6 +105,26 @@ void main() {
             (rune >= 0xFB50 && rune <= 0xFEFF),
       );
       expect(arabic, isNotEmpty);
+    });
+
+    test('a narrowed-search header keeps a Latin query forwards in Arabic and '
+        'Urdu, spliced into the sentence or not (PDF-1, LANG-5, '
+        'review-pdf-bidi)', () async {
+      for (final code in ['ar', 'ur']) {
+        final text = squashed(
+          pdfText(
+            await report(
+              code,
+              transactions: spend,
+              matches: (tx) => true,
+              searchInfo: const ReportSearchInfo(query: 'Weekly shop'),
+            ),
+          ),
+        );
+
+        expect(text, contains('"Weeklyshop"'), reason: code);
+        expect(text, isNot(contains('pohsylkeeW')), reason: '$code: $text');
+      }
     });
 
     test('an amount is drawn whole, with its sign leading', () async {
