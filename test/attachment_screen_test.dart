@@ -4,11 +4,14 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
+import 'package:monthly_expense_app/l10n/app_localizations.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/attachment_field.dart';
 import 'package:monthly_expense_app/screens/backup_screen.dart';
 import 'package:monthly_expense_app/services/attachment_service.dart';
 
@@ -338,6 +341,121 @@ void main() {
 
         expect(attachments.cancelled, isFalse);
         expect(provider.transactions.single.voiceFile, 'file1.m4a');
+      },
+    );
+
+    testWidgets(
+      'stays mounted and keeps recording while scrolled far out of a lazy '
+      'list, instead of the note being cancelled underneath it (ATT-4, '
+      'review-data-2)',
+      (tester) async {
+        // A form's own list is too short in this test's default settings to
+        // reliably scroll the field far enough past the cache extent to get
+        // unmounted (the real bug needs a small phone, 1.3x text, or extra
+        // rows showing to push it that far) — a purpose-built long list
+        // isolates the mechanism (AutomaticKeepAliveClientMixin) instead.
+        final key = GlobalKey<AttachmentFieldState>();
+        bool? lastRecordingChanged;
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Provider<AttachmentService>.value(
+              value: attachments,
+              child: Scaffold(
+                body: ListView.builder(
+                  itemCount: 100,
+                  itemBuilder: (context, index) {
+                    if (index == 50) {
+                      return AttachmentField(
+                        key: key,
+                        onPhotoChanged: (_) {},
+                        onVoiceChanged: (_) {},
+                        onRecordingChanged: (v) => lastRecordingChanged = v,
+                      );
+                    }
+                    return SizedBox(height: 200, child: Text('item $index'));
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final scrollable = find.byType(Scrollable).first;
+        await tester.scrollUntilVisible(
+          find.byKey(key),
+          500,
+          scrollable: scrollable,
+        );
+        await tester.pumpAndSettle();
+
+        await tester.tap(
+          find.widgetWithText(OutlinedButton, 'Record a voice note'),
+        );
+        await tester.pump();
+        expect(find.widgetWithText(FilledButton, 'Stop'), findsOneWidget);
+
+        // Scroll far away from index 50 (well beyond the sliver list's
+        // cache extent), as the amount keypad opening shrinking the
+        // viewport would in the real form.
+        tester.state<ScrollableState>(scrollable).position.jumpTo(19000);
+        await tester.pump();
+
+        // Not cancelled, and the form was not told recording stopped:
+        // AutomaticKeepAliveClientMixin kept the widget (and its countdown
+        // Timer) alive instead of it being disposed underneath the user.
+        expect(attachments.cancelled, isFalse);
+        expect(lastRecordingChanged, isNot(false));
+
+        // Scrolled back, it is still recording where it left off (Stop, not
+        // "Record a voice note"), and Save can still reach it.
+        tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+        await tester.scrollUntilVisible(
+          find.byKey(key),
+          500,
+          scrollable: scrollable,
+        );
+        await tester.pump();
+        expect(find.widgetWithText(FilledButton, 'Stop'), findsOneWidget);
+
+        final name = await key.currentState!.finishRecording();
+        expect(name, isNotNull);
+        expect(attachments.cancelled, isFalse);
+      },
+    );
+
+    testWidgets(
+      'a throwing stop does not leave Save disabled for good, and shows the '
+      'existing save-failed message (review-money-5)',
+      (tester) async {
+        await open(tester);
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '12.50');
+
+        await record(tester);
+        attachments.stopThrows = true;
+
+        final saveButton = find.widgetWithText(FilledButton, 'Add Transaction');
+        await tester.ensureVisible(saveButton);
+        await tester.tap(saveButton);
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text("Couldn't save the transaction. Try again."),
+          findsOneWidget,
+        );
+        expect(provider.transactions, isEmpty);
+
+        // Save must not stay disabled for good (the recording state was
+        // cleared even though stopping it threw): tapping it again saves.
+        await tester.tap(saveButton);
+        await tester.pump();
+        await tester.pumpAndSettle();
+
+        expect(provider.transactions.length, 1);
       },
     );
 

@@ -162,14 +162,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     final note = _noteController.text.trim();
     final recordingNote = widget.recordingNote;
 
-    // A save mid-recording (Save or Save & add another) must not silently
-    // drop the note just spoken, or leave the mic running into the next
-    // entry (ATT-4, ATT-5): stop and attach it before the transaction is
-    // built. This updates _voiceFile via onVoiceChanged when it returns.
-    await _attachmentFieldKey.currentState?.finishRecording();
-    if (!mounted) return;
-
     try {
+      // A save mid-recording (Save or Save & add another) must not silently
+      // drop the note just spoken, or leave the mic running into the next
+      // entry (ATT-4, ATT-5): stop and attach it before the transaction is
+      // built. This updates _voiceFile via onVoiceChanged when it returns.
+      // Inside this try, not before it: if stopping the recording itself
+      // throws (a PlatformException after an audio-focus loss or a phone
+      // call, say), the catch below still resets _saving instead of
+      // leaving Save disabled for good (review-money-5).
+      await _attachmentFieldKey.currentState?.finishRecording();
+      if (!mounted) return;
+
       final editing = widget.editing;
       if (editing != null) {
         await provider.updateTransaction(

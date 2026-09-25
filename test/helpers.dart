@@ -1018,6 +1018,11 @@ class FakeAttachments implements AttachmentService {
   /// Whether a recording in progress was ever cancelled (ATT-4, ATT-5).
   bool cancelled = false;
 
+  /// Makes [stopRecording] throw once, the way a `PlatformException` from
+  /// the recorder plugin would after an audio-focus loss or a phone call
+  /// (review-money-5).
+  bool stopThrows = false;
+
   String _name(String extension) => 'file${++_next}.$extension';
 
   @override
@@ -1038,6 +1043,10 @@ class FakeAttachments implements AttachmentService {
 
   @override
   Future<String?> stopRecording() async {
+    if (stopThrows) {
+      stopThrows = false;
+      throw StateError('stop failed');
+    }
     final name = _recording;
     _recording = null;
     if (name != null) stored[name] = const [2];

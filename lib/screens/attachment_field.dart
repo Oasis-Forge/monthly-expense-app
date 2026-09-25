@@ -36,7 +36,8 @@ class AttachmentField extends StatefulWidget {
 
 /// Public so a form can hold a `GlobalKey<AttachmentFieldState>` and call
 /// [finishRecording] on it before saving (ATT-4, ATT-5).
-class AttachmentFieldState extends State<AttachmentField> {
+class AttachmentFieldState extends State<AttachmentField>
+    with AutomaticKeepAliveClientMixin<AttachmentField> {
   /// Files this form made. One of these that is dropped before the form is
   /// saved is deleted here; a file the transaction already had is left to the
   /// provider, which deletes it once the change is saved (ATT-5).
@@ -51,6 +52,13 @@ class AttachmentFieldState extends State<AttachmentField> {
   // Cached in initState, not read lazily from a getter: dispose needs it
   // too, and reading an inherited widget's context there is unsafe.
   late final AttachmentService _attachments = context.read<AttachmentService>();
+
+  // AutomaticKeepAliveClientMixin: stay mounted while recording, so
+  // scrolling this field out of the form's lazy list (e.g. the amount
+  // keypad shrinking the viewport) doesn't cancel the note just spoken and
+  // leave Save unable to reach it (ATT-4, review-data-2).
+  @override
+  bool get wantKeepAlive => _recording;
 
   @override
   void initState() {
@@ -67,8 +75,14 @@ class AttachmentFieldState extends State<AttachmentField> {
     // Leaving the form mid-recording must not leave the microphone running
     // past the 60s cap with an orphaned file (ATT-4, ATT-5): the cap above
     // is only this widget's own Timer, so once it's gone, so is the cap.
+    // AutomaticKeepAliveClientMixin (above) normally keeps this widget
+    // mounted while _recording is true, so dispose should only see this
+    // while truly recording if the form itself is going away (not just
+    // scrolled off screen) — tell it its recording flag must not stay
+    // stuck either (review-data-2).
     if (_recording) {
       unawaited(_attachments.cancelRecording());
+      widget.onRecordingChanged?.call(false);
     }
     super.dispose();
   }
@@ -127,6 +141,7 @@ class AttachmentFieldState extends State<AttachmentField> {
   void _setRecording(bool recording) {
     if (_recording == recording) return;
     setState(() => _recording = recording);
+    updateKeepAlive();
     widget.onRecordingChanged?.call(recording);
   }
 
@@ -153,8 +168,16 @@ class AttachmentFieldState extends State<AttachmentField> {
   Future<String?> _finishRecording() async {
     _countdown?.cancel();
     final old = widget.voiceFile;
-    final name = await _attachments.stopRecording();
-    if (mounted) _setRecording(false);
+    String? name;
+    try {
+      name = await _attachments.stopRecording();
+    } finally {
+      // However stopping went, the recording UI must not stay stuck: a
+      // throw here (a PlatformException after an audio-focus loss or a
+      // phone call, say) must not leave Save disabled for good, and the
+      // caller's own error handling shows the failure (review-money-5).
+      if (mounted) _setRecording(false);
+    }
     if (name == null) return null;
     _mine.add(name);
     await _dropIfMine(old);
@@ -191,6 +214,7 @@ class AttachmentFieldState extends State<AttachmentField> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin
     final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
