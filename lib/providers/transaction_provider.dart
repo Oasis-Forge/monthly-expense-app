@@ -1666,8 +1666,12 @@ class TransactionProvider extends ChangeNotifier {
   // The home-screen widget (WID-1–WID-6).
 
   /// Shows the period that contains today, whatever was selected before
-  /// (WID-3).
+  /// (WID-3). A shortcut or widget tap is a fresh start, so a day chosen on
+  /// an earlier visit is brought forward to today first, the same as the
+  /// app resuming does (DAY-1, DAY-9): otherwise a stale day survives within
+  /// the same period and a new entry lands on it instead of today.
   void showCurrentPeriod() {
+    returnToToday();
     final current = currentPeriod;
     if (current == _period) return;
     _period = current;
