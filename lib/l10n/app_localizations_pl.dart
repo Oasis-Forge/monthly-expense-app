@@ -1834,13 +1834,24 @@ class AppLocalizationsPl extends AppLocalizations {
   String get dueEntryChannelName => 'Zaległe wpisy';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title miał termin dzisiaj i wciąż czeka.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) miał termin dzisiaj i wciąż czeka.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Wpis cykliczny miał termin dzisiaj i wciąż czeka.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) miał termin $date i wciąż czeka.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Wpis cykliczny ($amount) miał termin dzisiaj i wciąż czeka.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Wpis cykliczny ($amount) miał termin $date i wciąż czeka.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show ChangeNotifier, listEquals;
 import 'package:flutter/widgets.dart' show Locale;
+import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
 import '../db/db_helper.dart';
@@ -85,6 +86,12 @@ class TransactionProvider extends ChangeNotifier {
   /// re-arming a reminder away from a screen that could pass its own.
   bool _appLockOn = false;
   Locale _locale = const Locale('en');
+
+  /// How a due entry's amount is shown in its own reminder (CUR-2,
+  /// NUDGE-2), the same way the rest of the app shows it. Falls back to a
+  /// locale-only guess for a caller that has not passed the real one
+  /// (settings' own currency choice), such as most tests.
+  NumberFormat? _currency;
 
   /// Handled occurrences by [RecurringOccurrence.key].
   final Map<String, RecurringOccurrence> _occurrences = {};
@@ -482,6 +489,7 @@ class TransactionProvider extends ChangeNotifier {
     bool appLockOn = false,
     Locale locale = const Locale('en'),
     NudgeSettings nudge = NudgeSettings.off,
+    NumberFormat? currency,
   }) async {
     _dayLastSeen = _today;
     await _attachments.deleteAll(
@@ -532,6 +540,7 @@ class TransactionProvider extends ChangeNotifier {
         appLockOn: appLockOn,
         locale: locale,
         nudge: nudge,
+        currency: currency,
       );
       _loaded = true;
     } finally {
@@ -548,10 +557,12 @@ class TransactionProvider extends ChangeNotifier {
     required bool appLockOn,
     required Locale locale,
     NudgeSettings nudge = NudgeSettings.off,
+    NumberFormat? currency,
   }) async {
     _appLockOn = appLockOn;
     _locale = locale;
     _nudge = nudge;
+    _currency = currency;
     for (final note in _notes) {
       await _reminders.schedule(note, appLockOn: appLockOn, locale: locale);
     }
@@ -582,6 +593,9 @@ class TransactionProvider extends ChangeNotifier {
       plan,
       appLockOn: _appLockOn,
       locale: _locale,
+      currency:
+          _currency ??
+          NumberFormat.simpleCurrency(locale: _locale.toLanguageTag()),
     );
   }
 

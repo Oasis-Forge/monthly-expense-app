@@ -1793,13 +1793,24 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dueEntryChannelName => 'Saisies échues';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title était dû aujourd\'hui et attend toujours.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) était dû aujourd\'hui et attend toujours.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Une saisie récurrente était due aujourd\'hui et attend toujours.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) était dû le $date et attend toujours.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Une saisie récurrente ($amount) était due aujourd\'hui et attend toujours.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Une saisie récurrente ($amount) était due le $date et attend toujours.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

@@ -1779,13 +1779,24 @@ class AppLocalizationsBn extends AppLocalizations {
   String get dueEntryChannelName => 'বকেয়া এন্ট্রি';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'একটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'একটি পুনরাবৃত্ত এন্ট্রি ($amount) আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'একটি পুনরাবৃত্ত এন্ট্রি ($amount) $date বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

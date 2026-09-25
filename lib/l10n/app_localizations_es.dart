@@ -1785,13 +1785,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dueEntryChannelName => 'Registros vencidos';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title vencía hoy y sigue pendiente.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) vencía hoy y sigue pendiente.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Una entrada recurrente vencía hoy y sigue pendiente.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) vencía el $date y sigue pendiente.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Una entrada recurrente ($amount) vencía hoy y sigue pendiente.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Una entrada recurrente ($amount) vencía el $date y sigue pendiente.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

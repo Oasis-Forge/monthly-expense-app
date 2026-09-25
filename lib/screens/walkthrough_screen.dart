@@ -104,6 +104,9 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
         appLockOn: settings.appLock,
         locale: effectiveAppLocale(settings.locale),
         nudge: settings.nudgeSettings,
+        currency: settings.currencyFormat(
+          effectiveAppLocale(settings.locale).toLanguageTag(),
+        ),
       );
       transactions.setStartDay(settings.startDay);
       await settings.completeWalkthrough();
@@ -206,6 +209,9 @@ class _WalkthroughScreenState extends State<WalkthroughScreen> {
       appLockOn: settings.appLock,
       locale: effectiveAppLocale(settings.locale),
       nudge: settings.nudgeSettings,
+      currency: settings.currencyFormat(
+        effectiveAppLocale(settings.locale).toLanguageTag(),
+      ),
     );
   }
 

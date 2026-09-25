@@ -1236,15 +1236,52 @@
   "@dueEntryChannelName": {
     "description": "The Android notification channel for due recurring entries, shown in system settings (NUDGE-11)."
   },
-  "dueEntryReminderOne": "{title} was due today and is still waiting.",
+  "dueEntryReminderOne": "{title} ({amount}) was due today and is still waiting.",
   "@dueEntryReminderOne": {
     "placeholders": {
       "title": {
         "type": "String"
+      },
+      "amount": {
+        "type": "String"
       }
     }
   },
-  "dueEntryReminderUntitled": "A repeating entry was due today and is still waiting.",
+  "dueEntryReminderOneOverdue": "{title} ({amount}) was due {date} and is still waiting.",
+  "@dueEntryReminderOneOverdue": {
+    "description": "The due-entry reminder body when the occurrence's day has already passed, so it names the actual day instead of saying 'today' (NUDGE-2, rules-23-26-34#9).",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dueEntryReminderUntitled": "A repeating entry ({amount}) was due today and is still waiting.",
+  "@dueEntryReminderUntitled": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "dueEntryReminderUntitledOverdue": "A repeating entry ({amount}) was due {date} and is still waiting.",
+  "@dueEntryReminderUntitledOverdue": {
+    "description": "Like dueEntryReminderUntitled, but the occurrence's day has already passed (NUDGE-2, rules-23-26-34#9).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "dueEntryReminderMany": "{count, plural, =1{1 repeating entry was due today.} other{{count} repeating entries were due today.}}",
   "@dueEntryReminderMany": {
     "placeholders": {

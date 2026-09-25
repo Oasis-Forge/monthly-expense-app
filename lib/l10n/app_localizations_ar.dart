@@ -1825,13 +1825,24 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dueEntryChannelName => 'إدخالات مستحقة';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title كان مستحقًا اليوم ولا يزال بانتظارك.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) كان مستحقًا اليوم ولا يزال بانتظارك.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'إدخال متكرر كان مستحقًا اليوم ولا يزال بانتظارك.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) كان مستحقًا $date ولا يزال بانتظارك.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'إدخال متكرر ($amount) كان مستحقًا اليوم ولا يزال بانتظارك.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'إدخال متكرر ($amount) كان مستحقًا $date ولا يزال بانتظارك.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

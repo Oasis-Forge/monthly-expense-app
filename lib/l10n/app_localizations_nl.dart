@@ -1784,13 +1784,24 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dueEntryChannelName => 'Vervallen invoeren';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title was vandaag verschuldigd en wacht nog steeds.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) was vandaag verschuldigd en wacht nog steeds.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Een terugkerende invoer was vandaag verschuldigd en wacht nog.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) was verschuldigd op $date en wacht nog steeds.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Een terugkerende invoer ($amount) was vandaag verschuldigd en wacht nog.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Een terugkerende invoer ($amount) was verschuldigd op $date en wacht nog.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

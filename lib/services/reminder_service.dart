@@ -4,10 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../l10n/app_localizations.dart';
+import '../models/money.dart';
 import '../models/note.dart';
 import '../models/reminders.dart';
 
@@ -176,11 +178,13 @@ abstract class ReminderService {
 
   /// Replaces every reminder the app sends on its own with [plan], cancelling
   /// whatever was scheduled before (NUDGE-1). With [appLockOn] they name
-  /// nothing but the app itself (NUDGE-8).
+  /// nothing but the app itself (NUDGE-8). [currency] formats a due entry's
+  /// amount the same way the rest of the app shows it (CUR-2, NUDGE-2).
   Future<void> scheduleNudges(
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   });
 }
 
@@ -211,6 +215,7 @@ class NoopReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async {}
 }
 
@@ -258,8 +263,14 @@ class SafeReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) => _guard(
-    () => inner.scheduleNudges(plan, appLockOn: appLockOn, locale: locale),
+    () => inner.scheduleNudges(
+      plan,
+      appLockOn: appLockOn,
+      locale: locale,
+      currency: currency,
+    ),
     null,
   );
 }
@@ -499,6 +510,7 @@ class DeviceReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async {
     await _ensureInitialized();
     // Every slot goes, not only the ones about to be filled: yesterday's
@@ -519,8 +531,8 @@ class DeviceReminderService implements ReminderService {
         id: _nudgeIdBase + slot++,
         title: appLockOn
             ? l10n.reminderLockedTitle
-            : _nudgeTitle(l10n, reminder),
-        body: appLockOn ? null : _nudgeBody(l10n, reminder),
+            : nudgeTitle(l10n, reminder),
+        body: appLockOn ? null : nudgeBody(l10n, reminder, currency: currency),
         scheduledDate: tz.TZDateTime.from(reminder.at, tz.local),
         notificationDetails: NotificationDetails(
           // A channel each, so someone who wants the entries that fell due
@@ -545,21 +557,56 @@ class DeviceReminderService implements ReminderService {
       );
     }
   }
-
-  String _nudgeTitle(AppLocalizations l10n, PlannedReminder reminder) =>
-      switch (reminder.kind) {
-        ReminderKind.dueEntry => l10n.dueEntryReminderTitle,
-        ReminderKind.emptyDay => l10n.emptyDayReminderTitle,
-      };
-
-  String _nudgeBody(AppLocalizations l10n, PlannedReminder reminder) {
-    if (reminder.kind == ReminderKind.emptyDay) {
-      return l10n.emptyDayReminderBody;
-    }
-    if (reminder.count > 1) return l10n.dueEntryReminderMany(reminder.count);
-    final title = reminder.title;
-    return title == null || title.isEmpty
-        ? l10n.dueEntryReminderUntitled
-        : l10n.dueEntryReminderOne(title);
-  }
 }
+
+/// The title for one of the app's own reminders (NUDGE-1), from [l10n]
+/// rather than an English literal (LANG-2). A pure function, extracted
+/// alongside [nudgeBody] so their content is unit-testable without touching
+/// the notifications plugin (rules-23-26-34#5's own suggested_check).
+String nudgeTitle(AppLocalizations l10n, PlannedReminder reminder) =>
+    switch (reminder.kind) {
+      ReminderKind.dueEntry => l10n.dueEntryReminderTitle,
+      ReminderKind.emptyDay => l10n.emptyDayReminderTitle,
+    };
+
+/// The body for one of the app's own reminders (NUDGE-1), naming what was
+/// due and for how much (NUDGE-2): the amount in [currency]'s own format
+/// (CUR-2), and "due today" only when [reminder]'s own due date really is
+/// the day it fires on -- an occurrence carried over from an earlier,
+/// unhandled day names that day instead of claiming it is today's
+/// (rules-23-26-34#9).
+String nudgeBody(
+  AppLocalizations l10n,
+  PlannedReminder reminder, {
+  required NumberFormat currency,
+}) {
+  if (reminder.kind == ReminderKind.emptyDay) {
+    return l10n.emptyDayReminderBody;
+  }
+  if (reminder.count > 1) return l10n.dueEntryReminderMany(reminder.count);
+  final amount = reminder.amount;
+  final amountText = amount == null
+      ? ''
+      : currency.signedMoney(amount, isIncome: reminder.isIncome);
+  final dueDate = reminder.dueDate;
+  final overdue = dueDate != null && !_sameLocalDay(dueDate, reminder.at);
+  final title = reminder.title;
+  if (title == null || title.isEmpty) {
+    return overdue
+        ? l10n.dueEntryReminderUntitledOverdue(
+            amountText,
+            DateFormat.yMMMd(l10n.localeName).format(dueDate),
+          )
+        : l10n.dueEntryReminderUntitled(amountText);
+  }
+  return overdue
+      ? l10n.dueEntryReminderOneOverdue(
+          title,
+          amountText,
+          DateFormat.yMMMd(l10n.localeName).format(dueDate),
+        )
+      : l10n.dueEntryReminderOne(title, amountText);
+}
+
+bool _sameLocalDay(DateTime a, DateTime b) =>
+    a.year == b.year && a.month == b.month && a.day == b.day;

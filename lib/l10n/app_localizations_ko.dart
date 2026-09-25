@@ -1724,12 +1724,24 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dueEntryChannelName => '기한이 지난 입력';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title이(가) 오늘 예정이었고 아직 대기 중입니다.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title($amount)이(가) 오늘 예정이었고 아직 대기 중입니다.';
   }
 
   @override
-  String get dueEntryReminderUntitled => '반복 항목이 오늘 예정이었고 아직 대기 중입니다.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title($amount)이(가) $date 예정이었고 아직 대기 중입니다.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return '반복 항목($amount)이 오늘 예정이었고 아직 대기 중입니다.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return '반복 항목($amount)이 $date 예정이었고 아직 대기 중입니다.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

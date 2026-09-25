@@ -39,6 +39,9 @@ class SettingsScreen extends StatelessWidget {
       appLockOn: settings.appLock,
       locale: effectiveAppLocale(settings.locale),
       nudge: settings.nudgeSettings,
+      currency: settings.currencyFormat(
+        effectiveAppLocale(settings.locale).toLanguageTag(),
+      ),
     );
   }
 
@@ -320,6 +323,9 @@ class _AppLockTileState extends State<_AppLockTile> {
         appLockOn: on,
         locale: effectiveAppLocale(settings.locale),
         nudge: settings.nudgeSettings,
+        currency: settings.currencyFormat(
+          effectiveAppLocale(settings.locale).toLanguageTag(),
+        ),
       );
     } else {
       messenger.showSnackBar(SnackBar(content: Text(l10n.appLockFailed)));
@@ -473,6 +479,9 @@ class _NudgeTile extends StatelessWidget {
       appLockOn: settings.appLock,
       locale: effectiveAppLocale(settings.locale),
       nudge: settings.nudgeSettings,
+      currency: settings.currencyFormat(
+        effectiveAppLocale(settings.locale).toLanguageTag(),
+      ),
     );
   }
 
@@ -494,6 +503,9 @@ class _NudgeTile extends StatelessWidget {
       appLockOn: settings.appLock,
       locale: effectiveAppLocale(settings.locale),
       nudge: settings.nudgeSettings,
+      currency: settings.currencyFormat(
+        effectiveAppLocale(settings.locale).toLanguageTag(),
+      ),
     );
   }
 

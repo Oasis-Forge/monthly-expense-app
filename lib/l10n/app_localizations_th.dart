@@ -1756,13 +1756,24 @@ class AppLocalizationsTh extends AppLocalizations {
   String get dueEntryChannelName => 'รายการที่ถึงกำหนด';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'รายการที่เกิดซ้ำถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) ถึงกำหนด$dateและยังคงรอดำเนินการ';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'รายการที่เกิดซ้ำ ($amount) ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'รายการที่เกิดซ้ำ ($amount) ถึงกำหนด$dateและยังคงรอดำเนินการ';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

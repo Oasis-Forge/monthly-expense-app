@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, immutable;
 
+import 'money.dart';
 import 'recurring_rule.dart';
+import 'transaction.dart';
 
 /// Whether this build can schedule the app's own reminders at all: phones
 /// only, so the desktop builds offer nothing they cannot do (NUDGE-10).
@@ -43,6 +45,9 @@ class PlannedReminder {
     required this.at,
     this.title,
     this.count = 1,
+    this.dueDate,
+    this.amount,
+    this.isIncome = false,
   });
 
   final ReminderKind kind;
@@ -58,16 +63,34 @@ class PlannedReminder {
   /// count rather than a list, so the notification stays one line (NUDGE-2).
   final int count;
 
+  /// The single named entry's own due date, for saying "was due {date}"
+  /// instead of "was due today" once it is no longer today (NUDGE-2,
+  /// rules-23-26-34#9). Null when [count] is more than one -- several due
+  /// the same day are announced together and carry no date of their own.
+  final DateTime? dueDate;
+
+  /// The single named entry's amount, so the reminder says "for how much"
+  /// (NUDGE-2, rules-23-26-34#9). Null when [count] is more than one.
+  final Money? amount;
+
+  /// Whether [amount] is income rather than an expense, for the sign it is
+  /// shown with (CUR-5). Meaningless when [amount] is null.
+  final bool isIncome;
+
   @override
   bool operator ==(Object other) =>
       other is PlannedReminder &&
       other.kind == kind &&
       other.at == at &&
       other.title == title &&
-      other.count == count;
+      other.count == count &&
+      other.dueDate == dueDate &&
+      other.amount == amount &&
+      other.isIncome == isIncome;
 
   @override
-  int get hashCode => Object.hash(kind, at, title, count);
+  int get hashCode =>
+      Object.hash(kind, at, title, count, dueDate, amount, isIncome);
 
   @override
   String toString() => 'PlannedReminder($kind, $at, $title, x$count)';
@@ -143,12 +166,16 @@ List<PlannedReminder> planReminders({
     overdueAnnounced = true;
 
     spokenFor.add(day);
+    final single = announcing.length == 1 ? announcing.single : null;
     plan.add(
       PlannedReminder(
         kind: ReminderKind.dueEntry,
         at: at,
-        title: announcing.length == 1 ? announcing.single.rule.title : null,
+        title: single?.rule.title,
         count: announcing.length,
+        dueDate: single?.date,
+        amount: single?.rule.amount,
+        isIncome: single?.rule.type == TransactionType.income,
       ),
     );
   }

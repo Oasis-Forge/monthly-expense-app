@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -628,10 +629,10 @@ class FakeReminderService implements ReminderService {
   /// scheduled with.
   final Map<String, bool> scheduled = {};
 
-  /// The time each scheduled note's reminder was last scheduled for, and
-  /// whether app lock was on then (mirrors [DeviceReminderService]'s own
-  /// record; see [shouldCancelPassedReminder]).
-  final Map<String, ({DateTime at, bool appLockOn})> _lastScheduledAt = {};
+  /// The time each scheduled note's reminder was last scheduled for
+  /// (mirrors [DeviceReminderService]'s own record; see
+  /// [shouldCancelPassedReminder]).
+  final Map<String, DateTime> _lastScheduledAt = {};
 
   /// How many times [requestPermission] was called.
   int permissionRequests = 0;
@@ -650,6 +651,7 @@ class FakeReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async {
     nudges = plan;
     nudgesLocked = appLockOn;
@@ -676,7 +678,7 @@ class FakeReminderService implements ReminderService {
   }) async {
     final at = note.reminderAt;
     final last = _lastScheduledAt[note.id];
-    switch (reminderActionFor(note, lastScheduledAt: last?.at, now: _now())) {
+    switch (reminderActionFor(note, lastScheduledAt: last, now: _now())) {
       case ReminderAction.cancel:
         scheduled.remove(note.id);
         _lastScheduledAt.remove(note.id);
@@ -684,19 +686,31 @@ class FakeReminderService implements ReminderService {
       case ReminderAction.keep:
         // Mirrors DeviceReminderService: a recently passed, unchanged time
         // leaves whatever is already scheduled alone (NOTE-6), unless app
-        // lock just turned on, in which case the device replaces the
-        // pending alarm with the locked wording (LOCK-2). If nothing was
-        // ever actually scheduled for this passed time (last == null), the
-        // device schedules nothing either, so this must not invent an
-        // entry.
-        if (last != null && !last.appLockOn && appLockOn) {
+        // lock is on, in which case whatever the device has for it is
+        // reworded to the locked wording (LOCK-2) -- decided the same way
+        // real device state would decide it (lockKeepActionFor), not from
+        // memory of what app lock used to be. The fake never actually
+        // "delivers" anything, so it always looks like something still
+        // pending, never something already shown.
+        if (last == null) {
+          // Nothing was ever actually scheduled for this passed time, so
+          // the device would have nothing to reword either -- this must
+          // not invent an entry.
+          return;
+        }
+        if (lockKeepActionFor(
+              appLockOn: appLockOn,
+              isActive: false,
+              isPending: true,
+            ) !=
+            LockKeepAction.none) {
           scheduled[note.id] = true;
         }
-        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        _lastScheduledAt[note.id] = at!;
         return;
       case ReminderAction.schedule:
         scheduled[note.id] = appLockOn;
-        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        _lastScheduledAt[note.id] = at!;
     }
   }
 
@@ -745,6 +759,7 @@ class ThrowingReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async => _fail();
 }
 

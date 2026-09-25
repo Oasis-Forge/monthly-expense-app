@@ -1501,5 +1501,8 @@ Future<void> _acceptNudge(BuildContext context) async {
     appLockOn: settings.appLock,
     locale: effectiveAppLocale(settings.locale),
     nudge: settings.nudgeSettings,
+    currency: settings.currencyFormat(
+      effectiveAppLocale(settings.locale).toLanguageTag(),
+    ),
   );
 }

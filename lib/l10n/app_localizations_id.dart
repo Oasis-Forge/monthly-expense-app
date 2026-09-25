@@ -1766,13 +1766,24 @@ class AppLocalizationsId extends AppLocalizations {
   String get dueEntryChannelName => 'Entri yang jatuh tempo';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title jatuh tempo hari ini dan masih menunggu.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) jatuh tempo hari ini dan masih menunggu.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Entri berulang jatuh tempo hari ini dan masih menunggu.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) jatuh tempo $date dan masih menunggu.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Entri berulang ($amount) jatuh tempo hari ini dan masih menunggu.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Entri berulang ($amount) jatuh tempo $date dan masih menunggu.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/reminders.dart';
+import 'package:monthly_expense_app/models/transaction.dart';
 
 import 'helpers.dart';
 
@@ -46,8 +48,55 @@ void main() {
           kind: ReminderKind.dueEntry,
           at: DateTime(2026, 9, 23, dueEntryHour),
           title: 'Salary',
+          dueDate: DateTime(2026, 9, 23),
+          amount: const Money(100000),
         ),
       ]);
+    });
+
+    test('the single named entry carries its own due date and amount '
+        '(NUDGE-2, rules-23-26-34#9)', () {
+      final reminders = plan(upcoming: [occurrence('Salary', 1)]);
+
+      expect(reminders.single.dueDate, DateTime(2026, 9, 23));
+      expect(reminders.single.amount, const Money(100000));
+      expect(reminders.single.isIncome, isFalse);
+    });
+
+    test('an income rule is carried as income, for the sign it is shown with '
+        '(CUR-5, rules-23-26-34#9)', () {
+      final reminders = plan(
+        upcoming: [
+          ScheduledOccurrence(
+            testRule(
+              'Salary',
+              100,
+              day(1),
+            ).copyWith(type: TransactionType.income),
+            day(1),
+          ),
+        ],
+      );
+
+      expect(reminders.single.isIncome, isTrue);
+    });
+
+    test('one already waiting keeps its own, earlier due date, not the '
+        'morning it is finally announced (NUDGE-2, rules-23-26-34#9)', () {
+      final reminders = plan(due: [occurrence('Salary', -3)]);
+
+      expect(reminders.single.dueDate, day(-3));
+      expect(reminders.single.at, DateTime(2026, 9, 23, dueEntryHour));
+    });
+
+    test('several due the same day carry no date or amount of their own '
+        '(NUDGE-2)', () {
+      final reminders = plan(
+        upcoming: [occurrence('Salary', 1), occurrence('Rent', 1)],
+      );
+
+      expect(reminders.single.dueDate, isNull);
+      expect(reminders.single.amount, isNull);
     });
 
     test('two on the same day are one reminder, counted not listed', () {

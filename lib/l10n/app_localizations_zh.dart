@@ -1715,12 +1715,24 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dueEntryChannelName => '到期的记录';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title今天到期，仍在等待处理。';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title（$amount）今天到期，仍在等待处理。';
   }
 
   @override
-  String get dueEntryReminderUntitled => '一笔重复记录今天到期，仍在等待处理。';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title（$amount）$date到期，仍在等待处理。';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return '一笔重复记录（$amount）今天到期，仍在等待处理。';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return '一笔重复记录（$amount）$date到期，仍在等待处理。';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

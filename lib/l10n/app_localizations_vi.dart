@@ -1767,13 +1767,24 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dueEntryChannelName => 'Các mục đã đến hạn';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title đã đến hạn hôm nay và vẫn đang chờ.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) đã đến hạn hôm nay và vẫn đang chờ.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Một mục lặp lại đã đến hạn hôm nay và vẫn đang chờ.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) đã đến hạn vào $date và vẫn đang chờ.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Một mục lặp lại ($amount) đã đến hạn hôm nay và vẫn đang chờ.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Một mục lặp lại ($amount) đã đến hạn vào $date và vẫn đang chờ.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

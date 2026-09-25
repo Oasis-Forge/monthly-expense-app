@@ -1762,13 +1762,24 @@ class AppLocalizationsTr extends AppLocalizations {
   String get dueEntryChannelName => 'Vadesi gelen girişler';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title bugün vadesi geldi ve hâlâ bekliyor.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) bugün vadesi geldi ve hâlâ bekliyor.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Tekrarlanan bir kayıt bugün vadesi geldi ve hâlâ bekliyor.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date vadesi geldi ve hâlâ bekliyor.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Tekrarlanan bir kayıt ($amount) bugün vadesi geldi ve hâlâ bekliyor.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Tekrarlanan bir kayıt ($amount) $date vadesi geldi ve hâlâ bekliyor.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

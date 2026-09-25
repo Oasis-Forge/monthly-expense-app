@@ -1724,12 +1724,24 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dueEntryChannelName => '期限切れの入力';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$titleは本日期限でしたが、まだ未対応です。';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title（$amount）は本日期限でしたが、まだ未対応です。';
   }
 
   @override
-  String get dueEntryReminderUntitled => '定期入力の期限が今日でしたが、まだ未対応です。';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title（$amount）は$dateが期限でしたが、まだ未対応です。';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return '定期入力（$amount）の期限が今日でしたが、まだ未対応です。';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return '定期入力（$amount）の期限が$dateでしたが、まだ未対応です。';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

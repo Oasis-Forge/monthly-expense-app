@@ -1762,13 +1762,24 @@ class AppLocalizationsUr extends AppLocalizations {
   String get dueEntryChannelName => 'تاخیر شدہ اندراجات';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'ایک تکراری اندراج آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'ایک تکراری اندراج ($amount) آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'ایک تکراری اندراج ($amount) $date واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  }
 
   @override
   String dueEntryReminderMany(int count) {

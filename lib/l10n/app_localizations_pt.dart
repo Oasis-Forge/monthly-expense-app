@@ -1800,13 +1800,24 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dueEntryChannelName => 'Lançamentos vencidos';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title venceu hoje e ainda está pendente.';
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) venceu hoje e ainda está pendente.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Um lançamento recorrente venceu hoje e ainda está pendente.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) venceu em $date e ainda está pendente.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Um lançamento recorrente ($amount) venceu hoje e ainda está pendente.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Um lançamento recorrente ($amount) venceu em $date e ainda está pendente.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
