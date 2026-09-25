@@ -113,6 +113,7 @@ Kept apart from Google Play on 18 September 2026, and macOS joined it the same d
 - The Claude GitHub Action (`claude.yml`): set `CLAUDE_CODE_OAUTH_TOKEN` and try it once.
 - A details page for transfers (DET-7).
 - Keep or drop Android's ad Topics permission (`ACCESS_ADSERVICES_TOPICS`), once there is ad revenue to compare.
+- **Known limitation, noted 26 September 2026:** Search's date-range picker (`search_screen.dart`) still starts at 1 January 2015, so history imported from before then cannot be filtered by date there (not a regression: `note_form_screen.dart`'s picker has the same range, but a note's due date only ever comes from that picker, so it can't reach a date outside it). Widen Search's `firstDate` from the earliest transaction or transfer date, with `DateTime(2015)` as the fallback when there is none, when this comes up again (rules-1-5#12, ADD-6, DATE-1).
 
 **A coverage check, before any of the rest.** List the banks that actually matter — the ones you and the first users hold — and find which open-banking providers reach them and what they charge: Plaid for the US and Canada, TrueLayer, Tink or GoCardless Bank Account Data for the UK and the EU, Lean or a regional player for the Gulf, and nothing at all in some countries. The answer decides which market Plus launches in, what a yearly price has to cover, and whether the connection is worth building at all. It costs nothing but reading and a few emails, so it comes first.
 

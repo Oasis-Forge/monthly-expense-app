@@ -1111,6 +1111,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Không thể khôi phục bản sao lưu. Dữ liệu của bạn không thay đổi.';
 
   @override
+  String get dbTooNewTitle => 'Cần cập nhật';
+
+  @override
+  String get dbTooNewMessage =>
+      'Dữ liệu này được lưu bởi một phiên bản mới hơn của ứng dụng. Hãy cập nhật ứng dụng từ cửa hàng để tiếp tục.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

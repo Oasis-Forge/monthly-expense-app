@@ -302,6 +302,8 @@
   "backupTooNew": "Bản sao lưu này đến từ phiên bản ứng dụng mới hơn. Hãy cập nhật ứng dụng rồi thử lại.",
   "backupOpenFailed": "Không thể mở tệp. Vui lòng thử lại.",
   "backupRestoreFailed": "Không thể khôi phục bản sao lưu. Dữ liệu của bạn không thay đổi.",
+  "dbTooNewTitle": "Cần cập nhật",
+  "dbTooNewMessage": "Dữ liệu này được lưu bởi một phiên bản mới hơn của ứng dụng. Hãy cập nhật ứng dụng từ cửa hàng để tiếp tục.",
   "restoredReplace": "{count, plural, =1{Đã khôi phục 1 giao dịch} other{Đã khôi phục {count} giao dịch}}",
   "restoredMerge": "Đã gộp: thêm {added}, cập nhật {updated}, giữ nguyên {unchanged}",
   "appLockLabel": "Khóa ứng dụng",

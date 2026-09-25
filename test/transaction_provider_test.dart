@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -900,6 +901,66 @@ void main() {
       });
     },
   );
+
+  group('a refused downgrade open (x-downgrade-message)', () {
+    test('load finishes, frees whenLoaded, and records the error instead of '
+        'hanging or throwing', () async {
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      final load = provider.load();
+      await expectLater(provider.whenLoaded, completes);
+      await load;
+
+      expect(provider.loadError, isA<DatabaseDowngradeError>());
+      expect(provider.isLoaded, isFalse);
+      expect(provider.transactions, isEmpty);
+    });
+
+    test('a later, successful load clears the error', () async {
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+      await provider.load();
+      expect(provider.loadError, isNotNull);
+
+      fake.failLoadWith = null;
+      await provider.load();
+
+      expect(provider.loadError, isNull);
+      expect(provider.isLoaded, isTrue);
+    });
+
+    test('does not log the failure: DatabaseTooNewScreen already explains '
+        'it', () async {
+      final logged = <String>[];
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logged.add(message);
+      };
+      addTearDown(() => debugPrint = debugPrintThrottled);
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      await provider.load();
+
+      expect(logged, isEmpty);
+    });
+
+    test('any other load failure is logged, since nothing else would show '
+        'it (x-downgrade-message)', () async {
+      final logged = <String>[];
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logged.add(message);
+      };
+      addTearDown(() => debugPrint = debugPrintThrottled);
+      final fake = FakeDB()..failLoadWith = StateError('disk full');
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      await provider.load();
+
+      expect(provider.loadError, isA<StateError>());
+      expect(logged, contains(contains('TransactionProvider.load failed')));
+    });
+  });
 
   group('the day Home shows (DAY-1, DAY-3, DAY-5, DAY-6, DAY-9)', () {
     test('it opens on today', () async {

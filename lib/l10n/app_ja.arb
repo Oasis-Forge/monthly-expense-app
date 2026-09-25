@@ -302,6 +302,8 @@
   "backupTooNew": "このバックアップは新しいバージョンのアプリで作成されました。アプリを更新してからもう一度お試しください。",
   "backupOpenFailed": "ファイルを開けませんでした。もう一度お試しください。",
   "backupRestoreFailed": "バックアップを復元できませんでした。データは変更されていません。",
+  "dbTooNewTitle": "更新が必要です",
+  "dbTooNewMessage": "このデータはアプリの新しいバージョンで保存されました。続けるにはストアでアプリを更新してください。",
   "restoredReplace": "{count, plural, =1{1件の取引を復元しました} other{{count}件の取引を復元しました}}",
   "restoredMerge": "統合しました: 追加{added}件、更新{updated}件、変更なし{unchanged}件",
   "appLockLabel": "アプリロック",

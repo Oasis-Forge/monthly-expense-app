@@ -317,6 +317,30 @@ void main() {
     },
   );
 
+  testWidgets('two saves through the form get distinct UUID v4 IDs (REC-2)', (
+    tester,
+  ) async {
+    await open(tester);
+    await enterAmount(tester, '10');
+    await tapInForm(
+      tester,
+      find.widgetWithText(OutlinedButton, 'Save & add another'),
+    );
+    await enterAmount(tester, '20');
+    await tapButton(tester, 'Add Transaction');
+
+    expect(provider.transactions, hasLength(2));
+    final ids = provider.transactions.map((t) => t.id).toList();
+    expect(
+      ids.toSet(),
+      hasLength(2),
+      reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
+    );
+    for (final id in ids) {
+      expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+    }
+  });
+
   testWidgets('recent categories are one tap away (ADD-5)', (tester) async {
     fake.rows.addAll([
       testTx(
@@ -385,6 +409,25 @@ void main() {
     await tapButton(tester, 'Add Transaction');
 
     expect(provider.transactions.single.date.day, 10);
+  });
+
+  testWidgets('a transaction from before 2015 can still open the date picker '
+      '(rules-1-5#12)', (tester) async {
+    final old = testTx('old', TransactionType.expense, 5, DateTime(2012, 3, 4));
+    await open(tester, editing: old);
+
+    await tapInForm(
+      tester,
+      find.descendant(
+        of: find.byType(DateField),
+        matching: find.byType(TextButton),
+      ),
+    );
+
+    // showDatePicker asserts initialDate is within firstDate/lastDate; a
+    // fixed firstDate of 2015 would fail that assertion here and this tap
+    // would throw instead of opening the calendar.
+    expect(find.byType(DatePickerDialog), findsOneWidget);
   });
 
   testWidgets('with two accounts the last used one is preselected (ADD-3)', (

@@ -229,12 +229,23 @@ class DateField extends StatelessWidget {
   DateTime _withDay(int year, int month, int day) =>
       DateTime(year, month, day, date.hour, date.minute, date.second);
 
+  /// The picker's usual range, widened to always bracket [date] itself.
+  /// A row from an import or the arrows above (ADD-6, DATE-1) can carry a
+  /// date outside 2015–2100 -- CSV import accepts any year -- and
+  /// `showDatePicker` asserts `initialDate` falls within `firstDate` and
+  /// `lastDate`, which would otherwise crash on open (rules-1-5#12).
+  DateTime get _firstDate =>
+      date.isBefore(DateTime(2015)) ? DateTime(date.year) : DateTime(2015);
+  DateTime get _lastDate => date.isAfter(DateTime(2100))
+      ? DateTime(date.year, 12, 31)
+      : DateTime(2100);
+
   Future<void> _pick(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
       initialDate: date,
-      firstDate: DateTime(2015),
-      lastDate: DateTime(2100),
+      firstDate: _firstDate,
+      lastDate: _lastDate,
     );
     if (picked != null) {
       onChanged(_withDay(picked.year, picked.month, picked.day));

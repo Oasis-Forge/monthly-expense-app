@@ -1948,6 +1948,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t restore the backup. Your data wasn\'t changed.'**
   String get backupRestoreFailed;
 
+  /// Title shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message).
+  ///
+  /// In en, this message translates to:
+  /// **'Update needed'**
+  String get dbTooNewTitle;
+
+  /// Message shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message).
+  ///
+  /// In en, this message translates to:
+  /// **'This data was saved by a newer version of the app. Update it from the store to continue.'**
+  String get dbTooNewMessage;
+
   /// No description provided for @restoredReplace.
   ///
   /// In en, this message translates to:

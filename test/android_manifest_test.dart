@@ -106,6 +106,72 @@ void main() {
     });
   });
 
+  // Nothing here reruns on its own if it silently regresses: no test in the
+  // suite reads allowBackup, dataExtractionRules, or the cloud-backup
+  // exclusions, so a manifest edit or a regenerated platform template could
+  // reopen decision 37 (BAK-8) with every other test still green
+  // (rules-11-13-20-21#5).
+  group('Android\'s own backup stays off (BAK-8, BAK-6)', () {
+    test('allowBackup is false, and points at the extraction rules', () {
+      expect(
+        manifest,
+        contains('android:allowBackup="false"'),
+        reason:
+            'Without this, Android copies the database and the settings to '
+            "the user's Google Drive by itself and hands them to whoever "
+            'next installs the app under that account (BAK-8).',
+      );
+      expect(
+        manifest,
+        contains('android:dataExtractionRules="@xml/data_extraction_rules"'),
+        reason:
+            'The cloud-backup exclusions below only apply if the '
+            'manifest points to them.',
+      );
+    });
+
+    test('every domain is excluded from cloud backup', () {
+      final rules = File(
+        'android/app/src/main/res/xml/data_extraction_rules.xml',
+      ).readAsStringSync();
+      final cloudBackup = RegExp(
+        r'<cloud-backup>(.*?)</cloud-backup>',
+        dotAll: true,
+      ).firstMatch(rules)?.group(1);
+      expect(
+        cloudBackup,
+        isNotNull,
+        reason: 'No <cloud-backup> block in data_extraction_rules.xml.',
+      );
+      for (final domain in const [
+        'root',
+        'file',
+        'database',
+        'sharedpref',
+        'external',
+      ]) {
+        // Not just that the domain is mentioned: an <include> for it, or an
+        // <exclude> narrowed to less than the whole domain, would send that
+        // domain to Drive and still pass a bare `contains('domain="...')`
+        // (rules-11-13-20-21#5).
+        expect(
+          cloudBackup,
+          contains('<exclude domain="$domain" path="."'),
+          reason:
+              '$domain is not fully excluded from cloud backup '
+              '(BAK-8, BAK-6).',
+        );
+      }
+      expect(
+        cloudBackup,
+        isNot(contains('<include')),
+        reason:
+            'An <include> would send that domain to Drive, exactly '
+            'what decision 37 (BAK-8) refused.',
+      );
+    });
+  });
+
   // The ad SDK reads its manifest/plist flags before Dart ever runs, and by
   // default it starts sending app-measurement events to Google immediately
   // at process start — before AdsProvider.start() ever calls

@@ -1085,6 +1085,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backupRestoreFailed => '백업을 복원하지 못했어요. 데이터는 바뀌지 않았어요.';
 
   @override
+  String get dbTooNewTitle => '업데이트 필요';
+
+  @override
+  String get dbTooNewMessage =>
+      '이 데이터는 더 최신 버전의 앱에서 저장되었습니다. 계속하려면 스토어에서 앱을 업데이트하세요.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

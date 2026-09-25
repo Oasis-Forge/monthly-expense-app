@@ -94,7 +94,7 @@ void main() {
           DBHelper.schemaMigrations.length - 1,
         ),
       );
-      await expectLater(older.database, throwsA(isA<StateError>()));
+      await expectLater(older.database, throwsA(isA<DatabaseDowngradeError>()));
       await older.close();
 
       // The newer build is installed again: it must still open cleanly,

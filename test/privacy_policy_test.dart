@@ -42,6 +42,24 @@ void main() {
       );
     });
 
+    test('does not promise device transfer carries records on Android 11 '
+        'and below (BAK-8)', () {
+      // allowBackup="false" turns off device-to-device transfer along with
+      // cloud backup on Android 11 and below, so the policy must not claim
+      // the transfer always brings the records -- only a user-saved backup
+      // does on those phones.
+      expect(
+        policy,
+        isNot(
+          contains(
+            "Moving to a new phone with Android's transfer "
+            'still brings it with you.',
+          ),
+        ),
+      );
+      expect(policy, contains('Android 12 and later'));
+    });
+
     test('exempts only the full-screen ad from the first session', () {
       // AdsProvider._startAdsIfReady gates a banner on setup, the
       // walkthrough, consent and purchase only — never on a first session —

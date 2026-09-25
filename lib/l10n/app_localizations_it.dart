@@ -1115,6 +1115,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile ripristinare il backup. I tuoi dati non sono stati modificati.';
 
   @override
+  String get dbTooNewTitle => 'Aggiornamento necessario';
+
+  @override
+  String get dbTooNewMessage =>
+      'Questi dati sono stati salvati da una versione più recente dell\'app. Aggiornala dallo store per continuare.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

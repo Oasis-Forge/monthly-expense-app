@@ -39,6 +39,14 @@ import 'package:monthly_expense_app/services/shortcut_service.dart';
 
 final _created = DateTime.utc(2026);
 
+/// Matches a UUID v4, case-insensitively (REC-2): every new record's ID
+/// must look like this, so a backup from any device never collides with one
+/// already on this one.
+final uuidV4 = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+  caseSensitive: false,
+);
+
 Money _money(num amount) => Money((amount * 1000).round());
 
 /// A transaction with test defaults. [amount] is in whole currency units.
@@ -226,6 +234,11 @@ class FakeDB extends DBHelper {
   final Map<String, String> purgedIds = {};
   bool failWrites = false;
 
+  /// Makes the very first read in [TransactionProvider.load] throw this,
+  /// the way an [DatabaseDowngradeError] would if this build opened a
+  /// database a newer build had already upgraded (x-downgrade-message).
+  Object? failLoadWith;
+
   void _checkWrite() {
     if (failWrites) throw StateError('write failed');
   }
@@ -255,6 +268,7 @@ class FakeDB extends DBHelper {
 
   @override
   Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
+    if (failLoadWith != null) throw failLoadWith!;
     bool old(DateTime? deletedAt) => deletedAt?.isBefore(cutoff) ?? false;
     final going = [
       for (final row in rows)
@@ -1093,6 +1107,11 @@ class FakeAttachmentFiles implements AttachmentFiles {
   String? recordingTo;
   bool cancelled = false;
 
+  /// Makes [stopRecording] throw once, the way a `PlatformException` from
+  /// the recorder plugin would after an audio-focus loss or a phone call
+  /// (x-recorder-release).
+  bool stopThrows = false;
+
   @override
   Future<String?> pickPhoto(PhotoSource source) async {
     picked.add(source);
@@ -1108,7 +1127,13 @@ class FakeAttachmentFiles implements AttachmentFiles {
   }
 
   @override
-  Future<String?> stopRecording() async => recordingTo;
+  Future<String?> stopRecording() async {
+    if (stopThrows) {
+      stopThrows = false;
+      throw StateError('stop failed');
+    }
+    return recordingTo;
+  }
 
   @override
   Future<void> play(String path) async {

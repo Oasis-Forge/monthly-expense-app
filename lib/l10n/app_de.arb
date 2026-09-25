@@ -302,6 +302,8 @@
   "backupTooNew": "Diese Sicherung stammt aus einer neueren App-Version. Aktualisiere die App und versuche es erneut.",
   "backupOpenFailed": "Die Datei konnte nicht geöffnet werden. Versuche es erneut.",
   "backupRestoreFailed": "Die Sicherung konnte nicht wiederhergestellt werden. Deine Daten wurden nicht geändert.",
+  "dbTooNewTitle": "Update erforderlich",
+  "dbTooNewMessage": "Diese Daten wurden von einer neueren Version der App gespeichert. Aktualisiere die App im Store, um fortzufahren.",
   "restoredReplace": "{count, plural, =1{1 Buchung wiederhergestellt} other{{count} Buchungen wiederhergestellt}}",
   "restoredMerge": "Zusammengeführt: {added} hinzugefügt, {updated} aktualisiert, {unchanged} unverändert",
   "appLockLabel": "App-Sperre",

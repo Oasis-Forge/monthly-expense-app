@@ -1144,6 +1144,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّرت استعادة النسخة الاحتياطية. لم تتغير بياناتك.';
 
   @override
+  String get dbTooNewTitle => 'التحديث مطلوب';
+
+  @override
+  String get dbTooNewMessage =>
+      'تم حفظ هذه البيانات بواسطة إصدار أحدث من التطبيق. حدّثه من المتجر للمتابعة.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

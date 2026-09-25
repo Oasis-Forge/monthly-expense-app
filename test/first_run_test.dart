@@ -465,4 +465,39 @@ void main() {
       expect(settings.walkthroughSeen, isTrue);
     });
   });
+
+  group('a refused downgrade open (x-downgrade-message)', () {
+    testWidgets('shows the update message instead of an empty setup or Home', (
+      tester,
+    ) async {
+      final failedDb = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final failedProvider = TransactionProvider(
+        db: failedDb,
+        clock: () => today,
+      );
+      await failedProvider.load();
+      final settings = await testSettings({
+        'first_opened_at': '2026-01-04T08:00:00.000Z',
+      }, () => today);
+      tester.view.physicalSize = const Size(600, 2400);
+      tester.view.devicePixelRatio = 2;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        testApp(failedProvider, settings, const FirstRunGate()),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Update needed'), findsOne);
+      expect(
+        find.text(
+          'This data was saved by a newer version of the app. Update it '
+          'from the store to continue.',
+        ),
+        findsOne,
+      );
+      expect(find.text('Add your first transaction'), findsNothing);
+      expect(find.text('Continue'), findsNothing);
+    });
+  });
 }

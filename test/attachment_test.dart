@@ -124,6 +124,21 @@ void main() {
     test('a voice note stops at a minute', () {
       expect(AttachmentService.voiceLimit, const Duration(seconds: 60));
     });
+
+    test('a throwing stop releases the recorder and drops the partial file '
+        '(x-recorder-release)', () async {
+      await attachments.startRecording();
+      files.stopThrows = true;
+
+      await expectLater(attachments.stopRecording(), throwsStateError);
+
+      expect(files.cancelled, isTrue);
+      expect(dir.listSync(), isEmpty);
+
+      // The recorder is usable again for the next recording, not stuck.
+      expect(await attachments.startRecording(), isTrue);
+      expect(await attachments.stopRecording(), 'file2.m4a');
+    });
   });
 
   group('files (ATT-5, ATT-7)', () {

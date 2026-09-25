@@ -302,6 +302,8 @@
   "backupTooNew": "Cadangan ini dari versi aplikasi yang lebih baru. Perbarui aplikasi, lalu coba lagi.",
   "backupOpenFailed": "File gagal dibuka. Coba lagi.",
   "backupRestoreFailed": "Cadangan gagal dipulihkan. Data Anda tidak berubah.",
+  "dbTooNewTitle": "Perlu pembaruan",
+  "dbTooNewMessage": "Data ini disimpan oleh versi aplikasi yang lebih baru. Perbarui aplikasi dari toko untuk melanjutkan.",
   "restoredReplace": "{count, plural, =1{1 transaksi dipulihkan} other{{count} transaksi dipulihkan}}",
   "restoredMerge": "Digabungkan: {added} ditambahkan, {updated} diperbarui, {unchanged} tidak berubah",
   "appLockLabel": "Kunci aplikasi",

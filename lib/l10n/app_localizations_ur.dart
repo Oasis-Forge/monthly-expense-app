@@ -1109,6 +1109,13 @@ class AppLocalizationsUr extends AppLocalizations {
       'بیک اپ بحال نہیں ہو سکا۔ آپ کا ڈیٹا تبدیل نہیں ہوا۔';
 
   @override
+  String get dbTooNewTitle => 'اپڈیٹ درکار ہے';
+
+  @override
+  String get dbTooNewMessage =>
+      'یہ ڈیٹا ایپ کے نئے ورژن نے محفوظ کیا تھا۔ جاری رکھنے کے لیے اسٹور سے ایپ اپڈیٹ کریں۔';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

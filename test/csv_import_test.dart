@@ -979,5 +979,81 @@ void main() {
 
       expect(plan.rows.single.amount, const Money(1234000));
     });
+
+    test('the formula-guard apostrophe on title, note, category, and account '
+        'comes back off (rules-11-13-20-21#11)', () {
+      final tx = testTx(
+        't1',
+        TransactionType.expense,
+        0,
+        DateTime(2026, 9, 1),
+        title: '-5 refund',
+      ).copyWith(note: '=SUM(A1)');
+      final csv = buildCsv(
+        transactions: [tx],
+        currencyCode: 'KWD',
+        categoryName: (_) => '+Savings',
+        accountName: (_) => '@Wallet',
+      );
+      // The export really did guard every one of these (otherwise this
+      // test would pass even with no import-side fix at all).
+      expect(csv, contains("'-5 refund"));
+      expect(csv, contains("'=SUM(A1)"));
+      expect(csv, contains("'+Savings"));
+      expect(csv, contains("'@Wallet"));
+
+      final plan = planImport(
+        table: parseCsv(csv),
+        categoryIdFor: (name) => name == '+Savings' ? 'cat-savings' : null,
+        accountIdFor: (name) => name == '@Wallet' ? 'acc-wallet' : null,
+      );
+
+      final row = plan.rows.single;
+      expect(row.title, '-5 refund');
+      expect(row.note, '=SUM(A1)');
+      expect(row.categoryName, '+Savings');
+      expect(row.accountName, '@Wallet');
+      expect(plan.unknownCategories, isEmpty);
+      expect(plan.unknownAccounts, isEmpty);
+    });
+
+    test('a title that starts with the user\'s own apostrophe reads back '
+        'exactly (rules-11-13-20-21#11)', () {
+      final tx = testTx(
+        't1',
+        TransactionType.expense,
+        0,
+        DateTime(2026, 9, 1),
+        title: "'-5 refund",
+      );
+      final csv = buildCsv(
+        transactions: [tx],
+        currencyCode: 'KWD',
+        categoryName: (_) => 'Food',
+        accountName: (_) => 'Cash',
+      );
+      // The export guards it with a second apostrophe, or the plain
+      // '-5 refund" case above and this one would export identically and
+      // no longer round-trip.
+      expect(csv, contains("''-5 refund"));
+
+      final plan = planImport(
+        table: parseCsv(csv),
+        categoryIdFor: (_) => 'cat-food',
+        accountIdFor: (_) => Account.cashId,
+      );
+
+      expect(plan.rows.single.title, "'-5 refund");
+    });
+
+    test('a foreign file\'s own leading apostrophe is left alone', () {
+      final plan = planImport(
+        table: parseCsv("date,amount,title\n2026-09-01,-5.00,'-5 refund\n"),
+        categoryIdFor: (_) => 'cat-food',
+        accountIdFor: (_) => Account.cashId,
+      );
+
+      expect(plan.rows.single.title, "'-5 refund");
+    });
   });
 }

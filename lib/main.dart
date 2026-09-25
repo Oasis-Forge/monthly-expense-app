@@ -316,6 +316,10 @@ class _ShortcutTapsState extends State<_ShortcutTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
+    // A refused downgrade open never read any data (x-downgrade-message):
+    // opening the form here would land it over DatabaseTooNewScreen with
+    // nothing to fill it and nowhere to save.
+    if (provider.openRefused) return;
     // Whatever was open before is not what was asked for, but a form with
     // something typed into it asks the same ADD-9 question the back button
     // would, rather than being silently dropped (pr57#3).
@@ -399,6 +403,10 @@ class _WidgetTapsState extends State<_WidgetTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
+    // A refused downgrade open never read any data (x-downgrade-message):
+    // opening the form here would land it over DatabaseTooNewScreen with
+    // nothing to fill it and nowhere to save.
+    if (provider.openRefused) return;
     // Whatever was open before the tap is not what was asked for, but a
     // form with something typed into it asks the same ADD-9 question the
     // back button would, rather than being silently dropped (pr57#3).
@@ -513,6 +521,10 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     final provider = navigator.context.read<TransactionProvider>();
     await provider.whenLoaded;
     if (!navigator.mounted) return;
+    // A refused downgrade open never read any notes (x-downgrade-message):
+    // opening NotesScreen here would show an empty list over
+    // DatabaseTooNewScreen instead of the update message.
+    if (provider.openRefused) return;
     navigator.push(
       MaterialPageRoute(
         builder: (context) {
@@ -558,6 +570,11 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     // Days with entries are the answer to a nudge; counted before they are
     // read, every day looks ignored and the nudge stops itself (NUDGE-5).
     await transactions.whenLoaded;
+    // A refused downgrade open never read the transactions
+    // (x-downgrade-message): daysUsed would be empty, so every scheduled
+    // nudge since the last check would count as ignored and could reach the
+    // NUDGE-5 give-up, which would persist after the user updates.
+    if (transactions.openRefused) return;
     // A phone that is blocking notifications never had a chance to see one,
     // so nothing here counts as ignored while it does (NUDGE-5, NUDGE-7).
     // The day is still marked checked, so this stretch is never counted

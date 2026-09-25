@@ -74,10 +74,14 @@ String isoDate(DateTime date) =>
     '${date.month.toString().padLeft(2, '0')}-'
     '${date.day.toString().padLeft(2, '0')}';
 
-final _formulaStart = RegExp(r'^[=+\-@\t\r]');
+final _formulaStart = RegExp(r"^([=+\-@\t\r]|'[=+\-@])");
 
 /// User text. Spreadsheets run a cell that starts with `=`, `+`, `-`, or `@`
-/// as a formula, so such text gets a leading apostrophe.
+/// as a formula, so such text gets a leading apostrophe. A value that
+/// already starts with the user's own apostrophe followed by one of those
+/// (`'-5 refund`) is guarded the same way, or import's matching strip
+/// (csv_import.dart's `_stripFormulaGuard`) would remove that apostrophe
+/// as though it were the guard (rules-11-13-20-21#11).
 String _text(String? value) {
   if (value == null) return '';
   return _formulaStart.hasMatch(value) ? "'$value" : value;

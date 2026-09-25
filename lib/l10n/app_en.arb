@@ -837,6 +837,14 @@
   "backupTooNew": "This backup is from a newer version of the app. Update the app, then try again.",
   "backupOpenFailed": "Couldn't open the file. Try again.",
   "backupRestoreFailed": "Couldn't restore the backup. Your data wasn't changed.",
+  "dbTooNewTitle": "Update needed",
+  "@dbTooNewTitle": {
+    "description": "Title shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message)."
+  },
+  "dbTooNewMessage": "This data was saved by a newer version of the app. Update it from the store to continue.",
+  "@dbTooNewMessage": {
+    "description": "Message shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message)."
+  },
   "restoredReplace": "{count, plural, =1{Restored 1 transaction} other{Restored {count} transactions}}",
   "@restoredReplace": {
     "placeholders": {

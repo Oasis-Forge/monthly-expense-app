@@ -131,6 +131,31 @@ void main() {
     expect(find.byType(NoteFormScreen), findsNothing);
   });
 
+  testWidgets('two notes get distinct UUID v4 IDs (REC-2)', (tester) async {
+    Future<void> addNote(String text) async {
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Note'), text);
+      await tester.tap(find.widgetWithText(FilledButton, 'Add a note'));
+      await tester.pumpAndSettle();
+    }
+
+    await showNotes(tester);
+    await addNote('First');
+    await addNote('Second');
+
+    expect(provider.notes, hasLength(2));
+    final ids = provider.notes.map((n) => n.id).toList();
+    expect(
+      ids.toSet(),
+      hasLength(2),
+      reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
+    );
+    for (final id in ids) {
+      expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+    }
+  });
+
   testWidgets('the checkbox marks a note done and moves it to Done', (
     tester,
   ) async {

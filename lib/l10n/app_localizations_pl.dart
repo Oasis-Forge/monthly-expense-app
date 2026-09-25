@@ -1151,6 +1151,13 @@ class AppLocalizationsPl extends AppLocalizations {
       'Nie udało się przywrócić kopii zapasowej. Twoje dane nie zostały zmienione.';
 
   @override
+  String get dbTooNewTitle => 'Wymagana aktualizacja';
+
+  @override
+  String get dbTooNewMessage =>
+      'Te dane zostały zapisane przez nowszą wersję aplikacji. Zaktualizuj aplikację ze sklepu, aby kontynuować.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
