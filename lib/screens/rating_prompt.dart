@@ -24,14 +24,23 @@ Future<void> Function() ratingRequest(BuildContext context) {
     if (!reviews.supported) return;
     final version = await reviews.version();
 
+    final askedOn = settings.updateAskedOn?.toLocal();
+    final today = transactions.today;
+    final updateAskedToday =
+        askedOn != null &&
+        askedOn.year == today.year &&
+        askedOn.month == today.month &&
+        askedOn.day == today.day;
+
     final due = ratingIsDue(
       entries: transactions.transactions.length,
       firstOpened: settings.firstOpenedAt,
-      now: transactions.today,
+      now: today,
       version: version,
       askedVersion: settings.ratingAskedVersion,
       locked: ads.locked,
       adShownThisSession: ads.interstitialShown,
+      updateAskedToday: updateAskedToday,
     );
     if (!due) return;
 
