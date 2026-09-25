@@ -412,6 +412,47 @@ void main() {
       },
     );
 
+    test('an archived category\'s budget stops counting from the current '
+        'period on; past periods still report it (BUD-5, BUD-6, CAT-4, '
+        'rules-6-10#9)', () async {
+      now = DateTime(2026, 8, 20);
+      await reload();
+      await provider.setBudget('cat-food', const Money(50000));
+      now = today;
+      await reload();
+
+      await provider.archiveCategory('cat-food');
+      expect(
+        provider.categoriesFor(expense).map((c) => c.id),
+        isNot(contains('cat-food')),
+      );
+
+      // Current: the budget no longer counts, and with no other budget the
+      // card has nothing to show.
+      expect(
+        provider.budgetStatuses.map((s) => s.categoryId),
+        isNot(contains('cat-food')),
+      );
+      expect(BudgetSummary.of(provider.budgetStatuses), isNull);
+
+      provider.nextPeriod();
+      expect(
+        provider.budgetStatuses.map((s) => s.categoryId),
+        isNot(contains('cat-food')),
+      );
+
+      // August is over: it still shows the result it had (BUD-6).
+      provider
+        ..previousPeriod()
+        ..previousPeriod();
+      expect(provider.budgetStatuses.single.categoryId, 'cat-food');
+
+      // Unarchiving brings it back as it was (CAT-4).
+      await provider.unarchiveCategory('cat-food');
+      provider.nextPeriod();
+      expect(provider.budgetStatuses.single.categoryId, 'cat-food');
+    });
+
     test('the overall offer starts from the period before the current one, '
         'whichever is selected (BUD-11, rules-6-10#8)', () async {
       fake.rows.addAll([

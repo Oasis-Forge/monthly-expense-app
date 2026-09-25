@@ -1379,7 +1379,11 @@ class TransactionProvider extends ChangeNotifier {
       ?statusFor(null, _everyAccount.expense),
       for (final category in [
         ...categoriesFor(TransactionType.expense),
-        ...archivedCategoriesFor(TransactionType.expense),
+        // An archived category's budget has no tile left to change it on, so
+        // it stops counting from the current period on; a past period still
+        // shows the result it had (BUD-5, BUD-6, CAT-4).
+        if (timing == PeriodTiming.past)
+          ...archivedCategoriesFor(TransactionType.expense),
       ])
         ?statusFor(category.id, byCategory[category.id] ?? Money.zero),
     ];
