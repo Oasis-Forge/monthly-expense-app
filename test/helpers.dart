@@ -614,10 +614,10 @@ class FakeReminderService implements ReminderService {
   /// scheduled with.
   final Map<String, bool> scheduled = {};
 
-  /// The time each scheduled note's reminder was last scheduled for
-  /// (mirrors [DeviceReminderService]'s own record; see
-  /// [shouldCancelPassedReminder]).
-  final Map<String, DateTime> _lastScheduledAt = {};
+  /// The time each scheduled note's reminder was last scheduled for, and
+  /// whether app lock was on then (mirrors [DeviceReminderService]'s own
+  /// record; see [shouldCancelPassedReminder]).
+  final Map<String, ({DateTime at, bool appLockOn})> _lastScheduledAt = {};
 
   /// How many times [requestPermission] was called.
   int permissionRequests = 0;
@@ -668,23 +668,31 @@ class FakeReminderService implements ReminderService {
     }
     final now = _now();
     if (!at.isAfter(now)) {
+      final last = _lastScheduledAt[note.id];
       if (shouldCancelPassedReminder(
         at: at,
-        lastScheduledAt: _lastScheduledAt[note.id],
+        lastScheduledAt: last?.at,
         now: now,
       )) {
         scheduled.remove(note.id);
         _lastScheduledAt.remove(note.id);
       } else {
         // Mirrors DeviceReminderService: a recently passed, unchanged time
-        // leaves whatever is already scheduled alone (NOTE-6).
-        scheduled[note.id] = appLockOn;
-        _lastScheduledAt[note.id] = at;
+        // leaves whatever is already scheduled alone (NOTE-6), unless app
+        // lock just turned on, in which case the device replaces the
+        // pending alarm with the locked wording (LOCK-2). If nothing was
+        // ever actually scheduled for this passed time (last == null), the
+        // device schedules nothing either, so this must not invent an
+        // entry.
+        if (last != null && !last.appLockOn && appLockOn) {
+          scheduled[note.id] = true;
+        }
+        _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
       }
       return;
     }
     scheduled[note.id] = appLockOn;
-    _lastScheduledAt[note.id] = at;
+    _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
   }
 
   @override

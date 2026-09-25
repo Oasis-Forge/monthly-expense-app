@@ -251,7 +251,11 @@ void main() {
       test(
         'one minute past keeps its scheduled entry through a reschedule',
         () async {
-          now = DateTime(2026, 9, 20, 9);
+          // Added before its own time, so it is actually scheduled first
+          // (pr59#9): adding it at the reminder's own time would take the
+          // passed-time branch immediately and never call [schedule] at
+          // all, making this pass for the wrong reason.
+          now = DateTime(2026, 9, 20, 8, 59);
           await add(
             'a',
             'Remind me',
@@ -273,7 +277,7 @@ void main() {
       );
 
       test('a done note is still cancelled even within the window', () async {
-        now = DateTime(2026, 9, 20, 9);
+        now = DateTime(2026, 9, 20, 8, 59);
         await add(
           'a',
           'Remind me',
@@ -288,7 +292,7 @@ void main() {
       });
 
       test('more than two hours past is not rescheduled', () async {
-        now = DateTime(2026, 9, 20, 9);
+        now = DateTime(2026, 9, 20, 8, 59);
         await add(
           'a',
           'Remind me',
@@ -308,7 +312,7 @@ void main() {
       test(
         'a changed time cancels the old one, even within the window',
         () async {
-          now = DateTime(2026, 9, 20, 9);
+          now = DateTime(2026, 9, 20, 8, 59);
           await add(
             'a',
             'Remind me',
@@ -331,6 +335,49 @@ void main() {
           expect(reminders.scheduled.containsKey('a'), isFalse);
         },
       );
+
+      test('app lock turning on re-words a reminder still pending from just '
+          'before, rather than leaving the unlocked one showing (LOCK-2, '
+          'NOTE-6)', () async {
+        now = DateTime(2026, 9, 20, 8, 59);
+        await add(
+          'a',
+          'Remind me',
+          dueDate: DateTime(2026, 9, 20),
+          reminderAt: DateTime(2026, 9, 20, 9),
+        );
+        expect(reminders.scheduled['a'], false);
+
+        now = DateTime(2026, 9, 20, 9, 1);
+        await provider.rescheduleReminders(appLockOn: true, locale: locale);
+
+        expect(reminders.scheduled['a'], true);
+      });
+
+      test('app lock turning off again leaves a reminder that already went '
+          'out locked alone, rather than reporting it as unlocked (LOCK-2, '
+          'NOTE-6)', () async {
+        now = DateTime(2026, 9, 20, 8, 59);
+        await add(
+          'a',
+          'Remind me',
+          dueDate: DateTime(2026, 9, 20),
+          reminderAt: DateTime(2026, 9, 20, 9),
+        );
+        now = DateTime(2026, 9, 20, 9, 1);
+        await provider.rescheduleReminders(appLockOn: true, locale: locale);
+        expect(reminders.scheduled['a'], true);
+
+        await provider.rescheduleReminders(appLockOn: false, locale: locale);
+
+        expect(
+          reminders.scheduled['a'],
+          true,
+          reason:
+              'the device already replaced this with the locked wording; '
+              'turning app lock back off does not touch it',
+        );
+      });
     });
   });
 }

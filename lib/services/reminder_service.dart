@@ -78,8 +78,11 @@ abstract class ReminderService {
   /// cancelled only when that time changed or it passed more than
   /// [passedReminderGrace] ago; otherwise whatever is already pending (the
   /// device's own inexact alarm) is left alone rather than dropped for good
-  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]). With [appLockOn],
-  /// the notification names only the app, not the note's text (LOCK-2).
+  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]) -- unless app lock
+  /// just turned on, in which case that pending alarm is replaced right
+  /// away with the locked wording, so it never keeps showing the note's
+  /// text once locked. With [appLockOn], the notification names only the
+  /// app, not the note's text (LOCK-2).
   Future<void> schedule(
     Note note, {
     required bool appLockOn,
@@ -190,10 +193,12 @@ class DeviceReminderService implements ReminderService {
   /// the tapped notification's note a second time.
   Future<void>? _initializing;
 
-  /// The time each note's reminder was last scheduled for, so a passed time
-  /// can be told apart from one that changed (pr59-style in-memory record;
-  /// see [shouldCancelPassedReminder]).
-  final _lastScheduledAt = <String, DateTime>{};
+  /// The time each note's reminder was last scheduled for, and whether app
+  /// lock was on then, so a passed time can be told apart from one that
+  /// changed (pr59-style in-memory record; see [shouldCancelPassedReminder])
+  /// and so app lock turning on while that reminder is still pending can be
+  /// noticed (LOCK-2, NOTE-6).
+  final _lastScheduledAt = <String, ({DateTime at, bool appLockOn})>{};
 
   Future<void> _ensureInitialized() {
     final initializing = _initializing ??= _doInitialize();
@@ -289,16 +294,40 @@ class DeviceReminderService implements ReminderService {
     }
     final now = DateTime.now();
     if (!at.isAfter(now)) {
+      final last = _lastScheduledAt[note.id];
       if (shouldCancelPassedReminder(
         at: at,
-        lastScheduledAt: _lastScheduledAt[note.id],
+        lastScheduledAt: last?.at,
         now: now,
       )) {
         await cancel(note);
       } else {
         // Still within the grace window and unchanged: leave whatever the
-        // device already has pending alone (NOTE-6).
-        _lastScheduledAt[note.id] = at;
+        // device already has pending alone (NOTE-6) -- unless app lock just
+        // turned on, in which case that pending alarm would still show the
+        // note's text on the lock screen: replace it right away with the
+        // locked wording instead (LOCK-2).
+        if (last != null && !last.appLockOn && appLockOn) {
+          await _ensureInitialized();
+          final l10n = await AppLocalizations.delegate.load(locale);
+          await _plugin.cancel(id: reminderNotificationId(note.id));
+          await _plugin.show(
+            id: reminderNotificationId(note.id),
+            title: l10n.noteReminderLockedTitle,
+            notificationDetails: const NotificationDetails(
+              android: AndroidNotificationDetails(
+                'note_reminders',
+                'Note reminders',
+                importance: Importance.defaultImportance,
+              ),
+              iOS: DarwinNotificationDetails(),
+              macOS: DarwinNotificationDetails(),
+              linux: LinuxNotificationDetails(),
+            ),
+            payload: note.id,
+          );
+        }
+        _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
       }
       return;
     }
@@ -322,7 +351,7 @@ class DeviceReminderService implements ReminderService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: note.id,
     );
-    _lastScheduledAt[note.id] = at;
+    _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
   }
 
   @override
