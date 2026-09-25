@@ -176,7 +176,14 @@ class BackupService {
       if (file.name == backupEntry) {
         json = utf8.decode(content);
       } else if (file.name.startsWith('$attachmentsEntry/')) {
-        files[file.name.split('/').last] = content;
+        // A zip entry name is untrusted (it need not come from this app's
+        // own encoder, which is the only thing that would have rewritten a
+        // `\`-separated traversal to `/`): keep only names that are this
+        // app's own uuid.ext pattern, never a path, so a crafted backup
+        // can't write outside the attachments folder (ATT-2,
+        // data-integrity#10).
+        final name = file.name.split('/').last;
+        if (isSafeAttachmentName(name)) files[name] = content;
       }
     }
     if (json == null) throw const BackupException(BackupProblem.invalid);

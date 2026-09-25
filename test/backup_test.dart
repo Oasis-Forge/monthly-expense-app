@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -14,8 +15,33 @@ import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
+
+/// Replaces every non-overlapping occurrence of [from] in [bytes] with [to]
+/// (same length, so no offset in the surrounding zip structure moves).
+/// Stands in for a zip tool, unlike this app's own [ZipEncoder], that writes
+/// a `\`-containing entry name byte for byte instead of rewriting it to `/`.
+List<int> _spliceBytes(List<int> bytes, List<int> from, List<int> to) {
+  assert(from.length == to.length);
+  final out = List<int>.from(bytes);
+  var hits = 0;
+  for (var i = 0; i + from.length <= out.length; i++) {
+    if (!from.indexed.every((e) => out[i + e.$1] == e.$2)) continue;
+    out.setRange(i, i + to.length, to);
+    hits++;
+    i += from.length - 1;
+  }
+  expect(
+    hits,
+    2,
+    reason:
+        'expected the sentinel name in exactly the local and '
+        'central-directory zip headers',
+  );
+  return out;
+}
 
 void main() {
   const expense = TransactionType.expense;
@@ -377,6 +403,75 @@ void main() {
     ]) {
       await expectLater(service.read(bytes), refusedAs(BackupProblem.invalid));
     }
+  });
+
+  test('a malicious photo_file/voice_file in a backup is dropped, never '
+      'trusted as a path (ATT-2, data-integrity#10)', () async {
+    final service = testBackupService(helperAt('sanitize.db'));
+    final valid = await service.create(await testSettings());
+    final malicious = tx('lunch').toMap()
+      ..['photo_file'] = '../../databases/monthly_expense_app.db'
+      ..['voice_file'] = 'sub\\evil.m4a';
+
+    final read = await service.read(
+      encode(
+        valid.withTables({
+          ...valid.tables,
+          'transactions': [malicious],
+        }, schemaVersion: valid.schemaVersion),
+      ),
+    );
+
+    final restored = read.tables['transactions']!.single;
+    expect(restored['photo_file'], isNull);
+    expect(restored['voice_file'], isNull);
+  });
+
+  test('a malicious attachment name in a zip backup cannot escape the '
+      'attachments folder (ATT-2, data-integrity#10)', () async {
+    final attachmentsDir = Directory(p.join(dir.path, 'attachments'));
+    final attachments = testAttachments(attachmentsDir).service;
+    final target = helperAt('zip-slip.db');
+    final backupService = testBackupService(target, attachments: attachments);
+    final settings = await testSettings();
+    final validJson = (await backupService.create(settings)).toJson();
+
+    // A crafted zip: a legitimate backup.json plus one attachment entry
+    // whose name climbs out of the attachments folder with backslashes,
+    // which `file.name.split('/').last` alone would not strip (it only
+    // splits on '/'). Built with a same-length placeholder and spliced to
+    // the real name so this app's own ZipEncoder (which rewrites '\' to
+    // '/' on encode) never gets the chance to "fix" it, matching a zip
+    // written by some other tool.
+    const sentinelSuffix = 'XXXXXXXXXXXXXX';
+    const maliciousSuffix = '..\\..\\evil.txt';
+    expect(sentinelSuffix.length, maliciousSuffix.length);
+
+    final archive = Archive()
+      ..add(ArchiveFile.string(BackupService.backupEntry, validJson))
+      ..add(
+        ArchiveFile.bytes(
+          '${BackupService.attachmentsEntry}/$sentinelSuffix',
+          utf8.encode('planted by a malicious backup'),
+        ),
+      );
+    final zipBytes = _spliceBytes(
+      ZipEncoder().encodeBytes(archive),
+      utf8.encode('${BackupService.attachmentsEntry}/$sentinelSuffix'),
+      utf8.encode('${BackupService.attachmentsEntry}/$maliciousSuffix'),
+    );
+
+    final backup = await backupService.read(zipBytes);
+    // The unsafe name never survives into BackupData.files.
+    expect(backup.files.keys, isNot(contains('..\\..\\evil.txt')));
+
+    await backupService.restore(backup, RestoreMode.replace, settings);
+
+    // dir/attachments/..\..\evil.txt would resolve to dir/evil.txt: two
+    // levels above the attachments folder the app is supposed to be
+    // confined to.
+    final escaped = File(p.join(dir.path, 'evil.txt'));
+    expect(escaped.existsSync(), isFalse);
   });
 
   test('a failed replace leaves the data as it was', () async {

@@ -23,6 +23,15 @@ const backupTableNames = [
   'notes',
 ];
 
+/// This app's own attachment file name pattern (a uuid plus `.jpg`/`.m4a`,
+/// as [AttachmentService] generates), never a path. `photo_file`/
+/// `voice_file` are only ever safe to hand to [AttachmentService] when they
+/// match this, so a crafted backup can't smuggle a path-traversal name into
+/// the database (ATT-2, data-integrity#10).
+final _safeAttachmentName = RegExp(r'^[a-zA-Z0-9-]+\.(jpg|m4a)$');
+
+bool isSafeAttachmentName(String name) => _safeAttachmentName.hasMatch(name);
+
 enum BackupProblem {
   /// The file isn't a backup, or its records are malformed.
   invalid,
@@ -150,6 +159,21 @@ class BackupData {
   }
 }
 
+/// Clears `photo_file`/`voice_file` when they aren't this app's own uuid.ext
+/// name, so a crafted backup (zip or plain JSON) can never point the app at
+/// a file outside the attachments folder. Treated like a file that has gone
+/// missing (ATT-7) rather than refusing the whole backup over one bad
+/// reference (data-integrity#10).
+Map<String, Object?> _sanitizeAttachmentNames(Map<String, Object?> row) {
+  Object? safe(Object? name) =>
+      name is String && isSafeAttachmentName(name) ? name : null;
+  return {
+    ...row,
+    'photo_file': safe(row['photo_file']),
+    'voice_file': safe(row['voice_file']),
+  };
+}
+
 /// Checks the tables of a backup at the current schema against the app's
 /// models and returns them as the app writes them. Throws a
 /// [BackupException] for a missing table, a malformed or duplicate record,
@@ -166,7 +190,7 @@ BackupTables normalizeTables(BackupTables tables) {
       ],
       'transactions': [
         for (final row in rows('transactions'))
-          ExpenseTransaction.fromMap(row).toMap(),
+          _sanitizeAttachmentNames(ExpenseTransaction.fromMap(row).toMap()),
       ],
       'transfers': [
         for (final row in rows('transfers')) Transfer.fromMap(row).toMap(),
