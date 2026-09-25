@@ -75,6 +75,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count transactions récurrentes sont dues',
       one: '1 transaction récurrente est due',
+      zero: '$count transactions récurrentes sont dues',
     );
     return '$_temp0';
   }
@@ -98,6 +99,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count budgets prévus',
       one: '1 budget prévu',
+      zero: '$count budgets prévus',
     );
     return '$_temp0';
   }
@@ -364,6 +366,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: 'supprimé définitivement dans $days jours',
       one: 'supprimé définitivement dans 1 jour',
+      zero: 'supprimé définitivement dans $days jours',
     );
     return '$_temp0';
   }
@@ -862,6 +865,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count mois',
       one: '1 mois',
+      zero: '$count mois',
     );
     return '$_temp0';
   }
@@ -1056,6 +1060,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count transactions',
       one: '1 transaction',
+      zero: '$count transactions',
     );
     return '$date · $_temp0';
   }
@@ -1284,6 +1289,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count notes sont dues',
       one: '1 note est due',
+      zero: '$count notes sont dues',
     );
     return '$_temp0';
   }
@@ -1609,6 +1615,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: 'et $count autres',
       one: 'et 1 autre',
+      zero: 'et $count autres',
     );
     return '$_temp0';
   }
@@ -1632,6 +1639,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count enregistrements importés',
       one: '1 enregistrement importé',
+      zero: '$count enregistrements importés',
     );
     return '$_temp0';
   }
@@ -1765,6 +1773,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count saisies récurrentes dues aujourd\'hui.',
       one: '1 saisie récurrente due aujourd\'hui.',
+      zero: '$count saisies récurrentes dues aujourd\'hui.',
     );
     return '$_temp0';
   }

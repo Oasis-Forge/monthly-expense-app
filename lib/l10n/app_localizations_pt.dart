@@ -75,6 +75,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transações recorrentes pendentes',
       one: '1 transação recorrente pendente',
+      zero: '$count transações recorrentes pendentes',
     );
     return '$_temp0';
   }
@@ -98,6 +99,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count orçamentos definidos',
       one: '1 orçamento definido',
+      zero: '$count orçamentos definidos',
     );
     return '$_temp0';
   }
@@ -363,6 +365,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'exclusão definitiva em $days dias',
       one: 'exclusão definitiva em 1 dia',
+      zero: 'exclusão definitiva em $days dias',
     );
     return '$_temp0';
   }
@@ -862,6 +865,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count meses',
       one: '1 mês',
+      zero: '$count meses',
     );
     return '$_temp0';
   }
@@ -1059,6 +1063,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transações',
       one: '1 transação',
+      zero: '$count transações',
     );
     return '$date · $_temp0';
   }
@@ -1292,6 +1297,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count notas venceram',
       one: '1 nota venceu',
+      zero: '$count notas venceram',
     );
     return '$_temp0';
   }
@@ -1617,6 +1623,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'e mais $count',
       one: 'e mais 1',
+      zero: 'e mais $count',
     );
     return '$_temp0';
   }
@@ -1640,6 +1647,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count registros importados',
       one: '1 registro importado',
+      zero: '$count registros importados',
     );
     return '$_temp0';
   }
@@ -1772,6 +1780,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count lançamentos recorrentes venceram hoje.',
       one: '1 lançamento recorrente venceu hoje.',
+      zero: '$count lançamentos recorrentes venceram hoje.',
     );
     return '$_temp0';
   }

@@ -169,7 +169,7 @@ void main() {
   // were one: a search with no matches said "1 résultat" in French
   // (LANG-7, LANG-2, SRCH-3).
   test('a count of zero never reads like a count of one, in the languages '
-      'whose "one" case covers zero', () {
+      'whose "one" case covers zero (LANG-7)', () {
     final counted = <String, String Function(AppLocalizations, int)>{
       'searchSummary': (l, n) => l.searchSummary(n, 'I', 'E'),
       'restoredReplace': (l, n) => l.restoredReplace(n),
@@ -179,6 +179,20 @@ void main() {
       'importSkippedAlreadyThere': (l, n) => l.importSkippedAlreadyThere(n),
       'importSkippedTransfer': (l, n) => l.importSkippedTransfer(n),
       'trashItemSubtitle': (l, n) => l.trashItemSubtitle('A', n),
+      // Every counted message that can reach zero gets the same guard
+      // (LANG-7): backupSummary (a fresh install's first restore always
+      // saves an automatic backup of the empty app) and importDone (a
+      // planned import whose rows are all skipped transfers) were missed
+      // by the first pass.
+      'backupSummary': (l, n) => l.backupSummary('D', n),
+      'importDone': (l, n) => l.importDone(n),
+      'recurringDueNotice': (l, n) => l.recurringDueNotice(n),
+      'budgetsCardPlanned': (l, n) => l.budgetsCardPlanned(n),
+      'trashNoteSubtitle': (l, n) => l.trashNoteSubtitle(n),
+      'trendMonths': (l, n) => l.trendMonths(n),
+      'notesDueNotice': (l, n) => l.notesDueNotice(n),
+      'importMoreRows': (l, n) => l.importMoreRows(n),
+      'dueEntryReminderMany': (l, n) => l.dueEntryReminderMany(n),
     };
 
     for (final code in ['fr', 'pt', 'hi', 'bn']) {

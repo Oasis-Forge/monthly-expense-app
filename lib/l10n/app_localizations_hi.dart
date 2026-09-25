@@ -75,6 +75,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count रिकरिंग लेनदेन देय हैं',
       one: '1 रिकरिंग लेनदेन देय है',
+      zero: '$count रिकरिंग लेनदेन देय हैं',
     );
     return '$_temp0';
   }
@@ -98,6 +99,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count बजट तय',
       one: '1 बजट तय',
+      zero: '$count बजट तय',
     );
     return '$_temp0';
   }
@@ -361,6 +363,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$days दिनों में हमेशा के लिए हट जाएगा',
       one: '1 दिन में हमेशा के लिए हट जाएगा',
+      zero: '$days दिनों में हमेशा के लिए हट जाएगा',
     );
     return '$_temp0';
   }
@@ -854,6 +857,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count महीने',
       one: '1 महीना',
+      zero: '$count महीने',
     );
     return '$_temp0';
   }
@@ -1045,6 +1049,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count लेनदेन',
       one: '1 लेनदेन',
+      zero: '$count लेनदेन',
     );
     return '$date · $_temp0';
   }
@@ -1270,6 +1275,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count नोट देय हैं',
       one: '1 नोट देय है',
+      zero: '$count नोट देय हैं',
     );
     return '$_temp0';
   }
@@ -1592,6 +1598,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count और',
       one: '1 और',
+      zero: '$count और',
     );
     return '$_temp0';
   }
@@ -1615,6 +1622,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count रिकॉर्ड इम्पोर्ट हुए',
       one: '1 रिकॉर्ड इम्पोर्ट हुआ',
+      zero: '$count रिकॉर्ड इम्पोर्ट हुए',
     );
     return '$_temp0';
   }
@@ -1747,6 +1755,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count आवर्ती प्रविष्टियाँ आज देय थीं।',
       one: '1 आवर्ती प्रविष्टि आज देय थी।',
+      zero: '$count आवर्ती प्रविष्टियाँ आज देय थीं।',
     );
     return '$_temp0';
   }
