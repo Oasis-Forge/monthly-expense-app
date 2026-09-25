@@ -1352,4 +1352,35 @@ void main() {
     expect(find.textContaining('\$'), findsNothing);
     expect(find.textContaining('¥'), findsWidgets);
   });
+
+  testWidgets(
+    'the pinned summary card drops the old decimals on a currency switch '
+    'that keeps the same symbol (CUR-2, CUR-3, pr61#4)',
+    (tester) async {
+      await showHome(tester);
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+
+      // CLP shares USD's '$' symbol but has no decimals (CUR-2).
+      await settings.setCurrencyCode('CLP');
+      await tester.pumpAndSettle();
+
+      // The day rows below the header pick up CLP's rounding at once.
+      expect(find.text('-\$13'), findsWidgets);
+
+      // _SummaryHeader.shouldRebuild compared only currencySymbol and
+      // locale, so a same-symbol currency switch was invisible to it and
+      // the pinned card kept rendering the old currency's cents.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$13')),
+        findsOneWidget,
+      );
+    },
+  );
 }
