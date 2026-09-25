@@ -339,6 +339,14 @@ class SettingsProvider extends ChangeNotifier {
     return symbol >= 0 && figure >= 0 && symbol < figure;
   }
 
+  /// Whether [locale]'s own currency pattern puts the symbol in front of
+  /// the figures, from intl's CLDR data, the same test [currencyFormat]
+  /// uses to place the symbol on display. Amount-entry fields use this to
+  /// choose `prefixText` or `suffixText` so a typed amount agrees with how
+  /// it is shown once saved (CUR-5, LANG-5, pr61#11).
+  static bool symbolLeadsFigures(String locale) =>
+      _symbolLeads(_cldrPattern(locale));
+
   static String _cldrPattern(String locale) =>
       numberFormatSymbols[Intl.verifiedLocale(
             locale,

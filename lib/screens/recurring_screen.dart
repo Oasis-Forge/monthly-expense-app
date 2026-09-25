@@ -401,7 +401,8 @@ class _PostDialogState extends State<_PostDialog> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: l10n.amountLabel,
-            prefixText: '${widget.currency.currencySymbol} ',
+            prefixText: currencyAffixes(context, widget.currency).prefix,
+            suffixText: currencyAffixes(context, widget.currency).suffix,
             helperText: amount != null
                 ? l10n.amountResult(widget.currency.money(amount))
                 : null,

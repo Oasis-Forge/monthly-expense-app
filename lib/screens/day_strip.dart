@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/languages.dart';
 import '../models/period.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
@@ -77,10 +78,15 @@ class _DayStripState extends State<DayStrip> {
   Widget build(BuildContext context) {
     final provider = context.watch<TransactionProvider>();
     final settings = context.watch<SettingsProvider>();
-    // PER-4: the chosen first day of the week, else the locale's (0 is
-    // Sunday).
+    // PER-4: the chosen first day of the week, else the device's own
+    // region when it matches the app's language, else the language's own
+    // (0 is Sunday).
     final firstWeekday =
         settings.weekStartDay ??
+        deviceWeekStartIndex(
+          WidgetsBinding.instance.platformDispatcher.locales,
+          Localizations.localeOf(context).languageCode,
+        ) ??
         MaterialLocalizations.of(context).firstDayOfWeekIndex;
     final period = provider.period;
     final today = provider.today;

@@ -132,6 +132,18 @@ void main() {
     expect(settings.weekStartDay, 1);
   });
 
+  testWidgets("the default week start follows the device's region, not just "
+      'its language (PER-4, rules-1-5#5)', (tester) async {
+    // A phone set to English (UK) defaults to Monday, though the app's
+    // own language-only locale ('en') defaults to Sunday.
+    tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+    await showSettings(tester);
+
+    expect(find.text('Default (Monday)'), findsOneWidget);
+  });
+
   testWidgets('carrying the balance forward can be turned off (BAL-3)', (
     tester,
   ) async {

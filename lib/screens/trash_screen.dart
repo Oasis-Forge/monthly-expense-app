@@ -10,6 +10,7 @@ import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
+import 'amount_style.dart';
 
 /// Everything waiting to be deleted for good: transactions, transfers and
 /// notes alike, most recently deleted first, each with its way back (DEL-3,
@@ -89,16 +90,37 @@ class _TrashedTransaction extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
     final category = provider.categoryById(transaction.categoryId);
+    final isIncome = transaction.type == TransactionType.income;
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: categoryTint(category),
         child: Text(category?.icon ?? '📦'),
       ),
       title: Text(transaction.label(category, l10n)),
-      subtitle: Text(
-        l10n.trashItemSubtitle(
-          currency.money(transaction.amount),
-          provider.trashDaysLeft(transaction),
+      // DEL-5, A11Y-4: a trashed transaction is unambiguously income or
+      // expense, so it carries the same sign and colour as everywhere else
+      // (CUR-5) rather than the plain figure a transfer or note amount is.
+      // The amount drops into trashItemSubtitle's own placeholder (pr61#8)
+      // rather than a hard-coded separator, so each language's own
+      // separator and word order around it survive.
+      subtitle: Text.rich(
+        TextSpan(
+          children: spansWithAmount(
+            l10n.trashItemSubtitle(
+              amountSentinel,
+              provider.trashDaysLeft(transaction),
+            ),
+            TextSpan(
+              text: signedAmount(
+                currency,
+                transaction.amount,
+                isIncome: isIncome,
+              ),
+              style: amountStyle(
+                TextStyle(color: signedColor(context, isIncome: isIncome)),
+              ),
+            ),
+          ),
         ),
       ),
       trailing: _RestoreButton(

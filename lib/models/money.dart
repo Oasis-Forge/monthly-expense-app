@@ -87,9 +87,18 @@ extension MoneyFormat on NumberFormat {
   /// same place. Pasted in front of the formatted amount instead, it would
   /// fall outside the isolate the pattern draws round the figures (LANG-5),
   /// and a right-to-left line would carry it off to the far end of the row,
-  /// away from the figures it belongs to.
+  /// away from the figures it belongs to. Zero gets neither sign: see below.
   String signedMoney(Money amount, {required bool isIncome}) {
-    final text = money(-amount);
+    // Zero is neither coming in nor going out, so it carries no sign at all
+    // (a trend bar with nothing in it, or a CSV row skipped before it had an
+    // amount, reads as a plain zero rather than as "+$0" or "-$0" depending
+    // on which side happened to call this).
+    if (amount.thousandths == 0) return money(amount);
+    final negated = -amount;
+    minimumFractionDigits = negated.thousandths % 1000 == 0
+        ? 0
+        : maximumFractionDigits;
+    final text = format(negated.toDouble());
     return isIncome ? swapMinusForPlus(text, locale) : text;
   }
 }

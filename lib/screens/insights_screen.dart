@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import 'empty_state.dart';
 import '../l10n/labels.dart';
+import '../l10n/languages.dart';
 import '../models/budget.dart';
 import '../models/insights.dart';
 import '../models/money.dart';
@@ -216,8 +217,13 @@ class _CategoriesTabState extends State<_CategoriesTab> {
                     PieChartSectionData(
                       value: entries[i].value.toDouble(),
                       color: swatches[i],
-                      title:
-                          '${(entries[i].value.thousandths / total.thousandths * 100).toStringAsFixed(0)}%',
+                      // LANG-3: the language's own digits and percent sign,
+                      // the same formatter the change label beside each
+                      // category already uses, rather than Latin digits and
+                      // a hard-coded '%'.
+                      title: percent.format(
+                        entries[i].value.thousandths / total.thousandths,
+                      ),
                       radius: 70,
                       titleStyle: const TextStyle(
                         fontSize: 12,
@@ -258,23 +264,26 @@ class _CategoriesTabState extends State<_CategoriesTab> {
               title: Text(
                 provider.categoryById(entries[i].key)?.label(l10n) ?? '',
               ),
-              trailing: Column(
+              // INS-6: what it was doing last month, beside what it is doing
+              // now — a Row, not a Column, so the tile stays one line tall
+              // and doesn't overflow ListTile's fixed trailing height at a
+              // large text scale (pr56+60#5). Left in the ordinary colour:
+              // red and green already mean money out and money in (CUR-5),
+              // and a second meaning for them would cost the first.
+              trailing: Row(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(currency.money(entries[i].value), style: amountStyle()),
-                  // INS-6: what it was doing last month, beside what it is
-                  // doing now. Left in the ordinary colour: red and green
-                  // already mean money out and money in (CUR-5), and a
-                  // second meaning for them would cost the first.
                   if (changeLabel(entries[i].key, entries[i].value)
-                      case final change?)
+                      case final change?) ...[
                     Text(
                       change,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(currency.money(entries[i].value), style: amountStyle()),
                 ],
               ),
             ),
@@ -305,10 +314,15 @@ class _CalendarTabState extends State<_CalendarTab> {
     final compact = settings.compactCurrencyFormat(locale);
     final period = provider.period;
     final today = provider.today;
-    // PER-4: the chosen first day of the week, else the locale's (0 is
-    // Sunday).
+    // PER-4: the chosen first day of the week, else the device's own
+    // region when it matches the app's language, else the language's own
+    // (0 is Sunday).
     final firstWeekday =
         settings.weekStartDay ??
+        deviceWeekStartIndex(
+          WidgetsBinding.instance.platformDispatcher.locales,
+          Localizations.localeOf(context).languageCode,
+        ) ??
         MaterialLocalizations.of(context).firstDayOfWeekIndex;
     final days = [
       for (

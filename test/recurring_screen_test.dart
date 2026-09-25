@@ -151,6 +151,28 @@ void main() {
       expect(provider.transactions.single.amount, const Money(950000));
     });
 
+    testWidgets(
+      "the post dialog's amount field symbol side matches the locale's "
+      'display side, in German (CUR-5, LANG-5, pr61#11)',
+      (tester) async {
+        // German writes the symbol after the figures, unlike English.
+        settings = await testSettings({'language': 'de'});
+        await showRecurring(tester);
+
+        await tester.tap(find.text('Rent').first);
+        await tester.pumpAndSettle();
+
+        final field = tester.widget<TextField>(
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(TextField),
+          ),
+        );
+        expect(field.decoration?.prefixText, isNull);
+        expect(field.decoration?.suffixText, contains('\$'));
+      },
+    );
+
     testWidgets('cancelling the amount dialog posts nothing', (tester) async {
       await showRecurring(tester);
 

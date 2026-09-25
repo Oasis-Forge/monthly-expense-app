@@ -175,6 +175,48 @@ void main() {
     'Remove ads': RemoveAdsScreen(),
   };
 
+  group('deviceWeekStartIndex follows the device region, not just the '
+      'language (PER-4, rules-1-5#5)', () {
+    test('English (UK) is Monday, unlike plain English (Sunday)', () {
+      expect(deviceWeekStartIndex(const [Locale('en', 'GB')], 'en'), 1);
+    });
+
+    test('Portugal is Monday, though intl reads Sunday for it, same as '
+        'Brazil', () {
+      expect(deviceWeekStartIndex(const [Locale('pt', 'PT')], 'pt'), 1);
+      expect(deviceWeekStartIndex(const [Locale('pt', 'BR')], 'pt'), 0);
+    });
+
+    test('a language the user picked on purpose, unconnected to the '
+        "device's region, defers to the caller's own default", () {
+      // The device is set to English (US); the user chose French, so
+      // the device's region says nothing about French's own default.
+      expect(deviceWeekStartIndex(const [Locale('en', 'US')], 'fr'), isNull);
+    });
+
+    test('no device locale at all defers the same way', () {
+      expect(deviceWeekStartIndex(const [], 'en'), isNull);
+    });
+
+    test('a device locale with no region defers the same way', () {
+      expect(deviceWeekStartIndex(const [Locale('en')], 'en'), isNull);
+    });
+
+    test('a device set to a language the app lacks first, then the resolved '
+        'one, still matches the resolved one, not just .first '
+        '(rules-1-5#5)', () {
+      // resolveAppLocale would match en_GB here, since the app has no
+      // Norwegian — not deviceLocales.first, which is Norwegian.
+      expect(
+        deviceWeekStartIndex(const [
+          Locale('nb', 'NO'),
+          Locale('en', 'GB'),
+        ], 'en'),
+        1,
+      );
+    });
+  });
+
   group('screens fit in every language at 1.3× text (LANG-6)', () {
     for (final language in appLanguages.keys) {
       final l10n = lookupAppLocalizations(Locale(language));

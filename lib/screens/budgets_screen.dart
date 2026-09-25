@@ -219,7 +219,8 @@ class _BudgetDialogState extends State<_BudgetDialog> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(
             labelText: l10n.budgetLimitLabel,
-            prefixText: '${widget.currency.currencySymbol} ',
+            prefixText: currencyAffixes(context, widget.currency).prefix,
+            suffixText: currencyAffixes(context, widget.currency).suffix,
             helperText: limit != null
                 ? l10n.amountResult(widget.currency.money(limit))
                 : null,

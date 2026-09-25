@@ -112,6 +112,77 @@ void main() {
     expect(find.byType(AddTransactionScreen), findsNothing);
   });
 
+  testWidgets(
+    "the amount field's symbol side matches the locale's display side "
+    '(CUR-5, LANG-5, pr61#11)',
+    (tester) async {
+      // English (USD): intl leads with the symbol.
+      await open(tester);
+      final enField = tester.widget<TextField>(
+        find.descendant(of: amountField, matching: find.byType(TextField)),
+      );
+      expect(enField.decoration?.prefixText, contains('\$'));
+      expect(enField.decoration?.suffixText, isNull);
+    },
+  );
+
+  testWidgets(
+    "the amount field's symbol side matches the locale's display side, "
+    'in German (CUR-5, LANG-5, pr61#11)',
+    (tester) async {
+      // German writes the symbol after the figures ('12,50 €'), unlike
+      // English; the field used to lead with it regardless. The label is
+      // German too ('Betrag'), so find the field by its currency affix
+      // rather than by the English label text.
+      settings = await testSettings({'language': 'de'});
+      await open(tester);
+      final deField = tester
+          .widgetList<TextField>(find.byType(TextField))
+          .firstWhere(
+            (f) =>
+                f.decoration?.prefixText != null ||
+                f.decoration?.suffixText != null,
+          );
+      expect(deField.decoration?.prefixText, isNull);
+      expect(deField.decoration?.suffixText, contains('\$'));
+    },
+  );
+
+  /// The amount field, whichever affix carries the currency symbol — the
+  /// built [TextField], not the [TextFormField] wrapping it, which carries
+  /// no `decoration` of its own.
+  Finder rtlAmountField() => find.byWidgetPredicate(
+    (widget) =>
+        widget is TextField &&
+        (widget.decoration?.prefixText != null ||
+            widget.decoration?.suffixText != null),
+  );
+
+  for (final language in ['ar', 'ur']) {
+    testWidgets(
+      "the amount field's symbol renders on the left in $language, not "
+      "wherever InputDecorator's start/end happens to fall in a "
+      'right-to-left layout (CUR-5, LANG-5, pr61#11)',
+      (tester) async {
+        settings = await testSettings({'language': language});
+        await open(tester);
+
+        final field = tester.widget<TextField>(rtlAmountField());
+        final symbol =
+            field.decoration!.prefixText ?? field.decoration!.suffixText!;
+        // Urdu's own pattern leads with the symbol, so before the fix this
+        // became prefixText — which InputDecorator places at the field's
+        // *start*, the right edge in this right-to-left layout.
+        await tester.enterText(rtlAmountField(), '12.5');
+        await tester.pump();
+
+        final symbolX = tester.getCenter(find.text(symbol)).dx;
+        final inputX = tester.getCenter(find.text('12.5')).dx;
+        expect(symbolX, lessThan(inputX));
+      },
+    );
+  }
+
   testWidgets('the keypad adds up amounts and saves the result (ADD-2)', (
     tester,
   ) async {

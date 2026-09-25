@@ -216,6 +216,16 @@ void main() {
       );
     });
 
+    test('symbolLeadsFigures agrees with the pattern currencyFormat itself '
+        'uses to place the symbol (CUR-5, pr61#11)', () {
+      // English and Urdu lead with the symbol; German and Arabic follow
+      // it with the figures first.
+      expect(SettingsProvider.symbolLeadsFigures('en'), isTrue);
+      expect(SettingsProvider.symbolLeadsFigures('ur'), isTrue);
+      expect(SettingsProvider.symbolLeadsFigures('de'), isFalse);
+      expect(SettingsProvider.symbolLeadsFigures('ar'), isFalse);
+    });
+
     test('a signed compact amount keeps its sign against its own figures in '
         'Arabic, at any size (LANG-5, CUR-5, pr58#5)', () async {
       final settings = SettingsProvider(

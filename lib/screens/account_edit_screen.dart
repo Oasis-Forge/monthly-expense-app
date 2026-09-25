@@ -264,7 +264,8 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
               decoration: InputDecoration(
                 labelText: l10n.openingBalanceLabel,
                 border: const OutlineInputBorder(),
-                prefixText: '${currency.currencySymbol} ',
+                prefixText: currencyAffixes(context, currency).prefix,
+                suffixText: currencyAffixes(context, currency).suffix,
                 helperText: _openingController.text.trim().isEmpty
                     ? null
                     : switch (_parseOpening(

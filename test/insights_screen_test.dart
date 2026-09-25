@@ -121,6 +121,38 @@ void main() {
       expect(circles[1].backgroundColor, sections[1].color);
     });
 
+    testWidgets(
+      "a slice's percent uses the language's own digits, like the amounts "
+      'beside it (LANG-3, pr61#10)',
+      (tester) async {
+        await showInsights(
+          tester,
+          [
+            testTx('f', expense, 10, DateTime(2026, 9, 5)),
+            testTx(
+              'r',
+              expense,
+              30,
+              DateTime(2026, 9, 6),
+              categoryId: 'cat-rent',
+            ),
+          ],
+          settingsValues: {'language': 'bn'},
+        );
+
+        final sections = tester
+            .widget<PieChart>(find.byType(PieChart))
+            .data
+            .sections;
+
+        expect(sections, hasLength(2));
+        // Bengali digits (rent 75%, food 25%), not the Latin ones
+        // toStringAsFixed would give.
+        expect(sections.first.title, '৭৫%');
+        expect(sections[1].title, '২৫%');
+      },
+    );
+
     testWidgets('lists spending by category with the total', (tester) async {
       await showInsights(tester, spending);
 
@@ -274,6 +306,39 @@ void main() {
 
         expect(find.textContaining('than last month'), findsNothing);
         expect(find.text('new'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      "a category row with a change label doesn't overflow at a large "
+      'system text scale (INS-6, pr56+60#5)',
+      (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        await showInsights(tester, [
+          // August: food 100, transport 50.
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 3)),
+          testTx(
+            'b',
+            TransactionType.expense,
+            50,
+            DateTime(2026, 8, 9),
+            categoryId: 'cat-transport',
+          ),
+          // September: food down to 60, and shopping out of nowhere.
+          testTx('c', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+          testTx(
+            'd',
+            TransactionType.expense,
+            20,
+            DateTime(2026, 9, 5),
+            categoryId: 'cat-shopping',
+          ),
+        ]);
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
       },
     );
 
@@ -482,6 +547,20 @@ void main() {
       expect(x('Sun'), lessThan(x('Mon')));
 
       await showInsights(tester, month, settingsValues: {'week_start_day': 1});
+      await openTab(tester, 'Calendar');
+      expect(x('Mon'), lessThan(x('Sun')));
+    });
+
+    testWidgets("the device's region decides the day, not just its language "
+        '(PER-4, rules-1-5#5)', (tester) async {
+      double x(String text) => tester.getCenter(find.text(text)).dx;
+
+      // A phone set to English (UK) starts the week on Monday, though
+      // the app's own language-only locale ('en') is Sunday-first.
+      tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await showInsights(tester, month);
       await openTab(tester, 'Calendar');
       expect(x('Mon'), lessThan(x('Sun')));
     });

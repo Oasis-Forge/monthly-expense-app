@@ -913,6 +913,10 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
       // below it have already changed.
       old.currency.currencySymbol != currency.currencySymbol ||
       old.currency.locale != currency.locale ||
+      // A currency switch between two that share a symbol (USD to CLP, JPY
+      // to CNY) changes no symbol or locale but does change the decimals
+      // (CUR-2), which the card must still pick up (CUR-3, pr61#4).
+      old.currency.decimalDigits != currency.decimalDigits ||
       // BAL-8: without these two the lead line would render once and then
       // never move again, with nothing to say so.
       old.heroLine?.kind != heroLine?.kind ||

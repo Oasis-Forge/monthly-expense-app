@@ -279,7 +279,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
               decoration: InputDecoration(
                 labelText: l10n.noteAmountOptionalLabel,
                 border: const OutlineInputBorder(),
-                prefixText: '${currency.currencySymbol} ',
+                prefixText: currencyAffixes(context, currency).prefix,
+                suffixText: currencyAffixes(context, currency).suffix,
                 // A live preview (CUR-2), so a mistyped decimal mark is seen
                 // before it's saved wrong instead of silently.
                 helperText: _amountController.text.trim().isEmpty

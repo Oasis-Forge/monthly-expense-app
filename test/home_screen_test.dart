@@ -878,6 +878,20 @@ void main() {
       expect(find.text('Concert'), findsNothing);
     });
 
+    testWidgets("the device's region decides the day, not just its "
+        'language (PER-4, rules-1-5#5)', (tester) async {
+      double x(String text) => tester.getCenter(find.text(text)).dx;
+
+      // A phone set to English (UK) starts the week on Monday, though
+      // the app's own language-only locale ('en') is Sunday-first.
+      tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await showHome(tester);
+
+      expect(x('Mon'), lessThan(x('Sun')));
+    });
+
     testWidgets('another day in the week shows that day instead', (
       tester,
     ) async {
@@ -1401,4 +1415,35 @@ void main() {
     expect(find.textContaining('\$'), findsNothing);
     expect(find.textContaining('¥'), findsWidgets);
   });
+
+  testWidgets(
+    'the pinned summary card drops the old decimals on a currency switch '
+    'that keeps the same symbol (CUR-2, CUR-3, pr61#4)',
+    (tester) async {
+      await showHome(tester);
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+
+      // CLP shares USD's '$' symbol but has no decimals (CUR-2).
+      await settings.setCurrencyCode('CLP');
+      await tester.pumpAndSettle();
+
+      // The day rows below the header pick up CLP's rounding at once.
+      expect(find.text('-\$13'), findsWidgets);
+
+      // _SummaryHeader.shouldRebuild compared only currencySymbol and
+      // locale, so a same-symbol currency switch was invisible to it and
+      // the pinned card kept rendering the old currency's cents.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$13')),
+        findsOneWidget,
+      );
+    },
+  );
 }

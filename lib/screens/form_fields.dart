@@ -7,6 +7,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../l10n/app_localizations.dart';
 import '../models/amount_expression.dart';
 import '../models/money.dart';
+import '../providers/settings_provider.dart';
 import 'haptics.dart';
 
 /// Amounts and expressions like `12.5+3` read left to right in every
@@ -16,6 +17,33 @@ TextAlign amountTextAlign(BuildContext context) =>
     Directionality.of(context) == TextDirection.rtl
     ? TextAlign.right
     : TextAlign.left;
+
+/// The `prefixText`/`suffixText` pair an amount field's [InputDecoration]
+/// uses to put [currency]'s symbol where intl's own pattern puts it (CUR-5,
+/// LANG-5, pr61#11): whichever of the two is non-null carries the symbol.
+///
+/// `InputDecorator` places `prefixText` at the field's *start* and
+/// `suffixText` at its *end*, by the ambient [Directionality] — and the
+/// start is the field's right edge in a right-to-left layout, not its
+/// left. So a symbol that leads the figures only becomes `prefixText` in a
+/// left-to-right layout; every right-to-left language uses `suffixText`
+/// instead; regardless of where its own pattern leads, that is what lands
+/// on the left, the side a displayed Urdu or Arabic amount already puts it
+/// (LANG-5). Arabic's trailing symbol already used `suffixText` and so
+/// happened to land correctly; Urdu's leading one did not, until this
+/// checked the layout direction rather than only the pattern.
+({String? prefix, String? suffix}) currencyAffixes(
+  BuildContext context,
+  NumberFormat currency,
+) {
+  final symbol = currency.currencySymbol;
+  final atStart =
+      Directionality.of(context) == TextDirection.ltr &&
+      SettingsProvider.symbolLeadsFigures(currency.locale);
+  return atStart
+      ? (prefix: '$symbol ', suffix: null)
+      : (prefix: null, suffix: ' $symbol');
+}
 
 /// Amount entry shared by the transaction and transfer forms (ADD-2): the
 /// field accepts `+` and `−`, shows the result live, and on phones uses
@@ -60,6 +88,7 @@ mixin AmountEntry<T extends StatefulWidget> on State<T> {
     bool autofocus = false,
   }) {
     final result = parsedAmount(currency);
+    final affixes = currencyAffixes(context, currency);
     return TextFormField(
       controller: amountController,
       focusNode: amountFocus,
@@ -75,7 +104,8 @@ mixin AmountEntry<T extends StatefulWidget> on State<T> {
       decoration: InputDecoration(
         labelText: l10n.amountLabel,
         border: const OutlineInputBorder(),
-        prefixText: '${currency.currencySymbol} ',
+        prefixText: affixes.prefix,
+        suffixText: affixes.suffix,
         helperText: isAmountExpression(amountController.text) && result != null
             ? l10n.amountResult(currency.money(result))
             : null,
