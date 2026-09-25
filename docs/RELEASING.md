@@ -107,7 +107,7 @@ The repo is public, so GitHub-hosted runners (macOS included) cost nothing. CI t
 
 Go to Settings → Rules → Rulesets → New branch ruleset, target `main`, and set:
 - Require a pull request before merging.
-- Require status checks to pass: `Format, analyze, test`, `Android build (debug)`, `iOS build (unsigned)`. Run CI on one PR first so the check names show up in the picker.
+- Require status checks to pass: `Format, analyze, test`, `Android build (release)`, `iOS build (unsigned)`. Run CI on one PR first so the check names show up in the picker.
 - Block force pushes.
 - Bypass list: Repository admin.
 
