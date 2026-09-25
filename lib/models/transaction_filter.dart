@@ -37,6 +37,7 @@ class SearchResult {
 
 const _plainLetters = {
   'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a', 'ā': 'a', //
+  'ą': 'a', //
   'æ': 'ae', 'ç': 'c', 'ć': 'c', 'č': 'c', //
   'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e', 'ē': 'e', 'ę': 'e', //
   'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i', 'ī': 'i', 'ł': 'l', //
@@ -48,6 +49,26 @@ const _plainLetters = {
   'ğ': 'g', 'ı': 'i', 'ş': 's', //
   // Arabic: alef with hamza or madda, and alef maqsura.
   'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ى': 'ي',
+  // Vietnamese: precomposed base+tone(+modifier) letters, one codepoint each,
+  // so \p{Mn} never sees a separate combining mark to strip (LANG-4). Plain
+  // à/á/â/ã/è/é/ê/ì/í/ò/ó/ô/õ/ù/ú/ý are already covered above.
+  'ă': 'a', 'ằ': 'a', 'ắ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a', //
+  'ả': 'a', 'ạ': 'a', //
+  'ầ': 'a', 'ấ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a', //
+  'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e', //
+  'ề': 'e', 'ế': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e', //
+  'ỉ': 'i', 'ĩ': 'i', 'ị': 'i', //
+  'ỏ': 'o', 'ọ': 'o', //
+  'ồ': 'o', 'ố': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o', //
+  'ơ': 'o', 'ờ': 'o', 'ớ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o', //
+  'ủ': 'u', 'ũ': 'u', 'ụ': 'u', //
+  'ư': 'u', 'ừ': 'u', 'ứ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u', //
+  'ỳ': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y', //
+  'đ': 'd', //
+  // Greek: tonos/dialytika vowels and final sigma, which behaves like a
+  // different letter unless folded to the medial form (LANG-4).
+  'ά': 'α', 'έ': 'ε', 'ή': 'η', 'ί': 'ι', 'ό': 'ο', 'ύ': 'υ', 'ώ': 'ω', //
+  'ϊ': 'ι', 'ΐ': 'ι', 'ϋ': 'υ', 'ΰ': 'υ', 'ς': 'σ',
 };
 
 /// Nonspacing marks: combining accents, the dot that lowercasing `İ` leaves,

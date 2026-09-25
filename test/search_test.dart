@@ -25,6 +25,14 @@ void main() {
     final tatweel = String.fromCharCode(0x0640);
     expect(foldForSearch('م$damma$tatweelحمد'), 'محمد');
     expect(foldForSearch('أحمد'), foldForSearch('احمد'));
+    // Vietnamese precomposed tone/modifier letters (LANG-4).
+    expect(foldForSearch('Phở bò'), 'pho bo');
+    expect(foldForSearch('Cà phê sữa đá'), 'ca phe sua da');
+    // Polish ą, alongside the already-covered ę.
+    expect(foldForSearch('Mąka'), 'maka');
+    // Greek tonos and final sigma, which must fold like medial sigma.
+    expect(foldForSearch('Καφές'), foldForSearch('καφες'));
+    expect(foldForSearch('ΚΑΦΈΣ'), foldForSearch('καφές'));
   });
 
   group('search (SRCH-1–SRCH-3)', () {
