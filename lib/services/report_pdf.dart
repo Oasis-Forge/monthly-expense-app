@@ -204,10 +204,41 @@ pw.Widget _run(String text, {pw.TextStyle? style}) {
   final before = stripBidiMarks(text.substring(0, lriAt));
   final isolate = stripBidiMarks(text.substring(lriAt + 1, pdiAt));
   final after = stripBidiMarks(text.substring(pdiAt + 1));
-  return pw.Text(
-    '$after$isolate$before',
-    style: style,
+  // Everything outside the isolate keeps its own direction rather than
+  // being flattened into one forced-left-to-right string: that skipped this
+  // package's arabic.convert pass (it only shapes and reorders a run whose
+  // own textDirection is rtl), and glued unrelated text straight onto the
+  // isolated figures with no boundary between them — a currency symbol
+  // read as mirrored letters, or a percentage's digits run into a
+  // budget's. Visual left-to-right order is after, isolate, before (the
+  // isolate's own figures stay forced left-to-right); a gap replaces
+  // whatever whitespace the source had between two pieces (LANG-5, CUR-5,
+  // PDF-5, Decision 54).
+  final gap = pw.SizedBox(width: (style?.fontSize ?? 10) * 0.3);
+  final afterTrimmed = after.trim();
+  final beforeTrimmed = before.trim();
+  return pw.Directionality(
     textDirection: pw.TextDirection.ltr,
+    child: pw.Row(
+      mainAxisSize: pw.MainAxisSize.min,
+      children: [
+        if (afterTrimmed.isNotEmpty) ...[
+          pw.Directionality(
+            textDirection: _directionOf(afterTrimmed),
+            child: pw.Text(afterTrimmed, style: style),
+          ),
+          if (after != afterTrimmed) gap,
+        ],
+        pw.Text(isolate, style: style, textDirection: pw.TextDirection.ltr),
+        if (beforeTrimmed.isNotEmpty) ...[
+          if (before != beforeTrimmed) gap,
+          pw.Directionality(
+            textDirection: _directionOf(beforeTrimmed),
+            child: pw.Text(beforeTrimmed, style: style),
+          ),
+        ],
+      ],
+    ),
   );
 }
 
