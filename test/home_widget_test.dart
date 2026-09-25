@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart' show Locale;
+import 'package:flutter/widgets.dart' show AppLifecycleState, Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -374,6 +374,21 @@ void main() {
       await settle();
       expect(service.last['hideAmounts'], isFalse);
       expect(entriesOf(service.last).first['expense'], r'$30');
+    });
+
+    test('a resume pushes again even though nothing tracked changed, so a '
+        "phone language change while the app sat in the background still "
+        'reaches the widget (WID-5)', () async {
+      await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
+      final before = service.updates.length;
+
+      // Nothing [dataVersion] or the settings listener would catch moved,
+      // but the platform locale can have changed while the app was
+      // backgrounded, so a resume alone has to push once regardless.
+      updater.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      await settle();
+
+      expect(service.updates.length, greaterThan(before));
     });
 
     test('it stops pushing once disposed', () async {

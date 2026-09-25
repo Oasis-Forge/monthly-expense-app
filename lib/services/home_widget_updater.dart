@@ -52,6 +52,13 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
   int? _lastDataVersion;
   bool _settingsChanged = true;
 
+  /// Set on every app resume, so the next [refresh] pushes once regardless
+  /// of [_lastDataVersion] or [_settingsChanged]. The phone's own language
+  /// (and so the widget text, via [effectiveAppLocale]) can change while the
+  /// app sits in the background, and a resume is the only signal that tells
+  /// us to check again — [_settings] itself hasn't changed (WID-5).
+  bool _forceRefresh = false;
+
   /// Starts watching, and pushes what the widget should show right now.
   void start() {
     if (_started) return;
@@ -81,7 +88,10 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _schedule();
+    if (state == AppLifecycleState.resumed) {
+      _forceRefresh = true;
+      _schedule();
+    }
   }
 
   void _schedule() {
@@ -101,7 +111,11 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
   Future<void> refresh() async {
     if (!_transactions.isLoaded || !_service.isSupported) return;
     final dataVersion = _transactions.dataVersion;
-    if (dataVersion == _lastDataVersion && !_settingsChanged) return;
+    final forced = _forceRefresh;
+    if (!forced && dataVersion == _lastDataVersion && !_settingsChanged) {
+      return;
+    }
+    _forceRefresh = false;
 
     final locale = effectiveAppLocale(_settings.locale);
     final l10n = await _load(locale);
