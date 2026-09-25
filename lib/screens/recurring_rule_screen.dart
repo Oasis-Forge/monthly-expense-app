@@ -80,9 +80,17 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     super.dispose();
   }
 
+  /// The interval and the repeat count both take a whole number from 1 to
+  /// [_wholeNumberMax]: high enough for any real schedule, low enough that
+  /// the projected date always stays well inside what [DateTime] can
+  /// represent (money-time#7).
+  static const _wholeNumberMax = 999;
+
   static int? _wholeNumber(String? text) {
     final value = int.tryParse(text?.trim() ?? '');
-    return value != null && value >= 1 ? value : null;
+    return value != null && value >= 1 && value <= _wholeNumberMax
+        ? value
+        : null;
   }
 
   Future<void> _save() async {

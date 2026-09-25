@@ -271,6 +271,22 @@ void main() {
       expect(find.text('Enter a whole number from 1'), findsNWidgets(2));
     });
 
+    testWidgets(
+      'an interval large enough to overflow the date range is rejected '
+      '(audit money-time#7)',
+      (tester) async {
+        await openForm(tester);
+
+        await enter(tester, 'Amount', '20');
+        await enter(tester, 'Every', '300000');
+        await save(tester);
+
+        expect(find.byType(RecurringRuleScreen), findsOneWidget);
+        // Only the two rules from setUp (Rent, Gym); nothing new was saved.
+        expect(provider.recurringRules, hasLength(2));
+      },
+    );
+
     testWidgets('an end date before the start is rejected', (tester) async {
       final invalid = testRule(
         'Rent',

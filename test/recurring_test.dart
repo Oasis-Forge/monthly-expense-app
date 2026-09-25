@@ -98,6 +98,31 @@ void main() {
       ]);
     });
 
+    test('a huge interval or count ends the schedule instead of throwing '
+        '(RCR-1, RCR-4, audit money-time#7)', () {
+      final hugeYearly = rule(
+        DateTime(2026, 9, 1),
+        frequency: RecurrenceFrequency.year,
+        interval: 300000,
+      );
+      expect(
+        () => dates(hugeYearly, DateTime(2026, 9, 1), DateTime(2026, 9, 30)),
+        returnsNormally,
+      );
+      expect(dates(hugeYearly, DateTime(2026, 9, 1), DateTime(2026, 9, 30)), [
+        DateTime(2026, 9, 1),
+      ]);
+
+      final hugeCount = rule(
+        DateTime(2026, 9, 1),
+        frequency: RecurrenceFrequency.year,
+        interval: 1,
+        end: RecurrenceEnd.afterCount,
+        count: 999999999,
+      );
+      expect(() => hugeCount.isActiveOn(DateTime(2026, 9, 1)), returnsNormally);
+    });
+
     test('a rule ends after a number of times or on a date', () {
       final threeTimes = rule(
         DateTime(2026, 1, 5),

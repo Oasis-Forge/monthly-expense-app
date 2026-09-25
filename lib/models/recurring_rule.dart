@@ -97,34 +97,40 @@ class RecurringRule {
   }
 
   /// The occurrence at [index] (0 is [startDate]), or null once the rule has
-  /// ended.
+  /// ended, or once it falls outside the range [DateTime] can represent
+  /// (an interval or a count large enough to overflow it, money-time#7).
   DateTime? occurrence(int index) {
     if (endType == RecurrenceEnd.afterCount && index >= (endCount ?? 0)) {
       return null;
     }
     final steps = index * interval;
-    final date = switch (frequency) {
-      RecurrenceFrequency.day => DateTime(
-        startDate.year,
-        startDate.month,
-        startDate.day + steps,
-      ),
-      RecurrenceFrequency.week => DateTime(
-        startDate.year,
-        startDate.month,
-        startDate.day + 7 * steps,
-      ),
-      RecurrenceFrequency.month => _clamped(
-        startDate.year,
-        startDate.month + steps,
-        startDate.day,
-      ),
-      RecurrenceFrequency.year => _clamped(
-        startDate.year + steps,
-        startDate.month,
-        startDate.day,
-      ),
-    };
+    DateTime date;
+    try {
+      date = switch (frequency) {
+        RecurrenceFrequency.day => DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day + steps,
+        ),
+        RecurrenceFrequency.week => DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day + 7 * steps,
+        ),
+        RecurrenceFrequency.month => _clamped(
+          startDate.year,
+          startDate.month + steps,
+          startDate.day,
+        ),
+        RecurrenceFrequency.year => _clamped(
+          startDate.year + steps,
+          startDate.month,
+          startDate.day,
+        ),
+      };
+    } on ArgumentError {
+      return null;
+    }
     if (endType == RecurrenceEnd.onDate && date.isAfter(endDate!)) return null;
     return date;
   }
