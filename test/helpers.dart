@@ -1033,6 +1033,47 @@ Future<void> waitForMissingPhoto(
   }
 }
 
+/// Asserts that [amount]'s sign stays with its figures as one piece, rather
+/// than measuring where the widget merely declares its direction to be
+/// (LANG-5, CUR-5). A row that forces a text direction, or hand-pastes a
+/// bare sign in front of a formatted amount, can pass a check that only
+/// looks at `textDirection` while bidi visibly carries the sign (or a
+/// currency symbol between it and the figures) off to the far end of the
+/// line in Arabic or Urdu -- this measures where the glyphs actually land
+/// instead, character by character from the sign through the last digit,
+/// so any character bidi displaced out of string order opens a gap this
+/// catches, wherever in that run it falls.
+void expectSignTouchesFigures(Text amount) {
+  final text = amount.data!;
+  final painter = TextPainter(
+    text: TextSpan(text: text),
+    textDirection: amount.textDirection ?? TextDirection.rtl,
+  )..layout();
+  Rect boxOf(int at) => painter
+      .getBoxesForSelection(TextSelection(baseOffset: at, extentOffset: at + 1))
+      .first
+      .toRect();
+  final signMatch = RegExp('[-+−]').firstMatch(text);
+  expect(signMatch, isNotNull, reason: 'no +, -, or − sign found in "$text"');
+  final digitMatches = RegExp('[0-9]').allMatches(text).toList();
+  expect(digitMatches, isNotEmpty, reason: 'no digit found in "$text"');
+  final start = signMatch!.start;
+  final end = digitMatches.last.start;
+  var previous = boxOf(start);
+  for (var i = start + 1; i <= end; i++) {
+    final box = boxOf(i);
+    expect(
+      box.left,
+      closeTo(previous.right, 2),
+      reason:
+          'the run from the sign to the figures should stay together, '
+          'not reorder or drift apart: $text',
+    );
+    previous = box;
+  }
+  painter.dispose();
+}
+
 /// Scrolls the open form from the top until [finder] is built and visible.
 /// Forms are lazy lists, so fields off screen may not exist yet.
 Future<void> revealInForm(WidgetTester tester, Finder finder) async {

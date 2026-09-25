@@ -373,26 +373,7 @@ void main() {
       // Where it sits, not what the widget declares: the row used to force a
       // direction, and when that went the hand-pasted sign was left outside
       // the isolate and bidi carried it to the far end of the row (LANG-5).
-      final text = amount.data!;
-      final painter = TextPainter(
-        text: TextSpan(text: text),
-        textDirection: amount.textDirection ?? TextDirection.rtl,
-      )..layout();
-      addTearDown(painter.dispose);
-      Rect boxOf(int at) => painter
-          .getBoxesForSelection(
-            TextSelection(baseOffset: at, extentOffset: at + 1),
-          )
-          .first
-          .toRect();
-      final sign = boxOf(text.indexOf(RegExp('[-+\u2212]')));
-      final firstDigit = boxOf(text.indexOf(RegExp('[0-9]')));
-
-      expect(
-        sign.right,
-        closeTo(firstDigit.left, 2),
-        reason: 'the sign should touch its figures, not float away: $text',
-      );
+      expectSignTouchesFigures(amount);
     });
 
     testWidgets(
@@ -414,27 +395,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(changeFinder, findsOneWidget);
         final change = tester.widget<Text>(changeFinder);
-        final text = change.data!;
-
-        final painter = TextPainter(
-          text: TextSpan(text: text),
-          textDirection: change.textDirection ?? TextDirection.rtl,
-        )..layout();
-        addTearDown(painter.dispose);
-        Rect boxOf(int at) => painter
-            .getBoxesForSelection(
-              TextSelection(baseOffset: at, extentOffset: at + 1),
-            )
-            .first
-            .toRect();
-        final sign = boxOf(text.indexOf('+'));
-        final firstDigit = boxOf(text.indexOf(RegExp('[0-9]')));
-
-        expect(
-          sign.right,
-          closeTo(firstDigit.left, 2),
-          reason: 'the + should sit against its figures, not float away: $text',
-        );
+        expectSignTouchesFigures(change);
       },
     );
 
@@ -483,10 +444,9 @@ void main() {
       await show(tester, 'ur', const TransactionDetailScreen(id: 'a'));
 
       final amount = tester.widget<Text>(find.textContaining('1,234.50'));
-      // The sign now travels inside the currency's own isolate, so the row
-      // must not force the line's direction: doing so would carry the symbol
-      // to the wrong side of the figures in Arabic (LANG-5).
-      expect(amount.textDirection, isNull);
+      // Where the sign actually lands, not just whether the widget declares
+      // a direction: that check alone passed either way (pr56+60#7).
+      expectSignTouchesFigures(amount);
     });
   });
 }
