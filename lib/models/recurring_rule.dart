@@ -35,9 +35,10 @@ class RecurringRule {
   final bool autoPost;
   final DateTime? pausedAt;
 
-  /// Occurrences before this local date are never posted or queued. Editing
-  /// or resuming moves it to today, so changes apply to future occurrences
-  /// only (RCR-5, RCR-6).
+  /// Occurrences before this local date are never posted or queued. It only
+  /// moves forward when the rule's own start date moves past it (RCR-5); an
+  /// occurrence due while paused is skipped on its own instead (RCR-6), so
+  /// one already waiting before the pause is never affected.
   final DateTime activeFrom;
   final DateTime createdAt;
   final DateTime updatedAt;

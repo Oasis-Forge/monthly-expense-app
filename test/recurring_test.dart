@@ -259,7 +259,8 @@ void main() {
       expect(provider.dueOccurrences, isEmpty);
     });
 
-    test('occurrences due while paused are skipped (RCR-6)', () async {
+    test('occurrences due while paused are skipped, but one already waiting '
+        'before the pause is not (RCR-6, audit rules-6-10#4)', () async {
       await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));
       await provider.pauseRecurringRule('Rent');
       expect(provider.dueOccurrences, isEmpty);
@@ -269,7 +270,10 @@ void main() {
       await reload();
       await provider.resumeRecurringRule('Rent');
 
-      expect(provider.dueOccurrences, isEmpty);
+      // Sep 1 was already due before the pause started (on Sep 15) and
+      // was never handled, so it stays due; Oct 1 and Nov 1 fell due
+      // while paused and are skipped, not caught up.
+      expect(dates(provider.dueOccurrences), [DateTime(2026, 9)]);
       expect(dates(provider.upcomingOccurrences), [DateTime(2026, 12)]);
     });
 
@@ -303,6 +307,19 @@ void main() {
         expect(provider.transactions, hasLength(3));
       },
     );
+
+    test('a due-before-today occurrence survives an unrelated edit '
+        '(RCR-5, audit rules-6-10#4)', () async {
+      await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));
+      expect(dates(provider.dueOccurrences), [DateTime(2026, 9)]);
+
+      await provider.updateRecurringRule(
+        provider.recurringRules.single.copyWith(amount: const Money(1000000)),
+      );
+
+      expect(dates(provider.dueOccurrences), [DateTime(2026, 9)]);
+      expect(provider.transactions, isEmpty);
+    });
 
     test('a failed post changes nothing', () async {
       await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));

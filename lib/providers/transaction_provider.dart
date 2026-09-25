@@ -1472,14 +1472,15 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Saves an edited rule. The change applies from today onward: posted
-  /// transactions stay as they are, and earlier occurrences that weren't
-  /// handled are dropped (RCR-5).
+  /// Saves an edited rule. The edit reaches every occurrence not yet posted
+  /// or skipped, including one already waiting in Due (RCR-5); only a start
+  /// date moved later can push activeFrom forward, so an edit never makes an
+  /// occurrence that was due disappear on its own.
   Future<void> updateRecurringRule(RecurringRule rule) async {
-    final today = _today;
+    final floor = recurringRuleById(rule.id)?.activeFrom ?? rule.activeFrom;
     await _saveRule(
       rule.copyWith(
-        activeFrom: rule.startDate.isAfter(today) ? rule.startDate : today,
+        activeFrom: rule.startDate.isAfter(floor) ? rule.startDate : floor,
         updatedAt: _clock().toUtc(),
       ),
     );
@@ -1495,18 +1496,28 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Resumes a rule. Occurrences that came due while it was paused are
-  /// skipped, not caught up (RCR-6).
+  /// Resumes a rule. Occurrences that fell due between the pause and now are
+  /// skipped one by one, not caught up (RCR-6); an occurrence that was
+  /// already waiting in Due before the pause started stays waiting (RCR-5).
   Future<void> resumeRecurringRule(String id) async {
     final rule = recurringRuleById(id)!;
-    final today = _today;
-    await _saveRule(
-      rule.copyWith(
-        pausedAt: null,
-        activeFrom: rule.activeFrom.isAfter(today) ? rule.activeFrom : today,
-        updatedAt: _clock().toUtc(),
-      ),
-    );
+    final pausedAt = rule.pausedAt;
+    if (pausedAt != null) {
+      final now = _clock().toUtc();
+      for (final date in rule.occurrencesBetween(pausedAt, _today)) {
+        final key = occurrenceKey(rule.id, date);
+        if (_occurrences.containsKey(key)) continue;
+        final record = RecurringOccurrence(
+          ruleId: rule.id,
+          date: date,
+          status: OccurrenceStatus.skipped,
+          createdAt: now,
+        );
+        await _db.insertOccurrence(record);
+        _occurrences[record.key] = record;
+      }
+    }
+    await _saveRule(rule.copyWith(pausedAt: null, updatedAt: _clock().toUtc()));
     await _postAutomaticOccurrences();
     _changed();
   }
