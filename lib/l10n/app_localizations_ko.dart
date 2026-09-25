@@ -384,6 +384,54 @@ class AppLocalizationsKo extends AppLocalizations {
   String get categoryNameTaken => '이미 사용 중인 이름이에요';
 
   @override
+  String get categoryColorPurple => '보라색';
+
+  @override
+  String get categoryColorTeal => '청록색';
+
+  @override
+  String get categoryColorRust => '녹슨 색';
+
+  @override
+  String get categoryColorBlue => '파란색';
+
+  @override
+  String get categoryColorPink => '분홍색';
+
+  @override
+  String get categoryColorGreen => '초록색';
+
+  @override
+  String get categoryColorMagenta => '마젠타';
+
+  @override
+  String get categoryColorCyan => '시안색';
+
+  @override
+  String get categoryColorBrown => '갈색';
+
+  @override
+  String get categoryColorIndigo => '남색';
+
+  @override
+  String get categoryColorRed => '빨간색';
+
+  @override
+  String get categoryColorSlate => '슬레이트색';
+
+  @override
+  String get categoryColorOrange => '주황색';
+
+  @override
+  String get categoryColorEmerald => '에메랄드색';
+
+  @override
+  String get categoryColorViolet => '진보라색';
+
+  @override
+  String get categoryColorRaspberry => '라즈베리색';
+
+  @override
   String get archiveAction => '보관';
 
   @override

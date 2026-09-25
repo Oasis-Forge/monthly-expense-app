@@ -388,6 +388,54 @@ class AppLocalizationsId extends AppLocalizations {
   String get categoryNameTaken => 'Nama itu sudah dipakai';
 
   @override
+  String get categoryColorPurple => 'Ungu';
+
+  @override
+  String get categoryColorTeal => 'Tosca';
+
+  @override
+  String get categoryColorRust => 'Karat';
+
+  @override
+  String get categoryColorBlue => 'Biru';
+
+  @override
+  String get categoryColorPink => 'Merah muda';
+
+  @override
+  String get categoryColorGreen => 'Hijau';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Sian';
+
+  @override
+  String get categoryColorBrown => 'Cokelat';
+
+  @override
+  String get categoryColorIndigo => 'Nila';
+
+  @override
+  String get categoryColorRed => 'Merah';
+
+  @override
+  String get categoryColorSlate => 'Abu kebiruan';
+
+  @override
+  String get categoryColorOrange => 'Oranye';
+
+  @override
+  String get categoryColorEmerald => 'Zamrud';
+
+  @override
+  String get categoryColorViolet => 'Violet';
+
+  @override
+  String get categoryColorRaspberry => 'Rasberi';
+
+  @override
   String get archiveAction => 'Arsipkan';
 
   @override

@@ -50,6 +50,31 @@ const deletedCategorySwatch = Color(0xFF90A4AE);
 Color categorySwatch(Category? category) =>
     category?.swatch ?? deletedCategorySwatch;
 
+/// The name of a colour in [categoryPalette], read out by a screen reader
+/// where a swatch, dot, or pie slice carries meaning by colour alone and no
+/// text of its own (A11Y-2, rules-23-26-34#10). Null for anything not one of
+/// the sixteen -- a category made before colours existed, or an older
+/// migration's own frozen value (pr58#9) -- rather than guess a name for it.
+String? categoryColorName(AppLocalizations l10n, int color) => switch (color) {
+  0xFF6C5CE7 => l10n.categoryColorPurple,
+  0xFF00897B => l10n.categoryColorTeal,
+  0xFFD84315 => l10n.categoryColorRust,
+  0xFF1E88E5 => l10n.categoryColorBlue,
+  0xFFC2185B => l10n.categoryColorPink,
+  0xFF2E7D32 => l10n.categoryColorGreen,
+  0xFFA028BF => l10n.categoryColorMagenta,
+  0xFF00838F => l10n.categoryColorCyan,
+  0xFF835A4E => l10n.categoryColorBrown,
+  0xFF4A5BC3 => l10n.categoryColorIndigo,
+  0xFFE53935 => l10n.categoryColorRed,
+  0xFF546E7A => l10n.categoryColorSlate,
+  0xFFEF6C00 => l10n.categoryColorOrange,
+  0xFF007365 => l10n.categoryColorEmerald,
+  0xFF6C4BD3 => l10n.categoryColorViolet,
+  0xFFBF1660 => l10n.categoryColorRaspberry,
+  _ => null,
+};
+
 /// The circle behind a category's icon in a list (CAT-6). The colour is the
 /// category's own, kept faint: a row is read for its title and its amount,
 /// and sixteen solid discs down the screen would drown both.

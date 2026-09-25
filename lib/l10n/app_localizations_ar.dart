@@ -401,6 +401,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get categoryNameTaken => 'هذا الاسم مستخدم بالفعل';
 
   @override
+  String get categoryColorPurple => 'بنفسجي';
+
+  @override
+  String get categoryColorTeal => 'أزرق مخضر';
+
+  @override
+  String get categoryColorRust => 'صدئي';
+
+  @override
+  String get categoryColorBlue => 'أزرق';
+
+  @override
+  String get categoryColorPink => 'وردي';
+
+  @override
+  String get categoryColorGreen => 'أخضر';
+
+  @override
+  String get categoryColorMagenta => 'أرجواني';
+
+  @override
+  String get categoryColorCyan => 'سماوي';
+
+  @override
+  String get categoryColorBrown => 'بني';
+
+  @override
+  String get categoryColorIndigo => 'نيلي';
+
+  @override
+  String get categoryColorRed => 'أحمر';
+
+  @override
+  String get categoryColorSlate => 'رمادي مزرق';
+
+  @override
+  String get categoryColorOrange => 'برتقالي';
+
+  @override
+  String get categoryColorEmerald => 'زمردي';
+
+  @override
+  String get categoryColorViolet => 'بنفسجي داكن';
+
+  @override
+  String get categoryColorRaspberry => 'توتي';
+
+  @override
   String get archiveAction => 'أرشفة';
 
   @override

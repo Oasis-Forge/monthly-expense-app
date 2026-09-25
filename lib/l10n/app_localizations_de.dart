@@ -393,6 +393,54 @@ class AppLocalizationsDe extends AppLocalizations {
   String get categoryNameTaken => 'Dieser Name wird bereits verwendet';
 
   @override
+  String get categoryColorPurple => 'Lila';
+
+  @override
+  String get categoryColorTeal => 'Petrol';
+
+  @override
+  String get categoryColorRust => 'Rostrot';
+
+  @override
+  String get categoryColorBlue => 'Blau';
+
+  @override
+  String get categoryColorPink => 'Pink';
+
+  @override
+  String get categoryColorGreen => 'Grün';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Cyan';
+
+  @override
+  String get categoryColorBrown => 'Braun';
+
+  @override
+  String get categoryColorIndigo => 'Indigo';
+
+  @override
+  String get categoryColorRed => 'Rot';
+
+  @override
+  String get categoryColorSlate => 'Schiefergrau';
+
+  @override
+  String get categoryColorOrange => 'Orange';
+
+  @override
+  String get categoryColorEmerald => 'Smaragdgrün';
+
+  @override
+  String get categoryColorViolet => 'Violett';
+
+  @override
+  String get categoryColorRaspberry => 'Himbeere';
+
+  @override
   String get archiveAction => 'Archivieren';
 
   @override

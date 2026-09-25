@@ -387,6 +387,54 @@ class AppLocalizationsTh extends AppLocalizations {
   String get categoryNameTaken => 'ชื่อนี้ถูกใช้ไปแล้ว';
 
   @override
+  String get categoryColorPurple => 'ม่วง';
+
+  @override
+  String get categoryColorTeal => 'เขียวอมฟ้า';
+
+  @override
+  String get categoryColorRust => 'สนิม';
+
+  @override
+  String get categoryColorBlue => 'น้ำเงิน';
+
+  @override
+  String get categoryColorPink => 'ชมพู';
+
+  @override
+  String get categoryColorGreen => 'เขียว';
+
+  @override
+  String get categoryColorMagenta => 'สีม่วงแดง';
+
+  @override
+  String get categoryColorCyan => 'ฟ้าอมเขียว';
+
+  @override
+  String get categoryColorBrown => 'น้ำตาล';
+
+  @override
+  String get categoryColorIndigo => 'คราม';
+
+  @override
+  String get categoryColorRed => 'แดง';
+
+  @override
+  String get categoryColorSlate => 'เทาอมฟ้า';
+
+  @override
+  String get categoryColorOrange => 'ส้ม';
+
+  @override
+  String get categoryColorEmerald => 'มรกต';
+
+  @override
+  String get categoryColorViolet => 'ม่วงน้ำเงิน';
+
+  @override
+  String get categoryColorRaspberry => 'ราสป์เบอร์รี';
+
+  @override
   String get archiveAction => 'เก็บถาวร';
 
   @override

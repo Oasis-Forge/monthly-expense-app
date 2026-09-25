@@ -766,6 +766,102 @@ abstract class AppLocalizations {
   /// **'That name is already used'**
   String get categoryNameTaken;
 
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get categoryColorPurple;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get categoryColorTeal;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Rust'**
+  String get categoryColorRust;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get categoryColorBlue;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get categoryColorPink;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get categoryColorGreen;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Magenta'**
+  String get categoryColorMagenta;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Cyan'**
+  String get categoryColorCyan;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Brown'**
+  String get categoryColorBrown;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Indigo'**
+  String get categoryColorIndigo;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get categoryColorRed;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Slate'**
+  String get categoryColorSlate;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get categoryColorOrange;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Emerald'**
+  String get categoryColorEmerald;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get categoryColorViolet;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Raspberry'**
+  String get categoryColorRaspberry;
+
   /// No description provided for @archiveAction.
   ///
   /// In en, this message translates to:

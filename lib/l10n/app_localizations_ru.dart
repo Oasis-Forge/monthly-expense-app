@@ -399,6 +399,54 @@ class AppLocalizationsRu extends AppLocalizations {
   String get categoryNameTaken => 'Это название уже используется';
 
   @override
+  String get categoryColorPurple => 'Фиолетовый';
+
+  @override
+  String get categoryColorTeal => 'Бирюзовый';
+
+  @override
+  String get categoryColorRust => 'Ржавый';
+
+  @override
+  String get categoryColorBlue => 'Синий';
+
+  @override
+  String get categoryColorPink => 'Розовый';
+
+  @override
+  String get categoryColorGreen => 'Зелёный';
+
+  @override
+  String get categoryColorMagenta => 'Маджента';
+
+  @override
+  String get categoryColorCyan => 'Голубой';
+
+  @override
+  String get categoryColorBrown => 'Коричневый';
+
+  @override
+  String get categoryColorIndigo => 'Индиго';
+
+  @override
+  String get categoryColorRed => 'Красный';
+
+  @override
+  String get categoryColorSlate => 'Сланцевый';
+
+  @override
+  String get categoryColorOrange => 'Оранжевый';
+
+  @override
+  String get categoryColorEmerald => 'Изумрудный';
+
+  @override
+  String get categoryColorViolet => 'Тёмно-фиолетовый';
+
+  @override
+  String get categoryColorRaspberry => 'Малиновый';
+
+  @override
   String get archiveAction => 'Архивировать';
 
   @override

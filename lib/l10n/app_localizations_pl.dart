@@ -398,6 +398,54 @@ class AppLocalizationsPl extends AppLocalizations {
   String get categoryNameTaken => 'Ta nazwa jest już używana';
 
   @override
+  String get categoryColorPurple => 'Fioletowy';
+
+  @override
+  String get categoryColorTeal => 'Morski';
+
+  @override
+  String get categoryColorRust => 'Rdzawy';
+
+  @override
+  String get categoryColorBlue => 'Niebieski';
+
+  @override
+  String get categoryColorPink => 'Różowy';
+
+  @override
+  String get categoryColorGreen => 'Zielony';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Cyjan';
+
+  @override
+  String get categoryColorBrown => 'Brązowy';
+
+  @override
+  String get categoryColorIndigo => 'Indygo';
+
+  @override
+  String get categoryColorRed => 'Czerwony';
+
+  @override
+  String get categoryColorSlate => 'Łupkowy';
+
+  @override
+  String get categoryColorOrange => 'Pomarańczowy';
+
+  @override
+  String get categoryColorEmerald => 'Szmaragdowy';
+
+  @override
+  String get categoryColorViolet => 'Fiolet';
+
+  @override
+  String get categoryColorRaspberry => 'Malinowy';
+
+  @override
   String get archiveAction => 'Archiwizuj';
 
   @override

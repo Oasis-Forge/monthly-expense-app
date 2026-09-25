@@ -293,6 +293,70 @@
   "categoryNameLabel": "Name",
   "categoryNameRequired": "Enter a name",
   "categoryNameTaken": "That name is already used",
+  "categoryColorPurple": "Purple",
+  "@categoryColorPurple": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorTeal": "Teal",
+  "@categoryColorTeal": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorRust": "Rust",
+  "@categoryColorRust": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorBlue": "Blue",
+  "@categoryColorBlue": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorPink": "Pink",
+  "@categoryColorPink": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorGreen": "Green",
+  "@categoryColorGreen": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorMagenta": "Magenta",
+  "@categoryColorMagenta": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorCyan": "Cyan",
+  "@categoryColorCyan": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorBrown": "Brown",
+  "@categoryColorBrown": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorIndigo": "Indigo",
+  "@categoryColorIndigo": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorRed": "Red",
+  "@categoryColorRed": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorSlate": "Slate",
+  "@categoryColorSlate": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorOrange": "Orange",
+  "@categoryColorOrange": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorEmerald": "Emerald",
+  "@categoryColorEmerald": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorViolet": "Violet",
+  "@categoryColorViolet": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorRaspberry": "Raspberry",
+  "@categoryColorRaspberry": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
   "archiveAction": "Archive",
   "unarchiveAction": "Unarchive",
   "deleteAction": "Delete",

@@ -384,6 +384,54 @@ class AppLocalizationsZh extends AppLocalizations {
   String get categoryNameTaken => '该名称已被使用';
 
   @override
+  String get categoryColorPurple => '紫色';
+
+  @override
+  String get categoryColorTeal => '青色';
+
+  @override
+  String get categoryColorRust => '铁锈色';
+
+  @override
+  String get categoryColorBlue => '蓝色';
+
+  @override
+  String get categoryColorPink => '粉色';
+
+  @override
+  String get categoryColorGreen => '绿色';
+
+  @override
+  String get categoryColorMagenta => '品红色';
+
+  @override
+  String get categoryColorCyan => '青蓝色';
+
+  @override
+  String get categoryColorBrown => '棕色';
+
+  @override
+  String get categoryColorIndigo => '靛蓝色';
+
+  @override
+  String get categoryColorRed => '红色';
+
+  @override
+  String get categoryColorSlate => '灰蓝色';
+
+  @override
+  String get categoryColorOrange => '橙色';
+
+  @override
+  String get categoryColorEmerald => '翠绿色';
+
+  @override
+  String get categoryColorViolet => '紫罗兰色';
+
+  @override
+  String get categoryColorRaspberry => '树莓色';
+
+  @override
   String get archiveAction => '归档';
 
   @override

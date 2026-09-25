@@ -392,6 +392,54 @@ class AppLocalizationsBn extends AppLocalizations {
   String get categoryNameTaken => 'এই নামটি আগে থেকেই ব্যবহৃত';
 
   @override
+  String get categoryColorPurple => 'বেগুনি';
+
+  @override
+  String get categoryColorTeal => 'টিল';
+
+  @override
+  String get categoryColorRust => 'মরিচা রঙ';
+
+  @override
+  String get categoryColorBlue => 'নীল';
+
+  @override
+  String get categoryColorPink => 'গোলাপি';
+
+  @override
+  String get categoryColorGreen => 'সবুজ';
+
+  @override
+  String get categoryColorMagenta => 'ম্যাজেন্টা';
+
+  @override
+  String get categoryColorCyan => 'সায়ান';
+
+  @override
+  String get categoryColorBrown => 'বাদামী';
+
+  @override
+  String get categoryColorIndigo => 'নীলাভ বেগুনি';
+
+  @override
+  String get categoryColorRed => 'লাল';
+
+  @override
+  String get categoryColorSlate => 'স্লেট রঙ';
+
+  @override
+  String get categoryColorOrange => 'কমলা';
+
+  @override
+  String get categoryColorEmerald => 'পান্না সবুজ';
+
+  @override
+  String get categoryColorViolet => 'ভায়োলেট';
+
+  @override
+  String get categoryColorRaspberry => 'রাস্পবেরি';
+
+  @override
   String get archiveAction => 'আর্কাইভ করুন';
 
   @override

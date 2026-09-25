@@ -388,6 +388,54 @@ class AppLocalizationsUr extends AppLocalizations {
   String get categoryNameTaken => 'یہ نام پہلے سے استعمال میں ہے';
 
   @override
+  String get categoryColorPurple => 'بنفشی';
+
+  @override
+  String get categoryColorTeal => 'فیروزی سبز';
+
+  @override
+  String get categoryColorRust => 'زنگ آلود';
+
+  @override
+  String get categoryColorBlue => 'نیلا';
+
+  @override
+  String get categoryColorPink => 'گلابی';
+
+  @override
+  String get categoryColorGreen => 'سبز';
+
+  @override
+  String get categoryColorMagenta => 'ماجنٹا';
+
+  @override
+  String get categoryColorCyan => 'سیان';
+
+  @override
+  String get categoryColorBrown => 'بھورا';
+
+  @override
+  String get categoryColorIndigo => 'نیلگوں';
+
+  @override
+  String get categoryColorRed => 'سرخ';
+
+  @override
+  String get categoryColorSlate => 'سلیٹی نیلا';
+
+  @override
+  String get categoryColorOrange => 'نارنجی';
+
+  @override
+  String get categoryColorEmerald => 'زمردی';
+
+  @override
+  String get categoryColorViolet => 'گہرا بنفشی';
+
+  @override
+  String get categoryColorRaspberry => 'رسبری';
+
+  @override
   String get archiveAction => 'آرکائیو کریں';
 
   @override
