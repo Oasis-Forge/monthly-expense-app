@@ -404,24 +404,35 @@ pw.Widget _header(
           pw.Wrap(
             spacing: 4,
             crossAxisAlignment: pw.WrapCrossAlignment.center,
-            children: [
-              for (final part in [
+            children: _joinedRuns(
+              [
                 l10n.reportNarrowedTo('').trim(),
                 ..._searchParts(searchInfo, l10n, options),
-              ])
-                _run(
-                  part,
-                  style: const pw.TextStyle(
-                    fontSize: 10,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-            ],
+              ],
+              const pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+            ),
           ),
         ],
       ],
     ),
   );
+}
+
+/// Draws [parts] as separate runs (as [_run] already keeps each one's own
+/// bidi direction) with a direction-neutral "·" run of its own between them
+/// (review follow-up): a [pw.Wrap] with only a few points of spacing and no
+/// visible separator reads as one run-on phrase — "Expense Income tax" for
+/// a category named "Income tax" under the type Expense — in either a
+/// left-to-right or a right-to-left report.
+List<pw.Widget> _joinedRuns(List<String> parts, pw.TextStyle style) {
+  final children = <pw.Widget>[];
+  for (var i = 0; i < parts.length; i++) {
+    if (i > 0) {
+      children.add(_run('·', style: style.copyWith(color: PdfColors.grey600)));
+    }
+    children.add(_run(parts[i], style: style));
+  }
+  return children;
 }
 
 /// The query, type, and category a report was narrowed to, each its own

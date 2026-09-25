@@ -357,6 +357,55 @@ void main() {
       expect(text, contains(squashed('Expense')));
     });
 
+    test(
+      'separates the header parts with their own run, so a category '
+      'name does not run into the type before it (review-pdf-bidi)',
+      () async {
+        final data = buildReport(
+          from: DateTime(2026, 9, 1),
+          to: DateTime(2026, 9, 30),
+          today: today,
+          transactions: [
+            testTx(
+              'rent',
+              TransactionType.expense,
+              800,
+              DateTime(2026, 9, 1),
+              categoryId: 'cat-tax',
+            ),
+          ],
+          transfers: const [],
+          accounts: [testAccount('cash', opening: 100)],
+          matches: (tx) => tx.id == 'rent',
+          searchInfo: const ReportSearchInfo(
+            query: '',
+            type: TransactionType.expense,
+            categoryName: 'Income tax',
+          ),
+        );
+
+        final bytes = await buildReportPdf(
+          data: data,
+          options: const ReportOptions(),
+          labels: await labelsFor('en'),
+          fonts: await ReportFonts.forLocale(const Locale('en')),
+          createdAt: createdAt,
+          compress: false,
+        );
+        final lines = pdfLines(bytes);
+
+        // "Expense" and "Income tax" are two separate parts (type, category);
+        // without a visible separator between them they'd read as one run-on
+        // phrase. Each sits with its own '·' run right before it.
+        final expenseIndex = lines.indexWhere((l) => l == 'Expense');
+        final categoryIndex = lines.indexWhere((l) => l == 'Incometax');
+        expect(expenseIndex, isNot(-1), reason: '$lines');
+        expect(categoryIndex, isNot(-1), reason: '$lines');
+        expect(categoryIndex, greaterThan(expenseIndex));
+        expect(lines[categoryIndex - 1], '·');
+      },
+    );
+
     test('an unnarrowed report still shows both balances (BAL-3)', () async {
       final bytes = await buildReportPdf(
         data: dataWith(manyEntries(4)),

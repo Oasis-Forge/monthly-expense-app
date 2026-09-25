@@ -127,6 +127,30 @@ void main() {
       }
     });
 
+    test('a narrowed-search header keeps its parts apart with a '
+        'direction-neutral separator run, in Arabic and Urdu too '
+        '(review-pdf-bidi)', () async {
+      for (final code in ['ar', 'ur']) {
+        final lines = pdfLines(
+          await report(
+            code,
+            transactions: spend,
+            matches: (tx) => true,
+            searchInfo: const ReportSearchInfo(
+              query: 'Weekly shop',
+              type: TransactionType.expense,
+            ),
+          ),
+        );
+
+        // Without a separator run, the query and the type read as one
+        // run-on phrase either way round. '·' is direction-neutral, so it
+        // sits between them regardless of the report's own direction.
+        final separators = lines.where((l) => l == '·');
+        expect(separators, isNotEmpty, reason: '$code: $lines');
+      }
+    });
+
     test('an amount is drawn whole, with its sign leading', () async {
       final signed = [
         ...spend,
