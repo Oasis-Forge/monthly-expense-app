@@ -35,9 +35,10 @@ class RecurringRule {
   final bool autoPost;
   final DateTime? pausedAt;
 
-  /// Occurrences before this local date are never posted or queued. Editing
-  /// or resuming moves it to today, so changes apply to future occurrences
-  /// only (RCR-5, RCR-6).
+  /// Occurrences before this local date are never posted or queued. It only
+  /// moves forward when the rule's own start date moves past it (RCR-5); an
+  /// occurrence due while paused is skipped on its own instead (RCR-6), so
+  /// one already waiting before the pause is never affected.
   final DateTime activeFrom;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -96,34 +97,40 @@ class RecurringRule {
   }
 
   /// The occurrence at [index] (0 is [startDate]), or null once the rule has
-  /// ended.
+  /// ended, or once it falls outside the range [DateTime] can represent
+  /// (an interval or a count large enough to overflow it, money-time#7).
   DateTime? occurrence(int index) {
     if (endType == RecurrenceEnd.afterCount && index >= (endCount ?? 0)) {
       return null;
     }
     final steps = index * interval;
-    final date = switch (frequency) {
-      RecurrenceFrequency.day => DateTime(
-        startDate.year,
-        startDate.month,
-        startDate.day + steps,
-      ),
-      RecurrenceFrequency.week => DateTime(
-        startDate.year,
-        startDate.month,
-        startDate.day + 7 * steps,
-      ),
-      RecurrenceFrequency.month => _clamped(
-        startDate.year,
-        startDate.month + steps,
-        startDate.day,
-      ),
-      RecurrenceFrequency.year => _clamped(
-        startDate.year + steps,
-        startDate.month,
-        startDate.day,
-      ),
-    };
+    DateTime date;
+    try {
+      date = switch (frequency) {
+        RecurrenceFrequency.day => DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day + steps,
+        ),
+        RecurrenceFrequency.week => DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day + 7 * steps,
+        ),
+        RecurrenceFrequency.month => _clamped(
+          startDate.year,
+          startDate.month + steps,
+          startDate.day,
+        ),
+        RecurrenceFrequency.year => _clamped(
+          startDate.year + steps,
+          startDate.month,
+          startDate.day,
+        ),
+      };
+    } on ArgumentError {
+      return null;
+    }
     if (endType == RecurrenceEnd.onDate && date.isAfter(endDate!)) return null;
     return date;
   }

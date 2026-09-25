@@ -191,15 +191,23 @@ class TransactionProvider extends ChangeNotifier {
   /// Brings Home to today when the app comes back on a later day while Home
   /// was still showing the old today (DAY-1, PER-1), so an entry added then
   /// belongs to the new day (ADD-3). A day or period the user chose stays
-  /// chosen.
-  void returnToToday() {
+  /// chosen. Also posts any automatic occurrence that fell due while the app
+  /// stayed open across the day change, since otherwise only [load] does
+  /// (RCR-4, RCR-7).
+  Future<void> returnToToday() async {
     final today = _today;
     final before = _dayLastSeen;
     _dayLastSeen = today;
-    if (before == null || before == today || selectedDay != before) return;
-    _period = currentPeriod;
-    _daySelectionPeriod = null;
-    _changed();
+    final dayChanged = before != null && before != today;
+    if (dayChanged && selectedDay == before) {
+      _period = currentPeriod;
+      _daySelectionPeriod = null;
+      _changed();
+    }
+    if (dayChanged) {
+      await _postAutomaticOccurrences();
+      _changed();
+    }
   }
 
   final _loadDone = Completer<void>();
@@ -899,14 +907,15 @@ class TransactionProvider extends ChangeNotifier {
       _saveAccounts([accountById(id)!.copyWith(archivedAt: null)]);
 
   /// Whether any transaction or transfer, deleted ones included, uses the
-  /// account.
+  /// account, or a recurring rule still posts to it (RCR-1).
   bool isAccountUsed(String id) =>
       _transactions.any((t) => t.accountId == id) ||
       _deleted.any((t) => t.accountId == id) ||
       [
         ..._transfers,
         ..._deletedTransfers,
-      ].any((t) => t.fromAccountId == id || t.toAccountId == id);
+      ].any((t) => t.fromAccountId == id || t.toAccountId == id) ||
+      _rules.any((r) => r.accountId == id);
 
   /// Deletes an unused account. An account with history can only be
   /// archived (ACC-5), and one active account must remain; otherwise this
@@ -980,10 +989,12 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> unarchiveCategory(String id) =>
       _saveCategories([categoryById(id)!.copyWith(archivedAt: null)]);
 
-  /// Whether any transaction, trashed ones included, uses the category.
+  /// Whether any transaction, trashed ones included, uses the category, or a
+  /// recurring rule still posts to it (RCR-1).
   bool isCategoryUsed(String id) =>
       _transactions.any((t) => t.categoryId == id) ||
-      _deleted.any((t) => t.categoryId == id);
+      _deleted.any((t) => t.categoryId == id) ||
+      _rules.any((r) => r.categoryId == id);
 
   /// Deletes an unused category. A used category can only be archived
   /// (CAT-4), so this throws a [StateError] for one.
@@ -1472,14 +1483,15 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Saves an edited rule. The change applies from today onward: posted
-  /// transactions stay as they are, and earlier occurrences that weren't
-  /// handled are dropped (RCR-5).
+  /// Saves an edited rule. The edit reaches every occurrence not yet posted
+  /// or skipped, including one already waiting in Due (RCR-5); only a start
+  /// date moved later can push activeFrom forward, so an edit never makes an
+  /// occurrence that was due disappear on its own.
   Future<void> updateRecurringRule(RecurringRule rule) async {
-    final today = _today;
+    final floor = recurringRuleById(rule.id)?.activeFrom ?? rule.activeFrom;
     await _saveRule(
       rule.copyWith(
-        activeFrom: rule.startDate.isAfter(today) ? rule.startDate : today,
+        activeFrom: rule.startDate.isAfter(floor) ? rule.startDate : floor,
         updatedAt: _clock().toUtc(),
       ),
     );
@@ -1495,18 +1507,28 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Resumes a rule. Occurrences that came due while it was paused are
-  /// skipped, not caught up (RCR-6).
+  /// Resumes a rule. Occurrences that fell due between the pause and now are
+  /// skipped one by one, not caught up (RCR-6); an occurrence that was
+  /// already waiting in Due before the pause started stays waiting (RCR-5).
   Future<void> resumeRecurringRule(String id) async {
     final rule = recurringRuleById(id)!;
-    final today = _today;
-    await _saveRule(
-      rule.copyWith(
-        pausedAt: null,
-        activeFrom: rule.activeFrom.isAfter(today) ? rule.activeFrom : today,
-        updatedAt: _clock().toUtc(),
-      ),
-    );
+    final pausedAt = rule.pausedAt;
+    if (pausedAt != null) {
+      final now = _clock().toUtc();
+      for (final date in rule.occurrencesBetween(pausedAt, _today)) {
+        final key = occurrenceKey(rule.id, date);
+        if (_occurrences.containsKey(key)) continue;
+        final record = RecurringOccurrence(
+          ruleId: rule.id,
+          date: date,
+          status: OccurrenceStatus.skipped,
+          createdAt: now,
+        );
+        await _db.insertOccurrence(record);
+        _occurrences[record.key] = record;
+      }
+    }
+    await _saveRule(rule.copyWith(pausedAt: null, updatedAt: _clock().toUtc()));
     await _postAutomaticOccurrences();
     _changed();
   }

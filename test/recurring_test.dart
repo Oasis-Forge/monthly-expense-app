@@ -98,6 +98,31 @@ void main() {
       ]);
     });
 
+    test('a huge interval or count ends the schedule instead of throwing '
+        '(RCR-1, RCR-4, audit money-time#7)', () {
+      final hugeYearly = rule(
+        DateTime(2026, 9, 1),
+        frequency: RecurrenceFrequency.year,
+        interval: 300000,
+      );
+      expect(
+        () => dates(hugeYearly, DateTime(2026, 9, 1), DateTime(2026, 9, 30)),
+        returnsNormally,
+      );
+      expect(dates(hugeYearly, DateTime(2026, 9, 1), DateTime(2026, 9, 30)), [
+        DateTime(2026, 9, 1),
+      ]);
+
+      final hugeCount = rule(
+        DateTime(2026, 9, 1),
+        frequency: RecurrenceFrequency.year,
+        interval: 1,
+        end: RecurrenceEnd.afterCount,
+        count: 999999999,
+      );
+      expect(() => hugeCount.isActiveOn(DateTime(2026, 9, 1)), returnsNormally);
+    });
+
     test('a rule ends after a number of times or on a date', () {
       final threeTimes = rule(
         DateTime(2026, 1, 5),
@@ -356,7 +381,8 @@ void main() {
       expect(provider.dueOccurrences, isEmpty);
     });
 
-    test('occurrences due while paused are skipped (RCR-6)', () async {
+    test('occurrences due while paused are skipped, but one already waiting '
+        'before the pause is not (RCR-6, audit rules-6-10#4)', () async {
       await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));
       await provider.pauseRecurringRule('Rent');
       expect(provider.dueOccurrences, isEmpty);
@@ -366,7 +392,10 @@ void main() {
       await reload();
       await provider.resumeRecurringRule('Rent');
 
-      expect(provider.dueOccurrences, isEmpty);
+      // Sep 1 was already due before the pause started (on Sep 15) and
+      // was never handled, so it stays due; Oct 1 and Nov 1 fell due
+      // while paused and are skipped, not caught up.
+      expect(dates(provider.dueOccurrences), [DateTime(2026, 9)]);
       expect(dates(provider.upcomingOccurrences), [DateTime(2026, 12)]);
     });
 
@@ -400,6 +429,19 @@ void main() {
         expect(provider.transactions, hasLength(3));
       },
     );
+
+    test('a due-before-today occurrence survives an unrelated edit '
+        '(RCR-5, audit rules-6-10#4)', () async {
+      await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));
+      expect(dates(provider.dueOccurrences), [DateTime(2026, 9)]);
+
+      await provider.updateRecurringRule(
+        provider.recurringRules.single.copyWith(amount: const Money(1000000)),
+      );
+
+      expect(dates(provider.dueOccurrences), [DateTime(2026, 9)]);
+      expect(provider.transactions, isEmpty);
+    });
 
     test('a failed post changes nothing', () async {
       await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));

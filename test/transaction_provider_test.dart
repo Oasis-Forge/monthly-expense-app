@@ -434,6 +434,26 @@ void main() {
         isNotNull,
       );
     });
+
+    test('an account used only by a not-yet-due recurring rule cannot be '
+        'deleted (ACC-5, RCR-1, audit rules-6-10#6)', () async {
+      final spare = await provider.addAccount(
+        name: 'Spare',
+        type: AccountType.other,
+        openingBalance: Money.zero,
+        openingDate: DateTime(2026, 9),
+      );
+      await provider.addRecurringRule(
+        testRule(
+          'rent',
+          100,
+          DateTime(2026, 10, 1),
+        ).copyWith(accountId: spare.id),
+      );
+
+      expect(provider.isAccountUsed(spare.id), isTrue);
+      await expectLater(provider.deleteAccount(spare.id), throwsStateError);
+    });
   });
 
   group('transfers (ACC-3)', () {
@@ -608,6 +628,20 @@ void main() {
         fake.categories.firstWhere((c) => c.id == 'cat-rent').deletedAt,
         isNotNull,
       );
+    });
+
+    test('a category used only by a not-yet-due recurring rule cannot be '
+        'deleted (CAT-4, RCR-1, audit rules-6-10#6)', () async {
+      await provider.addRecurringRule(
+        testRule(
+          'rent',
+          100,
+          DateTime(2026, 10, 1),
+        ).copyWith(categoryId: 'cat-other'),
+      );
+
+      expect(provider.isCategoryUsed('cat-other'), isTrue);
+      await expectLater(provider.deleteCategory('cat-other'), throwsStateError);
     });
   });
 

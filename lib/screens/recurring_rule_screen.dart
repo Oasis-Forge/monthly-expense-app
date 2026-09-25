@@ -42,6 +42,10 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
   /// Off by default: occurrences wait for a tap (RCR-2).
   bool _autoPost = false;
 
+  /// True while a save is in flight, so a double tap or a retry after a
+  /// slow or failed save cannot create a second rule (data-integrity#5).
+  bool _saving = false;
+
   @override
   void initState() {
     super.initState();
@@ -80,13 +84,21 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     super.dispose();
   }
 
+  /// The interval and the repeat count both take a whole number from 1 to
+  /// [_wholeNumberMax]: high enough for any real schedule, low enough that
+  /// the projected date always stays well inside what [DateTime] can
+  /// represent (money-time#7).
+  static const _wholeNumberMax = 999;
+
   static int? _wholeNumber(String? text) {
     final value = int.tryParse(text?.trim() ?? '');
-    return value != null && value >= 1 ? value : null;
+    return value != null && value >= 1 && value <= _wholeNumberMax
+        ? value
+        : null;
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_saving || !_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
     final messenger = ScaffoldMessenger.of(context);
@@ -100,6 +112,15 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     }
 
     final editing = widget.editing;
+    // The pause/resume button writes straight to the provider and leaves the
+    // form open, so `editing` can be a stale snapshot of the rule by the
+    // time Save runs; read pausedAt and createdAt from the provider's
+    // current copy instead of the one the screen opened with, or Save
+    // silently reverts whichever of Pause or Resume was just tapped
+    // (rules-6-10#3).
+    final live = editing == null
+        ? null
+        : provider.recurringRuleById(editing.id);
     final now = DateTime.now().toUtc();
     final title = _titleController.text.trim();
     final note = _noteController.text.trim();
@@ -120,12 +141,13 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
           : null,
       endDate: endDate,
       autoPost: _autoPost,
-      pausedAt: editing?.pausedAt,
+      pausedAt: live?.pausedAt,
       activeFrom: editing?.activeFrom ?? _startDate,
-      createdAt: editing?.createdAt ?? now,
+      createdAt: live?.createdAt ?? now,
       updatedAt: now,
     );
 
+    _saving = true;
     try {
       if (editing == null) {
         await provider.addRecurringRule(rule);
@@ -133,9 +155,11 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
         await provider.updateRecurringRule(rule);
       }
     } catch (_) {
+      _saving = false;
       messenger.showSnackBar(SnackBar(content: Text(l10n.recurringSaveFailed)));
       return;
     }
+    _saving = false;
     if (mounted) Navigator.of(context).pop();
   }
 

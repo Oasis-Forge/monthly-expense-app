@@ -29,6 +29,10 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   AccountType _type = AccountType.bank;
   late DateTime _openingDate;
 
+  /// True while a save is in flight, so a double tap or a retry after a
+  /// slow or failed save cannot create a second account (data-integrity#5).
+  bool _saving = false;
+
   /// The name shown when the screen opened; an unchanged default name stays
   /// translated.
   String _initialName = '';
@@ -75,7 +79,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_saving || !_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
     final messenger = ScaffoldMessenger.of(context);
@@ -88,6 +92,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
       currency.maximumFractionDigits,
     )!;
 
+    _saving = true;
     try {
       final editing = widget.editing;
       if (editing == null) {
@@ -108,9 +113,11 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
         );
       }
     } catch (_) {
+      _saving = false;
       messenger.showSnackBar(SnackBar(content: Text(l10n.accountSaveFailed)));
       return;
     }
+    _saving = false;
     if (mounted) Navigator.of(context).pop();
   }
 

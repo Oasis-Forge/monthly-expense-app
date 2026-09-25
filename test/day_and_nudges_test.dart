@@ -14,7 +14,7 @@ void main() {
       expect(provider.selectedDay, DateTime(2026, 9, 30));
 
       now = DateTime(2026, 10, 1, 8);
-      provider.returnToToday();
+      await provider.returnToToday();
 
       expect(provider.selectedDay, DateTime(2026, 10, 1));
       expect(provider.period.start, DateTime(2026, 10));
@@ -27,7 +27,7 @@ void main() {
       provider.selectDay(DateTime(2026, 9, 21));
 
       now = DateTime(2026, 9, 25, 8);
-      provider.returnToToday();
+      await provider.returnToToday();
 
       expect(provider.selectedDay, DateTime(2026, 9, 21));
     });
@@ -44,11 +44,38 @@ void main() {
 
         // The clock has not moved to a new day since load(); resuming again
         // must change nothing and notify no one.
-        provider.returnToToday();
+        await provider.returnToToday();
 
         expect(notified, 0);
       },
     );
+
+    test('an automatic occurrence due after the app resumes on a new day, with '
+        'no reload, is posted (RCR-4, RCR-7, audit rules-6-10#7)', () async {
+      var now = DateTime(2026, 9, 30, 22);
+      final provider = TransactionProvider(
+        db: FakeDB(
+          rules: [testRule('Rent', 900, DateTime(2026, 10, 1), autoPost: true)],
+        ),
+        clock: () => now,
+      );
+      await provider.load();
+      // Loaded the evening before: the occurrence is due tomorrow, so
+      // nothing has posted yet.
+      expect(provider.transactions, isEmpty);
+
+      // The clock crosses midnight while the process stays alive (no new
+      // load()); the app comes back to the foreground on the new day,
+      // same as main.dart's AppLifecycleState.resumed handler.
+      now = DateTime(2026, 10, 1, 9);
+      await provider.returnToToday();
+
+      expect(
+        provider.transactions,
+        hasLength(1),
+        reason: 'the automatic occurrence due today should have posted',
+      );
+    });
   });
 
   test(
