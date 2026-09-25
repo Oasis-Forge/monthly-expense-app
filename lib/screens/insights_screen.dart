@@ -264,23 +264,26 @@ class _CategoriesTabState extends State<_CategoriesTab> {
               title: Text(
                 provider.categoryById(entries[i].key)?.label(l10n) ?? '',
               ),
-              trailing: Column(
+              // INS-6: what it was doing last month, beside what it is doing
+              // now — a Row, not a Column, so the tile stays one line tall
+              // and doesn't overflow ListTile's fixed trailing height at a
+              // large text scale (pr56+60#5). Left in the ordinary colour:
+              // red and green already mean money out and money in (CUR-5),
+              // and a second meaning for them would cost the first.
+              trailing: Row(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(currency.money(entries[i].value), style: amountStyle()),
-                  // INS-6: what it was doing last month, beside what it is
-                  // doing now. Left in the ordinary colour: red and green
-                  // already mean money out and money in (CUR-5), and a
-                  // second meaning for them would cost the first.
                   if (changeLabel(entries[i].key, entries[i].value)
-                      case final change?)
+                      case final change?) ...[
                     Text(
                       change,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(currency.money(entries[i].value), style: amountStyle()),
                 ],
               ),
             ),

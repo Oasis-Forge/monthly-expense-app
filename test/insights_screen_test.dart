@@ -271,6 +271,39 @@ void main() {
     });
 
     testWidgets(
+      "a category row with a change label doesn't overflow at a large "
+      'system text scale (INS-6, pr56+60#5)',
+      (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        await showInsights(tester, [
+          // August: food 100, transport 50.
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 3)),
+          testTx(
+            'b',
+            TransactionType.expense,
+            50,
+            DateTime(2026, 8, 9),
+            categoryId: 'cat-transport',
+          ),
+          // September: food down to 60, and shopping out of nowhere.
+          testTx('c', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+          testTx(
+            'd',
+            TransactionType.expense,
+            20,
+            DateTime(2026, 9, 5),
+            categoryId: 'cat-shopping',
+          ),
+        ]);
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
       'a rising category shows a plus, and a change under half a percent '
       'shows no label at all (INS-6, pr61#5, pr56+60#2)',
       (tester) async {
