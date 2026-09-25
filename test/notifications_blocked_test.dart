@@ -20,12 +20,14 @@ void main() {
   /// [reminders] standing in for the phone's own notification permission.
   Future<SettingsProvider> startWithNudgeOn(
     WidgetTester tester,
-    FakeReminderService reminders,
-  ) async {
+    FakeReminderService reminders, {
+    Map<String, Object> values = const {},
+  }) async {
     final settings = await testSettings({
       'setup_done': true,
       'walkthrough_seen': true,
       'empty_day_nudge': true,
+      ...values,
     });
     await tester.pumpWidget(
       MonthlyExpenseApp(
@@ -94,10 +96,22 @@ void main() {
 
     testWidgets(
       'a stretch spent blocked is not later counted as ignored nudges '
-      '(NUDGE-5)',
+      '(NUDGE-5, pr59#8)',
       (tester) async {
         final reminders = FakeReminderService(permissionGranted: false);
-        final settings = await startWithNudgeOn(tester, reminders);
+        // Several days with the nudge's own hour already well behind
+        // "now", every one of them: without the blocked-phone guard this
+        // alone would be enough to give up on the nudge (see the mirror
+        // case below), so the test actually exercises the guard rather
+        // than passing because nothing was ever checked before.
+        final checkedAt = DateTime.now().subtract(const Duration(days: 5));
+        final settings = await startWithNudgeOn(
+          tester,
+          reminders,
+          values: {
+            'empty_day_nudge_checked': checkedAt.toUtc().toIso8601String(),
+          },
+        );
 
         expect(settings.notificationsBlocked, isTrue);
         // Nothing here ever moved the ignored count or gave up on the
@@ -105,6 +119,26 @@ void main() {
         expect(settings.nudgeIgnored, 0);
         expect(settings.nudgeStopped, isFalse);
         expect(settings.emptyDayNudge, isTrue);
+      },
+    );
+
+    testWidgets(
+      'the same stretch with the phone allowing notifications would have '
+      'given up on the nudge, proving the guard above is doing something '
+      '(NUDGE-5, pr59#8)',
+      (tester) async {
+        final reminders = FakeReminderService(permissionGranted: true);
+        final checkedAt = DateTime.now().subtract(const Duration(days: 5));
+        final settings = await startWithNudgeOn(
+          tester,
+          reminders,
+          values: {
+            'empty_day_nudge_checked': checkedAt.toUtc().toIso8601String(),
+          },
+        );
+
+        expect(settings.notificationsBlocked, isFalse);
+        expect(settings.nudgeStopped, isTrue);
       },
     );
   });
