@@ -1070,6 +1070,11 @@ class FakeAttachmentFiles implements AttachmentFiles {
   String? recordingTo;
   bool cancelled = false;
 
+  /// Makes [stopRecording] throw once, the way a `PlatformException` from
+  /// the recorder plugin would after an audio-focus loss or a phone call
+  /// (x-recorder-release).
+  bool stopThrows = false;
+
   @override
   Future<String?> pickPhoto(PhotoSource source) async {
     picked.add(source);
@@ -1085,7 +1090,13 @@ class FakeAttachmentFiles implements AttachmentFiles {
   }
 
   @override
-  Future<String?> stopRecording() async => recordingTo;
+  Future<String?> stopRecording() async {
+    if (stopThrows) {
+      stopThrows = false;
+      throw StateError('stop failed');
+    }
+    return recordingTo;
+  }
 
   @override
   Future<void> play(String path) async {
