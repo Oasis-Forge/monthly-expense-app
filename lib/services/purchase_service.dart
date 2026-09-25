@@ -132,10 +132,14 @@ class DevicePurchaseService extends PurchaseService {
     final response = await _store.queryProductDetails({
       PurchaseService.removeAdsId,
     });
+    // An empty listing (offline, or a Play hiccup) means there is nothing to
+    // sell right now, not that nothing was bought: the ownership question
+    // below is still asked, or a paying user gets the ads back (PAY-5).
     final product = response.productDetails.firstOrNull;
-    if (product == null) return _settle(PurchaseStage.unavailable);
     _product = product;
-    _settle(PurchaseStage.offered);
+    _settle(
+      product == null ? PurchaseStage.unavailable : PurchaseStage.offered,
+    );
 
     // What the store already knows about this account (PAY-5). Anything owned
     // comes back through the stream, so the answer is not in hand when this

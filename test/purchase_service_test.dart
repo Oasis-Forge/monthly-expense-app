@@ -153,6 +153,20 @@ void main() {
       },
     );
 
+    test('an empty listing still asks what is owned, so a payer keeps no ads '
+        '(PAY-5, PAY-1)', () async {
+      // Offline, or a Play hiccup: no product comes back, but the store's
+      // own record of the purchase does.
+      final store = FakeStore(products: const [])
+        ..owned = [purchase(PurchaseStatus.restored)];
+      final service = DevicePurchaseService(store: store);
+
+      await service.start();
+
+      expect(store.restores, 1);
+      expect(service.adsRemoved, isTrue);
+    });
+
     test('the product brings its own price (PAY-6)', () async {
       final store = FakeStore();
       final service = DevicePurchaseService(store: store);

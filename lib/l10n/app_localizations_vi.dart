@@ -1711,6 +1711,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get privacyOptionsTitle => 'Tùy chọn quyền riêng tư';
 
   @override
+  String get privacyPolicyTitle => 'Chính sách quyền riêng tư';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Thay đổi lựa chọn về quảng cáo được cá nhân hóa';
 

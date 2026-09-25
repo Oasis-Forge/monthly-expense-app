@@ -1707,6 +1707,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get privacyOptionsTitle => 'গোপনীয়তা বিকল্প';
 
   @override
+  String get privacyPolicyTitle => 'গোপনীয়তা নীতি';
+
+  @override
   String get privacyOptionsSubtitle =>
       'ব্যক্তিগতকৃত বিজ্ঞাপন সম্পর্কে আপনার পছন্দ পরিবর্তন করুন';
 

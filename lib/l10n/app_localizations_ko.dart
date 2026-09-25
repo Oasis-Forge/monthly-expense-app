@@ -1670,6 +1670,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get privacyOptionsTitle => '개인정보 보호 옵션';
 
   @override
+  String get privacyPolicyTitle => '개인정보 처리방침';
+
+  @override
   String get privacyOptionsSubtitle => '맞춤 광고 설정 변경';
 
   @override

@@ -463,6 +463,7 @@
   "plusComingSoon": "即将推出",
   "plusBody": "银行连接功能会导入你的交易记录供确认，目前尚未完成，暂时无法购买。",
   "privacyOptionsTitle": "隐私选项",
+  "privacyPolicyTitle": "隐私政策",
   "privacyOptionsSubtitle": "更改你对个性化广告的选择",
   "dueEntryReminderTitle": "有一笔记录到期",
   "dueEntryReminderOne": "{title}今天到期，仍在等待处理。",

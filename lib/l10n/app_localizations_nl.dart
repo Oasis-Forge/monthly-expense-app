@@ -1728,6 +1728,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get privacyOptionsTitle => 'Privacyopties';
 
   @override
+  String get privacyPolicyTitle => 'Privacybeleid';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Wijzig je keuze over gepersonaliseerde advertenties';
 

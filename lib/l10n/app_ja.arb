@@ -463,6 +463,7 @@
   "plusComingSoon": "近日公開",
   "plusBody": "銀行口座と連携し、取引を自動で取り込んで確認できる機能です。まだ開発中のため、購入はできません。",
   "privacyOptionsTitle": "プライバシー設定",
+  "privacyPolicyTitle": "プライバシーポリシー",
   "privacyOptionsSubtitle": "パーソナライズ広告の設定を変更",
   "dueEntryReminderTitle": "入力期限が来ました",
   "dueEntryReminderOne": "{title}は本日期限でしたが、まだ未対応です。",

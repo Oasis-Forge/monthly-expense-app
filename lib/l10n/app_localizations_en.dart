@@ -1706,6 +1706,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyOptionsTitle => 'Privacy options';
 
   @override
+  String get privacyPolicyTitle => 'Privacy policy';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Change your choice about personalised ads';
 

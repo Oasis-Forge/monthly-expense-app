@@ -1771,6 +1771,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get privacyOptionsTitle => 'Настройки конфиденциальности';
 
   @override
+  String get privacyPolicyTitle => 'Политика конфиденциальности';
+
+  @override
   String get privacyOptionsSubtitle =>
       'Изменить настройки персонализированной рекламы';
 
