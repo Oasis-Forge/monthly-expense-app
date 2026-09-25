@@ -68,6 +68,54 @@ bool isNarrowingFilter(TransactionFilter? filter) =>
         filter.type != null ||
         filter.categoryId != null);
 
+/// Builds the report [ReportScreen] previews and exports, so the wiring from
+/// its filter and options to [buildReport] is one function a test can call
+/// directly instead of only through the whole screen (PDF-1).
+ReportData reportDataFor({
+  required TransactionProvider provider,
+  required TransactionFilter? filter,
+  required DateTime from,
+  required DateTime to,
+  String? accountId,
+  ReportOptions options = const ReportOptions(),
+  required String Function(Category category) categoryName,
+  required String Function(Account account) accountName,
+  required String decimalMark,
+}) {
+  final matches = reportMatchesFor(
+    provider,
+    filter,
+    categoryName: categoryName,
+    accountName: accountName,
+    decimalMark: decimalMark,
+  );
+  ReportSearchInfo? searchInfo;
+  if (matches != null && filter != null) {
+    final category = filter.categoryId == null
+        ? null
+        : provider.categoryById(filter.categoryId!);
+    searchInfo = ReportSearchInfo(
+      query: filter.query.trim(),
+      type: filter.type,
+      categoryName: category == null ? null : categoryName(category),
+    );
+  }
+  return buildReport(
+    from: from,
+    to: to,
+    today: provider.today,
+    transactions: provider.transactions,
+    transfers: provider.transfers,
+    accounts: provider.accounts,
+    accountId: accountId,
+    matches: matches,
+    searchInfo: searchInfo,
+    budgetLimit: (id) => provider.budgetLimit(id),
+    startDay: provider.startDay,
+    options: options,
+  );
+}
+
 /// Chooses what a PDF report covers and what it leaves out, then builds and
 /// previews it (PDF-1, PDF-3, PDF-4).
 class ReportScreen extends StatefulWidget {
@@ -167,43 +215,19 @@ class _ReportScreenState extends State<ReportScreen> {
     );
 
     try {
-      final matches = reportMatchesFor(
-        provider,
-        widget.filter,
+      final data = reportDataFor(
+        provider: provider,
+        filter: widget.filter,
+        from: from,
+        to: to,
+        accountId: _accountId,
+        options: _options,
         categoryName: (category) => category.label(l10n),
         accountName: (account) => account.label(l10n),
         decimalMark: settings
             .currencyFormat(l10n.localeName)
             .symbols
             .DECIMAL_SEP,
-      );
-      // PDF-1, ACC-6: the header and summary need to say the report is
-      // narrowed to the search, not just narrow what it shows.
-      ReportSearchInfo? searchInfo;
-      if (matches != null && widget.filter != null) {
-        final categoryId = widget.filter!.categoryId;
-        final category = categoryId == null
-            ? null
-            : provider.categoryById(categoryId);
-        searchInfo = ReportSearchInfo(
-          query: widget.filter!.query.trim(),
-          type: widget.filter!.type,
-          categoryName: category?.label(l10n),
-        );
-      }
-      final data = buildReport(
-        from: from,
-        to: to,
-        today: provider.today,
-        transactions: provider.transactions,
-        transfers: provider.transfers,
-        accounts: provider.accounts,
-        accountId: _accountId,
-        matches: matches,
-        searchInfo: searchInfo,
-        budgetLimit: (id) => provider.budgetLimit(id),
-        startDay: provider.startDay,
-        options: _options,
       );
       final bytes = await buildReportPdf(
         data: data,

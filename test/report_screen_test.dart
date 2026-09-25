@@ -179,6 +179,38 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a query, type, or category from Search shows the narrowed notice '
+    '(PDF-1, ACC-6, review-money-2)',
+    (tester) async {
+      await showReport(tester, filter: const TransactionFilter(query: 'Rent'));
+
+      expect(
+        find.text('This report stays narrowed to your search.'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('the account or dates alone from Search show no narrowed notice '
+      '(PDF-1)', (tester) async {
+    // reportMatchesFor treats these the same way: they seed the report's
+    // own controls, but narrow nothing it shows (BAL-2, BAL-3).
+    await showReport(
+      tester,
+      filter: TransactionFilter(
+        accountId: Account.cashId,
+        from: DateTime(2026, 9, 3),
+        to: DateTime(2026, 9, 9),
+      ),
+    );
+
+    expect(
+      find.text('This report stays narrowed to your search.'),
+      findsNothing,
+    );
+  });
+
   group(
     'what a report from Search draws from (PDF-1, BAK-5, BAL-2, BAL-3)',
     () {
@@ -349,6 +381,28 @@ void main() {
           expect(reportIds, contains('tnd'));
         },
       );
+
+      // review-money-3: this is the one function ReportScreen._create calls
+      // to build the data it previews and exports (reportDataFor), so a test
+      // that only exercised reportMatchesFor and buildReport directly, as
+      // the tests above do, would stay green even if _create stopped
+      // wiring the filter through.
+      test('reportDataFor wires the Search filter through to the data the '
+          'screen builds and exports (PDF-1)', () {
+        final data = reportDataFor(
+          provider: provider,
+          filter: const TransactionFilter(query: 'Rent'),
+          from: DateTime(2026, 9, 1),
+          to: DateTime(2026, 9, 30),
+          categoryName: categoryName,
+          accountName: accountName,
+          decimalMark: '.',
+        );
+
+        final entries = data.byDay.values.expand((e) => e);
+        expect(entries.single.transaction!.id, 'rent');
+        expect(data.searchInfo?.query, 'Rent');
+      });
     },
   );
 
