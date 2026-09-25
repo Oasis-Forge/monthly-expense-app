@@ -204,6 +204,43 @@ void main() {
     });
   });
 
+  group('FakeReminderService.schedule mirrors the device on a cold-start '
+      'keep (x-reminder-lock-keep, pr59#9)', () {
+    test('records the time it kept, so a later edit is told apart from an '
+        'unchanged passed time the same way DeviceReminderService does', () {
+      // now is fixed 30 minutes after `at`, so both `at` and the edited,
+      // earlier time below are passed times, well inside the grace window.
+      final fake = FakeReminderService(
+        now: () => at.add(const Duration(minutes: 30)),
+      );
+      // Stands in for a reminder the device already has pending from
+      // before a cold start -- the fake's own bookkeeping (_lastScheduledAt)
+      // starts out empty regardless, exactly as it does after one.
+      fake.scheduled['a'] = false;
+      final note = testNote('a', 'Remind me', reminderAt: at);
+
+      // The cold-start keep: nothing was ever scheduled before (as far as
+      // this instance's memory goes), so this keeps without touching
+      // `scheduled` -- but must still remember `at`, as
+      // DeviceReminderService always does after a keep.
+      fake.schedule(note, appLockOn: false, locale: const Locale('en'));
+      expect(fake.scheduled.containsKey('a'), isTrue);
+
+      // The note is then edited to an earlier time. A real device would
+      // see its own last-scheduled time no longer match and cancel the
+      // stale alarm outright; a fake that forgot the time it just kept
+      // would instead see "never scheduled" again and wrongly keep it.
+      final edited = testNote(
+        'a',
+        'Remind me',
+        reminderAt: at.subtract(const Duration(minutes: 45)),
+      );
+      fake.schedule(edited, appLockOn: false, locale: const Locale('en'));
+
+      expect(fake.scheduled.containsKey('a'), isFalse);
+    });
+  });
+
   group('nudgeBody (NUDGE-2, rules-23-26-34#9)', () {
     late AppLocalizations l10n;
     final currency = NumberFormat.simpleCurrency(locale: 'en_US');

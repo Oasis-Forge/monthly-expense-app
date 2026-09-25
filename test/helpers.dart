@@ -700,7 +700,10 @@ class FakeReminderService implements ReminderService {
         if (last == null) {
           // Nothing was ever actually scheduled for this passed time, so
           // the device would have nothing to reword either -- this must
-          // not invent an entry.
+          // not invent an entry. DeviceReminderService still records the
+          // time after a cold start (x-reminder-lock-keep), so a later
+          // edit is told apart from an unchanged one the same way there.
+          _lastScheduledAt[note.id] = at!;
           return;
         }
         if (lockKeepActionFor(
