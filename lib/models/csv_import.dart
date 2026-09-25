@@ -415,11 +415,25 @@ Map<ImportField, int> matchColumns(List<String> header) {
           // The loose pass matches a whole word of the header, never a
           // substring buried inside another word ("Counterparty" must not
           // match the type alias "art" just because "party" contains it).
-          // Aliases of three letters or fewer ("art", "tag", "day"...) are
-          // common enough as fragments of unrelated words that they are
-          // trusted only on an exact whole-header match, never loosely.
-          if (alias.length <= 3) return false;
-          return _wholeWordMatch(words, alias);
+          // Latin aliases of three letters or fewer ("art", "tag", "day"...)
+          // are common enough as fragments of unrelated words that they are
+          // trusted only on an exact whole-header match, never loosely. A
+          // short CJK or Hangul alias ("金额", "날짜") is not a fragment the
+          // same way a short Latin one is — two characters there is already
+          // a whole word — so the limit does not apply to it.
+          final short = alias.length <= 3 && _isLatin(alias);
+          if (short) return false;
+          if (_wholeWordMatch(words, alias)) return true;
+          // A bank's own compound word ("Buchungsdatum", "transactiondate")
+          // is one folded word with no space for a whole-word match to find,
+          // but it still ends with the alias ("datum", "date"): trusted the
+          // same as a whole word, since a fragment this long ("date" or
+          // longer) is not the kind of coincidental substring the whole-word
+          // rule above guards against ("art" inside "party").
+          if (alias.length >= 4 && _isLatin(alias) && !alias.contains(' ')) {
+            return words.any((word) => word.endsWith(alias));
+          }
+          return false;
         });
         if (!hit) continue;
         if (!exact && _readsAsAnotherField(words, entry.key)) {
@@ -447,6 +461,12 @@ bool _readsAsAnotherField(List<String> words, ImportField field) => _aliases
     .where((other) => other.key != field)
     .any((other) => other.value.any((alias) => _wholeWordMatch(words, alias)));
 
+/// Whether [text] is made up only of Latin letters (already folded to plain
+/// a–z by [_foldHeader]) and spaces. A non-Latin alias — Arabic, CJK,
+/// Hangul, Cyrillic and the rest — has no letter-by-letter fragments the way
+/// short Latin words do, so the length-based rules above don't apply to it.
+bool _isLatin(String text) => RegExp(r'^[a-z ]*$').hasMatch(text);
+
 /// Whether [alias] (one or more space-separated words) appears as a
 /// contiguous run of whole words inside [nameWords].
 bool _wholeWordMatch(List<String> nameWords, String alias) {
@@ -468,11 +488,18 @@ bool _wholeWordMatch(List<String> nameWords, String alias) {
 /// Folds a header for comparison and reduces whatever separates its words —
 /// spaces, underscores, hyphens, brackets — to single spaces. Only
 /// punctuation goes: letters in any script stay, or an Arabic header would
-/// fold away to nothing.
+/// fold away to nothing. A camelCase boundary ("TransactionDate") is split
+/// into its own space before case is folded away, since `foldForSearch`
+/// lowercases first and would otherwise weld the two words into one.
 String _foldHeader(String name) =>
-    foldForSearch(name)
+    foldForSearch(_splitCamelCase(name))
         .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
         .trim();
+
+String _splitCamelCase(String name) => name.replaceAllMapped(
+  RegExp(r'(\p{Ll}|\p{N})(\p{Lu})', unicode: true),
+  (match) => '${match[1]} ${match[2]}',
+);
 
 /// What a row said its type was, or null when the column can't be read that
 /// way. A file with no type column says so with a signed amount instead.

@@ -214,6 +214,53 @@ void main() {
       expect(matched.containsKey(ImportField.amount), isFalse);
       expect(matched[ImportField.date], 0);
     });
+
+    test('a compound word is matched by the alias it ends with, and camelCase '
+        'is split before folding (IMP-3, IMP-6)', () {
+      // DKB and Sparkasse (German banks) run the field name straight into a
+      // longer compound word; ABN AMRO (Dutch) runs two English words
+      // together in lower case; a CSV written by a spreadsheet may instead
+      // camelCase the header. None of these are a whole-word match on their
+      // own, but the date reads out of every one of them.
+      final dkb = matchColumns([
+        'Buchungsdatum',
+        'Verwendungszweck',
+        'Betrag (EUR)',
+      ]);
+      expect(dkb[ImportField.date], 0, reason: 'Buchungsdatum');
+      expect(dkb[ImportField.amount], 2, reason: 'Betrag (EUR)');
+
+      final sparkasse = matchColumns(['Valutadatum', 'Buchungstext', 'Betrag']);
+      expect(sparkasse[ImportField.date], 0, reason: 'Valutadatum');
+
+      final abnAmro = matchColumns([
+        'transactiondate',
+        'amount',
+        'counterparty',
+      ]);
+      expect(abnAmro[ImportField.date], 0, reason: 'transactiondate');
+
+      final camelCase = matchColumns(['TransactionDate', 'Amount']);
+      expect(camelCase[ImportField.date], 0, reason: 'TransactionDate');
+    });
+
+    test('a CJK or Hangul alias of two characters is trusted as a whole '
+        'word, unlike a short Latin alias (IMP-3, IMP-6)', () {
+      // The 3-letter rule that keeps "art" from claiming "Counterparty"
+      // makes no sense for scripts with no letter-by-letter fragments: a
+      // two-character CJK or Hangul word is a whole word, not a fragment.
+      final chinese = matchColumns(['日期', '金额(元)', '分类']);
+      expect(chinese[ImportField.date], 0, reason: '日期');
+      expect(chinese[ImportField.amount], 1, reason: '金额(元)');
+
+      final japanese = matchColumns(['日付', '金額(円)', 'カテゴリ']);
+      expect(japanese[ImportField.date], 0, reason: '日付');
+      expect(japanese[ImportField.amount], 1, reason: '金額(円)');
+
+      final korean = matchColumns(['날짜', '금액(원)', '카테고리']);
+      expect(korean[ImportField.date], 0, reason: '날짜');
+      expect(korean[ImportField.amount], 1, reason: '금액(원)');
+    });
   });
 
   group('reading a type (IMP-3)', () {
