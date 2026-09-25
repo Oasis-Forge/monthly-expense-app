@@ -382,6 +382,35 @@ void main() {
       );
     });
 
+    test('lib/db never uses SQL that needs newer SQLite than Android ships '
+        '(review-data-1)', () {
+      // sqflite_android runs on the OS's own SQLite, not a bundled one:
+      // API 24-25 ship 3.9, API 26-27 ship 3.18, API 28-29 ship 3.22.
+      // `ON CONFLICT ... DO ...` (upsert), `RETURNING`, `RENAME COLUMN`
+      // and `DROP COLUMN` all need SQLite 3.24+ or later, and the
+      // ffi-backed tests here can't catch that since desktop SQLite is
+      // modern (review-data-1).
+      final forbidden = [
+        RegExp(r'ON\s+CONFLICT[\s\S]*?DO\s', caseSensitive: false),
+        RegExp(r'\bRETURNING\b', caseSensitive: false),
+        RegExp(r'RENAME\s+COLUMN', caseSensitive: false),
+        RegExp(r'DROP\s+COLUMN', caseSensitive: false),
+      ];
+      for (final file in Directory('lib/db').listSync(recursive: true)) {
+        if (file is! File || !file.path.endsWith('.dart')) continue;
+        final contents = file.readAsStringSync();
+        for (final pattern in forbidden) {
+          expect(
+            pattern.hasMatch(contents),
+            isFalse,
+            reason:
+                '${file.path} uses $pattern, which needs a newer '
+                'SQLite than Android 7-9 ships',
+          );
+        }
+      }
+    });
+
     test('categories can be added and updated', () async {
       final helper = helperAt('app.db');
       final coffee = Category(
