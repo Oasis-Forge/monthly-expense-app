@@ -16,12 +16,13 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
-// `flutter run --release` and a local test build still need to work without a keystore,
-// so the missing-keys case is only a hard failure when a release build is actually being
-// assembled -- checked once the task graph is known, not at configuration time, so
-// `flutter build apk --debug` and `flutter test` are never affected by this at all -- and
-// only when neither escape hatch is given: `-PallowDebugSigning=true` locally, or the `CI`
-// environment variable GitHub Actions sets, for a workflow that provides its own keys.
+// `flutter run --release -PallowDebugSigning=true` and a local test build still need to
+// work without a keystore, so the missing-keys case is only a hard failure when a release
+// build is actually being assembled -- checked once the task graph is known, not at
+// configuration time, so `flutter build apk --debug` and `flutter test` are never affected
+// by this at all -- and only when neither escape hatch is given: `-PallowDebugSigning=true`
+// locally, or the `CI` environment variable GitHub Actions sets, for a workflow that
+// provides its own keys.
 val allowDebugSigning = (project.findProperty("allowDebugSigning") as String?) == "true" ||
     System.getenv("CI") == "true"
 
@@ -88,7 +89,8 @@ android {
             signingConfig = if (keystorePropertiesFile.exists()) {
                 signingConfigs.getByName("release")
             } else {
-                // Debug keys so `flutter run --release` works before a keystore exists.
+                // Debug keys so `flutter run --release -PallowDebugSigning=true` works
+                // before a keystore exists.
                 signingConfigs.getByName("debug")
             }
         }
