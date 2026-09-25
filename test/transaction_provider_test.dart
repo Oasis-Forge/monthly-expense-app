@@ -895,41 +895,52 @@ void main() {
       ];
 
       test('accountsTotal computes every balance in one pass and caches it '
-          '(ACC-4, ACC-10)', () async {
-        final provider = await loaded(
-          FakeDB(
+          '(ACC-4, ACC-10, lifecycle-perf#10)', () async {
+        // A wall-clock budget is thin on a loaded machine and proves nothing
+        // about *why* a read was fast. Counting clock reads instead proves
+        // the thing the finding is about directly: a second, unchanged read
+        // must not rescan every transaction and transfer (each of which
+        // used to read the clock once) again, only re-check what day it is.
+        var clockCalls = 0;
+        final provider = TransactionProvider(
+          db: FakeDB(
             accounts: bigAccounts(),
             transactions: bigTransactions(),
             transfers: bigTransfers(),
           ),
+          clock: () {
+            clockCalls++;
+            return today;
+          },
         );
+        await provider.load();
 
-        final first = Stopwatch()..start();
+        clockCalls = 0;
         final total1 = provider.accountsTotal;
-        first.stop();
+        final firstReadCalls = clockCalls;
 
-        // A second read with nothing changed must reuse the cached balances
-        // rather than rescan every transaction and transfer again.
-        final second = Stopwatch()..start();
+        clockCalls = 0;
         final total2 = provider.accountsTotal;
-        second.stop();
 
         expect(total2, total1);
         expect(
-          first.elapsedMilliseconds,
-          lessThan(500),
+          firstReadCalls,
+          lessThan(txCount),
           reason:
-              'accountsTotal took ${first.elapsedMilliseconds}ms for '
+              'accountsTotal read the clock $firstReadCalls times for '
               '$accountCount accounts / $txCount transactions on its first '
-              'read (total=$total1).',
+              'read — once per transaction or transfer means the day is '
+              'being rechecked in the hot loop instead of once for the '
+              'whole read.',
         );
         expect(
-          second.elapsedMilliseconds,
-          lessThan(50),
+          clockCalls,
+          lessThanOrEqualTo(1),
           reason:
-              'a second, unchanged read took ${second.elapsedMilliseconds}ms '
-              '— it should reuse the cached balances instead of recomputing '
-              'them.',
+              'a second, unchanged read made $clockCalls clock calls — it '
+              'should reuse the cached balances (bar one check that today '
+              'is still the day they were built for) instead of rescanning '
+              'every transaction and transfer again.',
         );
       });
 

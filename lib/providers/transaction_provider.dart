@@ -420,41 +420,51 @@ class TransactionProvider extends ChangeNotifier {
   /// What the active accounts come to together (ACC-10). Archived accounts
   /// are money already put away and stay out of it (ACC-5).
   Money get accountsTotal {
+    // Read once, not once per account: [_balances] re-checks the clock
+    // against the day it was cached for every time it's read
+    // (lifecycle-perf#10), so this keeps that check itself from scaling
+    // with the number of accounts.
+    final balances = _balances;
     var total = Money.zero;
     for (final account in activeAccounts) {
-      total += accountBalance(account.id);
+      total += balances[account.id] ?? Money.zero;
     }
     return total;
   }
 
   /// Every account's balance, in one pass over the transactions and
   /// transfers rather than one pass per account (ACC-4, ACC-10), built once
-  /// per data change and reused until the next one (perf lifecycle-perf#10).
+  /// per data change and reused until the next one, or until a day turns
+  /// over while the app stays open and moves what counts as upcoming
+  /// (perf lifecycle-perf#10).
   Map<String, Money> get _balances {
+    final today = _today;
     final cached = _balanceCache;
-    if (cached != null) return cached;
+    if (cached != null && _balanceCacheDay == today) return cached;
     final balances = <String, Money>{};
     for (final account in _accounts) {
-      balances[account.id] = isUpcomingDate(account.openingDate)
+      balances[account.id] = _dayOf(account.openingDate).isAfter(today)
           ? Money.zero
           : account.openingBalance;
     }
     for (final tx in _transactions) {
-      if (isUpcomingDate(tx.date)) continue;
+      if (_dayOf(tx.date).isAfter(today)) continue;
       final delta = tx.type == TransactionType.income ? tx.amount : -tx.amount;
       balances[tx.accountId] = (balances[tx.accountId] ?? Money.zero) + delta;
     }
     for (final transfer in _transfers) {
-      if (isUpcomingDate(transfer.date)) continue;
+      if (_dayOf(transfer.date).isAfter(today)) continue;
       balances[transfer.fromAccountId] =
           (balances[transfer.fromAccountId] ?? Money.zero) - transfer.amount;
       balances[transfer.toAccountId] =
           (balances[transfer.toAccountId] ?? Money.zero) + transfer.amount;
     }
+    _balanceCacheDay = today;
     return _balanceCache = balances;
   }
 
   Map<String, Money>? _balanceCache;
+  DateTime? _balanceCacheDay;
 
   Money accountBalance(String id) => _balances[id] ?? Money.zero;
 
@@ -1852,19 +1862,26 @@ class TransactionProvider extends ChangeNotifier {
   /// Today's date, from the provider's clock.
   DateTime get today => _today;
 
+  List<PeriodTotals>? _trendCache;
+  int? _trendCacheCount;
+  DateTime? _trendCacheDay;
+
   /// Counted income and expense of the [count] periods that end with the
   /// selected one, oldest first. Follows the chosen account exactly as the
   /// other Insights views do, so a chart and the total above it are never
   /// about different money (INS-2, BAL-4, ACC-7).
-  List<PeriodTotals>? _trendCache;
-  int? _trendCacheCount;
-
   List<PeriodTotals> trend(int count) {
     assert(count > 0, 'A trend needs at least one period');
-    // Built once per data change and reused for a re-read with the same
-    // count, rather than rescanning every transaction again (lifecycle-perf#10).
+    final today = _today;
+    // Built once per data change (or once a day turns over) and reused for
+    // a re-read with the same count, rather than rescanning every
+    // transaction again (lifecycle-perf#10).
     final cached = _trendCache;
-    if (cached != null && _trendCacheCount == count) return cached;
+    if (cached != null &&
+        _trendCacheCount == count &&
+        _trendCacheDay == today) {
+      return cached;
+    }
     final periods = [_period];
     while (periods.length < count) {
       periods.insert(0, periods.first.previous);
@@ -1873,7 +1890,7 @@ class TransactionProvider extends ChangeNotifier {
     final income = List.filled(count, Money.zero);
     final expense = List.filled(count, Money.zero);
     for (final tx in _transactions) {
-      if (isUpcoming(tx) ||
+      if (_dayOf(tx.date).isAfter(today) ||
           tx.date.isBefore(periods.first.start) ||
           !tx.date.isBefore(_period.end) ||
           (account != null && tx.accountId != account)) {
@@ -1892,6 +1909,7 @@ class TransactionProvider extends ChangeNotifier {
     ];
     _trendCache = result;
     _trendCacheCount = count;
+    _trendCacheDay = today;
     return result;
   }
 
