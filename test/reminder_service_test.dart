@@ -174,6 +174,34 @@ void main() {
         LockKeepAction.reshow,
       );
     });
+
+    test('already locked and active: nothing to do, so a delivered '
+        'notification is not alerted again on every reschedule '
+        '(x-reminder-lock-keep)', () {
+      expect(
+        lockKeepActionFor(
+          appLockOn: true,
+          isActive: true,
+          isPending: false,
+          alreadyLocked: true,
+        ),
+        LockKeepAction.none,
+      );
+    });
+
+    test('already locked and pending: nothing to do, so a still-pending '
+        'alarm is not cancelled and re-laid a minute out on every '
+        'reschedule (x-reminder-lock-keep)', () {
+      expect(
+        lockKeepActionFor(
+          appLockOn: true,
+          isActive: false,
+          isPending: true,
+          alreadyLocked: true,
+        ),
+        LockKeepAction.none,
+      );
+    });
   });
 
   group('nudgeBody (NUDGE-2, rules-23-26-34#9)', () {

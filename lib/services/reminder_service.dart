@@ -87,8 +87,9 @@ enum ReminderAction { schedule, keep, cancel }
 /// start has no such history, but the device's own active and pending
 /// lists are always there to ask.
 enum LockKeepAction {
-  /// App lock is off, or the device has nothing for this reminder: leave it
-  /// exactly as it is.
+  /// App lock is off, the device has nothing for this reminder, or whatever
+  /// the device has already carries the locked wording (x-reminder-lock-keep):
+  /// leave it exactly as it is.
   none,
 
   /// Already delivered and sitting in the tray: shown again with the same
@@ -106,12 +107,19 @@ enum LockKeepAction {
 /// The decision [DeviceReminderService.schedule]'s keep path makes for a
 /// note reminder, from what the device currently has for it -- never from
 /// memory of what app lock used to be, so it holds after a cold start too.
+/// [alreadyLocked] is whether the device's own copy already carries the
+/// locked wording (its title is the locked title and it has no body): when
+/// it is, this is a no-op, so a reshow does not alert again on every
+/// reschedule and a still-pending alarm is not cancelled and re-laid a
+/// minute later on every one either (x-reminder-lock-keep).
 LockKeepAction lockKeepActionFor({
   required bool appLockOn,
   required bool isActive,
   required bool isPending,
+  bool alreadyLocked = false,
 }) {
   if (!appLockOn) return LockKeepAction.none;
+  if (alreadyLocked) return LockKeepAction.none;
   if (isActive) return LockKeepAction.reshow;
   if (isPending) return LockKeepAction.reschedule;
   return LockKeepAction.none;
@@ -435,21 +443,37 @@ class DeviceReminderService implements ReminderService {
     if (!appLockOn) return;
     await _ensureInitialized();
     final id = reminderNotificationId(note.id);
+    final l10n = await AppLocalizations.delegate.load(locale);
     final active = await _plugin.getActiveNotifications();
     final pending = await _plugin.pendingNotificationRequests();
+    // Already carrying the locked wording -- itself, not the note's own
+    // text -- means a previous reschedule already handled this one; doing
+    // it again would alert a second time for nothing (x-reminder-lock-keep).
+    bool isLocked(String? title, String? body) =>
+        title == l10n.noteReminderLockedTitle && body == null;
     final action = lockKeepActionFor(
       appLockOn: appLockOn,
       isActive: active.any((n) => n.id == id),
       isPending: pending.any((p) => p.id == id),
+      alreadyLocked:
+          active
+              .where((n) => n.id == id)
+              .any((n) => isLocked(n.title, n.body)) ||
+          pending
+              .where((p) => p.id == id)
+              .any((p) => isLocked(p.title, p.body)),
     );
     if (action == LockKeepAction.none) return;
 
-    final l10n = await AppLocalizations.delegate.load(locale);
     final details = NotificationDetails(
       android: AndroidNotificationDetails(
         'note_reminders',
         noteChannelName(l10n),
         importance: Importance.defaultImportance,
+        // Reshowing an already-delivered notification in place must not
+        // alert again -- Android treats an update as a new alert unless
+        // told otherwise (x-reminder-lock-keep).
+        onlyAlertOnce: true,
       ),
       iOS: const DarwinNotificationDetails(),
       macOS: const DarwinNotificationDetails(),
