@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/category.dart';
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/report.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/models/transaction_filter.dart';
@@ -405,6 +407,55 @@ void main() {
       });
     },
   );
+
+  group('reportDataFor prices the range it was asked for (BUD-5, '
+      'money-time#5)', () {
+    Budget versionOf(String id, int limit, DateTime from) => Budget(
+      id: id,
+      categoryId: 'cat-food',
+      limit: Money(limit),
+      effectiveFrom: from,
+      createdAt: DateTime.utc(2026),
+      updatedAt: DateTime.utc(2026),
+    );
+
+    // review-money-5 / money-time#5: reportDataFor passes
+    // `provider.budgetLimit(id, Period.containing(from, ...))` rather than
+    // `provider.budgetLimit(id)`, which resolves whatever period the
+    // provider is showing regardless of the report's own range. Groceries
+    // was 300 from September and raised to 500 from October (BUD-5); a
+    // custom Sep 1-30 report made while Home is on October must still price
+    // against September's 300, not October's 500.
+    test('a custom range in a past period uses that period\'s own limit, '
+        'not the one the provider is showing', () async {
+      final fake = FakeDB(
+        transactions: [
+          testTx('g', TransactionType.expense, 250, DateTime(2026, 9, 10)),
+        ],
+        budgets: [
+          versionOf('b1', 300000, DateTime(2026, 9)),
+          versionOf('b2', 500000, DateTime(2026, 10)),
+        ],
+      );
+      final provider = TransactionProvider(
+        db: fake,
+        clock: () => DateTime(2026, 10, 15),
+      );
+      await provider.load();
+
+      final data = reportDataFor(
+        provider: provider,
+        filter: null,
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        categoryName: (category) => category.id,
+        accountName: (account) => account.id,
+        decimalMark: '.',
+      );
+
+      expect(data.expenseCategories.single.budget, const Money(300000));
+    });
+  });
 
   testWidgets('every account is offered, plus all of them together '
       '(PDF-1)', (tester) async {
