@@ -223,10 +223,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     // ADD-4 or not, a saved entry is a thing done (ADS-12).
     unawaited(ads.noteActivity());
     if (!mounted) return;
-    // UPD-2, RATE-3: the app has just done the thing it is for, which is
-    // the only moment worth offering anything in. Both asks come to nothing
-    // unless their own lines have been crossed, and the update goes first.
-    unawaited(afterSave(context));
 
     if (addAnother) {
       // ADD-4: keep the type, category, account, and date.
@@ -241,7 +237,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
       // ADD-4 emptied the form on purpose, so that is the new starting point.
       snapshotForm();
       messenger.showSnackBar(SnackBar(content: Text(l10n.transactionAdded)));
+      // UPD-2, pr58#7: the form stays open on a fresh entry, so neither ask
+      // may show now -- it would land over the next entry, or its Restart
+      // action could later throw this one away. Both wait for a save that
+      // actually closes the form.
     } else {
+      // UPD-2, RATE-3: the app has just done the thing it is for, and the
+      // form is closing, which is the only moment worth offering anything
+      // in. Both asks come to nothing unless their own lines have been
+      // crossed, and the update goes first. Read from context before the
+      // pop below takes it away, so a screen closing behind this takes
+      // neither decision with it.
+      unawaited(afterSave(context));
       Navigator.of(context).pop();
     }
   }

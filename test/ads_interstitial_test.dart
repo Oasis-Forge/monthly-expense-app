@@ -112,8 +112,8 @@ void main() {
         settings.adActivity,
         earned,
         reason:
-            "a fetch that fails to show costs the user nothing, so the "
-            "next seam may still try (ADS-13)",
+            'a fetch that fails to show costs the user nothing, so the '
+            'next seam may still try (ADS-13)',
       );
       expect(
         provider.interstitialShown,

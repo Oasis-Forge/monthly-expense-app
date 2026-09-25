@@ -7,6 +7,7 @@ import '../providers/ads_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 import '../services/update_service.dart';
+import 'form_fields.dart' show activeUnsavedFormGuard;
 
 /// Reads everything the update ask needs from [context] and hands back the
 /// asking itself, to be awaited after.
@@ -57,10 +58,22 @@ Future<bool> Function() updateRequest(BuildContext context) {
         duration: const Duration(seconds: 10),
         action: SnackBarAction(
           label: l10n.updateRestartButton,
-          onPressed: updates.install,
+          onPressed: () => _restart(updates),
         ),
       ),
     );
     return true;
   };
+}
+
+/// Restarts for the update, unless a form has opened since the bar
+/// appeared and there's something on it to lose, in which case it asks the
+/// same "Discard changes?" question Back would (ADD-9) rather than take an
+/// unsaved entry down with it (UPD-2, pr58#7).
+Future<void> _restart(UpdateService updates) async {
+  final guard = activeUnsavedFormGuard;
+  if (guard != null && guard.hasUnsavedEdits()) {
+    if (!await guard.confirmDiscard()) return;
+  }
+  await updates.install();
 }

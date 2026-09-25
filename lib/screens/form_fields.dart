@@ -250,7 +250,8 @@ class DateField extends StatelessWidget {
 /// at a time): set while it is mounted, so a shortcut or widget tap that
 /// would otherwise silently replace it can ask the same ADD-9 question the
 /// back button does, instead of dropping unsaved edits without a word
-/// (pr57#3).
+/// (pr57#3). Also what the update ask's own "Restart" action checks before
+/// acting, so it never takes an unsaved entry down with it (UPD-2, pr58#7).
 UnsavedFormGuard? activeUnsavedFormGuard;
 
 /// What a shortcut or widget tap needs from the form currently on screen,

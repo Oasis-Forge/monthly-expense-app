@@ -153,6 +153,57 @@ void main() {
     },
   );
 
+  testWidgets(
+    "with 'Save & add another', the ask waits for the form to actually "
+    'close instead of landing over the next entry (UPD-2, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          const AddTransactionScreen(),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '12');
+      await revealInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.tap(
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.pumpAndSettle();
+
+      // ADD-4 keeps the form open on the cleared entry: nothing may have
+      // asked yet, or the update sheet would land over the keypad (UPD-2).
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(updates.checked, 0);
+      expect(reviews.asked, 0);
+
+      // Only closing the form for good lets the seam finally run.
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '9');
+      await revealInForm(
+        tester,
+        find.widgetWithText(FilledButton, 'Add Transaction'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Add Transaction'));
+      await tester.pumpAndSettle();
+
+      expect(updates.checked, 1);
+      expect(updates.started, 1);
+    },
+  );
+
   testWidgets('a downloaded update offers the restart, and Play does it '
       '(UPD-1)', (tester) async {
     final (provider, settings) = await established();
@@ -212,6 +263,69 @@ void main() {
 
     expect(find.text('Could not save.'), findsOneWidget);
   });
+
+  testWidgets(
+    "Restart asks before discarding a form's unsaved edits, rather than "
+    'taking them down with it (ADD-9, UPD-2, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => afterSave(context),
+                    child: const Text('save'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddTransactionScreen(),
+                      ),
+                    ),
+                    child: const Text('open'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          reviews: FakeReviews(supported: false),
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('save'));
+      await tester.pumpAndSettle();
+      expect(find.text('An update has been downloaded.'), findsOneWidget);
+
+      // A new form opens -- and gets something typed into it -- while the
+      // Restart bar is still up.
+      usePhoneScreen(tester);
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '12');
+
+      await tester.tap(find.text('Restart'));
+      await tester.pumpAndSettle();
+
+      // Restart asks the same "Discard changes?" question Back would
+      // (ADD-9), rather than throw the unsaved entry away.
+      expect(find.text('Discard changes?'), findsOneWidget);
+      expect(updates.installed, 0);
+
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(updates.installed, 1);
+    },
+  );
 
   testWidgets(
     'a download Play already finished offers the restart without starting '
