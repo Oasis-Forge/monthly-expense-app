@@ -185,8 +185,82 @@ void main() {
     });
   });
 
-  group('a report narrowed to a search (PDF-1, ACC-6, review-money-2)', () {
-    test('carries no budget, even within one period', () {
+  group('when a budget figure is attached to a category (PDF-2, BUD-2, money-time#5)', () {
+    test('a range spanning several periods carries no budget, however the '
+        'caller resolves the limit (money-time#5)', () {
+      // Reproduces money-time#5: report_screen.dart passed
+      // `(id) => provider.budgetLimit(id)`, which always resolves
+      // whatever period Home happens to be showing, regardless of the
+      // report's own range. Nine months of $300 spend against a
+      // $300/month limit would otherwise print as 900% used.
+      final data = report(
+        from: DateTime(2026, 1, 1),
+        to: DateTime(2026, 12, 31),
+        transactions: [
+          for (var month = 1; month <= 9; month++)
+            testTx(
+              'g$month',
+              TransactionType.expense,
+              300,
+              DateTime(2026, month, 10),
+              categoryId: 'cat-food',
+            ),
+        ],
+        // A flat per-id limit: the bug isn't in what this returns, but
+        // in buildReport calling it at all for a multi-period range.
+        budgetLimit: (id) => id == 'cat-food' ? const Money(300000) : null,
+      );
+
+      final line = data.expenseCategories.single;
+      expect(line.amount.toDouble(), 2700);
+      expect(line.budget, isNull);
+      expect(line.budgetUsed, isNull);
+    });
+
+    test('a range shorter than one period carries no budget either', () {
+      final data = report(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 10),
+        transactions: [
+          testTx(
+            'a',
+            TransactionType.expense,
+            60,
+            DateTime(2026, 9, 2),
+            categoryId: 'cat-food',
+          ),
+        ],
+        budgetLimit: (id) => id == 'cat-food' ? const Money(100000) : null,
+      );
+
+      expect(data.expenseCategories.single.budget, isNull);
+    });
+
+    test('a range that is exactly one period still carries its budget, '
+        'whatever startDay is (PER-2)', () {
+      // A period fully before `today` (Sept 15), so its own entry counts
+      // rather than landing in upcoming.
+      final data = report(
+        from: DateTime(2026, 8, 25),
+        to: DateTime(2026, 9, 24),
+        startDay: 25,
+        transactions: [
+          testTx(
+            'a',
+            TransactionType.expense,
+            60,
+            DateTime(2026, 9, 1),
+            categoryId: 'cat-food',
+          ),
+        ],
+        budgetLimit: (id) => id == 'cat-food' ? const Money(100000) : null,
+      );
+
+      expect(data.expenseCategories.single.budget?.toDouble(), 100);
+    });
+
+    test('a search-narrowed report carries no budget even within one period '
+        '(PDF-1, ACC-6, review-money-2)', () {
       final data = report(
         transactions: [
           testTx(

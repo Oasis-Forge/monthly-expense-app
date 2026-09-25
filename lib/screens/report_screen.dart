@@ -12,6 +12,7 @@ import '../l10n/labels.dart';
 import '../models/account.dart';
 import '../models/category.dart';
 import '../models/csv_export.dart' show isoDate;
+import '../models/period.dart';
 import '../models/report.dart';
 import '../models/transaction.dart';
 import '../models/transaction_filter.dart';
@@ -110,7 +111,14 @@ ReportData reportDataFor({
     accountId: accountId,
     matches: matches,
     searchInfo: searchInfo,
-    budgetLimit: (id) => provider.budgetLimit(id),
+    // buildReport itself only ever attaches this when [from, to] is exactly
+    // one period, so passing the period matching *this* range — rather than
+    // whatever period Home happens to be showing — is what makes that single
+    // case price against the right month's limit (BUD-2).
+    budgetLimit: (id) => provider.budgetLimit(
+      id,
+      Period.containing(from, startDay: provider.startDay),
+    ),
     startDay: provider.startDay,
     options: options,
   );

@@ -208,11 +208,15 @@ enum ReportTrendGrain { day, period }
 /// never states a false balance (BAL-2, BAL-3).
 ///
 /// [budgetLimit] answers the limit in force for a category, or null; pass
-/// [TransactionProvider.budgetLimit]. It is left out of a search-narrowed
-/// report entirely, since a search's expense total is a slice of the
-/// category, not the whole period's spending (PDF-1, PDF-2, ACC-6).
-/// [startDay] is the first day of a period (PER-2), used to group a long
-/// range's trend.
+/// [TransactionProvider.budgetLimit]. It is only ever attached to a category
+/// line when [from] to [to] is exactly one period (by [startDay]): a range
+/// spanning several periods, or part of one, has no single limit to measure
+/// against, so the budget column is left out rather than pricing months of
+/// spending against one month's limit (PDF-2, BUD-2). It is left out the same
+/// way whenever [matches] narrows the report to a search, since a search's
+/// expense total is a slice of the category, not the whole period's spending
+/// (PDF-1, ACC-6). [startDay] is the first day of a period (PER-2), used to
+/// group a long range's trend and to tell whether it is exactly one.
 ///
 /// [searchInfo], when given, is carried onto [ReportData.searchInfo] purely
 /// for the header and summary to describe; it plays no part in what counts.
@@ -364,10 +368,13 @@ ReportData buildReport({
   upcoming.sort((a, b) => a.date.compareTo(b.date));
   final orderedDays = byDay.keys.toList()..sort();
 
-  // A search-narrowed report's expense total is a slice of the category
-  // rather than the whole period's spending, so no budget figure belongs
-  // next to it (PDF-1, PDF-2, ACC-6).
-  final showBudget = matches == null;
+  // A budget prices a category's spending over one period (BUD-2): only show
+  // it when the range is exactly one, and never for a search-narrowed report,
+  // whose expense total is a slice of the category rather than the whole
+  // period's spending (PDF-1, PDF-2, ACC-6).
+  final onePeriod = Period.containing(first, startDay: startDay);
+  final showBudget =
+      matches == null && onePeriod.start == first && onePeriod.lastDay == last;
 
   return ReportData(
     from: first,
