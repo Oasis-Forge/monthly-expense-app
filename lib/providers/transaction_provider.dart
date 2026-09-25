@@ -108,9 +108,6 @@ class TransactionProvider extends ChangeNotifier {
   /// account is chosen, so it is built at most once per change.
   _PeriodSummary? _everyAccountSummary;
 
-  /// The period before the selected one, for the category chart's comparison
-  /// (INS-6). Built only when that chart asks for it.
-  _PeriodSummary? _previousSummary;
   bool _loaded = false;
 
   /// Whether [load] has finished at least once.
@@ -2056,6 +2053,8 @@ class TransactionProvider extends ChangeNotifier {
     _summary = null;
     _everyAccountSummary = null;
     _previousSummary = null;
+    _previousSummaryDay = null;
+    _previousSummaryAccount = null;
     _balanceCache = null;
     _trendCache = null;
     _daysUsedCache = null;
@@ -2072,21 +2071,33 @@ class TransactionProvider extends ChangeNotifier {
     if (!listEquals(plan, _plannedNudges)) unawaited(_scheduleNudges(plan));
   }
 
-  /// The period before the selected one, for the comparison the category
-  /// chart draws (INS-6). It follows the chosen account exactly as the chart
-  /// does (ACC-7), and like the others it is built at most once per change.
+  /// The period before the selected one, bounded to the same number of days
+  /// the selected one has had so far, for the comparison the category chart
+  /// draws (INS-6, pr56+60#4): a partial current period is measured against
+  /// an equally partial previous one, not the whole of it, so an early-month
+  /// reading doesn't compare 3 days of spending against 31. It follows the
+  /// chosen account exactly as the chart does (ACC-7), and like the others
+  /// it is built at most once per change.
+  _PeriodSummary? _previousSummary;
+  DateTime? _previousSummaryDay;
+  String? _previousSummaryAccount;
+
   _PeriodSummary get _previous {
     final today = _today;
     final account = accountFilterId;
     final cached = _previousSummary;
     if (cached != null &&
-        cached.today == today &&
-        cached.accountId == account) {
+        _previousSummaryDay == today &&
+        _previousSummaryAccount == account) {
       return cached;
     }
+    final elapsedDays = today.difference(_period.start).inDays;
+    final asOf = _period.previous.start.add(Duration(days: elapsedDays));
+    _previousSummaryDay = today;
+    _previousSummaryAccount = account;
     return _previousSummary = _PeriodSummary(
       _period.previous,
-      today,
+      asOf,
       _transactions,
       _transfers,
       _accounts,

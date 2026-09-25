@@ -239,6 +239,26 @@ void main() {
     });
 
     testWidgets(
+      'a partial current period compares with the same number of days last '
+      'month, not the whole of it (INS-6, pr56+60#4)',
+      (tester) async {
+        // Today is the 15th, 14 days into September, so the comparison is
+        // bounded to August 1–15. An entry on the 20th is past that bound
+        // and must not count, or a partial month would read as a much
+        // bigger drop than it is.
+        await showInsights(tester, [
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 3)),
+          testTx('b', TransactionType.expense, 50, DateTime(2026, 8, 20)),
+          testTx('c', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+        ]);
+
+        // 100 (bounded) against 60, not 150 against 60.
+        expect(find.text('\$40 less than last month'), findsOneWidget);
+        expect(find.text('-40%'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
       'a rising category shows a plus, and a change under half a percent '
       'shows no label at all (INS-6, pr61#5, pr56+60#2)',
       (tester) async {
