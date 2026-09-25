@@ -65,7 +65,9 @@ class HomeScreen extends StatefulWidget {
     unawaited(opened.then((_) => ads.showAtSeam(AdSeam.leftInsights)));
   }
 
-  /// Exports the selected period's transactions and transfers (BAK-5).
+  /// Exports the selected period's transactions and transfers, across every
+  /// account: the CSV export is one of the things the account choice must
+  /// not reach, the same as budgets (ACC-7, BAK-5).
   static Future<void> _exportPeriod(
     BuildContext context,
     TransactionProvider provider,
@@ -74,8 +76,8 @@ class HomeScreen extends StatefulWidget {
     return exportCsv(
       context,
       name: '${isoDate(period.start)}_${isoDate(period.lastDay)}',
-      transactions: provider.periodTransactions,
-      transfers: provider.periodTransfers,
+      transactions: provider.everyAccountPeriodTransactions,
+      transfers: provider.everyAccountPeriodTransfers,
     );
   }
 }

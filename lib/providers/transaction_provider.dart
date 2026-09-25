@@ -1583,6 +1583,17 @@ class TransactionProvider extends ChangeNotifier {
   /// [periodTransfers] grouped by day, newest day first.
   Map<DateTime, List<Transfer>> get transfersByDay => _current.transfersByDay;
 
+  /// [periodTransactions] across every account, whatever [accountFilterId]
+  /// is set to. The CSV export reads these instead of [periodTransactions]:
+  /// like budgets, it is one of the things the account choice must not
+  /// reach, because a partial file that looks complete is worse than an
+  /// extra step (ACC-7, BAK-5).
+  List<ExpenseTransaction> get everyAccountPeriodTransactions =>
+      _everyAccount.transactions;
+
+  /// [periodTransfers] across every account (ACC-7, BAK-5).
+  List<Transfer> get everyAccountPeriodTransfers => _everyAccount.transfers;
+
   Money get periodIncome => _current.income;
   Money get periodExpense => _current.expense;
 
