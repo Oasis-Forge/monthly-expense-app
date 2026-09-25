@@ -245,13 +245,17 @@ class MergePlan {
 /// later `updated_at` wins, deletions included. An occurrence handled on both
 /// sides keeps this device's record, and the backup's transaction for it is
 /// left out, so a recurring transaction never posts twice (RCR-4). A record
-/// whose ID is in [purgedIds] is left out rather than added: its tombstone
-/// has already been purged from this device (DEL-3), so the deletion still
-/// wins over an older backup that never heard about it (rules-1-5#7).
+/// whose ID is a key of [purgedIds] is treated like a deleted existing row,
+/// its tombstone's own `updated_at` given by the map: the backup's version is
+/// left out unless it is strictly newer, the same rule [_backupWins] applies
+/// to any other edited existing row. Its tombstone has already been purged
+/// from this device (DEL-3), so the deletion still wins over an older backup
+/// that never heard about it, but an edit truly made after the deletion is
+/// not lost just because the tombstone is gone (BAK-3, rules-1-5#7).
 MergePlan planMerge(
   BackupTables current,
   BackupTables backup, {
-  Set<String> purgedIds = const {},
+  Map<String, String> purgedIds = const {},
 }) {
   final plan = MergePlan();
 
@@ -279,9 +283,14 @@ MergePlan planMerge(
     for (final row in backup[table] ?? const []) {
       final existing = byId[row['id']];
       if (existing == null) {
+        final tombstoneUpdatedAt = purgedIds[row['id']];
         if (table == 'transactions' && duplicatePosts.contains(row['id'])) {
           plan.unchanged++;
-        } else if (purgedIds.contains(row['id'])) {
+        } else if (tombstoneUpdatedAt != null &&
+            !_backupWins(row, {
+              'created_at': null,
+              'updated_at': tombstoneUpdatedAt,
+            })) {
           plan.unchanged++;
         } else {
           plan._add(plan.inserts, table, row);

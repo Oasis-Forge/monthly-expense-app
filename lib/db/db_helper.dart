@@ -179,18 +179,21 @@ class DBHelper {
     final args = [cutoff.toUtc().toIso8601String()];
     final attachments = <String>[];
     await db.transaction((txn) async {
-      final purgedIds = <String>[];
+      final purged = <String, String>{};
       for (final table in ['transactions', 'transfers', 'notes']) {
         final going = await txn.query(
           table,
           columns: [
             'id',
+            'updated_at',
             if (table == 'transactions') ...['photo_file', 'voice_file'],
           ],
           where: where,
           whereArgs: args,
         );
-        purgedIds.addAll([for (final row in going) row['id']! as String]);
+        for (final row in going) {
+          purged[row['id']! as String] = row['updated_at']! as String;
+        }
         if (table == 'transactions') {
           attachments.addAll([
             for (final row in going)
@@ -201,10 +204,10 @@ class DBHelper {
         await txn.delete(table, where: where, whereArgs: args);
       }
       final batch = txn.batch();
-      for (final id in purgedIds) {
+      for (final MapEntry(key: id, value: updatedAt) in purged.entries) {
         batch.insert('purged_records', {
           'id': id,
-          'purged_at': cutoff.toUtc().toIso8601String(),
+          'updated_at': updatedAt,
         }, conflictAlgorithm: ConflictAlgorithm.ignore);
       }
       await batch.commit(noResult: true);
@@ -212,14 +215,21 @@ class DBHelper {
     return attachments;
   }
 
-  /// Every ID ever purged from the trash on this device (DEL-3). Local only
-  /// (it is never part of a backup): a merge consults it so an older
-  /// backup's record of something this device has already thrown away isn't
-  /// treated as new (BAK-3, rules-1-5#7).
-  Future<Set<String>> fetchPurgedIds() async {
+  /// Every ID ever purged from the trash on this device, and the `updated_at`
+  /// it was purged with (DEL-3). Local only (it is never part of a backup): a
+  /// merge consults it so an older backup's record of something this device
+  /// has already thrown away isn't treated as new, unless the backup's own
+  /// edit came after the tombstone (BAK-3, rules-1-5#7).
+  Future<Map<String, String>> fetchPurgedIds() async {
     final db = await database;
-    final rows = await db.query('purged_records', columns: ['id']);
-    return {for (final row in rows) row['id']! as String};
+    final rows = await db.query(
+      'purged_records',
+      columns: ['id', 'updated_at'],
+    );
+    return {
+      for (final row in rows)
+        row['id']! as String: row['updated_at']! as String,
+    };
   }
 
   Future<List<Category>> fetchCategories() async {

@@ -421,6 +421,51 @@ void main() {
       await helper.purgeDeletedBefore(DateTime.utc(2026, 9));
       expect(await (await helper.database).query('notes'), isEmpty);
     });
+
+    test('a database from before the purge step upgrades and purges trash in '
+        'every table (DEL-3, BAK-3, rules-1-5#7)', () async {
+      final steps = DBHelper.schemaMigrations;
+      // Everything before the purge-tombstone step, named rather than
+      // counted back from the end for the same reason as the attachments
+      // upgrade test above.
+      final before = helperAt(
+        'purge-upgrade.db',
+        steps.sublist(0, steps.indexOf(migrateToVersion11)),
+      );
+      await before.insertTransaction(
+        testTx(
+          'old-tx',
+          expense,
+          5,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime.utc(2026, 7, 1)),
+      );
+      await before.insertTransfer(
+        testTransfer(
+          'old-transfer',
+          Account.cashId,
+          'bank',
+          5,
+          DateTime(2026, 7, 1),
+        ).copyWith(deletedAt: DateTime.utc(2026, 7, 1)),
+      );
+      await before.insertNote(
+        testNote(
+          'old-note',
+          'Pay rent',
+        ).copyWith(deletedAt: DateTime.utc(2026, 7, 1)),
+      );
+      await before.close();
+
+      final upgraded = helperAt('purge-upgrade.db');
+      await upgraded.purgeDeletedBefore(DateTime.utc(2026, 9, 1));
+
+      expect((await upgraded.fetchPurgedIds()).keys, {
+        'old-tx',
+        'old-transfer',
+        'old-note',
+      });
+    });
   });
 
   group('attachments (ATT-1, ATT-5)', () {

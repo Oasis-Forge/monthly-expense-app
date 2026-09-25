@@ -333,6 +333,86 @@ void main() {
     expect(await device.fetchTransactions(), isEmpty);
   });
 
+  test('an edit truly made after a purged deletion still wins the merge '
+      '(DEL-3, BAK-3, rules-1-5#7)', () async {
+    // A second phone edited this record after the deletion happened here,
+    // and its backup is newer than the tombstone this device later purged.
+    final other = helperAt('other-purge-edit.db');
+    await other.insertTransaction(
+      tx('rent', title: 'Rent', updated: DateTime.utc(2026, 9, 20)),
+    );
+    final backup = await testBackupService(other).create(await testSettings());
+
+    final device = helperAt('device-purge-edit.db');
+    await device.insertTransaction(
+      tx('rent', title: 'Rent', deleted: DateTime.utc(2026, 7, 1)),
+    );
+    await device.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+
+    final service = testBackupService(device);
+    await service.restore(
+      await service.read(encode(backup)),
+      RestoreMode.merge,
+      await testSettings(),
+    );
+
+    // The backup's edit came after the tombstone's own timestamp, so it is
+    // not lost just because the tombstone has since been purged.
+    expect((await device.fetchTransactions()).single.title, 'Rent');
+  });
+
+  test('a purged transfer and a purged note also do not come back on '
+      'merge (DEL-3, BAK-3, rules-1-5#7)', () async {
+    final other = helperAt('other-purge-more.db');
+    await other.insertTransfer(
+      testTransfer(
+        'move',
+        Account.cashId,
+        'bank',
+        5,
+        DateTime(2026, 9, 3),
+      ).copyWith(updatedAt: DateTime.utc(2026, 9)),
+    );
+    await other.insertNote(
+      testNote(
+        'rent-note',
+        'Pay rent',
+      ).copyWith(updatedAt: DateTime.utc(2026, 9)),
+    );
+    final backup = await testBackupService(other).create(await testSettings());
+
+    final device = helperAt('device-purge-more.db');
+    await device.insertTransfer(
+      testTransfer(
+        'move',
+        Account.cashId,
+        'bank',
+        5,
+        DateTime(2026, 9, 3),
+      ).copyWith(
+        updatedAt: DateTime.utc(2026, 9),
+        deletedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+    await device.insertNote(
+      testNote('rent-note', 'Pay rent').copyWith(
+        updatedAt: DateTime.utc(2026, 9),
+        deletedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+    await device.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+
+    final service = testBackupService(device);
+    await service.restore(
+      await service.read(encode(backup)),
+      RestoreMode.merge,
+      await testSettings(),
+    );
+
+    expect(await device.fetchTransfers(), isEmpty);
+    expect(await device.fetchNotes(), isEmpty);
+  });
+
   test('a backup from before colours comes back with them (CAT-6)', () async {
     final service = testBackupService(helperAt('app.db'));
 
@@ -465,7 +545,12 @@ void main() {
 
   test('a malicious attachment name in a zip backup cannot escape the '
       'attachments folder (ATT-2, data-integrity#10)', () async {
-    final attachmentsDir = Directory(p.join(dir.path, 'attachments'));
+    // Two levels down from dir, so the malicious name's two `..` segments
+    // land back on dir itself rather than on dir's parent (the system temp
+    // folder, which the test has no business asserting on).
+    final attachmentsDir = Directory(
+      p.join(dir.path, 'appdata', 'attachments'),
+    );
     final attachments = testAttachments(attachmentsDir).service;
     final target = helperAt('zip-slip.db');
     final backupService = testBackupService(target, attachments: attachments);
@@ -503,8 +588,8 @@ void main() {
 
     await backupService.restore(backup, RestoreMode.replace, settings);
 
-    // dir/attachments/..\..\evil.txt would resolve to dir/evil.txt: two
-    // levels above the attachments folder the app is supposed to be
+    // dir/appdata/attachments/..\..\evil.txt would resolve to dir/evil.txt:
+    // two levels above the attachments folder the app is supposed to be
     // confined to.
     final escaped = File(p.join(dir.path, 'evil.txt'));
     expect(escaped.existsSync(), isFalse);
