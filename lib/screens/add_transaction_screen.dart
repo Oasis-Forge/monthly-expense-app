@@ -222,6 +222,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
     saveFeedback();
     // ADD-4 or not, a saved entry is a thing done (ADS-12).
     unawaited(ads.noteActivity());
+    // RATE-1, pr57#10: a brand-new entry typed in and saved by hand, not an
+    // edit to one already recorded.
+    if (widget.editing == null) unawaited(settings.noteManualEntrySaved());
     if (!mounted) return;
 
     if (addAnother) {

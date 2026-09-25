@@ -30,6 +30,19 @@ void main() {
     },
   );
 
+  test('manual entries saved by hand persist and only ever grow (RATE-1, '
+      'pr57#10)', () async {
+    final prefs = await prefsWith({'manual_entries_recorded': 3});
+    final settings = SettingsProvider(prefs);
+    expect(settings.manualEntriesRecorded, 3);
+
+    await settings.noteManualEntrySaved();
+    expect(settings.manualEntriesRecorded, 4);
+
+    final reread = SettingsProvider(prefs);
+    expect(reread.manualEntriesRecorded, 4);
+  });
+
   test('saved settings are read back, and changes persist', () async {
     final prefs = await prefsWith({
       'currency_code': 'JPY',

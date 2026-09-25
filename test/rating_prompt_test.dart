@@ -14,25 +14,20 @@ void main() {
   final today = DateTime(2026, 9, 24, 10);
   final amountField = find.widgetWithText(TextFormField, 'Amount');
 
-  /// A device that opened the app a fortnight ago and has [entries] in it,
-  /// which is both of RATE-1's lines crossed unless [entries] says otherwise.
+  /// A device that opened the app a fortnight ago and has saved [entries] by
+  /// hand, which is both of RATE-1's lines crossed unless [entries] says
+  /// otherwise (pr57#10: RATE-1 counts only entries typed in and saved
+  /// through the form, not the transaction list's length).
   Future<(TransactionProvider, SettingsProvider)> established({
     int entries = ratingEntries,
     String? askedVersion,
   }) async {
-    final provider = TransactionProvider(
-      db: FakeDB(
-        transactions: [
-          for (var i = 0; i < entries; i++)
-            testTx('t$i', TransactionType.expense, 5, DateTime(2026, 9, 10)),
-        ],
-      ),
-      clock: () => today,
-    );
+    final provider = TransactionProvider(db: FakeDB(), clock: () => today);
     await provider.load();
     final settings = await testSettings({
       'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
       'rating_asked_version': ?askedVersion,
+      'manual_entries_recorded': entries,
     });
     return (provider, settings);
   }
@@ -105,6 +100,35 @@ void main() {
     expect(reviews.asked, 0);
     expect(settings.ratingAskedVersion, isNull);
   });
+
+  testWidgets(
+    'imported, recurring, and restored rows are not entries typed in by '
+    'hand (RATE-1, pr57#10)',
+    (tester) async {
+      final provider = TransactionProvider(
+        db: FakeDB(
+          transactions: [
+            // A history far past RATE-1's fifteen -- but none of it typed
+            // in by hand, so it must not read as an opinion (pr57#10).
+            for (var i = 0; i < ratingEntries * 3; i++)
+              testTx('t$i', TransactionType.expense, 5, DateTime(2026, 9, 10)),
+          ],
+        ),
+        clock: () => today,
+      );
+      await provider.load();
+      final settings = await testSettings({
+        'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
+        'manual_entries_recorded': 1,
+      });
+      final reviews = FakeReviews(appVersion: '1.25.0+37');
+
+      await saveAnEntry(tester, provider, settings, reviews);
+
+      expect(reviews.asked, 0);
+      expect(settings.ratingAskedVersion, isNull);
+    },
+  );
 
   testWidgets('never over a lock screen, even with everything else due '
       '(RATE-3)', (tester) async {

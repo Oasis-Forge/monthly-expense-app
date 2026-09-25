@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/rating.dart';
-import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
@@ -19,19 +18,14 @@ void main() {
   Future<(TransactionProvider, SettingsProvider)> established({
     String? askedOn,
   }) async {
-    final provider = TransactionProvider(
-      db: FakeDB(
-        transactions: [
-          for (var i = 0; i < ratingEntries; i++)
-            testTx('t$i', TransactionType.expense, 5, DateTime(2026, 9, 10)),
-        ],
-      ),
-      clock: () => today,
-    );
+    final provider = TransactionProvider(db: FakeDB(), clock: () => today);
     await provider.load();
     final settings = await testSettings({
       'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
       'update_asked_on': ?askedOn,
+      // RATE-1 counts entries saved by hand, not the list's length
+      // (pr57#10); this device has crossed both of its lines.
+      'manual_entries_recorded': ratingEntries,
     });
     return (provider, settings);
   }

@@ -47,6 +47,7 @@ class SettingsProvider extends ChangeNotifier {
        _nudgeIgnored = _prefs.getInt(_nudgeIgnoredKey) ?? 0,
        _nudgeStopped = _prefs.getBool(_nudgeStoppedKey) ?? false,
        _nudgeCheckedAt = _dateOrNull(_prefs.getString(_nudgeCheckedKey)),
+       _manualEntries = _prefs.getInt(_manualEntriesKey) ?? 0,
        _adActivity = _prefs.getInt(_adActivityKey) ?? 0,
        _adActivityDay = _dateOrNull(_prefs.getString(_adActivityDayKey)),
        _appLock = _prefs.getBool(_appLockKey) ?? false,
@@ -98,6 +99,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _nudgeMinuteKey = 'empty_day_nudge_minute';
   static const _nudgeOfferedKey = 'empty_day_nudge_offered';
   static const _ratingAskedKey = 'rating_asked_version';
+  static const _manualEntriesKey = 'manual_entries_recorded';
   static const _updateAskedKey = 'update_asked_on';
   static const _nudgeIgnoredKey = 'empty_day_nudge_ignored';
   static const _nudgeStoppedKey = 'empty_day_nudge_stopped';
@@ -154,6 +156,7 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? _nudgeCheckedAt;
   int _adActivity;
   DateTime? _adActivityDay;
+  int _manualEntries;
 
   /// Whether this run is the one that installed the app: the only
   /// launch with no `first_opened_at` behind it (ADS-12, RUN-5).
@@ -688,6 +691,20 @@ class SettingsProvider extends ChangeNotifier {
     _adActivityDay = _clock();
     await _prefs.setInt(_adActivityKey, 0);
     await _prefs.setString(_adActivityDayKey, _stamp(_adActivityDay!));
+  }
+
+  /// How many entries the user has typed into the add form and saved by
+  /// hand, for RATE-1's "recorded at least fifteen entries" -- never a row
+  /// posted automatically by a recurring rule (RCR-4), a CSV import, or a
+  /// restored backup, none of which are an opinion about the app (RATE-1,
+  /// pr57#10). Counted here rather than from the transaction list's length
+  /// so those never inflate it, and never spent back down: it only grows.
+  int get manualEntriesRecorded => _manualEntries;
+
+  /// Counts one entry saved by hand through the add form (RATE-1, pr57#10).
+  Future<void> noteManualEntrySaved() async {
+    _manualEntries++;
+    await _prefs.setInt(_manualEntriesKey, _manualEntries);
   }
 
   Future<void> setAppLock(bool on) async {
