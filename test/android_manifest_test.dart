@@ -82,5 +82,27 @@ void main() {
         );
       }
     });
+
+    // Release builds shrink away every resource no Java or XML refers to,
+    // and a name passed from Dart counts as none. The icon was there in
+    // every debug build and gone from every release one, and the plugin's
+    // failure to find it stopped each launch from loading anything.
+    test('keeps every drawable that Dart names through the shrinker', () {
+      final keep = File('android/app/src/main/res/raw/keep.xml');
+      expect(keep.existsSync(), isTrue, reason: 'res/raw/keep.xml is gone');
+      final kept = keep.readAsStringSync();
+      final named = <String>{
+        for (final file in Directory('lib').listSync(recursive: true))
+          if (file is File && file.path.endsWith('.dart'))
+            for (final match in RegExp(
+              r'@drawable/(\w+)',
+            ).allMatches(file.readAsStringSync()))
+              match.group(0)!,
+      };
+      expect(named, isNotEmpty);
+      for (final drawable in named) {
+        expect(kept, contains(drawable), reason: '$drawable is not kept');
+      }
+    });
   });
 }
