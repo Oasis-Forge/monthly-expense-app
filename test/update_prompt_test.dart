@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,6 +39,7 @@ void main() {
     SettingsProvider settings, {
     required FakeUpdates updates,
     required FakeReviews reviews,
+    ValueListenable<bool>? locked,
   }) async {
     usePhoneScreen(tester);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -48,6 +50,7 @@ void main() {
         const AddTransactionScreen(),
         reviews: reviews,
         updates: updates,
+        locked: locked,
       ),
     );
     await tester.pump();
@@ -112,6 +115,55 @@ void main() {
     expect(settings.ratingAskedVersion, isNull);
     // UPD-4: spent before Play was given the chance to decline.
     expect(settings.updateAskedOn, isNotNull);
+  });
+
+  testWidgets('a failed save asks Play nothing, even with an update due '
+      '(UPD-2, rules-22-25-31-35#10)', (tester) async {
+    final fake = FakeDB();
+    final provider = TransactionProvider(db: fake, clock: () => today);
+    await provider.load();
+    final settings = await testSettings({
+      'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
+      'manual_entries_recorded': ratingEntries,
+    });
+    final updates = FakeUpdates(offered: true);
+    final reviews = FakeReviews(appVersion: '1.26.0+38');
+    // Due on the line above, but the write itself fails.
+    fake.failWrites = true;
+
+    await saveAnEntry(
+      tester,
+      provider,
+      settings,
+      updates: updates,
+      reviews: reviews,
+    );
+
+    expect(
+      find.text("Couldn't save the transaction. Try again."),
+      findsOneWidget,
+    );
+    expect(updates.checked, 0);
+    expect(settings.updateAskedOn, isNull);
+  });
+
+  testWidgets('never while the app is locked, even with an update due '
+      '(UPD-2, LOCK-1, rules-22-25-31-35#10)', (tester) async {
+    final (provider, settings) = await established();
+    final updates = FakeUpdates(offered: true);
+    final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+    await saveAnEntry(
+      tester,
+      provider,
+      settings,
+      updates: updates,
+      reviews: reviews,
+      locked: ValueNotifier(true),
+    );
+
+    expect(updates.checked, 0);
+    expect(settings.updateAskedOn, isNull);
   });
 
   testWidgets(

@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:monthly_expense_app/models/rating.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
@@ -146,4 +148,88 @@ void main() {
     expect(reviews.asked, 0);
     expect(settings.ratingAskedVersion, isNull);
   });
+
+  testWidgets('a failed save asks nothing, even with everything else due '
+      '(RATE-3, rules-22-25-31-35#10)', (tester) async {
+    final fake = FakeDB();
+    final provider = TransactionProvider(db: fake, clock: () => today);
+    await provider.load();
+    final settings = await testSettings({
+      'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
+      'manual_entries_recorded': ratingEntries,
+    });
+    final reviews = FakeReviews(appVersion: '1.25.0+37');
+    // Due on the line above (RATE-1), but the write itself fails.
+    fake.failWrites = true;
+
+    await saveAnEntry(tester, provider, settings, reviews);
+
+    expect(
+      find.text("Couldn't save the transaction. Try again."),
+      findsOneWidget,
+    );
+    expect(reviews.asked, 0);
+    expect(settings.ratingAskedVersion, isNull);
+  });
+
+  testWidgets(
+    'never in a session that has already shown a full-screen ad, even '
+    'with everything else due (RATE-3, ADS-11, rules-22-25-31-35#10)',
+    (tester) async {
+      final provider = TransactionProvider(db: FakeDB(), clock: () => today);
+      await provider.load();
+      final settings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
+        'manual_entries_recorded': ratingEntries,
+        'ad_activity': SettingsProvider.adActivityThreshold,
+        'ad_activity_day': today.toUtc().toIso8601String(),
+      }, () => today);
+      final reviews = FakeReviews(appVersion: '1.25.0+37');
+      final ads = FakeAdService(canStart: true, interstitialFills: true);
+      // No test inherits another test's Undo (ADS-11).
+      AdsProvider.forgetUndo();
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          const AddTransactionScreen(),
+          reviews: reviews,
+          ads: ads,
+        ),
+      );
+      // AdsProvider is created lazily on first read; reading it here is
+      // what starts the store and the ad SDK (ADS-4), just as the app's
+      // own first read of it would.
+      final adsProvider = Provider.of<AdsProvider>(
+        tester.element(find.byType(AddTransactionScreen)),
+        listen: false,
+      );
+      // That start() settles the store and the ad SDK over a couple of
+      // microtasks; a plain pump can land before it has, so wait for it
+      // the same way a running app would.
+      await tester.pumpAndSettle();
+
+      // The session's one full-screen ad, already spent on some earlier
+      // seam (ADS-11), before this save even starts.
+      await adsProvider.primeInterstitial();
+      await adsProvider.showAtSeam(AdSeam.leftInsights);
+      expect(adsProvider.interstitialShown, isTrue);
+
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '12');
+      await revealInForm(
+        tester,
+        find.widgetWithText(FilledButton, 'Add Transaction'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Add Transaction'));
+      await tester.pumpAndSettle();
+
+      expect(reviews.asked, 0);
+      expect(settings.ratingAskedVersion, isNull);
+    },
+  );
 }
