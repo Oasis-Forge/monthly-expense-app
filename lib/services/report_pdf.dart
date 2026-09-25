@@ -164,8 +164,8 @@ Future<Uint8List> buildReportPdf({
 }
 
 /// Left-to-right isolate and its matching pop (U+2066, U+2069): the marks
-/// [SettingsProvider.currencyFormat]'s `isolated: true` pattern wraps round a
-/// signed figure so bidi cannot part it from its sign (LANG-5).
+/// [SettingsProvider.currencyFormat]'s pattern wraps round a signed figure
+/// so bidi cannot part it from its sign (LANG-5).
 const _lri = '\u2066';
 const _pdi = '\u2069';
 
@@ -381,7 +381,7 @@ pw.Widget _summary(ReportData data, ReportLabels labels) {
             // The sign and figures read left to right in every language
             // (LANG-3, LANG-5); the currency symbol goes where the
             // language puts it. _run gives amounts both, splitting on the
-            // isolate marks currencyFormat(isolated: true) leaves in them.
+            // isolate marks currencyFormat leaves in them.
             _run(
               labels.money(amount),
               style: pw.TextStyle(

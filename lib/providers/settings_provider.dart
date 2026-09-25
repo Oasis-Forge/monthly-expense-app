@@ -259,15 +259,17 @@ class SettingsProvider extends ChangeNotifier {
   ///
   /// The figures, and the sign in front of them, are isolated left to right
   /// so bidi cannot part them; the symbol is left where the language puts it,
-  /// which in Arabic is before the figures (LANG-5). [isolated] false leaves
-  /// the isolate out, for the PDF report, which lays out its own text.
-  NumberFormat currencyFormat(String locale, {bool isolated = true}) {
+  /// which in Arabic is before the figures (LANG-5). Every caller wants the
+  /// isolate, including the PDF report, which now draws its own left- and
+  /// right-hand text as separate widgets around it rather than stripping it
+  /// out (see [report_pdf.dart]'s `_run`).
+  NumberFormat currencyFormat(String locale) {
     final simple = NumberFormat.simpleCurrency(
       locale: locale,
       name: _currencyCode,
     );
     final symbol = _localSymbol(locale) ?? simple.currencySymbol;
-    final pattern = _amountPattern(locale, symbol, isolated: isolated);
+    final pattern = _amountPattern(locale, symbol);
     if (_localSymbol(locale) == null && pattern == null) return simple;
     return NumberFormat.currency(
       locale: locale,
@@ -359,11 +361,7 @@ class SettingsProvider extends ChangeNotifier {
   /// so that bidi cannot part them, but the symbol is left outside, where the
   /// language puts it: CLDR writes Arabic as figures first, symbol after, and
   /// in right-to-left text that reads with the symbol on the left (LANG-5).
-  static String? _amountPattern(
-    String locale,
-    String symbol, {
-    required bool isolated,
-  }) {
+  static String? _amountPattern(String locale, String symbol) {
     final cldr = _cldrPattern(locale);
     // A pattern we cannot read is left exactly as it is rather than guessed at.
     if (!cldr.contains('\u00A4') || !cldr.contains(RegExp('[#0]'))) {
@@ -375,8 +373,7 @@ class SettingsProvider extends ChangeNotifier {
               ? cldr.replaceAll(RegExp('\u00A4(?=[#0])'), '\u00A4\u00A0')
               : cldr.replaceAll(RegExp('(?<=[#0])\u00A4'), '\u00A0\u00A4'))
         : cldr;
-    final isolate =
-        isolated && rightToLeftLanguages.contains(_language(locale));
+    final isolate = rightToLeftLanguages.contains(_language(locale));
     if (!isolate) return spaced == cldr ? null : spaced;
     final halves = spaced.split(';');
     // Where the symbol already stands in front of the figures, the whole

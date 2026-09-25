@@ -266,16 +266,6 @@ void main() {
       );
     });
 
-    test('the PDF report gets the symbol without the marks', () async {
-      final settings = SettingsProvider(
-        await prefsWith({'currency_code': 'SAR'}),
-      );
-
-      final report = settings.currencyFormat('ar', isolated: false);
-      expect(report.format(5), contains('ر.س.'));
-      expect(report.format(5), isNot(contains('\u2066')));
-    });
-
     testWidgets('Arabic reads the figures first and the symbol after, so the '
         'symbol sits on the left (LANG-5)', (tester) async {
       final settings = SettingsProvider(
