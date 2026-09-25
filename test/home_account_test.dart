@@ -126,6 +126,23 @@ void main() {
       expect(provider.accountFilterId, isNull);
       expect(provider.periodExpense, money(37));
     });
+
+    test('archiving the other account down to one active falls back too, even '
+        'though the chosen one is still active (rules-6-10#10)', () async {
+      final db = twoAccounts();
+      final provider = await loaded(db);
+      provider.selectAccountFilter(bank);
+      expect(provider.periodExpense, money(7));
+
+      // Cash, not Bank, is archived: Bank stays active and chosen, but
+      // with only one active account left there is nothing to switch to
+      // (ACC-6), so the filter would otherwise hide Cash's history with
+      // no way back.
+      await provider.archiveAccount(cash);
+
+      expect(provider.accountFilterId, isNull);
+      expect(provider.periodExpense, money(37));
+    });
   });
 
   group('one account\'s balance (ACC-8)', () {

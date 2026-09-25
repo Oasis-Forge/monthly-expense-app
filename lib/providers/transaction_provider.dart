@@ -174,11 +174,15 @@ class TransactionProvider extends ChangeNotifier {
 
   /// The account Home is showing, or null for every account (ACC-6). An
   /// account archived or removed since it was chosen reads as null rather
-  /// than showing an empty Home with no way back, and [selectAccountFilter]
-  /// is what writes it.
+  /// than showing an empty Home with no way back, and so does archiving
+  /// some *other* account down to a single active one: with only one
+  /// account left there is nothing to switch to, so the control that would
+  /// otherwise clear the filter is gone too (rules-6-10#10).
+  /// [selectAccountFilter] is what writes it.
   String? get accountFilterId {
     final id = _accountFilterId;
     if (id == null) return null;
+    if (activeAccounts.length < 2) return null;
     final account = accountById(id);
     return account != null && account.archivedAt == null ? id : null;
   }
