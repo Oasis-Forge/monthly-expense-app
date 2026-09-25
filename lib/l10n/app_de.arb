@@ -96,6 +96,7 @@
   "trashTitle": "Papierkorb",
   "trashEmpty": "Der Papierkorb ist leer.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{wird in 1 Tag endgültig gelöscht} other{wird in {days} Tagen endgültig gelöscht}}",
+  "trashNoteSubtitle": "{days, plural, =1{wird in 1 Tag endgültig gelöscht} other{wird in {days} Tagen endgültig gelöscht}}",
   "restoreTooltip": "Wiederherstellen",
   "categoriesTitle": "Kategorien",
   "addCategoryTooltip": "Kategorie hinzufügen",

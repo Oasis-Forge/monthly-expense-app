@@ -138,6 +138,10 @@ class TransactionProvider extends ChangeNotifier {
   /// restored the same way transactions are, from the same screen.
   List<Transfer> get deletedTransfers => List.unmodifiable(_deletedTransfers);
 
+  /// Notes in the trash, most recently deleted first (DEL-5, NOTE-7). Like
+  /// transactions and transfers, they are restored from the same screen.
+  List<Note> get deletedNotes => List.unmodifiable(_deletedNotes);
+
   List<Category> get categories => List.unmodifiable(_categories);
 
   /// Every account that isn't deleted, archived ones included.
@@ -386,6 +390,9 @@ class TransactionProvider extends ChangeNotifier {
   int trashDaysLeftForTransfer(Transfer transfer) =>
       _daysLeftSince(transfer.deletedAt!);
 
+  /// The same for a trashed note (DEL-5, NOTE-7).
+  int trashDaysLeftForNote(Note note) => _daysLeftSince(note.deletedAt!);
+
   int _daysLeftSince(DateTime deletedAt) {
     final left = trashRetention.inDays - _clock().difference(deletedAt).inDays;
     return left < 1 ? 1 : left;
@@ -447,6 +454,7 @@ class TransactionProvider extends ChangeNotifier {
     final deleted = await _db.fetchDeletedTransactions();
     final transfers = await _db.fetchTransfers();
     final deletedTransfers = await _db.fetchDeletedTransfers();
+    final deletedNotes = await _db.fetchDeletedNotes();
     _occurrences
       ..clear()
       ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
@@ -465,7 +473,10 @@ class TransactionProvider extends ChangeNotifier {
     _deletedTransfers
       ..clear()
       ..addAll(deletedTransfers);
-    _deletedNotes.clear();
+    // DEL-5, NOTE-7: and notes, the same way.
+    _deletedNotes
+      ..clear()
+      ..addAll(deletedNotes);
     _reopenedNotes.clear();
     await _postAutomaticOccurrences();
     await rescheduleReminders(

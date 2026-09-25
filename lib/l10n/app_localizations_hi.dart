@@ -354,6 +354,17 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String trashNoteSubtitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days दिनों में हमेशा के लिए हट जाएगा',
+      one: '1 दिन में हमेशा के लिए हट जाएगा',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get restoreTooltip => 'रीस्टोर';
 
   @override

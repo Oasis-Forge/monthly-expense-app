@@ -96,6 +96,7 @@
   "trashTitle": "Cestino",
   "trashEmpty": "Il cestino è vuoto.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{eliminazione definitiva tra 1 giorno} other{eliminazione definitiva tra {days} giorni}}",
+  "trashNoteSubtitle": "{days, plural, =1{eliminazione definitiva tra 1 giorno} other{eliminazione definitiva tra {days} giorni}}",
   "restoreTooltip": "Ripristina",
   "categoriesTitle": "Categorie",
   "addCategoryTooltip": "Aggiungi categoria",

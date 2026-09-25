@@ -5,14 +5,15 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/labels.dart';
 import '../models/money.dart';
+import '../models/note.dart';
 import '../models/transaction.dart';
 import '../models/transfer.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
 
-/// Everything waiting to be deleted for good: transactions and transfers
-/// alike, most recently deleted first, each with its way back (DEL-3, DEL-4,
-/// DEL-5).
+/// Everything waiting to be deleted for good: transactions, transfers and
+/// notes alike, most recently deleted first, each with its way back (DEL-3,
+/// DEL-4, DEL-5, NOTE-7).
 class TrashScreen extends StatelessWidget {
   const TrashScreen({super.key});
 
@@ -33,6 +34,11 @@ class TrashScreen extends StatelessWidget {
         (
           at: transfer.deletedAt!,
           tile: _TrashedTransfer(transfer: transfer, currency: currency),
+        ),
+      for (final note in provider.deletedNotes)
+        (
+          at: note.deletedAt!,
+          tile: _TrashedNote(note: note, currency: currency),
         ),
     ]..sort((a, b) => b.at.compareTo(a.at));
 
@@ -131,6 +137,47 @@ class _TrashedTransfer extends StatelessWidget {
       trailing: _RestoreButton(
         onRestore: () => provider.restoreTransfer(transfer.id),
         failedMessage: l10n.restoreTransferFailed,
+      ),
+    );
+  }
+}
+
+/// A trashed note: like transactions and transfers, it stays reachable
+/// until the purge, not only for the length of its Undo snackbar (NOTE-7,
+/// DEL-5).
+class _TrashedNote extends StatelessWidget {
+  const _TrashedNote({required this.note, required this.currency});
+
+  final Note note;
+  final NumberFormat currency;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final locale = Localizations.localeOf(context);
+    final provider = context.read<TransactionProvider>();
+    final settings = context.read<SettingsProvider>();
+    final category = note.categoryId == null
+        ? null
+        : provider.categoryById(note.categoryId!);
+    final parts = [
+      if (note.dueDate != null)
+        DateFormat.yMMMEd(l10n.localeName).format(note.dueDate!),
+      if (category != null) category.label(l10n),
+      if (note.amount != null) currency.money(note.amount!),
+      l10n.trashNoteSubtitle(provider.trashDaysLeftForNote(note)),
+    ];
+    return ListTile(
+      leading: const CircleAvatar(child: Icon(Icons.sticky_note_2_outlined)),
+      title: Text(note.text),
+      subtitle: Text(parts.join(' · ')),
+      trailing: _RestoreButton(
+        onRestore: () => provider.restoreNote(
+          note.id,
+          appLockOn: settings.appLock,
+          locale: locale,
+        ),
+        failedMessage: l10n.noteRestoreFailed,
       ),
     );
   }

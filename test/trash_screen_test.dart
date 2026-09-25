@@ -163,4 +163,61 @@ void main() {
     expect(find.text('Trash is empty.'), findsOneWidget);
     expect(find.byType(ListTile), findsNothing);
   });
+
+  testWidgets('a note deleted before a reload can be found in the trash, and '
+      'restored (NOTE-7, DEL-5)', (tester) async {
+    final notesDb = FakeDB(notes: [testNote('n1', 'Pay rent')]);
+    provider = TransactionProvider(
+      db: notesDb,
+      clock: () => DateTime(2026, 9, 15, 12),
+    );
+    await provider.load();
+    await provider.deleteNote('n1');
+
+    // Simulate the app relaunching: a fresh provider loading from the same
+    // database, the way the failure scenario describes ("the process is
+    // dead"), rather than the note only surviving via the Undo snackbar.
+    provider = TransactionProvider(
+      db: notesDb,
+      clock: () => DateTime(2026, 9, 15, 12),
+    );
+    await provider.load();
+
+    await showTrash(tester);
+
+    expect(find.text('Pay rent'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Restore'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Trash is empty.'), findsOneWidget);
+    expect(provider.deletedNotes, isEmpty);
+    expect(provider.noteById('n1'), isNotNull);
+  });
+
+  testWidgets('a failed note restore keeps it and says so (NOTE-7)', (
+    tester,
+  ) async {
+    final notesDb = FakeDB(
+      notes: [
+        testNote(
+          'n1',
+          'Pay rent',
+        ).copyWith(deletedAt: DateTime.utc(2026, 9, 14)),
+      ],
+    );
+    provider = TransactionProvider(
+      db: notesDb,
+      clock: () => DateTime(2026, 9, 15, 12),
+    );
+    await provider.load();
+    await showTrash(tester);
+    notesDb.failWrites = true;
+
+    await tester.tap(find.byTooltip('Restore'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pay rent'), findsOneWidget);
+    expect(find.text("Couldn't restore the note. Try again."), findsOneWidget);
+  });
 }

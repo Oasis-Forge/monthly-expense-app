@@ -96,6 +96,7 @@
   "trashTitle": "Çöp kutusu",
   "trashEmpty": "Çöp kutusu boş.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{1 gün içinde kalıcı olarak silinecek} other{{days} gün içinde kalıcı olarak silinecek}}",
+  "trashNoteSubtitle": "{days, plural, =1{1 gün içinde kalıcı olarak silinecek} other{{days} gün içinde kalıcı olarak silinecek}}",
   "restoreTooltip": "Geri yükle",
   "categoriesTitle": "Kategoriler",
   "addCategoryTooltip": "Kategori ekle",

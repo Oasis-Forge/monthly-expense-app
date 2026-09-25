@@ -96,6 +96,7 @@
   "trashTitle": "ট্র্যাশ",
   "trashEmpty": "ট্র্যাশ খালি।",
   "trashItemSubtitle": "{amount} · {days, plural, =1{1 দিনে চিরতরে মুছে যাবে} other{{days} দিনে চিরতরে মুছে যাবে}}",
+  "trashNoteSubtitle": "{days, plural, =1{1 দিনে চিরতরে মুছে যাবে} other{{days} দিনে চিরতরে মুছে যাবে}}",
   "restoreTooltip": "ফিরিয়ে আনুন",
   "categoriesTitle": "ক্যাটাগরি",
   "addCategoryTooltip": "ক্যাটাগরি যোগ করুন",

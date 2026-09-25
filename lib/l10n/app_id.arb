@@ -96,6 +96,7 @@
   "trashTitle": "Sampah",
   "trashEmpty": "Sampah kosong.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{dihapus permanen dalam 1 hari} other{dihapus permanen dalam {days} hari}}",
+  "trashNoteSubtitle": "{days, plural, =1{dihapus permanen dalam 1 hari} other{dihapus permanen dalam {days} hari}}",
   "restoreTooltip": "Pulihkan",
   "categoriesTitle": "Kategori",
   "addCategoryTooltip": "Tambah kategori",

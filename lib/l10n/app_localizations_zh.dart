@@ -349,6 +349,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trashNoteSubtitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '将于$days天后彻底删除',
+      one: '将于1天后彻底删除',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get restoreTooltip => '恢复';
 
   @override

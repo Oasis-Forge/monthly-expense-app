@@ -96,6 +96,7 @@
   "trashTitle": "Κάδος απορριμμάτων",
   "trashEmpty": "Ο κάδος είναι άδειος.",
   "trashItemSubtitle": "{amount} · {days, plural, =1{διαγράφεται οριστικά σε 1 ημέρα} other{διαγράφεται οριστικά σε {days} ημέρες}}",
+  "trashNoteSubtitle": "{days, plural, =1{διαγράφεται οριστικά σε 1 ημέρα} other{διαγράφεται οριστικά σε {days} ημέρες}}",
   "restoreTooltip": "Επαναφορά",
   "categoriesTitle": "Κατηγορίες",
   "addCategoryTooltip": "Προσθήκη κατηγορίας",

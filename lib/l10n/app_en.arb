@@ -276,6 +276,15 @@
       }
     }
   },
+  "trashNoteSubtitle": "{days, plural, =1{deleted for good in 1 day} other{deleted for good in {days} days}}",
+  "@trashNoteSubtitle": {
+    "description": "Days left before a trashed note is purged for good (DEL-5, NOTE-7); unlike trashItemSubtitle, this has no amount, since a note need not have one.",
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "restoreTooltip": "Restore",
   "categoriesTitle": "Categories",
   "addCategoryTooltip": "Add category",

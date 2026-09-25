@@ -349,6 +349,17 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String trashNoteSubtitle(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days일 후 완전히 삭제',
+      one: '1일 후 완전히 삭제',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get restoreTooltip => '복원';
 
   @override
