@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -40,8 +41,9 @@ void main() {
     WidgetTester tester,
     TransactionProvider provider,
     SettingsProvider settings,
-    FakeReviews reviews,
-  ) async {
+    FakeReviews reviews, {
+    ValueListenable<bool>? locked,
+  }) async {
     usePhoneScreen(tester);
     // A saved entry closes the form, so each save starts from a fresh tree
     // rather than the popped one the last save left behind.
@@ -52,6 +54,7 @@ void main() {
         settings,
         const AddTransactionScreen(),
         reviews: reviews,
+        locked: locked,
       ),
     );
     await tester.pump();
@@ -98,6 +101,23 @@ void main() {
     final reviews = FakeReviews(supported: false);
 
     await saveAnEntry(tester, provider, settings, reviews);
+
+    expect(reviews.asked, 0);
+    expect(settings.ratingAskedVersion, isNull);
+  });
+
+  testWidgets('never over a lock screen, even with everything else due '
+      '(RATE-3)', (tester) async {
+    final (provider, settings) = await established();
+    final reviews = FakeReviews(appVersion: '1.25.0+37');
+
+    await saveAnEntry(
+      tester,
+      provider,
+      settings,
+      reviews,
+      locked: ValueNotifier(true),
+    );
 
     expect(reviews.asked, 0);
     expect(settings.ratingAskedVersion, isNull);
