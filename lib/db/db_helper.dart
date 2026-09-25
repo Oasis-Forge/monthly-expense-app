@@ -39,6 +39,7 @@ class DBHelper {
     migrateToVersion8,
     migrateToVersion9,
     migrateToVersion10,
+    migrateToVersion11,
   ];
 
   static const _fileName = 'monthly_expense_app.db';
@@ -71,6 +72,20 @@ class DBHelper {
       },
       onUpgrade: (db, oldVersion, newVersion) =>
           _migrate(db, from: oldVersion, to: newVersion),
+      // Without this, sqflite's default when a build with fewer migration
+      // steps opens a database a newer build already upgraded is to run no
+      // migration but still lower `user_version` to this build's version.
+      // The next time the newer build opens it, it reruns the migrations in
+      // between against columns and tables that already exist and fails
+      // (data-integrity#9). Refusing the open instead leaves `user_version`
+      // untouched, so a later open by a build that understands this schema
+      // still works.
+      onDowngrade: (db, oldVersion, newVersion) {
+        throw StateError(
+          'Refusing to open a database at schema $oldVersion with a build '
+          'that only knows schema $newVersion; open it with a newer build.',
+        );
+      },
     );
   }
 
@@ -154,26 +169,67 @@ class DBHelper {
   }
 
   /// Permanently removes transactions, transfers, and notes deleted before
-  /// [cutoff] (DEL-3, NOTE-7), and returns the attachment files those
-  /// transactions leave behind, for the caller to delete (ATT-5).
+  /// [cutoff] (DEL-3, NOTE-7), records their IDs so a later merge never
+  /// brings one back once its tombstone is gone (BAK-3, rules-1-5#7), and
+  /// returns the attachment files those transactions leave behind, for the
+  /// caller to delete (ATT-5).
   Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
     final db = await database;
     const where = 'deleted_at IS NOT NULL AND deleted_at < ?';
     final args = [cutoff.toUtc().toIso8601String()];
-    final going = await db.query(
-      'transactions',
-      columns: ['photo_file', 'voice_file'],
-      where: where,
-      whereArgs: args,
+    final attachments = <String>[];
+    await db.transaction((txn) async {
+      final purged = <String, String>{};
+      for (final table in ['transactions', 'transfers', 'notes']) {
+        final going = await txn.query(
+          table,
+          columns: [
+            'id',
+            'updated_at',
+            if (table == 'transactions') ...['photo_file', 'voice_file'],
+          ],
+          where: where,
+          whereArgs: args,
+        );
+        for (final row in going) {
+          purged[row['id']! as String] = row['updated_at']! as String;
+        }
+        if (table == 'transactions') {
+          attachments.addAll([
+            for (final row in going)
+              for (final name in [row['photo_file'], row['voice_file']])
+                if (name != null) name as String,
+          ]);
+        }
+        await txn.delete(table, where: where, whereArgs: args);
+      }
+      final batch = txn.batch();
+      for (final MapEntry(key: id, value: updatedAt) in purged.entries) {
+        batch.insert('purged_records', {
+          'id': id,
+          'updated_at': updatedAt,
+        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      }
+      await batch.commit(noResult: true);
+    });
+    return attachments;
+  }
+
+  /// Every ID ever purged from the trash on this device, and the `updated_at`
+  /// it was purged with (DEL-3). Local only (it is never part of a backup): a
+  /// merge consults it so an older backup's record of something this device
+  /// has already thrown away isn't treated as new, unless the backup's own
+  /// edit came after the tombstone (BAK-3, rules-1-5#7).
+  Future<Map<String, String>> fetchPurgedIds() async {
+    final db = await database;
+    final rows = await db.query(
+      'purged_records',
+      columns: ['id', 'updated_at'],
     );
-    for (final table in ['transactions', 'transfers', 'notes']) {
-      await db.delete(table, where: where, whereArgs: args);
-    }
-    return [
-      for (final row in going)
-        for (final name in [row['photo_file'], row['voice_file']])
-          if (name != null) name as String,
-    ];
+    return {
+      for (final row in rows)
+        row['id']! as String: row['updated_at']! as String,
+    };
   }
 
   Future<List<Category>> fetchCategories() async {

@@ -147,6 +147,13 @@ void main() {
       expect(await attachments.read('note.m4a'), [1, 2, 3, 4]);
       expect(await attachments.totalBytes(), 4);
     });
+
+    test('path refuses a name that would resolve outside the folder '
+        '(ATT-2, data-integrity#10)', () async {
+      for (final name in ['a/b.jpg', '..\\x.jpg', '..']) {
+        await expectLater(attachments.path(name), throwsArgumentError);
+      }
+    });
   });
 
   group('the provider clears up files (ATT-5)', () {

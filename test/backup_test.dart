@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -14,8 +15,42 @@ import 'package:monthly_expense_app/models/category.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/services/backup_service.dart';
 
 import 'helpers.dart';
+
+/// Replaces every non-overlapping occurrence of [from] in [bytes] with [to]
+/// (same length, so no offset in the surrounding zip structure moves).
+/// Stands in for a zip tool, unlike this app's own [ZipEncoder], that writes
+/// a `\`-containing entry name byte for byte instead of rewriting it to `/`.
+List<int> _spliceBytes(List<int> bytes, List<int> from, List<int> to) {
+  assert(from.length == to.length);
+  final out = List<int>.from(bytes);
+  var hits = 0;
+  for (var i = 0; i + from.length <= out.length; i++) {
+    if (!from.indexed.every((e) => out[i + e.$1] == e.$2)) continue;
+    out.setRange(i, i + to.length, to);
+    hits++;
+    i += from.length - 1;
+  }
+  expect(
+    hits,
+    2,
+    reason:
+        'expected the sentinel name in exactly the local and '
+        'central-directory zip headers',
+  );
+  return out;
+}
+
+/// An [AttachmentService] whose writes always fail, like a full disk mid a
+/// zip restore (ATT-6).
+class _ThrowingAttachments extends FakeAttachments {
+  @override
+  Future<void> write(String name, List<int> bytes) async {
+    throw Exception('disk full');
+  }
+}
 
 void main() {
   const expense = TransactionType.expense;
@@ -271,6 +306,113 @@ void main() {
     );
   });
 
+  test('a purged deletion does not come back on merge (DEL-1, DEL-3, BAK-3, '
+      'rules-1-5#7)', () async {
+    // An older backup (a second phone, or an automatic backup made before
+    // the deletion) still holds the live transaction.
+    final other = helperAt('other-purge.db');
+    await other.insertTransaction(tx('rent', title: 'Rent'));
+    final backup = await testBackupService(other).create(await testSettings());
+
+    final device = helperAt('device-purge.db');
+    await device.insertTransaction(
+      tx('rent', title: 'Rent', deleted: DateTime.utc(2026, 7, 1)),
+    );
+    // DEL-3: purged after 30 days in the trash, as load() does on start.
+    await device.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+
+    final service = testBackupService(device);
+    await service.restore(
+      await service.read(encode(backup)),
+      RestoreMode.merge,
+      await testSettings(),
+    );
+
+    // The purged deletion must win over the older backup, not come back
+    // as a live transaction.
+    expect(await device.fetchTransactions(), isEmpty);
+  });
+
+  test('an edit truly made after a purged deletion still wins the merge '
+      '(DEL-3, BAK-3, rules-1-5#7)', () async {
+    // A second phone edited this record after the deletion happened here,
+    // and its backup is newer than the tombstone this device later purged.
+    final other = helperAt('other-purge-edit.db');
+    await other.insertTransaction(
+      tx('rent', title: 'Rent', updated: DateTime.utc(2026, 9, 20)),
+    );
+    final backup = await testBackupService(other).create(await testSettings());
+
+    final device = helperAt('device-purge-edit.db');
+    await device.insertTransaction(
+      tx('rent', title: 'Rent', deleted: DateTime.utc(2026, 7, 1)),
+    );
+    await device.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+
+    final service = testBackupService(device);
+    await service.restore(
+      await service.read(encode(backup)),
+      RestoreMode.merge,
+      await testSettings(),
+    );
+
+    // The backup's edit came after the tombstone's own timestamp, so it is
+    // not lost just because the tombstone has since been purged.
+    expect((await device.fetchTransactions()).single.title, 'Rent');
+  });
+
+  test('a purged transfer and a purged note also do not come back on '
+      'merge (DEL-3, BAK-3, rules-1-5#7)', () async {
+    final other = helperAt('other-purge-more.db');
+    await other.insertTransfer(
+      testTransfer(
+        'move',
+        Account.cashId,
+        'bank',
+        5,
+        DateTime(2026, 9, 3),
+      ).copyWith(updatedAt: DateTime.utc(2026, 9)),
+    );
+    await other.insertNote(
+      testNote(
+        'rent-note',
+        'Pay rent',
+      ).copyWith(updatedAt: DateTime.utc(2026, 9)),
+    );
+    final backup = await testBackupService(other).create(await testSettings());
+
+    final device = helperAt('device-purge-more.db');
+    await device.insertTransfer(
+      testTransfer(
+        'move',
+        Account.cashId,
+        'bank',
+        5,
+        DateTime(2026, 9, 3),
+      ).copyWith(
+        updatedAt: DateTime.utc(2026, 9),
+        deletedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+    await device.insertNote(
+      testNote('rent-note', 'Pay rent').copyWith(
+        updatedAt: DateTime.utc(2026, 9),
+        deletedAt: DateTime.utc(2026, 7, 1),
+      ),
+    );
+    await device.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+
+    final service = testBackupService(device);
+    await service.restore(
+      await service.read(encode(backup)),
+      RestoreMode.merge,
+      await testSettings(),
+    );
+
+    expect(await device.fetchTransfers(), isEmpty);
+    expect(await device.fetchNotes(), isEmpty);
+  });
+
   test('a backup from before colours comes back with them (CAT-6)', () async {
     final service = testBackupService(helperAt('app.db'));
 
@@ -481,6 +623,109 @@ void main() {
     );
 
     expect((plan.added, plan.updated, plan.unchanged), (0, 0, 2));
+  });
+
+  test('a malicious photo_file/voice_file in a backup is dropped, never '
+      'trusted as a path (ATT-2, data-integrity#10)', () async {
+    final service = testBackupService(helperAt('sanitize.db'));
+    final valid = await service.create(await testSettings());
+    final malicious = tx('lunch').toMap()
+      ..['photo_file'] = '../../databases/monthly_expense_app.db'
+      ..['voice_file'] = 'sub\\evil.m4a';
+
+    final read = await service.read(
+      encode(
+        valid.withTables({
+          ...valid.tables,
+          'transactions': [malicious],
+        }, schemaVersion: valid.schemaVersion),
+      ),
+    );
+
+    final restored = read.tables['transactions']!.single;
+    expect(restored['photo_file'], isNull);
+    expect(restored['voice_file'], isNull);
+  });
+
+  test('a malicious attachment name in a zip backup cannot escape the '
+      'attachments folder (ATT-2, data-integrity#10)', () async {
+    // Two levels down from dir, so the malicious name's two `..` segments
+    // land back on dir itself rather than on dir's parent (the system temp
+    // folder, which the test has no business asserting on).
+    final attachmentsDir = Directory(
+      p.join(dir.path, 'appdata', 'attachments'),
+    );
+    final attachments = testAttachments(attachmentsDir).service;
+    final target = helperAt('zip-slip.db');
+    final backupService = testBackupService(target, attachments: attachments);
+    final settings = await testSettings();
+    final validJson = (await backupService.create(settings)).toJson();
+
+    // A crafted zip: a legitimate backup.json plus one attachment entry
+    // whose name climbs out of the attachments folder with backslashes,
+    // which `file.name.split('/').last` alone would not strip (it only
+    // splits on '/'). Built with a same-length placeholder and spliced to
+    // the real name so this app's own ZipEncoder (which rewrites '\' to
+    // '/' on encode) never gets the chance to "fix" it, matching a zip
+    // written by some other tool.
+    const sentinelSuffix = 'XXXXXXXXXXXXXX';
+    const maliciousSuffix = '..\\..\\evil.txt';
+    expect(sentinelSuffix.length, maliciousSuffix.length);
+
+    final archive = Archive()
+      ..add(ArchiveFile.string(BackupService.backupEntry, validJson))
+      ..add(
+        ArchiveFile.bytes(
+          '${BackupService.attachmentsEntry}/$sentinelSuffix',
+          utf8.encode('planted by a malicious backup'),
+        ),
+      );
+    final zipBytes = _spliceBytes(
+      ZipEncoder().encodeBytes(archive),
+      utf8.encode('${BackupService.attachmentsEntry}/$sentinelSuffix'),
+      utf8.encode('${BackupService.attachmentsEntry}/$maliciousSuffix'),
+    );
+
+    final backup = await backupService.read(zipBytes);
+    // The unsafe name never survives into BackupData.files.
+    expect(backup.files.keys, isNot(contains('..\\..\\evil.txt')));
+
+    await backupService.restore(backup, RestoreMode.replace, settings);
+
+    // dir/appdata/attachments/..\..\evil.txt would resolve to dir/evil.txt:
+    // two levels above the attachments folder the app is supposed to be
+    // confined to.
+    final escaped = File(p.join(dir.path, 'evil.txt'));
+    expect(escaped.existsSync(), isFalse);
+  });
+
+  test('a Replace restore whose file write fails should not have already '
+      'committed the database (BAK-2, ATT-6, data-integrity#8)', () async {
+    final device = helperAt('restore-write-fail.db');
+    await device.insertTransaction(tx('mine', title: 'Mine'));
+
+    final other = helperAt('other-write-fail.db');
+    await other.insertTransaction(tx('dinner', title: 'Dinner'));
+    final settings = await testSettings();
+    // The incoming backup carries an attachment, so `_writeFiles` has
+    // something to write, and fail on.
+    final backup = (await testBackupService(other).create(settings)).withFiles({
+      'photo1.jpg': const [9],
+    });
+
+    final service = testBackupService(
+      device,
+      attachments: _ThrowingAttachments(),
+    );
+
+    await expectLater(
+      service.restore(backup, RestoreMode.replace, settings),
+      throwsException,
+    );
+
+    // The database should not hold the backup's data when writing its
+    // files failed partway through: nothing should be committed yet.
+    expect([for (final t in await device.fetchTransactions()) t.id], ['mine']);
   });
 
   test('a failed replace leaves the data as it was', () async {
