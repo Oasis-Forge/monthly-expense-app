@@ -163,7 +163,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (_) => CategoryDialog(
         takenNames: taken,
-        initialColor: nextCategoryColor(provider.categoriesFor(type)),
+        initialColor: nextCategoryColor([
+          ...provider.categoriesFor(TransactionType.expense),
+          ...provider.categoriesFor(TransactionType.income),
+        ]),
       ),
     );
     if (result == null || !mounted) return;
