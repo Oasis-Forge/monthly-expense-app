@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/amount_expression.dart';
@@ -77,6 +78,37 @@ void main() {
       // thousandths, not as hundredths or tenths.
       expect(const Money(12005).toInputString(), '12.005');
       expect(const Money(5).toInputString(), '0.005');
+    });
+  });
+
+  group('signedMoney on a zero amount (CUR-5, LANG-5)', () {
+    test('en: zero income and zero expense are both signed', () {
+      final usd = NumberFormat.currency(
+        locale: 'en_US',
+        symbol: r'$',
+        decimalDigits: 2,
+      );
+      expect(usd.signedMoney(Money.zero, isIncome: true), '+\$0');
+      expect(usd.signedMoney(Money.zero, isIncome: false), '-\$0');
+    });
+
+    test('ar: the plus on a zero income stays inside the isolate, not '
+        'pasted in front of it', () {
+      final ar = NumberFormat.currency(locale: 'ar', name: 'USD');
+      final zeroIncome = ar.signedMoney(Money.zero, isIncome: true);
+      final zeroExpense = ar.signedMoney(Money.zero, isIncome: false);
+      // A bare '+' pasted on afterwards would be the first character; the
+      // fix keeps it wherever the locale's own negative pattern places a
+      // sign, alongside the direction mark that protects it (LANG-5).
+      expect(zeroIncome, isNot(startsWith('+')));
+      expect(zeroIncome, contains('+'));
+      expect(zeroExpense, contains('-'));
+    });
+
+    test('ur: zero income and zero expense are still signed', () {
+      final ur = NumberFormat.currency(locale: 'ur', name: 'USD');
+      expect(ur.signedMoney(Money.zero, isIncome: true), contains('+'));
+      expect(ur.signedMoney(Money.zero, isIncome: false), contains('-'));
     });
   });
 

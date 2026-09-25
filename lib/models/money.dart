@@ -89,7 +89,19 @@ extension MoneyFormat on NumberFormat {
   /// and a right-to-left line would carry it off to the far end of the row,
   /// away from the figures it belongs to.
   String signedMoney(Money amount, {required bool isIncome}) {
-    final text = money(-amount);
+    final negated = -amount;
+    minimumFractionDigits = negated.thousandths % 1000 == 0
+        ? 0
+        : maximumFractionDigits;
+    // A zero amount negates to a zero double with no sign of its own, so
+    // [format] has no minus for [swapMinusForPlus] to find and a plus ends
+    // up pasted on afterwards, outside the isolate (LANG-5) — the one thing
+    // this method exists to avoid. Forcing IEEE's negative zero instead
+    // keeps the pattern's own negative half in play, exactly as it would be
+    // for any other value, so zero income and zero expense both come out
+    // signed the same consistent way as everything else.
+    final value = negated.thousandths == 0 ? -0.0 : negated.toDouble();
+    final text = format(value);
     return isIncome ? swapMinusForPlus(text, locale) : text;
   }
 }
