@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/l10n/languages.dart';
 import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/models/note.dart';
@@ -42,6 +43,10 @@ void main() {
             'walkthrough_seen': true,
             'app_lock': true,
           }),
+          // In-memory, not the real app database: this is the only test in
+          // the suite that writes through the full app widget, and it must
+          // never touch the file `flutter run` uses.
+          db: DBHelper(path: inMemoryDatabasePath),
           homeWidget: const NoopHomeWidgetService(),
           authenticator: authenticator,
           reviews: FakeReviews(supported: false),
@@ -72,12 +77,13 @@ void main() {
       // authenticator fails).
       expect(locked, findsOneWidget);
 
-      // Unique so a note left behind by an earlier, interrupted run of this
-      // test (the real, persistent app database, not a fake) never collides.
-      final noteId = 'lock-test-${DateTime.now().microsecondsSinceEpoch}';
+      // The database is in-memory and discarded with the widget tree, so no
+      // teardown or unique id is needed to avoid colliding with a note left
+      // behind by an earlier, interrupted run.
+      const noteId = 'lock-test-note';
 
-      // Real database I/O needs the real async zone, same as the load-wait
-      // loop above.
+      // Database I/O needs the real async zone, same as the load-wait loop
+      // above.
       await tester.runAsync(
         () => transactions.addNote(
           Note(id: noteId, text: 'Pay rent'),
@@ -85,7 +91,6 @@ void main() {
           locale: effectiveAppLocale(null),
         ),
       );
-      addTearDown(() => tester.runAsync(() => transactions.deleteNote(noteId)));
 
       // A reminder tap, same as one that arrives while the app is already
       // running.
