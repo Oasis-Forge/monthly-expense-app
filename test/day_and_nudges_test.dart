@@ -31,6 +31,24 @@ void main() {
 
       expect(provider.selectedDay, DateTime(2026, 9, 21));
     });
+
+    test(
+      'returnToToday is a no-op when the day has not changed (DAY-1)',
+      () async {
+        final now = DateTime(2026, 9, 24, 10);
+        final provider = TransactionProvider(db: FakeDB(), clock: () => now);
+        await provider.load();
+
+        var notified = 0;
+        provider.addListener(() => notified++);
+
+        // The clock has not moved to a new day since load(); resuming again
+        // must change nothing and notify no one.
+        provider.returnToToday();
+
+        expect(notified, 0);
+      },
+    );
   });
 
   test(

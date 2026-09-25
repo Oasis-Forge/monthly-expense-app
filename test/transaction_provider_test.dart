@@ -80,6 +80,20 @@ void main() {
       expect(row['deleted_at'], now.toUtc().toIso8601String());
     });
 
+    test('added transactions stay sorted newest first', () async {
+      await provider.addTransaction(
+        testTx('a', expense, 10, DateTime(2026, 9, 10)),
+      );
+      await provider.addTransaction(
+        testTx('b', expense, 10, DateTime(2026, 9, 1)),
+      );
+      await provider.addTransaction(
+        testTx('c', expense, 10, DateTime(2026, 9, 20)),
+      );
+
+      expect(provider.transactions.map((t) => t.id), ['c', 'a', 'b']);
+    });
+
     test('restore brings a trashed transaction back (DEL-4)', () async {
       await provider.addTransaction(
         testTx('a', expense, 10, DateTime(2026, 9, 1)),
@@ -284,6 +298,25 @@ void main() {
     expect(provider.trashDaysLeft(provider.deletedTransactions.single), 25);
   });
 
+  test('a transaction from exactly 30 days ago still shows at least 1 day '
+      'left (DEL-3)', () async {
+    final fake = FakeDB(
+      transactions: [
+        testTx(
+          'at-limit',
+          expense,
+          1,
+          DateTime(2026, 8, 1),
+        ).copyWith(deletedAt: DateTime(2026, 8, 16, 10)),
+      ],
+    );
+
+    final provider = await loaded(fake);
+
+    expect(provider.deletedTransactions.single.id, 'at-limit');
+    expect(provider.trashDaysLeft(provider.deletedTransactions.single), 1);
+  });
+
   group('accounts (ACC-1, ACC-4, ACC-5)', () {
     late FakeDB fake;
     late TransactionProvider provider;
@@ -340,6 +373,9 @@ void main() {
       expect(provider.activeAccounts.last.id, card.id);
       expect(fake.accounts.last.name, 'Card');
       expect(provider.accountBalance(card.id), const Money(-40000));
+      // Goes after every existing account (ACC-1), never sharing a spot with
+      // one, even when they all carry the same sortOrder already.
+      expect(card.sortOrder, 1);
 
       await provider.updateAccount(card.copyWith(name: 'Visa'));
       expect(provider.accountById(card.id)!.name, 'Visa');
@@ -360,6 +396,27 @@ void main() {
         expect(provider.activeAccounts, hasLength(2));
       },
     );
+
+    test('a trashed transaction still counts as history (ACC-5)', () async {
+      final spare = await provider.addAccount(
+        name: 'Spare',
+        type: AccountType.other,
+        openingBalance: Money.zero,
+        openingDate: DateTime(2026, 9),
+      );
+      await provider.addTransaction(
+        testTx(
+          'spare-tx',
+          expense,
+          5,
+          DateTime(2026, 9, 5),
+        ).copyWith(accountId: spare.id),
+      );
+      await provider.deleteTransaction('spare-tx');
+
+      expect(provider.isAccountUsed(spare.id), isTrue);
+      await expectLater(provider.deleteAccount(spare.id), throwsStateError);
+    });
 
     test('an unused account can be deleted', () async {
       final spare = await provider.addAccount(
@@ -710,6 +767,11 @@ void main() {
 
         expect(
           provider.entryDaysIn(DateTime(2026, 9, 13), DateTime(2026, 9, 19)),
+          {DateTime(2026, 9, 15), DateTime(2026, 9, 16)},
+        );
+        // The range's start day counts too, not just days after it.
+        expect(
+          provider.entryDaysIn(DateTime(2026, 9, 15), DateTime(2026, 9, 19)),
           {DateTime(2026, 9, 15), DateTime(2026, 9, 16)},
         );
         expect(

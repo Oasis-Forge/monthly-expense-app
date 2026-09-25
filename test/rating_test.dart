@@ -35,6 +35,17 @@ void main() {
       expect(due(now: DateTime(2027)), isTrue);
     });
 
+    test('the lines are fifteen entries and a week, in figures (RATE-1)', () {
+      // Written out rather than through the constants, so that moving either
+      // line is a change to the rule and cannot pass unnoticed.
+      final later = DateTime(2026, 9, 30);
+      expect(due(entries: 14, now: later), isFalse);
+      expect(due(entries: 15, now: later), isTrue);
+      // Opened on 1 September: not yet on the 7th, and due by the 8th.
+      expect(due(entries: 15, now: DateTime(2026, 9, 7, 12)), isFalse);
+      expect(due(entries: 15, now: DateTime(2026, 9, 8, 12)), isTrue);
+    });
+
     test('a version that has asked never asks again', () {
       expect(due(askedVersion: '1.24.0+36'), isFalse);
       // The next version may ask once of its own.

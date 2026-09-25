@@ -244,6 +244,18 @@ void main() {
     expect(SettingsProvider(prefs).weekStartDay, isNull);
   });
 
+  test('Sunday, day 0, is a choice that survives a restart and a restore '
+      '(PER-4)', () async {
+    final prefs = await prefsWith({});
+    await SettingsProvider(prefs).setWeekStartDay(0);
+
+    expect(SettingsProvider(prefs).weekStartDay, 0);
+
+    final restored = SettingsProvider(await prefsWith({}));
+    await restored.restoreBackupValues({'week_start_day': 0});
+    expect(restored.weekStartDay, 0);
+  });
+
   test('the backup reminder waits for 20 transactions, a day, and 30 days '
       'between reminders (BAK-7)', () async {
     var now = DateTime(2026, 9, 1, 9);

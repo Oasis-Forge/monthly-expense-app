@@ -39,6 +39,22 @@ void main() {
       expect(table.rows.single, ['2026-09-01', '5']);
     });
 
+    test('comma wins a tie with another delimiter', () {
+      // One comma, one semicolon: comma should win, so the semicolon stays
+      // inside the second cell rather than becoming the separator.
+      final table = parseCsv('date,amount;note\n2026-09-01,5;paid\n');
+
+      expect(table.header, ['date', 'amount;note']);
+      expect(table.rows.single, ['2026-09-01', '5;paid']);
+    });
+
+    test('a lone \\r (old Mac line endings) still separates rows', () {
+      final table = parseCsv('date,amount\r2026-09-01,5\r');
+
+      expect(table.header, ['date', 'amount']);
+      expect(table.rows.single, ['2026-09-01', '5']);
+    });
+
     test('semicolons and tabs work where a locale uses them', () {
       for (final delimiter in [';', '\t']) {
         final table = parseCsv(
@@ -144,6 +160,15 @@ void main() {
       expect(matched[ImportField.toAccount], 1);
     });
 
+    test('a column claimed by one field is not also given to another', () {
+      // "To Account" loosely contains the word "account", but it must stay
+      // toAccount's column alone, not double as the plain account column.
+      final matched = matchColumns(['To Account']);
+
+      expect(matched.keys, {ImportField.toAccount});
+      expect(matched.containsKey(ImportField.account), isFalse);
+    });
+
     test('a column matches only one field', () {
       final matched = matchColumns(['note', 'notes']);
 
@@ -202,6 +227,13 @@ void main() {
       expect(read('-12.50').isNegative, isTrue);
       expect(read('(12.50)').isNegative, isTrue);
       expect(read('12.50').isNegative, isFalse);
+    });
+
+    test('a single stray bracket is not a negative on its own', () {
+      // Only a matched pair of brackets means a negative (IMP-6); one lone
+      // ")" left over from a currency symbol must not flip the sign.
+      expect(read('12.50)').isNegative, isFalse);
+      expect(read('(12.50').isNegative, isFalse);
     });
 
     test('a cell with no number in it is not an amount', () {
@@ -307,6 +339,23 @@ void main() {
       expect(result.importCount, 1);
       expect(result.rows.first.skipped, SkipReason.alreadyThere);
       expect(result.importing.single.title, 'Coffee');
+    });
+
+    test('the same date, amount, and title but a different type is not a '
+        'repeat (IMP-8)', () {
+      final expenseIdentity = importIdentity(
+        date: DateTime(2026, 9, 1),
+        amount: const Money(12500),
+        type: ImportedType.expense,
+        title: 'Lunch',
+      );
+      final result = plan(
+        'date,type,amount,title\n2026-09-01,income,12.50,Lunch\n',
+        existing: {expenseIdentity},
+      );
+
+      expect(result.importCount, 1);
+      expect(result.rows.single.skipped, isNull);
     });
 
     test('a file that lists the same row twice imports it once', () {
@@ -423,6 +472,8 @@ void main() {
     test('two-digit years', () {
       expect(parseImportedDate('01/02/26'), DateTime(2026, 2, 1));
       expect(parseImportedDate('01/02/99'), DateTime(1999, 2, 1));
+      // 70 is the cutoff itself: it must still read as 1970, not 2070.
+      expect(parseImportedDate('01/02/70'), DateTime(1970, 2, 1));
     });
 
     test('a date that never happened is not a date', () {

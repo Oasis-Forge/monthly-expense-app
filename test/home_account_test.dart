@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
@@ -628,5 +630,22 @@ void main() {
       await settings.setAccountFilterId(null);
       expect(settings.accountFilterId, isNull);
     });
+
+    test(
+      'both the choice and its clearing survive a relaunch (ACC-6)',
+      () async {
+        final settings = await testSettings();
+        Future<String?> relaunched() async =>
+            SettingsProvider(await SharedPreferences.getInstance())
+                .accountFilterId;
+
+        await settings.setAccountFilterId(bank);
+        expect(await relaunched(), bank);
+
+        // "All accounts" chosen: the next launch opens on every account.
+        await settings.setAccountFilterId(null);
+        expect(await relaunched(), isNull);
+      },
+    );
   });
 }
