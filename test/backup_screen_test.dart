@@ -155,7 +155,11 @@ void main() {
           reminderAt: DateTime(2026, 9, 20, 9),
         ),
       );
-      final reminders = FakeReminderService();
+      // Fixed, and before the note's reminder: otherwise, as real
+      // wall-clock time moves past this fixture's date, the reminder looks
+      // like one that already passed (NOTE-6) rather than the future one
+      // this test means to keep scheduled.
+      final reminders = FakeReminderService(now: () => today);
       provider = TransactionProvider(
         db: fake,
         clock: () => today,
