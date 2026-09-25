@@ -6,6 +6,7 @@
   "searchTooltip": "খুঁজুন",
   "addButton": "যোগ করুন",
   "emptyPeriod": "এই মেয়াদে এখনো কোনো লেনদেন নেই।",
+  "emptyPeriodFilteredByAccount": "এই সময়কালে এই অ্যাকাউন্টের জন্য কিছুই নেই।",
   "balanceLabel": "ব্যালেন্স",
   "expandSummaryTooltip": "আয় ও ব্যয় দেখান",
   "collapseSummaryTooltip": "শুধু ব্যালেন্স দেখান",

@@ -6,6 +6,7 @@
   "searchTooltip": "Поиск",
   "addButton": "Добавить",
   "emptyPeriod": "В этом периоде пока нет операций.",
+  "emptyPeriodFilteredByAccount": "Ничего по этому счёту за этот период.",
   "balanceLabel": "Баланс",
   "expandSummaryTooltip": "Показать доходы и расходы",
   "collapseSummaryTooltip": "Показать только баланс",

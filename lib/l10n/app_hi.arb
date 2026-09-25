@@ -6,6 +6,7 @@
   "searchTooltip": "खोजें",
   "addButton": "जोड़ें",
   "emptyPeriod": "इस अवधि में अभी तक कोई लेनदेन नहीं।",
+  "emptyPeriodFilteredByAccount": "इस अवधि में इस खाते के लिए कुछ नहीं है।",
   "balanceLabel": "बैलेंस",
   "expandSummaryTooltip": "आय और व्यय दिखाएँ",
   "collapseSummaryTooltip": "केवल बैलेंस दिखाएँ",

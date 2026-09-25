@@ -183,6 +183,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ...provider.groupedByDay.keys,
             ...provider.transfersByDay.keys,
           }.toList()..sort((a, b) => b.compareTo(a)));
+    // EMPTY-4: an empty day list because the account filter hides every row
+    // is not the same as an empty period, and says so with a way back.
+    final filterHidesRecords =
+        chosenAccount != null &&
+        days.isEmpty &&
+        (provider.everyAccountPeriodTransactions.isNotEmpty ||
+            provider.everyAccountPeriodTransfers.isNotEmpty);
     final dueCount = provider.dueOccurrences.length;
     final budgetStatuses = provider.budgetStatuses;
     final budgetSummary = BudgetSummary.of(budgetStatuses);
@@ -365,7 +372,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     SliverFillRemaining(
                       // The empty message needs no more than the screen it is on.
                       hasScrollBody: true,
-                      child: Center(child: Text(l10n.emptyPeriod)),
+                      child: Center(
+                        child: _EmptyDayList(
+                          l10n: l10n,
+                          filteredByAccount: filterHidesRecords,
+                          onShowAllAccounts: () =>
+                              provider.selectAccountFilter(null),
+                        ),
+                      ),
                     )
                   else ...[
                     // BUD-7: at the top of the list, so opening it scrolls
@@ -384,7 +398,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.all(32),
-                          child: Center(child: Text(l10n.emptyPeriod)),
+                          child: Center(
+                            child: _EmptyDayList(
+                              l10n: l10n,
+                              filteredByAccount: filterHidesRecords,
+                              onShowAllAccounts: () =>
+                                  provider.selectAccountFilter(null),
+                            ),
+                          ),
                         ),
                       ),
                     SliverList(
@@ -613,6 +634,42 @@ class _FirstRun extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The day list's empty message: a period with nothing in it (EMPTY-3), or,
+/// while an account filter hides rows the unfiltered period does have
+/// (EMPTY-4, ACC-6), a message that says so and a one-tap way back to every
+/// account rather than reading as an empty period that isn't one.
+class _EmptyDayList extends StatelessWidget {
+  const _EmptyDayList({
+    required this.l10n,
+    required this.filteredByAccount,
+    required this.onShowAllAccounts,
+  });
+
+  final AppLocalizations l10n;
+  final bool filteredByAccount;
+  final VoidCallback onShowAllAccounts;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        filteredByAccount
+            ? l10n.emptyPeriodFilteredByAccount
+            : l10n.emptyPeriod,
+        textAlign: TextAlign.center,
+      ),
+      if (filteredByAccount) ...[
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: onShowAllAccounts,
+          child: Text(l10n.allAccountsFilter),
+        ),
+      ],
+    ],
+  );
 }
 
 /// The period's budgets in one card: a line until it's opened, then every

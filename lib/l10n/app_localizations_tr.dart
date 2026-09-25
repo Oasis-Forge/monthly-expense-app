@@ -28,6 +28,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get emptyPeriod => 'Bu dönemde henüz işlem yok.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Bu dönemde bu hesap için hiçbir şey yok.';
+
+  @override
   String get balanceLabel => 'Bakiye';
 
   @override

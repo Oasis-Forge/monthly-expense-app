@@ -6,6 +6,7 @@
   "searchTooltip": "検索",
   "addButton": "追加",
   "emptyPeriod": "この期間の取引はまだありません。",
+  "emptyPeriodFilteredByAccount": "この期間、このアカウントには何もありません。",
   "balanceLabel": "残高",
   "expandSummaryTooltip": "収入と支出を表示",
   "collapseSummaryTooltip": "残高のみ表示",

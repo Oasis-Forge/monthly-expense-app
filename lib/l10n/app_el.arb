@@ -6,6 +6,7 @@
   "searchTooltip": "Αναζήτηση",
   "addButton": "Προσθήκη",
   "emptyPeriod": "Δεν υπάρχουν συναλλαγές σε αυτή την περίοδο.",
+  "emptyPeriodFilteredByAccount": "Τίποτα για αυτόν τον λογαριασμό αυτήν την περίοδο.",
   "balanceLabel": "Υπόλοιπο",
   "expandSummaryTooltip": "Εμφάνιση εσόδων και εξόδων",
   "collapseSummaryTooltip": "Εμφάνιση μόνο του υπολοίπου",

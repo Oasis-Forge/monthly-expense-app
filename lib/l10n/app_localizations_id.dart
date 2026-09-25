@@ -28,6 +28,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get emptyPeriod => 'Belum ada transaksi di periode ini.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Tidak ada untuk akun ini periode ini.';
+
+  @override
   String get balanceLabel => 'Saldo';
 
   @override

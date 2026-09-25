@@ -6,6 +6,7 @@
   "searchTooltip": "검색",
   "addButton": "추가",
   "emptyPeriod": "이 기간에는 아직 내역이 없어요.",
+  "emptyPeriodFilteredByAccount": "이 기간 동안 이 계정에는 아무것도 없습니다.",
   "balanceLabel": "잔액",
   "expandSummaryTooltip": "수입과 지출 표시",
   "collapseSummaryTooltip": "잔액만 표시",

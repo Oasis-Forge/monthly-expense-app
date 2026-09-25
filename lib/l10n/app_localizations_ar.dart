@@ -28,6 +28,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emptyPeriod => 'لا توجد معاملات في هذه الفترة بعد.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'لا شيء لهذا الحساب في هذه الفترة.';
+
+  @override
   String get balanceLabel => 'الرصيد';
 
   @override

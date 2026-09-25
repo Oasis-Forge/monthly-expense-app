@@ -172,6 +172,12 @@ abstract class AppLocalizations {
   /// **'No transactions in this period yet.'**
   String get emptyPeriod;
 
+  /// Home's empty-day-list message when an account filter hides every row this period, offered with a way back to every account (EMPTY-4, ACC-6).
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing for this account this period.'**
+  String get emptyPeriodFilteredByAccount;
+
   /// No description provided for @balanceLabel.
   ///
   /// In en, this message translates to:

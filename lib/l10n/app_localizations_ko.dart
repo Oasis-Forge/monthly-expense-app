@@ -28,6 +28,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get emptyPeriod => '이 기간에는 아직 내역이 없어요.';
 
   @override
+  String get emptyPeriodFilteredByAccount => '이 기간 동안 이 계정에는 아무것도 없습니다.';
+
+  @override
   String get balanceLabel => '잔액';
 
   @override

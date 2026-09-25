@@ -28,6 +28,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get emptyPeriod => 'এই মেয়াদে এখনো কোনো লেনদেন নেই।';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'এই সময়কালে এই অ্যাকাউন্টের জন্য কিছুই নেই।';
+
+  @override
   String get balanceLabel => 'ব্যালেন্স';
 
   @override

@@ -28,6 +28,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get emptyPeriod => 'اس مدت میں ابھی کوئی ٹرانزیکشن نہیں۔';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'اس مدت میں اس اکاؤنٹ کے لیے کچھ نہیں۔';
+
+  @override
   String get balanceLabel => 'بیلنس';
 
   @override

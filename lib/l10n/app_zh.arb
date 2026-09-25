@@ -6,6 +6,7 @@
   "searchTooltip": "搜索",
   "addButton": "添加",
   "emptyPeriod": "本期暂无交易记录。",
+  "emptyPeriodFilteredByAccount": "本期该账户没有任何记录。",
   "balanceLabel": "结余",
   "expandSummaryTooltip": "显示收入和支出",
   "collapseSummaryTooltip": "仅显示余额",

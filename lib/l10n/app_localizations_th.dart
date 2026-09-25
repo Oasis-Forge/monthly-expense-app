@@ -28,6 +28,10 @@ class AppLocalizationsTh extends AppLocalizations {
   String get emptyPeriod => 'ยังไม่มีรายการในงวดนี้';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'ไม่มีรายการสำหรับบัญชีนี้ในช่วงนี้';
+
+  @override
   String get balanceLabel => 'ยอดคงเหลือ';
 
   @override

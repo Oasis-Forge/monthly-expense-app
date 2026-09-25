@@ -6,6 +6,10 @@
   "searchTooltip": "Search",
   "addButton": "Add",
   "emptyPeriod": "No transactions in this period yet.",
+  "emptyPeriodFilteredByAccount": "Nothing for this account this period.",
+  "@emptyPeriodFilteredByAccount": {
+    "description": "Home's empty-day-list message when an account filter hides every row this period, offered with a way back to every account (EMPTY-4, ACC-6)."
+  },
   "balanceLabel": "Balance",
   "expandSummaryTooltip": "Show income and expense",
   "@expandSummaryTooltip": {
