@@ -257,6 +257,30 @@ void main() {
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
 
+    testWidgets('two new rules get distinct UUID v4 IDs (REC-2)', (
+      tester,
+    ) async {
+      await openForm(tester);
+      await enter(tester, 'Amount', '15');
+      await enter(tester, 'Title (optional)', 'Streaming');
+      await save(tester);
+
+      await openForm(tester);
+      await enter(tester, 'Amount', '25');
+      await enter(tester, 'Title (optional)', 'Coffee');
+      await save(tester);
+
+      final ids = [savedRule('Streaming').id, savedRule('Coffee').id];
+      expect(
+        ids.toSet(),
+        hasLength(2),
+        reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
+      );
+      for (final id in ids) {
+        expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+      }
+    });
+
     testWidgets('double-tapping Save on a new rule creates only one '
         '(audit data-integrity#5)', (tester) async {
       final slowFake = _SlowRuleDB();

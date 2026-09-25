@@ -38,6 +38,14 @@ import 'package:monthly_expense_app/services/shortcut_service.dart';
 
 final _created = DateTime.utc(2026);
 
+/// Matches a UUID v4, case-insensitively (REC-2): every new record's ID
+/// must look like this, so a backup from any device never collides with one
+/// already on this one.
+final uuidV4 = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+  caseSensitive: false,
+);
+
 Money _money(num amount) => Money((amount * 1000).round());
 
 /// A transaction with test defaults. [amount] is in whole currency units.

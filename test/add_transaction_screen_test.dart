@@ -196,6 +196,30 @@ void main() {
     );
   });
 
+  testWidgets('two saves through the form get distinct UUID v4 IDs (REC-2)', (
+    tester,
+  ) async {
+    await open(tester);
+    await enterAmount(tester, '10');
+    await tapInForm(
+      tester,
+      find.widgetWithText(OutlinedButton, 'Save & add another'),
+    );
+    await enterAmount(tester, '20');
+    await tapButton(tester, 'Add Transaction');
+
+    expect(provider.transactions, hasLength(2));
+    final ids = provider.transactions.map((t) => t.id).toList();
+    expect(
+      ids.toSet(),
+      hasLength(2),
+      reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
+    );
+    for (final id in ids) {
+      expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+    }
+  });
+
   testWidgets('recent categories are one tap away (ADD-5)', (tester) async {
     fake.rows.addAll([
       testTx(
