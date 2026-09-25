@@ -16,9 +16,17 @@ import 'form_fields.dart';
 /// Adds or edits a recurring rule (RCR-1). Editing also offers pause, resume,
 /// and delete (RCR-5, RCR-6).
 class RecurringRuleScreen extends StatefulWidget {
-  const RecurringRuleScreen({super.key, this.editing});
+  /// [clock] stands in for "now" (a new rule's start date, and the
+  /// timestamps a save stamps it with); tests pass a fixed one so a run
+  /// that crosses midnight can't flip a comparison against the real clock.
+  const RecurringRuleScreen({
+    super.key,
+    this.editing,
+    this.clock = DateTime.now,
+  });
 
   final RecurringRule? editing;
+  final DateTime Function() clock;
 
   @override
   State<RecurringRuleScreen> createState() => _RecurringRuleScreenState();
@@ -52,7 +60,7 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     super.initState();
     final provider = context.read<TransactionProvider>();
     final editing = widget.editing;
-    final now = DateTime.now();
+    final now = widget.clock();
     if (editing != null) {
       amountController.text = editing.amount.toInputString();
       _titleController.text = editing.title ?? '';
@@ -131,7 +139,7 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     final live = editing == null
         ? null
         : provider.recurringRuleById(editing.id);
-    final now = DateTime.now().toUtc();
+    final now = widget.clock().toUtc();
     final title = _titleController.text.trim();
     final note = _noteController.text.trim();
     final rule = RecurringRule(

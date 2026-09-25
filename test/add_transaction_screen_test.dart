@@ -19,9 +19,14 @@ void main() {
 
   final amountField = find.widgetWithText(TextFormField, 'Amount');
 
+  // Fixed rather than DateTime.now(): a run that happens to cross midnight
+  // between opening the form and reading this back must not flip a
+  // day-of comparison against the real clock (test-quality#10).
+  final today = DateTime(2026, 9, 15, 10);
+
   setUp(() async {
     fake = FakeDB();
-    provider = TransactionProvider(db: fake);
+    provider = TransactionProvider(db: fake, clock: () => today);
     await provider.load();
     settings = await testSettings();
   });
@@ -47,6 +52,7 @@ void main() {
                     editing: editing,
                     recordingNote: recordingNote,
                     startAs: startAs,
+                    clock: () => today,
                   ),
                 ),
               ),
@@ -240,10 +246,9 @@ void main() {
     await enterAmount(tester, '5');
     await tapButton(tester, 'Add Transaction');
 
-    final now = DateTime.now();
     expect(
       dayOf(provider.transactions.single.date),
-      DateTime(now.year, now.month, now.day - 1),
+      DateTime(today.year, today.month, today.day - 1),
     );
   });
 
@@ -406,7 +411,7 @@ void main() {
       (copy.amount, copy.note, copy.categoryId),
       (lunch.amount, lunch.note, lunch.categoryId),
     );
-    expect(dayOf(copy.date), dayOf(DateTime.now()));
+    expect(dayOf(copy.date), dayOf(today));
   });
 
   testWidgets('a transaction in an archived category keeps that category', (
@@ -476,15 +481,13 @@ void main() {
       final saved = provider.transactions.single;
       expect(saved.title, 'Buy milk');
       expect(saved.amount, const Money(5000));
-      expect(dayOf(saved.date), dayOf(DateTime.now()));
+      expect(dayOf(saved.date), dayOf(today));
       expect(provider.noteById('n')!.isDone, isTrue);
       expect(provider.noteById('n')!.transactionId, saved.id);
     },
   );
 
   group('the day a new entry starts on (ADD-3, DAY-9)', () {
-    final today = DateTime(2026, 9, 15, 10);
-
     /// A provider whose today is fixed, so the day Home shows is known.
     Future<void> onDay(DateTime? day) async {
       provider = TransactionProvider(db: fake, clock: () => today);

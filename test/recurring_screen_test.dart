@@ -28,6 +28,11 @@ void main() {
   late TransactionProvider provider;
   late SettingsProvider settings;
 
+  // Fixed rather than DateTime.now(): a run that happens to cross midnight
+  // between opening the form and reading a date back must not flip a
+  // comparison against the real clock (RCR-1, test-quality#10).
+  final today = DateTime(2026, 9, 15);
+
   setUp(() async {
     // Rent came due on Sep 1; Gym starts on Sep 20.
     fake = FakeDB(
@@ -36,10 +41,7 @@ void main() {
         testRule('Gym', 30, DateTime(2026, 9, 20)),
       ],
     );
-    provider = TransactionProvider(
-      db: fake,
-      clock: () => DateTime(2026, 9, 15),
-    );
+    provider = TransactionProvider(db: fake, clock: () => today);
     await provider.load();
     settings = await testSettings();
   });
@@ -63,7 +65,8 @@ void main() {
             body: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => RecurringRuleScreen(editing: editing),
+                  builder: (_) =>
+                      RecurringRuleScreen(editing: editing, clock: () => today),
                 ),
               ),
               child: const Text('open'),
@@ -262,7 +265,7 @@ void main() {
       final slowFake = _SlowRuleDB();
       final slowProvider = TransactionProvider(
         db: slowFake,
-        clock: () => DateTime(2026, 9, 15),
+        clock: () => today,
       );
       await slowProvider.load();
       final slowSettings = await testSettings();
@@ -279,7 +282,7 @@ void main() {
               body: TextButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const RecurringRuleScreen(),
+                    builder: (_) => RecurringRuleScreen(clock: () => today),
                   ),
                 ),
                 child: const Text('open'),
@@ -313,7 +316,6 @@ void main() {
       tester,
     ) async {
       await openForm(tester);
-      final start = DateTime.now();
 
       await enter(tester, 'Amount', '20');
       await enter(tester, 'Title (optional)', 'Lessons');
@@ -338,7 +340,7 @@ void main() {
         ),
         (RecurrenceFrequency.week, 2, RecurrenceEnd.afterCount, 3, true),
       );
-      expect(rule.startDate, DateTime(start.year, start.month, start.day + 1));
+      expect(rule.startDate, DateTime(today.year, today.month, today.day + 1));
     });
 
     testWidgets('whole numbers from 1 are required', (tester) async {

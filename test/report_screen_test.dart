@@ -564,8 +564,11 @@ void main() {
       'walkthrough_seen': true,
       'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
       'ad_activity': SettingsProvider.adActivityThreshold,
-      'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
-    });
+      // Fixed, and matched by settings' own clock below: comparing this
+      // against the real clock would flip "is this still today" if a run
+      // happened to cross midnight (test-quality#10).
+      'ad_activity_day': DateTime(2026, 9, 15).toUtc().toIso8601String(),
+    }, () => DateTime(2026, 9, 15));
     final ads = FakeAdService(canStart: true, interstitialFills: true);
     usePhoneScreen(tester);
     await tester.pumpWidget(
@@ -646,8 +649,11 @@ void main() {
         'walkthrough_seen': true,
         'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
         'ad_activity': SettingsProvider.adActivityThreshold,
-        'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
-      });
+        // Fixed, and matched by settings' own clock below: comparing this
+        // against the real clock would flip "is this still today" if a run
+        // happened to cross midnight (test-quality#10).
+        'ad_activity_day': DateTime(2026, 9, 15).toUtc().toIso8601String(),
+      }, () => DateTime(2026, 9, 15));
       final ads = FakeAdService(canStart: true, interstitialFills: true);
       usePhoneScreen(tester);
       await tester.pumpWidget(

@@ -27,18 +27,24 @@ class AddTransactionScreen extends StatefulWidget {
   ///
   /// [startAs] opens on income instead of expense, for the home-screen
   /// widget's Add income button (WID-3). The other prefills win over it.
+  ///
+  /// [clock] stands in for "now" (a duplicate's date, ADD-7; a recorded
+  /// note's date, NOTE-4); tests pass a fixed one so a run that crosses
+  /// midnight can't flip a comparison against the real clock.
   const AddTransactionScreen({
     super.key,
     this.editing,
     this.template,
     this.recordingNote,
     this.startAs,
+    this.clock = DateTime.now,
   });
 
   final ExpenseTransaction? editing;
   final ExpenseTransaction? template;
   final Note? recordingNote;
   final TransactionType? startAs;
+  final DateTime Function() clock;
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -105,7 +111,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
         widget.editing?.date ??
         (source == null && note == null
             ? provider.newEntryDate
-            : DateTime.now());
+            : widget.clock());
     // ADD-9: what a later Back compares against.
     snapshotForm();
   }
@@ -267,7 +273,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen>
   void _duplicate() {
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) => AddTransactionScreen(template: widget.editing),
+        builder: (_) =>
+            AddTransactionScreen(template: widget.editing, clock: widget.clock),
       ),
     );
   }
