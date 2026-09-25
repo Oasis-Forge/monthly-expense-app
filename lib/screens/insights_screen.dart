@@ -155,9 +155,16 @@ class _CategoriesTabState extends State<_CategoriesTab> {
         now: now,
       );
       if (share == null) return l10n.categoryNewLabel;
-      final rounded = percent.format(share);
-      if (rounded == percent.format(0)) return null;
-      return share > 0 ? '+$rounded' : rounded;
+      // A fall this small formats with intl's own minus, from the unrounded
+      // value, even once "0%" would print for a rise of the same size — so
+      // the magnitude, not the formatted string, decides whether to hide it.
+      if (share.abs() * 100 < 0.5) return null;
+      if (share < 0) return percent.format(share);
+      // A rise: format the negated share so the language's own negative
+      // pattern places the sign against its digits, then swap that minus for
+      // a plus the same way signedMoney does, rather than paste one in front
+      // where bidi could carry it off (LANG-5, CUR-5).
+      return swapMinusForPlus(percent.format(-share), percent.locale);
     }
 
     return ListView(
@@ -390,7 +397,7 @@ class _DayCell extends StatelessWidget {
 
   final String label;
   final DayTotals? totals;
-  final NumberFormat compact;
+  final CompactCurrencyFormat compact;
   final bool isToday;
   final bool isSelected;
   final bool isUpcoming;
@@ -410,11 +417,15 @@ class _DayCell extends StatelessWidget {
       side: isToday ? BorderSide(color: scheme.primary) : BorderSide.none,
     );
 
-    Widget amount(Money value, Color color) => FittedBox(
+    // A11Y-4: nothing here carries meaning by colour alone. Each side of the
+    // day's total gets its sign in front of it, the same way every other
+    // amount in the app does (CUR-5).
+    Widget amount(Money value, {required bool isIncome}) => FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
-        compact.format(value.toDouble()),
-        style: amountStyle(small).copyWith(color: color),
+        compact.signedFormat(value.toDouble(), isIncome: isIncome),
+        style: amountStyle(small)
+            .copyWith(color: signedColor(context, isIncome: isIncome)),
       ),
     );
 
@@ -449,10 +460,12 @@ class _DayCell extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (totals != null && totals.expense.isPositive)
-                        amount(totals.expense, expenseColor(context)),
+                      // Income before expense, the same order Home uses for
+                      // a day's total (DAY-7).
                       if (totals != null && totals.income.isPositive)
-                        amount(totals.income, incomeColor(context)),
+                        amount(totals.income, isIncome: true),
+                      if (totals != null && totals.expense.isPositive)
+                        amount(totals.expense, isIncome: false),
                     ],
                   ),
                 ),
@@ -712,12 +725,12 @@ class _TrendTabState extends State<_TrendTab> {
                     barRods: [
                       BarChartRodData(
                         toY: bars[i].income.toDouble(),
-                        color: Colors.green,
+                        color: incomeColor(context),
                         width: rodWidth,
                       ),
                       BarChartRodData(
                         toY: bars[i].expense.toDouble(),
-                        color: Colors.red,
+                        color: expenseColor(context),
                         width: rodWidth,
                       ),
                     ],
@@ -744,9 +757,16 @@ class _TrendTabState extends State<_TrendTab> {
               ),
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
+                  // A11Y-4: the tooltip carries the sign too, not only the
+                  // bar's colour (CUR-5). rodIndex 0 is income, 1 expense,
+                  // matching the order the bars were built in above.
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
-                        currency.money(Money((rod.toY * 1000).round())),
+                        signedAmount(
+                          currency,
+                          Money((rod.toY * 1000).round()),
+                          isIncome: rodIndex == 0,
+                        ),
                         amountStyle(
                           const TextStyle(
                             color: Colors.white,

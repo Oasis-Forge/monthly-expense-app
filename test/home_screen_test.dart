@@ -125,10 +125,16 @@ void main() {
     expect(find.text('September 2026'), findsOneWidget);
     expect(find.text('Food · Upcoming'), findsOneWidget);
     // The expense total is only lunch; the concert hasn't happened yet. Its
-    // day still carries a total of its own (DAY-7), so 12.50 shows twice: in
-    // the summary and on lunch's day.
-    expect(find.text('\$12.50'), findsNWidgets(2));
-    expect(find.text('\$40'), findsOneWidget);
+    // day still carries a total of its own (DAY-7), signed rather than told
+    // apart by colour alone (A11Y-4, CUR-5): lunch's row, its day total, and
+    // the period's own net (nothing but this expense) all read "-$12.50".
+    expect(find.text('\$12.50'), findsOneWidget);
+    expect(find.text('-\$12.50'), findsNWidgets(3));
+    // The concert's own row and its day total both read "-$40" now; before,
+    // only the row was signed and the day total read the bare "$40" (DAY-7,
+    // A11Y-4).
+    expect(find.text('\$40'), findsNothing);
+    expect(find.text('-\$40'), findsNWidgets(2));
   });
 
   testWidgets('the balance carries forward from earlier periods (BAL-2)', (
@@ -162,8 +168,10 @@ void main() {
 
     await showHome(tester);
 
-    // The summary's expense and the day's own total (DAY-7).
-    expect(find.text('€12.50'), findsNWidgets(2));
+    // The summary's expense, and the day's own total (DAY-7), the row, and
+    // the period's own net all signed rather than coloured alone (A11Y-4).
+    expect(find.text('€12.50'), findsOneWidget);
+    expect(find.text('-€12.50'), findsNWidgets(3));
   });
 
   testWidgets('the arrows move between periods', (tester) async {
@@ -664,9 +672,11 @@ void main() {
 
     expect(find.text('acc-cash → bank'), findsOneWidget);
     expect(find.text('\$50'), findsOneWidget);
-    // The summary's expense and lunch's own day total (DAY-7); the transfer
-    // counts in neither.
-    expect(find.text('\$12.50'), findsNWidgets(2));
+    // The summary's expense, and lunch's own day total (DAY-7), the row, and
+    // the period's own net, all signed (A11Y-4); the transfer counts in none
+    // of them.
+    expect(find.text('\$12.50'), findsOneWidget);
+    expect(find.text('-\$12.50'), findsNWidgets(3));
 
     await tester.tap(find.text('acc-cash → bank'));
     await tester.pumpAndSettle();
@@ -827,9 +837,13 @@ void main() {
 
       await showHome(tester);
 
-      // Each side twice: once in the summary, once on the day (DAY-7, DAY-8).
-      expect(find.text('\$30'), findsNWidgets(2));
-      expect(find.text('\$12.50'), findsNWidgets(2));
+      // Each side in the summary, unsigned, and again both on its own row
+      // and the day's own total (DAY-7, DAY-8), signed rather than told
+      // apart by colour alone (A11Y-4).
+      expect(find.text('\$30'), findsOneWidget);
+      expect(find.text('+\$30'), findsNWidgets(2));
+      expect(find.text('\$12.50'), findsOneWidget);
+      expect(find.text('-\$12.50'), findsNWidgets(2));
     });
 
     testWidgets('a transfer dated ahead is marked upcoming (BAL-4)', (

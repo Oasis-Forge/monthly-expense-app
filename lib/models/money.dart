@@ -90,14 +90,34 @@ extension MoneyFormat on NumberFormat {
   /// away from the figures it belongs to.
   String signedMoney(Money amount, {required bool isIncome}) {
     final text = money(-amount);
-    if (!isIncome) return text;
-    // A language's own minus may carry a direction mark in front of it, and a
-    // pattern of our own writes the plain one, so both are looked for.
-    for (final minus in [numberFormatSymbols[locale]?.MINUS_SIGN ?? '-', '-']) {
-      if (text.contains(minus)) return text.replaceFirst(minus, '+');
-    }
-    return '+$text';
+    return isIncome ? swapMinusForPlus(text, locale) : text;
   }
+}
+
+/// [text], formatted from a negative number so [locale]'s own pattern placed
+/// the minus against its figures, with that minus swapped for a plus.
+///
+/// Only the sign glyph itself is swapped, not whatever precedes it: some
+/// languages' [NumberSymbols.MINUS_SIGN] is a direction mark plus a hyphen
+/// (Arabic's is `‎-`) so that mark can keep the minus from floating off
+/// on a right-to-left line, and swapping the whole thing away would strip
+/// that protection from the plus it leaves behind. A pattern of our own
+/// writes a plain hyphen with no mark, so that is looked for too. Anything
+/// that wants a plus on a positive change formats the negated value first
+/// and calls this rather than pasting a bare `+` in front of the result:
+/// pasted in, the sign falls outside the isolate the pattern draws round the
+/// figures (LANG-5), and a right-to-left line can carry it off to the far
+/// end of the row, away from the figures it belongs to (CUR-5).
+String swapMinusForPlus(String text, String locale) {
+  final localeMinus = numberFormatSymbols[locale]?.MINUS_SIGN;
+  for (final minus in [
+    if (localeMinus != null && localeMinus.isNotEmpty)
+      String.fromCharCode(localeMinus.runes.last),
+    '-',
+  ]) {
+    if (text.contains(minus)) return text.replaceFirst(minus, '+');
+  }
+  return '+$text';
 }
 
 /// The two colours money is written in (CUR-5), as plain values so that the

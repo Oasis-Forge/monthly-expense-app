@@ -217,6 +217,12 @@ Future<Uint8List> _layoutAndWrite({
   });
 }
 
+/// Left-to-right isolate and its matching pop (U+2066, U+2069): the marks
+/// [SettingsProvider.currencyFormat]'s pattern wraps round a signed figure
+/// so bidi cannot part it from its sign (LANG-5).
+const _lri = '\u2066';
+const _pdi = '\u2069';
+
 /// A run of text laid out in the direction its own content calls for.
 ///
 /// An Arabic report is a right-to-left page, and the pdf package puts every
@@ -225,11 +231,68 @@ Future<Uint8List> _layoutAndWrite({
 /// right-to-left letter in it is drawn left to right instead, which skips
 /// that pass: the app name, the currency, an amount, and any category,
 /// account or title the user typed in Latin (PDF-5, LANG-5).
+///
+/// A formatted amount is different: it can carry both a right-to-left symbol
+/// and a signed figure that must stay a single left-to-right piece, and this
+/// package's bidi pass has no notion of the isolate marks that keep the two
+/// apart (unlike the screens' real bidi engine) — worse, it still tries to
+/// draw the marks themselves as glyphs. Only a right-to-left currency
+/// pattern ever adds them, so their presence alone says this run needs
+/// reordering rather than the single-direction guess below: whatever sits
+/// outside the isolate (almost always just the symbol) moves in front of it,
+/// since that is where a real right-to-left line would carry it, and the
+/// whole amount is then drawn as one forced-left-to-right piece so this
+/// package's own bidi pass never touches it again (LANG-5, CUR-5, PDF-5,
+/// Decision 54).
 pw.Widget _run(String text, {pw.TextStyle? style}) {
-  final plain = stripBidiMarks(text);
+  final lriAt = text.indexOf(_lri);
+  final pdiAt = text.indexOf(_pdi, lriAt + 1);
+  if (lriAt == -1 || pdiAt == -1) {
+    final plain = stripBidiMarks(text);
+    return pw.Directionality(
+      textDirection: _directionOf(plain),
+      child: pw.Text(plain, style: style),
+    );
+  }
+
+  final before = stripBidiMarks(text.substring(0, lriAt));
+  final isolate = stripBidiMarks(text.substring(lriAt + 1, pdiAt));
+  final after = stripBidiMarks(text.substring(pdiAt + 1));
+  // Everything outside the isolate keeps its own direction rather than
+  // being flattened into one forced-left-to-right string: that skipped this
+  // package's arabic.convert pass (it only shapes and reorders a run whose
+  // own textDirection is rtl), and glued unrelated text straight onto the
+  // isolated figures with no boundary between them — a currency symbol
+  // read as mirrored letters, or a percentage's digits run into a
+  // budget's. Visual left-to-right order is after, isolate, before (the
+  // isolate's own figures stay forced left-to-right); a gap replaces
+  // whatever whitespace the source had between two pieces (LANG-5, CUR-5,
+  // PDF-5, Decision 54).
+  final gap = pw.SizedBox(width: (style?.fontSize ?? 10) * 0.3);
+  final afterTrimmed = after.trim();
+  final beforeTrimmed = before.trim();
   return pw.Directionality(
-    textDirection: _directionOf(plain),
-    child: pw.Text(plain, style: style),
+    textDirection: pw.TextDirection.ltr,
+    child: pw.Row(
+      mainAxisSize: pw.MainAxisSize.min,
+      children: [
+        if (afterTrimmed.isNotEmpty) ...[
+          pw.Directionality(
+            textDirection: _directionOf(afterTrimmed),
+            child: pw.Text(afterTrimmed, style: style),
+          ),
+          if (after != afterTrimmed) gap,
+        ],
+        pw.Text(isolate, style: style, textDirection: pw.TextDirection.ltr),
+        if (beforeTrimmed.isNotEmpty) ...[
+          if (before != beforeTrimmed) gap,
+          pw.Directionality(
+            textDirection: _directionOf(beforeTrimmed),
+            child: pw.Text(beforeTrimmed, style: style),
+          ),
+        ],
+      ],
+    ),
   );
 }
 
@@ -369,8 +432,10 @@ pw.Widget _summary(ReportData data, ReportLabels labels) {
           children: [
             _run(label, style: _muted),
             pw.SizedBox(height: 2),
-            // Amounts read left to right in every language (LANG-3), which
-            // _run already gives them: they carry no right-to-left letter.
+            // The sign and figures read left to right in every language
+            // (LANG-3, LANG-5); the currency symbol goes where the
+            // language puts it. _run gives amounts both, splitting on the
+            // isolate marks currencyFormat leaves in them.
             _run(
               labels.money(amount),
               style: pw.TextStyle(
