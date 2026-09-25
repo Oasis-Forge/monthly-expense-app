@@ -407,7 +407,7 @@ Map<ImportField, int> matchColumns(List<String> header) {
   // Exact names first, so a file with both "account" and "to account" can't
   // have the second one swallowed by a loose match on the first.
   for (final exact in [true, false]) {
-    for (final entry in _aliases.entries) {
+    for (final entry in _foldedAliases.entries) {
       if (matched.containsKey(entry.key)) continue;
       for (var column = 0; column < folded.length; column++) {
         if (taken.contains(column) || folded[column].isEmpty) continue;
@@ -415,6 +415,11 @@ Map<ImportField, int> matchColumns(List<String> header) {
         final words = name.split(' ');
         final hit = entry.value.any((alias) {
           if (exact) return name == alias;
+          // Chinese, Japanese, Korean and Thai headers are often one unspaced
+          // compound ("交易日期", "取引金額", "거래금액", "วันที่ทำรายการ"), so a
+          // non-Latin alias still matches anywhere in the header, as before
+          // the word rules below were added for Latin aliases.
+          if (!_isLatin(alias)) return name.contains(alias);
           // The loose pass matches a whole word of the header, never a
           // substring buried inside another word ("Counterparty" must not
           // match the type alias "art" just because "party" contains it).
@@ -464,8 +469,9 @@ Map<ImportField, int> matchColumns(List<String> header) {
 /// of alias length: a short alias like "dt" is not trusted to pick the date
 /// column on its own, but it is trusted to veto the amount field's loose
 /// match on the same header ("Value Dt" is both "value" and "dt").
-bool _readsAsADate(List<String> words) =>
-    _aliases[ImportField.date]!.any((alias) => _wholeWordMatch(words, alias));
+bool _readsAsADate(List<String> words) => _foldedAliases[ImportField.date]!.any(
+  (alias) => _wholeWordMatch(words, alias),
+);
 
 /// Whether [text] is made up only of Latin letters (already folded to plain
 /// a–z by [_foldHeader]) and spaces. A non-Latin alias — Arabic, CJK,
@@ -501,6 +507,14 @@ String _foldHeader(String name) =>
     foldForSearch(_splitCamelCase(name))
         .replaceAll(RegExp(r'[^\p{L}\p{N}]+', unicode: true), ' ')
         .trim();
+
+/// [_aliases] folded the same way as a header, so an alias with accents or
+/// combining marks ("ngày", "ημερομηνία", the vowel signs in "วันที่") can
+/// match a header that [_foldHeader] has already stripped of them.
+final _foldedAliases = <ImportField, List<String>>{
+  for (final MapEntry(key: field, value: aliases) in _aliases.entries)
+    field: [for (final alias in aliases) _foldHeader(alias)],
+};
 
 String _splitCamelCase(String name) => name.replaceAllMapped(
   RegExp(r'(\p{Ll}|\p{N})(\p{Lu})', unicode: true),
