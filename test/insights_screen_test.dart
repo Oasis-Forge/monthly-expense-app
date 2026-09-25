@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +32,8 @@ void main() {
     List<Transfer> transfers = const [],
     List<Note> notes = const [],
     Map<String, Object> settingsValues = const {},
+    int startDay = 1,
+    DateTime? clock,
   }) async {
     usePhoneScreen(tester);
     final provider = TransactionProvider(
@@ -40,7 +44,8 @@ void main() {
         notes: notes,
         accounts: [testAccount(Account.cashId), testAccount('bank')],
       ),
-      clock: () => today,
+      clock: () => clock ?? today,
+      startDay: startDay,
     );
     await provider.load();
     settings = await testSettings(settingsValues);
@@ -554,6 +559,31 @@ void main() {
       );
       expect(behind.style?.color, const Color(expenseInkLight));
     });
+
+    testWidgets(
+      'a period under a non-1 start day is still labelled by its midpoint '
+      'month, from calendar days rather than elapsed time (money-time#9); '
+      'a CI-only guard against the labelling regressing unnoticed, since it '
+      'crosses no DST change and so passes either way -- run with '
+      'TZ=America/New_York to exercise it',
+      (tester) async {
+        // startDay 15: the period containing 1 March 2026 runs 15 Feb -- 15
+        // Mar, whose midpoint (14 days in, Feb having 28) is 1 Mar.
+        await showInsights(
+          tester,
+          [
+            testTx('jan', income, 10, DateTime(2026, 1, 20)),
+            testTx('feb', expense, 20, DateTime(2026, 2, 20)),
+          ],
+          startDay: 15,
+          clock: DateTime(2026, 3, 1),
+        );
+        await openTab(tester, 'Trend');
+
+        expect(find.text('Mar'), findsOneWidget);
+      },
+      skip: Platform.environment['TZ'] != 'America/New_York',
+    );
   });
 
   group('other periods', () {

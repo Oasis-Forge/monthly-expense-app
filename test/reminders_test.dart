@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -390,5 +392,24 @@ void main() {
         0,
       );
     });
+
+    test('a nudge just before midnight UTC but after 21:00 in a western zone '
+        'is still counted, since since is read back from storage in UTC but '
+        'the day it names is the local one (money-time#8); a CI-only guard, '
+        'since it needs a real non-UTC zone to fail without the fix -- run '
+        'with TZ=America/New_York', () {
+      expect(
+        countIgnoredNudges(
+          // 00:30 UTC 26 Sep is 20:30 in America/New_York on 25 Sep --
+          // before that evening's 21:00 nudge, not after it.
+          since: DateTime.utc(2026, 9, 26, 0, 30),
+          now: DateTime(2026, 9, 25, 22),
+          hour: 21,
+          minute: 0,
+          daysWithEntries: const {},
+        ),
+        1,
+      );
+    }, skip: Platform.environment['TZ'] != 'America/New_York');
   });
 }

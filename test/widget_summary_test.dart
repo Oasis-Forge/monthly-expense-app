@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/budget.dart';
@@ -181,6 +183,24 @@ void main() {
       final days = provider.widgetTimeline(days: 10).map((e) => e.from);
       expect(days, [DateTime(2026, 9, 15), DateTime(2026, 9, 18)]);
     });
+
+    test('the cutoff still lands after the US fall-back DST change, not an '
+        'hour off, so an entry on the day it happens is not dropped '
+        '(money-time#9); a CI-only guard, since CI runs in UTC where this '
+        'never crosses a DST change -- run with TZ=America/New_York', () async {
+      // 1 Nov 2026 is the US fall-back, 7 calendar days after this
+      // `today`; a Duration-based cutoff could land an hour off it.
+      final provider = TransactionProvider(
+        db: FakeDB(
+          transactions: [testTx('a', expense, 30, DateTime(2026, 11, 1))],
+        ),
+        clock: () => DateTime(2026, 10, 25, 10),
+      );
+      await provider.load();
+
+      final days = provider.widgetTimeline(days: 10).map((e) => e.from);
+      expect(days, contains(DateTime(2026, 11, 1)));
+    }, skip: Platform.environment['TZ'] != 'America/New_York');
 
     test('a budget that changes with the period is followed', () async {
       final provider = await loaded(

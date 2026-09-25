@@ -55,6 +55,18 @@ jobs:
       - name: Test
         run: flutter test --coverage
 
+      # These few tests skip themselves everywhere else: this machine's own
+      # local zone is the only thing that can cross a DST change or a UTC
+      # day boundary that local calendar days do not (money-time#8,
+      # money-time#9), and the Dart VM honours TZ on Linux, so a revert to
+      # elapsed-time or UTC-day arithmetic would otherwise pass CI unnoticed.
+      - name: Test the local-day and DST guards in a real western zone
+        env:
+          TZ: America/New_York
+        run: |
+          flutter test test/reminders_test.dart test/widget_summary_test.dart \
+            test/insights_screen_test.dart test/transaction_provider_test.dart
+
       - name: Upload coverage
         if: always() && hashFiles('coverage/lcov.info') != ''
         uses: actions/upload-artifact@v7
