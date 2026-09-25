@@ -298,6 +298,40 @@ void main() {
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
 
+    testWidgets('Back leaves without asking after switching Ends to "On '
+        'date" and back to "Never" (review follow-up)', (tester) async {
+      await openForm(tester);
+
+      await tapInForm(tester, find.text('On date'));
+      await tapInForm(tester, find.text('Never'));
+
+      // The amount field autofocuses, so the first Back only closes the
+      // keypad it opened with, as in the untouched-form case above.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+    });
+
+    testWidgets('Back leaves without asking after switching Ends to '
+        '"After" and back to "Never" (review follow-up)', (tester) async {
+      await openForm(tester);
+
+      await tapInForm(tester, find.text('After'));
+      await tapInForm(tester, find.text('Never'));
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+    });
+
     testWidgets('double-tapping Save on a new rule creates only one '
         '(audit data-integrity#5)', (tester) async {
       final slowFake = _SlowRuleDB();

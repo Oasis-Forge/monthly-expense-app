@@ -79,20 +79,28 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
   }
 
   /// Everything the user can change here, for the Back guard (ADD-9).
+  ///
+  /// The count and end-date fields only take effect for their own
+  /// [_endType] (RecurrenceEnd.afterCount, RecurrenceEnd.onDate) — _save
+  /// drops whichever doesn't match — so they're recorded here the same way:
+  /// switching Ends to "On date" and back to "Never" sets `_endDate` (line
+  /// ~427) but leaves `_endType` back where it opened, and including the
+  /// stray date unconditionally made that read as a change Back had to ask
+  /// about, even though nothing Save would write had moved.
   @override
   String formSnapshot() => [
     amountController.text,
     _titleController.text,
     _noteController.text,
     _intervalController.text,
-    _countController.text,
+    _endType == RecurrenceEnd.afterCount ? _countController.text : '',
     _type.name,
     _categoryId ?? '',
     _accountId ?? '',
     _frequency.name,
     _startDate.toIso8601String(),
     _endType.name,
-    _endDate?.toIso8601String() ?? '',
+    _endType == RecurrenceEnd.onDate ? (_endDate?.toIso8601String() ?? '') : '',
     _autoPost.toString(),
   ].join('\u0000');
 
