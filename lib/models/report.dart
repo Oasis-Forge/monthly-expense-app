@@ -213,10 +213,12 @@ enum ReportTrendGrain { day, period }
 /// spanning several periods, or part of one, has no single limit to measure
 /// against, so the budget column is left out rather than pricing months of
 /// spending against one month's limit (PDF-2, BUD-2). It is left out the same
-/// way whenever [matches] narrows the report to a search, since a search's
-/// expense total is a slice of the category, not the whole period's spending
-/// (PDF-1, ACC-6). [startDay] is the first day of a period (PER-2), used to
-/// group a long range's trend and to tell whether it is exactly one.
+/// way whenever [matches] narrows the report to a search, or [accountId]
+/// narrows it to one account, since a search's or one account's expense
+/// total is a slice of the category, not the whole period's spending across
+/// every account a budget counts (PDF-1, ACC-6, ACC-7). [startDay] is the
+/// first day of a period (PER-2), used to group a long range's trend and to
+/// tell whether it is exactly one.
 ///
 /// [searchInfo], when given, is carried onto [ReportData.searchInfo] purely
 /// for the header and summary to describe; it plays no part in what counts.
@@ -369,12 +371,16 @@ ReportData buildReport({
   final orderedDays = byDay.keys.toList()..sort();
 
   // A budget prices a category's spending over one period (BUD-2): only show
-  // it when the range is exactly one, and never for a search-narrowed report,
-  // whose expense total is a slice of the category rather than the whole
-  // period's spending (PDF-1, PDF-2, ACC-6).
+  // it when the range is exactly one, and never for a search-narrowed report
+  // or one narrowed to a single account, whose expense total is a slice of
+  // the category rather than the whole period's spending across every
+  // account a budget always counts (PDF-1, PDF-2, ACC-6, ACC-7).
   final onePeriod = Period.containing(first, startDay: startDay);
   final showBudget =
-      matches == null && onePeriod.start == first && onePeriod.lastDay == last;
+      matches == null &&
+      accountId == null &&
+      onePeriod.start == first &&
+      onePeriod.lastDay == last;
 
   return ReportData(
     from: first,

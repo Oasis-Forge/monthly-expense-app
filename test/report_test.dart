@@ -277,6 +277,39 @@ void main() {
 
       expect(data.expenseCategories.single.budget, isNull);
     });
+
+    test('a one-account report carries no budget even within one period, '
+        'since a budget always counts every account (ACC-7, money-time#5)', () {
+      // Reproduces money-time#5: Groceries has a 400 budget and 350 spent
+      // (45 from Cash, 305 from Bank). A report narrowed to Cash must not
+      // print "45, 11% of 400" — the budget is really 88% used.
+      final data = report(
+        accountId: 'cash',
+        transactions: [
+          testTx(
+            'a',
+            TransactionType.expense,
+            45,
+            DateTime(2026, 9, 2),
+            categoryId: 'cat-food',
+            accountId: 'cash',
+          ),
+          testTx(
+            'b',
+            TransactionType.expense,
+            305,
+            DateTime(2026, 9, 3),
+            categoryId: 'cat-food',
+            accountId: 'bank',
+          ),
+        ],
+        budgetLimit: (id) => id == 'cat-food' ? const Money(400000) : null,
+      );
+
+      expect(data.expenseCategories.single.amount.toDouble(), 45);
+      expect(data.expenseCategories.single.budget, isNull);
+      expect(data.expenseCategories.single.budgetUsed, isNull);
+    });
   });
 
   group('report trend (PDF-2, INS-2)', () {
