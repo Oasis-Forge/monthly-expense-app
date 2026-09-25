@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/screens/app_lock.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
@@ -355,6 +356,46 @@ void main() {
         );
       },
     );
+  });
+
+  group("AdsProvider's undo timer resets before every test too, the same way "
+      'and for the same reason as appIsLocked above (test-quality#11)', () {
+    test('notes an Undo and does nothing else: no local cleanup of its own, '
+        'unlike ads_interstitial_test.dart which resets this itself in a '
+        "per-file setUp and so would not notice if flutter_test_config.dart's "
+        'own reset were removed', () {
+      AdsProvider.noteUndoShown();
+    });
+
+    test('starts with no Undo on screen even though the previous test left '
+        'one noted a moment ago, so an interstitial due here is not held '
+        'back for it', () async {
+      final settings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'first_opened_at': DateTime(2020).toUtc().toIso8601String(),
+        'ad_activity': SettingsProvider.adActivityThreshold,
+        'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
+      });
+      final ads = FakeAdService(canStart: true, interstitialFills: true);
+      final provider = AdsProvider(settings, ads: ads);
+      addTearDown(provider.dispose);
+      await provider.start();
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
+
+      expect(
+        ads.interstitialsShown,
+        1,
+        reason:
+            "flutter_test_config.dart's global setUp should have called "
+            'AdsProvider.forgetUndo() before this test ran, the same '
+            'way it resets appIsLocked.value above; without it this ad '
+            "would be wrongly held back for the previous test's own "
+            'Undo, which that test never cleaned up itself',
+      );
+    });
   });
 
   group('telling the OS not to keep a readable snapshot of the app while App '
