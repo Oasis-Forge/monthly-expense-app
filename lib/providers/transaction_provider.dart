@@ -1521,21 +1521,91 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
-  /// Saves an edited rule. The edit reaches every occurrence not yet posted
-  /// or skipped, including one already waiting in Due (RCR-5); only a start
-  /// date moved later can push activeFrom forward, so an edit never makes an
-  /// occurrence that was due disappear on its own.
+  /// Saves an edited rule (RCR-5).
+  ///
+  /// An edit that leaves the schedule alone (amount, title, category and so
+  /// on) reaches every occurrence not yet posted or skipped, including one
+  /// already waiting in Due; only a start date moved later can push
+  /// activeFrom forward, so such an edit never makes a due occurrence
+  /// disappear on its own.
+  ///
+  /// An edit to the schedule (how often, the start, or the end) never posts
+  /// or queues a date of the new schedule before today. An occurrence that
+  /// was already waiting in Due stays waiting if it also falls on the new
+  /// schedule; every other new date before today is skipped, the way a
+  /// resume skips what fell due while paused (RCR-6). Extending a rule that
+  /// had ended therefore picks up from today, not from where it stopped.
   Future<void> updateRecurringRule(RecurringRule rule) async {
-    final floor = recurringRuleById(rule.id)?.activeFrom ?? rule.activeFrom;
-    await _saveRule(
-      rule.copyWith(
-        activeFrom: rule.startDate.isAfter(floor) ? rule.startDate : floor,
-        updatedAt: _clock().toUtc(),
-      ),
+    final old = recurringRuleById(rule.id);
+    final now = _clock().toUtc();
+    if (old == null || !_scheduleChanged(old, rule)) {
+      final floor = old?.activeFrom ?? rule.activeFrom;
+      await _saveRule(
+        rule.copyWith(
+          activeFrom: rule.startDate.isAfter(floor) ? rule.startDate : floor,
+          updatedAt: now,
+        ),
+      );
+      await _postAutomaticOccurrences();
+      _changed();
+      return;
+    }
+
+    final today = _today;
+    final yesterday = DateTime(today.year, today.month, today.day - 1);
+    final startDay = DateTime(
+      rule.startDate.year,
+      rule.startDate.month,
+      rule.startDate.day,
     );
+    final unbounded = rule.copyWith(activeFrom: startDay);
+    // The old rule's unhandled occurrences before today that the new
+    // schedule also has: these were waiting in Due and keep waiting.
+    final kept = <DateTime>{
+      for (final date in old.occurrencesBetween(old.activeFrom, yesterday))
+        if (!_occurrences.containsKey(occurrenceKey(rule.id, date)) &&
+            unbounded.occurrencesBetween(date, date).isNotEmpty)
+          date,
+    };
+    final earliestKept = kept.isEmpty
+        ? null
+        : kept.reduce((a, b) => a.isBefore(b) ? a : b);
+    var activeFrom = earliestKept ?? today;
+    if (startDay.isAfter(activeFrom)) activeFrom = startDay;
+    final updated = rule.copyWith(activeFrom: activeFrom, updatedAt: now);
+
+    // Skip every other date of the new schedule before today, first, so a
+    // failed save can never leave a rule that reaches back unguarded.
+    for (final date in updated.occurrencesBetween(activeFrom, yesterday)) {
+      final key = occurrenceKey(rule.id, date);
+      if (_occurrences.containsKey(key) || kept.contains(date)) continue;
+      final record = RecurringOccurrence(
+        ruleId: rule.id,
+        date: date,
+        status: OccurrenceStatus.skipped,
+        createdAt: now,
+      );
+      await _db.insertOccurrence(record);
+      _occurrences[record.key] = record;
+    }
+    await _saveRule(updated);
     await _postAutomaticOccurrences();
     _changed();
   }
+
+  static bool _scheduleChanged(RecurringRule a, RecurringRule b) =>
+      a.frequency != b.frequency ||
+      a.interval != b.interval ||
+      !_sameDay(a.startDate, b.startDate) ||
+      a.endType != b.endType ||
+      a.endCount != b.endCount ||
+      !_sameOptionalDay(a.endDate, b.endDate);
+
+  static bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  static bool _sameOptionalDay(DateTime? a, DateTime? b) =>
+      a == null || b == null ? a == b : _sameDay(a, b);
 
   Future<void> pauseRecurringRule(String id) async {
     final now = _clock().toUtc();

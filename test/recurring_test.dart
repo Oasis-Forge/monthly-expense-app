@@ -443,6 +443,156 @@ void main() {
       expect(provider.transactions, isEmpty);
     });
 
+    test('every item waiting in Due survives an edit that leaves the '
+        'schedule alone (RCR-5, review-state-1)', () async {
+      await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 8)));
+      expect(dates(provider.dueOccurrences), [
+        DateTime(2026, 8),
+        DateTime(2026, 9),
+      ]);
+
+      await provider.updateRecurringRule(
+        provider.recurringRules.single.copyWith(
+          title: 'Flat',
+          categoryId: 'cat-food',
+          autoPost: false,
+        ),
+      );
+
+      expect(dates(provider.dueOccurrences), [
+        DateTime(2026, 8),
+        DateTime(2026, 9),
+      ]);
+      expect(provider.dueOccurrences.first.rule.title, 'Flat');
+    });
+
+    group('a schedule edit never reaches back before today '
+        '(RCR-5, review-state-1)', () {
+      test('monthly to weekly on an automatic rule posts nothing '
+          'back-dated', () async {
+        fake.rules.add(testRule('Gym', 30, DateTime(2026), autoPost: true));
+        await reload();
+        expect(provider.transactions, hasLength(9)); // 1 Jan .. 1 Sep
+
+        await provider.updateRecurringRule(
+          provider.recurringRules.single.copyWith(
+            frequency: RecurrenceFrequency.week,
+          ),
+        );
+
+        expect(provider.transactions, hasLength(9));
+        expect(provider.dueOccurrences, isEmpty);
+        // The weekly dates go on from today: 1 Jan 2026 is a Thursday.
+        expect(
+          dates(provider.upcomingOccurrences).first,
+          DateTime(2026, 9, 17),
+        );
+
+        await reload();
+        expect(provider.transactions, hasLength(9));
+      });
+
+      test('extending an ended rule does not queue the gap', () async {
+        fake.rules.add(
+          testRule(
+            'Rent',
+            900,
+            DateTime(2026),
+          ).copyWith(endType: RecurrenceEnd.afterCount, endCount: 3),
+        );
+        await reload();
+        for (final o in List.of(provider.dueOccurrences)) {
+          await provider.postOccurrence(o);
+        }
+        expect(provider.dueOccurrences, isEmpty);
+
+        await provider.updateRecurringRule(
+          provider.recurringRules.single.copyWith(
+            endType: RecurrenceEnd.never,
+            endCount: null,
+          ),
+        );
+
+        expect(provider.dueOccurrences, isEmpty);
+        expect(dates(provider.upcomingOccurrences), [DateTime(2026, 10)]);
+        expect(provider.transactions, hasLength(3));
+      });
+
+      test('extending an ended automatic rule posts nothing in '
+          'between', () async {
+        fake.rules.add(
+          testRule('Gym', 30, DateTime(2026), autoPost: true).copyWith(
+            endType: RecurrenceEnd.onDate,
+            endDate: DateTime(2026, 3, 31),
+          ),
+        );
+        await reload();
+        expect(provider.transactions, hasLength(3)); // Jan, Feb, Mar
+
+        await provider.updateRecurringRule(
+          provider.recurringRules.single.copyWith(
+            endDate: DateTime(2026, 12, 31),
+          ),
+        );
+
+        expect(provider.transactions, hasLength(3));
+        expect(dates(provider.upcomingOccurrences), [DateTime(2026, 10)]);
+      });
+
+      test('a start moved later but still in the past posts nothing '
+          'back-dated', () async {
+        fake.rules.add(testRule('Gym', 30, DateTime(2026), autoPost: true));
+        await reload();
+        expect(provider.transactions, hasLength(9));
+
+        await provider.updateRecurringRule(
+          provider.recurringRules.single.copyWith(
+            startDate: DateTime(2026, 3, 15),
+          ),
+        );
+
+        // 15 Sep is today and falls on the new schedule, so it posts; the
+        // six months before it do not.
+        expect(
+          [
+            for (final t in provider.transactions)
+              if (t.date.isAfter(DateTime(2026, 9))) t.date,
+          ],
+          [DateTime(2026, 9, 15)],
+        );
+        expect(provider.transactions, hasLength(10));
+      });
+
+      test('an item waiting in Due stays when it is on the new schedule; '
+          'the new dates before today are skipped, not queued', () async {
+        await provider.addRecurringRule(
+          testRule('Rent', 900, DateTime(2026, 8)),
+        );
+        expect(dates(provider.dueOccurrences), [
+          DateTime(2026, 8),
+          DateTime(2026, 9),
+        ]);
+
+        // Weekly from 1 Aug keeps 1 Aug (a Saturday) on the schedule, but
+        // not 1 Sep (a Tuesday).
+        await provider.updateRecurringRule(
+          provider.recurringRules.single.copyWith(
+            frequency: RecurrenceFrequency.week,
+          ),
+        );
+
+        expect(dates(provider.dueOccurrences), [DateTime(2026, 8)]);
+        expect(
+          dates(provider.upcomingOccurrences).first,
+          DateTime(2026, 9, 19),
+        );
+
+        await reload();
+        expect(dates(provider.dueOccurrences), [DateTime(2026, 8)]);
+        expect(provider.transactions, isEmpty);
+      });
+    });
+
     test('a failed post changes nothing', () async {
       await provider.addRecurringRule(testRule('Rent', 900, DateTime(2026, 9)));
       fake.failWrites = true;

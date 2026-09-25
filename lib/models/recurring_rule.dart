@@ -35,8 +35,10 @@ class RecurringRule {
   final bool autoPost;
   final DateTime? pausedAt;
 
-  /// Occurrences before this local date are never posted or queued. It only
-  /// moves forward when the rule's own start date moves past it (RCR-5); an
+  /// Occurrences before this local date are never posted or queued. An edit
+  /// that leaves the schedule alone only moves it forward when the start
+  /// date moves past it; a schedule edit moves it to today, or to the oldest
+  /// item still waiting in Due that the new schedule keeps (RCR-5). An
   /// occurrence due while paused is skipped on its own instead (RCR-6), so
   /// one already waiting before the pause is never affected.
   final DateTime activeFrom;
