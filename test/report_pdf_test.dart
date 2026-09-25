@@ -276,6 +276,47 @@ void main() {
       expect(text, contains(squashed('Narrowed to')));
     });
 
+    test('leaves the typed query out of the header when the transaction '
+        'list is off, even though titles and notes default on and take no '
+        'effect without it (PDF-3, review-pdf-query-titles-off)', () async {
+      final data = buildReport(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        today: today,
+        transactions: [
+          testTx(
+            'rent',
+            TransactionType.expense,
+            800,
+            DateTime(2026, 9, 1),
+            categoryId: 'cat-rent',
+          ),
+        ],
+        transfers: const [],
+        accounts: [testAccount('cash', opening: 100)],
+        matches: (tx) => tx.id == 'rent',
+        searchInfo: const ReportSearchInfo(query: 'SecretQuery'),
+      );
+
+      // The list switch off, titles and notes left on: report_screen.dart
+      // disables that switch but never flips it, so titlesAndNotes is still
+      // true here even though the list — the only place titles or notes
+      // could show — is off.
+      const options = ReportOptions(transactions: false);
+      final bytes = await buildReportPdf(
+        data: data,
+        options: options,
+        labels: await labelsFor('en'),
+        fonts: await ReportFonts.forLocale(const Locale('en')),
+        createdAt: createdAt,
+        compress: false,
+      );
+      final text = pdfText(bytes);
+
+      expect(text, isNot(contains('SecretQuery')));
+      expect(text, contains(squashed('Narrowed to')));
+    });
+
     test('keeps the type and category in the header when titles and notes are '
         'off, since neither is titles-and-notes text (PDF-3, '
         'review-pdf-query-titles-off)', () async {

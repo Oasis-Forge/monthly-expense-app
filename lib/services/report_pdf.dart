@@ -430,20 +430,24 @@ pw.Widget _header(
 /// handed whole to this package's bidi pass, is exactly what came out
 /// backwards before (review-pdf-bidi).
 ///
-/// The query itself is left out when titles and notes are off (PDF-3): it
-/// may be private text of the user's own, so a report that already hides
-/// titles and notes must not print it back in the header
-/// (review-pdf-query-titles-off). At least one part is always present, since
-/// [ReportSearchInfo] is only attached when something narrowed the report:
-/// the type and category still show (neither is titles-and-notes text), and
-/// a query-only search falls back to naming the search itself.
+/// The query itself is left out when titles and notes are off, or when the
+/// transaction list itself is off (PDF-3): it may be private text of the
+/// user's own, and titles and notes only print at all when the list is on
+/// (report_screen.dart disables that switch, but leaves it *on*, whenever
+/// the list is off), so a report missing the list must not print the query
+/// back in the header either (review-pdf-query-titles-off). At least one
+/// part is always present, since [ReportSearchInfo] is only attached when
+/// something narrowed the report: the type and category still show (neither
+/// is titles-and-notes text), and a query-only search falls back to naming
+/// the search itself.
 List<String> _searchParts(
   ReportSearchInfo info,
   AppLocalizations l10n,
   ReportOptions options,
 ) {
   final parts = [
-    if (info.query.isNotEmpty && options.titlesAndNotes) '"${info.query}"',
+    if (info.query.isNotEmpty && options.transactions && options.titlesAndNotes)
+      '"${info.query}"',
     if (info.type != null)
       info.type == TransactionType.income
           ? l10n.incomeLabel
