@@ -5,6 +5,7 @@ import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 
 import 'helpers.dart';
@@ -860,4 +861,204 @@ void main() {
       expect(provider.accountsTotal, const Money(320000));
     });
   });
+
+  group(
+    'balances, trend, and days used stay fast at scale (lifecycle-perf#10)',
+    () {
+      const accountCount = 30;
+      const txCount = 8000;
+      const transferCount = 500;
+
+      List<Account> bigAccounts() => [
+        for (var i = 0; i < accountCount; i++)
+          testAccount('acct-$i', opening: 100),
+      ];
+      List<ExpenseTransaction> bigTransactions() => [
+        for (var i = 0; i < txCount; i++)
+          testTx(
+            'tx-$i',
+            i.isEven ? expense : income,
+            10,
+            DateTime(2020).add(Duration(days: i % 2000)),
+            accountId: 'acct-${i % accountCount}',
+          ),
+      ];
+      List<Transfer> bigTransfers() => [
+        for (var i = 0; i < transferCount; i++)
+          testTransfer(
+            'tr-$i',
+            'acct-${i % accountCount}',
+            'acct-${(i + 1) % accountCount}',
+            5,
+            DateTime(2020).add(Duration(days: i % 2000)),
+          ),
+      ];
+
+      test('accountsTotal computes every balance in one pass and caches it '
+          '(ACC-4, ACC-10, lifecycle-perf#10)', () async {
+        // A wall-clock budget is thin on a loaded machine and proves nothing
+        // about *why* a read was fast. Counting clock reads instead proves
+        // the thing the finding is about directly: a second, unchanged read
+        // must not rescan every transaction and transfer (each of which
+        // used to read the clock once) again, only re-check what day it is.
+        var clockCalls = 0;
+        final provider = TransactionProvider(
+          db: FakeDB(
+            accounts: bigAccounts(),
+            transactions: bigTransactions(),
+            transfers: bigTransfers(),
+          ),
+          clock: () {
+            clockCalls++;
+            return today;
+          },
+        );
+        await provider.load();
+
+        clockCalls = 0;
+        final total1 = provider.accountsTotal;
+        final firstReadCalls = clockCalls;
+
+        clockCalls = 0;
+        final total2 = provider.accountsTotal;
+
+        expect(total2, total1);
+        expect(
+          firstReadCalls,
+          lessThan(txCount),
+          reason:
+              'accountsTotal read the clock $firstReadCalls times for '
+              '$accountCount accounts / $txCount transactions on its first '
+              'read — once per transaction or transfer means the day is '
+              'being rechecked in the hot loop instead of once for the '
+              'whole read.',
+        );
+        expect(
+          clockCalls,
+          lessThanOrEqualTo(1),
+          reason:
+              'a second, unchanged read made $clockCalls clock calls — it '
+              'should reuse the cached balances (bar one check that today '
+              'is still the day they were built for) instead of rescanning '
+              'every transaction and transfer again.',
+        );
+      });
+
+      test('a save invalidates the cached balances, so the new one counts '
+          '(ACC-4, ACC-10)', () async {
+        final provider = await loaded(
+          FakeDB(accounts: [testAccount(cash, opening: 100)]),
+        );
+        expect(provider.accountBalance(cash), const Money(100000));
+
+        await provider.addTransaction(
+          testTx('a', income, 50, DateTime(2026, 9, 10)),
+        );
+        expect(provider.accountBalance(cash), const Money(150000));
+      });
+
+      test('accountBalance matches a plain per-account scan (equivalence, '
+          'ACC-4, ACC-10)', () async {
+        // A small, mixed dataset (past, future, and a transfer either way)
+        // run through the naive, pre-caching algorithm by hand, to prove the
+        // single-pass, cached one gives the same answer.
+        final accounts = [
+          testAccount(cash, opening: 100),
+          testAccount('bank', opening: 50, on: DateTime(2026, 9, 20)),
+        ];
+        final transactions = [
+          testTx('a', income, 20, DateTime(2026, 9, 1), accountId: cash),
+          testTx('b', expense, 5, DateTime(2026, 9, 2), accountId: cash),
+          // Dated ahead: doesn't count yet (BAL-4).
+          testTx('c', income, 999, DateTime(2026, 9, 25), accountId: cash),
+          testTx('d', income, 30, DateTime(2026, 9, 10), accountId: 'bank'),
+        ];
+        final transfers = [
+          testTransfer('t', cash, 'bank', 10, DateTime(2026, 9, 5)),
+          // Dated ahead: doesn't count yet either.
+          testTransfer('u', 'bank', cash, 40, DateTime(2026, 9, 30)),
+        ];
+        final provider = await loaded(
+          FakeDB(
+            accounts: accounts,
+            transactions: transactions,
+            transfers: transfers,
+          ),
+        );
+
+        Money naiveBalance(String id) {
+          final account = accounts.firstWhere((a) => a.id == id);
+          var balance = !account.openingDate.isAfter(today)
+              ? account.openingBalance
+              : Money.zero;
+          for (final tx in transactions) {
+            if (tx.accountId != id || tx.date.isAfter(today)) continue;
+            balance += tx.type == income ? tx.amount : -tx.amount;
+          }
+          for (final transfer in transfers) {
+            if (transfer.date.isAfter(today)) continue;
+            if (transfer.fromAccountId == id) balance -= transfer.amount;
+            if (transfer.toAccountId == id) balance += transfer.amount;
+          }
+          return balance;
+        }
+
+        expect(provider.accountBalance(cash), naiveBalance(cash));
+        expect(provider.accountBalance('bank'), naiveBalance('bank'));
+      });
+
+      test('trend caches its result for a repeated read with the same count '
+          '(INS-2)', () async {
+        final provider = await loaded(
+          FakeDB(transactions: bigTransactions(), accounts: bigAccounts()),
+        );
+
+        final trend1 = provider.trend(12);
+
+        final second = Stopwatch()..start();
+        final trend2 = provider.trend(12);
+        second.stop();
+
+        // Caching means a repeated read is the very same list, not a
+        // rebuilt one that merely looks equal.
+        expect(trend2, same(trend1));
+        expect(
+          second.elapsedMilliseconds,
+          lessThan(50),
+          reason:
+              'a second trend(12) read took ${second.elapsedMilliseconds}ms '
+              '- it should reuse the cached periods instead of rescanning '
+              'every transaction again.',
+        );
+
+        await provider.addTransaction(
+          testTx('new', income, 5, DateTime(2026, 9, 11)),
+        );
+        final trend3 = provider.trend(12);
+        expect(
+          trend3,
+          isNot(same(trend1)),
+          reason: 'a save must invalidate the cache',
+        );
+      });
+
+      test(
+        'daysUsed caches its result until the next change (NUDGE-3)',
+        () async {
+          final provider = await loaded(
+            FakeDB(transactions: bigTransactions()),
+          );
+
+          final first = provider.daysUsed;
+          final second = provider.daysUsed;
+          expect(second, same(first));
+
+          await provider.addTransaction(
+            testTx('new', income, 5, DateTime(2026, 9, 11)),
+          );
+          expect(provider.daysUsed, isNot(same(first)));
+        },
+      );
+    },
+  );
 }

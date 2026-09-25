@@ -116,6 +116,16 @@ class TransactionProvider extends ChangeNotifier {
   /// Whether [load] has finished at least once.
   bool get isLoaded => _loaded;
 
+  /// Bumped every time [_changed] runs — a save, a delete, a period or
+  /// account-filter change — but not by [selectDay] or [clearSelectedDay]
+  /// picking a different day inside the same period, which changes nothing
+  /// the totals or the home-screen widget show (DAY-5, WID-5). Lets a
+  /// listener that only cares about the numbers, not the view, tell the two
+  /// kinds of notification apart instead of recomputing on every one
+  /// (lifecycle-perf#9).
+  int _dataVersion = 0;
+  int get dataVersion => _dataVersion;
+
   /// Transactions that aren't deleted, newest first.
   List<ExpenseTransaction> get transactions => List.unmodifiable(_transactions);
 
@@ -182,7 +192,10 @@ class TransactionProvider extends ChangeNotifier {
   void selectAccountFilter(String? id) {
     if (id == _accountFilterId) return;
     _accountFilterId = id;
-    _changed();
+    // A filter change moves nothing [dataVersion] tracks: every figure it
+    // gates is the same, just narrowed to fewer accounts on the next read
+    // (lifecycle-perf#9).
+    _changed(dataChanged: false);
   }
 
   /// The period that contains today; budget changes apply from it (BUD-5).
@@ -234,12 +247,11 @@ class TransactionProvider extends ChangeNotifier {
       if (category.type == type && category.archivedAt != null) category,
   ];
 
-  Category? categoryById(String id) {
-    for (final category in _categories) {
-      if (category.id == id) return category;
-    }
-    return null;
-  }
+  Map<String, Category>? _categoryIndex;
+
+  Category? categoryById(String id) => (_categoryIndex ??= {
+    for (final category in _categories) category.id: category,
+  })[id];
 
   List<Account> get activeAccounts => [
     for (final account in _accounts)
@@ -251,12 +263,11 @@ class TransactionProvider extends ChangeNotifier {
       if (account.archivedAt != null) account,
   ];
 
-  Account? accountById(String id) {
-    for (final account in _accounts) {
-      if (account.id == id) return account;
-    }
-    return null;
-  }
+  Map<String, Account>? _accountIndex;
+
+  Account? accountById(String id) => (_accountIndex ??= {
+    for (final account in _accounts) account.id: account,
+  })[id];
 
   RecurringRule? recurringRuleById(String id) {
     for (final rule in _rules) {
@@ -412,29 +423,53 @@ class TransactionProvider extends ChangeNotifier {
   /// What the active accounts come to together (ACC-10). Archived accounts
   /// are money already put away and stay out of it (ACC-5).
   Money get accountsTotal {
+    // Read once, not once per account: [_balances] re-checks the clock
+    // against the day it was cached for every time it's read
+    // (lifecycle-perf#10), so this keeps that check itself from scaling
+    // with the number of accounts.
+    final balances = _balances;
     var total = Money.zero;
     for (final account in activeAccounts) {
-      total += accountBalance(account.id);
+      total += balances[account.id] ?? Money.zero;
     }
     return total;
   }
 
-  Money accountBalance(String id) {
-    final account = accountById(id);
-    var balance = account != null && !isUpcomingDate(account.openingDate)
-        ? account.openingBalance
-        : Money.zero;
+  /// Every account's balance, in one pass over the transactions and
+  /// transfers rather than one pass per account (ACC-4, ACC-10), built once
+  /// per data change and reused until the next one, or until a day turns
+  /// over while the app stays open and moves what counts as upcoming
+  /// (perf lifecycle-perf#10).
+  Map<String, Money> get _balances {
+    final today = _today;
+    final cached = _balanceCache;
+    if (cached != null && _balanceCacheDay == today) return cached;
+    final balances = <String, Money>{};
+    for (final account in _accounts) {
+      balances[account.id] = _dayOf(account.openingDate).isAfter(today)
+          ? Money.zero
+          : account.openingBalance;
+    }
     for (final tx in _transactions) {
-      if (tx.accountId != id || isUpcomingDate(tx.date)) continue;
-      balance += tx.type == TransactionType.income ? tx.amount : -tx.amount;
+      if (_dayOf(tx.date).isAfter(today)) continue;
+      final delta = tx.type == TransactionType.income ? tx.amount : -tx.amount;
+      balances[tx.accountId] = (balances[tx.accountId] ?? Money.zero) + delta;
     }
     for (final transfer in _transfers) {
-      if (isUpcomingDate(transfer.date)) continue;
-      if (transfer.fromAccountId == id) balance -= transfer.amount;
-      if (transfer.toAccountId == id) balance += transfer.amount;
+      if (_dayOf(transfer.date).isAfter(today)) continue;
+      balances[transfer.fromAccountId] =
+          (balances[transfer.fromAccountId] ?? Money.zero) - transfer.amount;
+      balances[transfer.toAccountId] =
+          (balances[transfer.toAccountId] ?? Money.zero) + transfer.amount;
     }
-    return balance;
+    _balanceCacheDay = today;
+    return _balanceCache = balances;
   }
+
+  Map<String, Money>? _balanceCache;
+  DateTime? _balanceCacheDay;
+
+  Money accountBalance(String id) => _balances[id] ?? Money.zero;
 
   DateTime get _today => _dayOf(_clock());
 
@@ -559,14 +594,18 @@ class TransactionProvider extends ChangeNotifier {
     _changed();
   }
 
+  // Moving the period this way changes what a read is scoped to, not any
+  // figure itself, so [dataVersion] — and anything keyed on it alone, like
+  // the home-screen widget — doesn't move either (lifecycle-perf#9).
+
   void nextPeriod() {
     _period = _period.next;
-    _changed();
+    _changed(dataChanged: false);
   }
 
   void previousPeriod() {
     _period = _period.previous;
-    _changed();
+    _changed(dataChanged: false);
   }
 
   /// Shows one day on its own (DAY-1). A day outside the shown period moves
@@ -579,9 +618,10 @@ class TransactionProvider extends ChangeNotifier {
     }
     _selectedDay = target;
     _daySelectionPeriod = _period;
-    // Only a new period invalidates the cached totals.
+    // Only a new period invalidates the cached totals, and moving it here
+    // is the same period-scope change as nextPeriod/previousPeriod above.
     if (movedPeriod) {
-      _changed();
+      _changed(dataChanged: false);
     } else {
       notifyListeners();
     }
@@ -1196,6 +1236,18 @@ class TransactionProvider extends ChangeNotifier {
 
   // Search (SRCH-1–SRCH-3).
 
+  /// [tx.title] and [tx.note] already folded for a search match, built once
+  /// per data change instead of on every keystroke (lifecycle-perf#10):
+  /// unlike a category or account name, neither depends on the locale a
+  /// caller formats them with.
+  Map<String, (String?, String?)>? _foldedCache;
+
+  (String?, String?) _foldedTextOf(ExpenseTransaction tx) =>
+      (_foldedCache ??= {})[tx.id] ??= (
+        tx.title == null ? null : foldForSearch(tx.title!),
+        tx.note == null ? null : foldForSearch(tx.note!),
+      );
+
   /// Whether [tx] matches [filter]'s text, type, and category — the same
   /// narrowing [search] and its CSV export apply, kept separate from
   /// [filter]'s account and dates so a caller (the report opened from
@@ -1211,22 +1263,47 @@ class TransactionProvider extends ChangeNotifier {
     // a comma-decimal amount query as if the currency used '.', which silently
     // rejects a correctly-typed amount instead of matching it (CUR-2).
     required String decimalMark,
+  }) => _matchesSearch(
+    tx,
+    filter,
+    foldedQuery: foldForSearch(filter.query.trim()),
+    queryAmount: Money.tryParse(filter.query, decimalMark: decimalMark),
+    categoryName: categoryName,
+    accountName: accountName,
+    categoryFold: {},
+    accountFold: {},
+  );
+
+  /// The core [matchesSearch] applies, taking the query already folded and
+  /// the amount already parsed rather than redoing that per transaction, and
+  /// memoizing a category or account's folded name in [categoryFold] /
+  /// [accountFold] the first time [search] meets it (lifecycle-perf#10).
+  bool _matchesSearch(
+    ExpenseTransaction tx,
+    TransactionFilter filter, {
+    required String foldedQuery,
+    required Money? queryAmount,
+    required String Function(Category category) categoryName,
+    required String Function(Account account) accountName,
+    required Map<String, String> categoryFold,
+    required Map<String, String> accountFold,
   }) {
     if (filter.type != null && tx.type != filter.type) return false;
     if (filter.categoryId != null && tx.categoryId != filter.categoryId) {
       return false;
     }
-    final query = foldForSearch(filter.query.trim());
-    final queryAmount = Money.tryParse(filter.query, decimalMark: decimalMark);
-    if (query.isEmpty || tx.amount == queryAmount) return true;
+    if (foldedQuery.isEmpty || tx.amount == queryAmount) return true;
     final category = categoryById(tx.categoryId);
     final account = accountById(tx.accountId);
+    final (foldedTitle, foldedNote) = _foldedTextOf(tx);
     return [
-      tx.title,
-      tx.note,
-      if (category != null) categoryName(category),
-      if (account != null) accountName(account),
-    ].any((text) => text != null && foldForSearch(text).contains(query));
+      foldedTitle,
+      foldedNote,
+      if (category != null)
+        categoryFold[category.id] ??= foldForSearch(categoryName(category)),
+      if (account != null)
+        accountFold[account.id] ??= foldForSearch(accountName(account)),
+    ].any((text) => text != null && text.contains(foldedQuery));
   }
 
   /// Transactions matching [filter], newest first.
@@ -1239,26 +1316,46 @@ class TransactionProvider extends ChangeNotifier {
   }) {
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
+    final checkDay = from != null || to != null;
+    // Folded and parsed once for the whole call, not once per transaction
+    // (lifecycle-perf#10).
+    final foldedQuery = foldForSearch(filter.query.trim());
+    final queryAmount = Money.tryParse(filter.query, decimalMark: decimalMark);
+    final today = _today;
+    final categoryFold = <String, String>{};
+    final accountFold = <String, String>{};
 
     final matches = <ExpenseTransaction>[];
     var income = Money.zero;
     var expense = Money.zero;
     for (final tx in _transactions) {
-      final day = _dayOf(tx.date);
-      if ((filter.accountId != null && tx.accountId != filter.accountId) ||
-          (from != null && day.isBefore(from)) ||
-          (to != null && day.isAfter(to)) ||
-          !matchesSearch(
-            tx,
-            filter,
-            categoryName: categoryName,
-            accountName: accountName,
-            decimalMark: decimalMark,
-          )) {
+      if (filter.accountId != null && tx.accountId != filter.accountId) {
+        continue;
+      }
+      // A DateTime is built here only when a date filter is actually set,
+      // rather than for every transaction on every keystroke
+      // (lifecycle-perf#10).
+      if (checkDay) {
+        final day = _dayOf(tx.date);
+        if ((from != null && day.isBefore(from)) ||
+            (to != null && day.isAfter(to))) {
+          continue;
+        }
+      }
+      if (!_matchesSearch(
+        tx,
+        filter,
+        foldedQuery: foldedQuery,
+        queryAmount: queryAmount,
+        categoryName: categoryName,
+        accountName: accountName,
+        categoryFold: categoryFold,
+        accountFold: accountFold,
+      )) {
         continue;
       }
       matches.add(tx);
-      if (isUpcoming(tx)) continue;
+      if (_dayOf(tx.date).isAfter(today)) continue; // isUpcoming, cached today
       if (tx.type == TransactionType.income) {
         income += tx.amount;
       } else {
@@ -1422,11 +1519,14 @@ class TransactionProvider extends ChangeNotifier {
     );
   }
 
+  Set<DateTime>? _daysUsedCache;
+
   /// The days anything was added on, at midnight local: when the person used
   /// the app, not what the entry is dated. Three of them is what the
   /// empty-day nudge is offered after (NUDGE-3), and one of them is what
-  /// answers a nudge that has already fired (NUDGE-5).
-  Set<DateTime> get daysUsed => {
+  /// answers a nudge that has already fired (NUDGE-5). Built once per data
+  /// change rather than on every read (lifecycle-perf#10).
+  Set<DateTime> get daysUsed => _daysUsedCache ??= {
     for (final transaction in _transactions)
       DateTime(
         transaction.createdAt.year,
@@ -1814,12 +1914,26 @@ class TransactionProvider extends ChangeNotifier {
   /// Today's date, from the provider's clock.
   DateTime get today => _today;
 
+  List<PeriodTotals>? _trendCache;
+  int? _trendCacheCount;
+  DateTime? _trendCacheDay;
+
   /// Counted income and expense of the [count] periods that end with the
   /// selected one, oldest first. Follows the chosen account exactly as the
   /// other Insights views do, so a chart and the total above it are never
   /// about different money (INS-2, BAL-4, ACC-7).
   List<PeriodTotals> trend(int count) {
     assert(count > 0, 'A trend needs at least one period');
+    final today = _today;
+    // Built once per data change (or once a day turns over) and reused for
+    // a re-read with the same count, rather than rescanning every
+    // transaction again (lifecycle-perf#10).
+    final cached = _trendCache;
+    if (cached != null &&
+        _trendCacheCount == count &&
+        _trendCacheDay == today) {
+      return cached;
+    }
     final periods = [_period];
     while (periods.length < count) {
       periods.insert(0, periods.first.previous);
@@ -1828,7 +1942,7 @@ class TransactionProvider extends ChangeNotifier {
     final income = List.filled(count, Money.zero);
     final expense = List.filled(count, Money.zero);
     for (final tx in _transactions) {
-      if (isUpcoming(tx) ||
+      if (_dayOf(tx.date).isAfter(today) ||
           tx.date.isBefore(periods.first.start) ||
           !tx.date.isBefore(_period.end) ||
           (account != null && tx.accountId != account)) {
@@ -1841,10 +1955,14 @@ class TransactionProvider extends ChangeNotifier {
         expense[index] += tx.amount;
       }
     }
-    return [
+    final result = [
       for (var i = 0; i < count; i++)
         PeriodTotals(periods[i], income: income[i], expense: expense[i]),
     ];
+    _trendCache = result;
+    _trendCacheCount = count;
+    _trendCacheDay = today;
+    return result;
   }
 
   // The home-screen widget (WID-1–WID-6).
@@ -1927,10 +2045,23 @@ class TransactionProvider extends ChangeNotifier {
     );
   }
 
-  void _changed() {
+  /// Notifies, and invalidates the totals/balance/trend/search caches, for
+  /// anything that changes what they'd compute. [dataChanged] additionally
+  /// bumps [dataVersion] — the narrower signal a listener like
+  /// [HomeWidgetUpdater] can key a refresh on instead of every notification,
+  /// since a period or account-filter move alone changes no figure, only
+  /// what the next read is scoped to (lifecycle-perf#9).
+  void _changed({bool dataChanged = true}) {
+    if (dataChanged) _dataVersion++;
     _summary = null;
     _everyAccountSummary = null;
     _previousSummary = null;
+    _balanceCache = null;
+    _trendCache = null;
+    _daysUsedCache = null;
+    _foldedCache = null;
+    _categoryIndex = null;
+    _accountIndex = null;
     notifyListeners();
     // What the app's own reminders say follows the records: an entry made
     // today calls off tonight's empty-day nudge, and a due entry posted or

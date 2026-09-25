@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart' show Locale;
@@ -139,28 +140,81 @@ Future<Uint8List> buildReportPdf({
     content.add(_run(l10n.reportEmpty, style: _muted));
   }
 
-  document.addPage(
-    pw.MultiPage(
-      pageFormat: pageFormat,
-      textDirection: rtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
-      margin: const pw.EdgeInsets.all(32),
-      header: (context) => context.pageNumber == 1
-          ? _header(data, labels, createdAt)
-          : pw.SizedBox(),
-      footer: (context) => pw.Container(
-        alignment: pw.Alignment.centerRight,
-        margin: const pw.EdgeInsets.only(top: 8),
-        child: _run(
-          l10n.reportPageOf(context.pageNumber, context.pagesCount),
-          style: _muted,
-        ),
-      ),
-      build: (context) => content,
-    ),
+  // The page-by-page layout below (MultiPage.generate, measuring and
+  // positioning every table row) runs synchronously once addPage starts it,
+  // and [step] can't check in during it: a cancel asked for right at the end
+  // still has to land somewhere before it, and this is the last chance
+  // before the layout itself starts (PDF-6). To keep the UI isolate free to
+  // handle that cancel tap (and redraw at all) while a big report lays out,
+  // the layout and the write that follows both run on a fresh isolate; only
+  // the finished bytes cross back. Document.write (unlike Document.save)
+  // does no isolate hop of its own, which is what the pdf package's own docs
+  // ask of a caller that is already isolating itself.
+  if (isCancelled?.call() ?? false) throw const ReportCancelled();
+
+  // [labels] itself carries the category and account name lookups
+  // (ReportLabels.categoryName/accountName), which in the app close over
+  // the live TransactionProvider (report_screen.dart) to look names up by
+  // id, and [onProgress]/[isCancelled] close over the caller's own
+  // ValueNotifier and local state. Content above already called through
+  // the name lookups to plain strings, but none of this can be allowed
+  // anywhere near the isolate boundary below: closures declared in the
+  // same function body as an Isolate.run call can end up sharing one
+  // compiler-generated context, so even a closure that only reads
+  // [headerWidget] can drag every other local in [buildReportPdf] —
+  // [onProgress] included — along with it. _layoutAndWrite is a top-level
+  // function for exactly this reason: its own body is the only scope the
+  // isolate closure it creates can reach into, and that scope holds
+  // nothing but its own plain parameters.
+  final headerWidget = _header(data, labels, createdAt);
+  final pageOfText = l10n.reportPageOf;
+  final bytes = await _layoutAndWrite(
+    document: document,
+    content: content,
+    pageFormat: pageFormat,
+    rtl: rtl,
+    headerWidget: headerWidget,
+    pageOfText: pageOfText,
   );
 
   if (isCancelled?.call() ?? false) throw const ReportCancelled();
-  return document.save();
+  return bytes;
+}
+
+/// Lays [content] out as pages of [document] and writes it out, on a fresh
+/// isolate (PDF-6). Top-level, and taking only plain values and already-built
+/// widgets: see the note above this function's one call site.
+Future<Uint8List> _layoutAndWrite({
+  required pw.Document document,
+  required List<pw.Widget> content,
+  required PdfPageFormat pageFormat,
+  required bool rtl,
+  required pw.Widget headerWidget,
+  required String Function(int pageNumber, int pagesCount) pageOfText,
+}) {
+  return Isolate.run(() async {
+    document.addPage(
+      pw.MultiPage(
+        pageFormat: pageFormat,
+        textDirection: rtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+        margin: const pw.EdgeInsets.all(32),
+        header: (context) =>
+            context.pageNumber == 1 ? headerWidget : pw.SizedBox(),
+        footer: (context) => pw.Container(
+          alignment: pw.Alignment.centerRight,
+          margin: const pw.EdgeInsets.only(top: 8),
+          child: _run(
+            pageOfText(context.pageNumber, context.pagesCount),
+            style: _muted,
+          ),
+        ),
+        build: (context) => content,
+      ),
+    );
+    final stream = PdfStream();
+    await document.write(stream, enableEventLoopBalancing: true);
+    return stream.output();
+  });
 }
 
 /// A run of text laid out in the direction its own content calls for.

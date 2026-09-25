@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
+import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/period.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
@@ -27,6 +28,9 @@ class FakeHomeWidgetService implements HomeWidgetService {
   var listening = false;
 
   Map<String, Object?> get last => updates.last;
+
+  @override
+  bool isSupported = true;
 
   @override
   Future<void> update(Map<String, Object?> payload) async =>
@@ -184,6 +188,14 @@ void main() {
     late TransactionProvider transactions;
     late HomeWidgetUpdater updater;
 
+    /// Lets a burst of notifications settle past the updater's debounce
+    /// window, then flushes what a scheduled [HomeWidgetUpdater.refresh]
+    /// does (lifecycle-perf#9).
+    Future<void> settle() async {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      await pumpEventQueue();
+    }
+
     Future<void> start({
       List<ExpenseTransaction> rows = const [],
       Map<String, Object> prefs = const {},
@@ -205,7 +217,7 @@ void main() {
         settings: settings,
       )..start();
       await transactions.load();
-      await pumpEventQueue();
+      await settle();
     }
 
     tearDown(() => updater.dispose());
@@ -231,7 +243,7 @@ void main() {
           clock: () => today,
         ),
       ).start();
-      await pumpEventQueue();
+      await settle();
 
       expect(idle.updates, isEmpty);
     });
@@ -243,44 +255,123 @@ void main() {
       await transactions.addTransaction(
         testTx('new', income, 500, DateTime(2026, 9, 4)),
       );
-      await pumpEventQueue();
+      await settle();
 
       expect(service.updates.length, greaterThan(before));
       expect(entriesOf(service.last).first['income'], r'$500');
+    });
+
+    test('selecting a day in the same period pushes nothing new '
+        '(WID-5, lifecycle-perf#9)', () async {
+      await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
+      final before = service.updates.length;
+
+      // Tapping a day in the strip, still inside the period shown,
+      // changes nothing the widget displays (it has no notion of a
+      // selected day).
+      transactions.selectDay(DateTime(2026, 9, 5));
+      await settle();
+
+      expect(service.updates.length, before);
+
+      // Clearing it back to the whole period is the same kind of
+      // no-op notification.
+      transactions.clearSelectedDay();
+      await settle();
+
+      expect(service.updates.length, before);
+    });
+
+    test('moving the period or the account filter pushes nothing new, unlike '
+        'a changed start day (DAY-3, WID-5, lifecycle-perf#9)', () async {
+      await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
+      final before = service.updates.length;
+
+      // None of these change a figure the widget shows — only what a
+      // read is scoped to — so dataVersion doesn't move and neither
+      // should the widget.
+      transactions.nextPeriod();
+      await settle();
+      expect(service.updates.length, before);
+
+      transactions.previousPeriod();
+      await settle();
+      expect(service.updates.length, before);
+
+      transactions.selectAccountFilter(Account.cashId);
+      await settle();
+      expect(service.updates.length, before);
+
+      // A day tap that moves the period is the same kind of scope-only
+      // move.
+      transactions.selectDay(DateTime(2026, 10, 5));
+      await settle();
+      expect(service.updates.length, before);
+
+      // A changed start day, by contrast, really does move what counts
+      // as today's period and is worth a push.
+      transactions.setStartDay(25);
+      await settle();
+      expect(service.updates.length, greaterThan(before));
+    });
+
+    test('nothing is pushed on a platform with no widget (WID-1, lifecycle-perf#9)', () async {
+      await start();
+      service.isSupported = false;
+      final before = service.updates.length;
+
+      await transactions.addTransaction(
+        testTx('new', income, 500, DateTime(2026, 9, 4)),
+      );
+      await settle();
+
+      expect(service.updates.length, before);
     });
 
     test('a settings change reaches it too', () async {
       await start();
 
       await settings.setCurrencyCode('EUR');
-      await pumpEventQueue();
+      await settle();
 
       expect(entriesOf(service.last).first['balance'], contains('€'));
     });
 
-    test('one change makes one push, however many notifications', () async {
+    test('a burst of real changes coalesces into one push, not one per change '
+        '(lifecycle-perf#9)', () async {
       await start();
       final before = service.updates.length;
 
-      // Two changes in the same turn, as one save easily raises.
-      transactions
-        ..previousPeriod()
-        ..nextPeriod();
-      await pumpEventQueue();
+      // Several saves, each a little apart in real time — as a batch
+      // import or a few quick edits would raise — but all inside the
+      // debounce window.
+      await transactions.addTransaction(
+        testTx('a', income, 10, DateTime(2026, 9, 4)),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await transactions.addTransaction(
+        testTx('b', income, 20, DateTime(2026, 9, 5)),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await transactions.addTransaction(
+        testTx('c', income, 30, DateTime(2026, 9, 6)),
+      );
+      await settle();
 
       expect(service.updates.length, before + 1);
+      expect(entriesOf(service.last).first['income'], r'$60');
     });
 
     test('app lock hides the amounts, the setting brings them back', () async {
       await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
 
       await settings.setAppLock(true);
-      await pumpEventQueue();
+      await settle();
       expect(service.last['hideAmounts'], isTrue);
       expect(entriesOf(service.last), isEmpty);
 
       await settings.setShowWidgetAmounts(true);
-      await pumpEventQueue();
+      await settle();
       expect(service.last['hideAmounts'], isFalse);
       expect(entriesOf(service.last).first['expense'], r'$30');
     });
@@ -293,7 +384,7 @@ void main() {
       await transactions.addTransaction(
         testTx('new', income, 500, DateTime(2026, 9, 4)),
       );
-      await pumpEventQueue();
+      await settle();
 
       expect(service.updates.length, after);
     });

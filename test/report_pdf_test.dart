@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -305,6 +307,81 @@ void main() {
         took.inSeconds,
         lessThan(60),
         reason: 'a year took ${took.inSeconds}s to lay out',
+      );
+    });
+
+    test('a cancel asked for right as progress reaches 100% is still honoured '
+        '(PDF-6)', () async {
+      // The window between the last progress tick and the page layout that
+      // follows it is checked once more right there: onProgress marks the
+      // moment progress reaches 1.0, and isCancelled starts answering true
+      // from then on, so this can only pass if a check runs after that tick
+      // and before the layout call that follows (which itself now moves to
+      // another isolate, so this check is the last chance to catch a cancel
+      // before that work is ever started).
+      var reachedFull = false;
+      await expectLater(
+        build(
+          dataWith(manyEntries(20)),
+          onProgress: (progress) {
+            if (progress >= 1.0) reachedFull = true;
+          },
+          isCancelled: () => reachedFull,
+        ),
+        throwsA(isA<ReportCancelled>()),
+      );
+    });
+
+    test('the calling isolate stays responsive while a big report lays out '
+        '(PDF-6)', () async {
+      // A whole year with thousands of entries is squarely the case the
+      // finding names: enough day tables and rows that laying them out
+      // takes real, measurable time. A periodic timer on this (calling)
+      // isolate is a direct probe for the freeze itself, not a proxy for
+      // it: if addPage's layout ran synchronously here, as it used to,
+      // this isolate's own event loop would be blocked for the whole
+      // stretch and the timer could not tick during it. Moving the layout
+      // and the write after it to another isolate (report_pdf.dart) keeps
+      // this isolate free to keep ticking throughout.
+      final data = buildReport(
+        from: DateTime(2026, 1, 1),
+        to: DateTime(2026, 12, 31),
+        today: DateTime(2026, 12, 31),
+        transactions: [
+          for (var i = 0; i < 4000; i++)
+            testTx(
+              'tx-$i',
+              i.isEven ? TransactionType.expense : TransactionType.income,
+              (i % 90) + 1,
+              DateTime(2026, 1, 1 + (i % 360)),
+              title: 'Entry $i',
+              note: 'A note on entry $i',
+            ),
+        ],
+        transfers: const [],
+        accounts: [testAccount('cash', opening: 100)],
+      );
+      expect(data.entryCount, 4000);
+
+      var lastTick = DateTime.now();
+      var maxGap = Duration.zero;
+      final timer = Timer.periodic(const Duration(milliseconds: 10), (_) {
+        final now = DateTime.now();
+        final gap = now.difference(lastTick);
+        if (gap > maxGap) maxGap = gap;
+        lastTick = now;
+      });
+
+      final bytes = await build(data);
+      timer.cancel();
+
+      expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+      expect(
+        maxGap.inMilliseconds,
+        lessThan(300),
+        reason:
+            'the calling isolate went unresponsive for '
+            '${maxGap.inMilliseconds}ms while the report laid out',
       );
     });
   });

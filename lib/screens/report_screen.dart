@@ -256,7 +256,11 @@ class _ReportScreenState extends State<ReportScreen> {
         onProgress: (value) => progress.value = value,
         isCancelled: () => cancelled,
       );
-      if (!mounted) return;
+      // Cancel may have landed after the last isCancelled check inside
+      // buildReportPdf (for example while save() was still writing): the
+      // dialog already popped itself, so there is nothing left to pop here,
+      // and the report screen must not be pushed past (PDF-6).
+      if (!mounted || cancelled) return;
       navigator.pop(); // the progress dialog
       await navigator.push(
         MaterialPageRoute(
@@ -272,7 +276,7 @@ class _ReportScreenState extends State<ReportScreen> {
     } on ReportCancelled {
       // The dialog already closed itself; nothing was produced (PDF-6).
     } catch (_) {
-      if (mounted) {
+      if (mounted && !cancelled) {
         navigator.pop();
         messenger.showSnackBar(SnackBar(content: Text(l10n.reportFailed)));
       }
