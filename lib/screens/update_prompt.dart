@@ -44,6 +44,10 @@ Future<bool> Function() updateRequest(BuildContext context) {
     messenger?.showSnackBar(
       SnackBar(
         content: Text(l10n.updateDownloadedMessage),
+        // Snack bars with an action stay open by default, which would
+        // otherwise block every later message behind this one for good
+        // (UPD-1).
+        persist: false,
         action: SnackBarAction(
           label: l10n.updateRestartButton,
           onPressed: updates.install,

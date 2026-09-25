@@ -133,6 +133,54 @@ void main() {
     expect(updates.installed, 1);
   });
 
+  testWidgets('a later message still gets through after the restart offer '
+      '(UPD-1, pr58#3)', (tester) async {
+    final (provider, settings) = await established();
+    final updates = FakeUpdates(offered: true);
+
+    await tester.pumpWidget(
+      testApp(
+        provider,
+        settings,
+        Builder(
+          builder: (context) => Scaffold(
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: () => afterSave(context),
+                  child: const Text('save'),
+                ),
+                TextButton(
+                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Could not save.')),
+                  ),
+                  child: const Text('fail'),
+                ),
+              ],
+            ),
+          ),
+        ),
+        reviews: FakeReviews(supported: false),
+        updates: updates,
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.text('save'));
+    await tester.pumpAndSettle();
+    expect(find.text('An update has been downloaded.'), findsOneWidget);
+
+    await tester.tap(find.text('fail'));
+    await tester.pump();
+    // Comfortably longer than a SnackBar's default duration, so a message
+    // that isn't stuck behind the restart offer would have had its turn
+    // by now.
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('Could not save.'), findsOneWidget);
+  });
+
   testWidgets('a download that never finished says nothing (UPD-1)', (
     tester,
   ) async {
