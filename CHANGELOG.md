@@ -4,6 +4,13 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.27.4] - 2026-09-25
+
+### Fixed
+- CSV import read this app's own export of a three-decimal amount as thousands: 12.345 KWD came back as 12,345 (IMP-2). Other files still read 1,234 as one thousand two hundred thirty-four.
+- Merge let a later phone's untouched built-in defaults undo edits to them, such as a renamed Cash account or its opening balance. An edited record now beats an untouched one (BAK-3).
+- On the desktop, attaching a photo deleted the original file; it now stays where it was (ATT-3).
+
 ## [1.27.3] - 2026-09-25
 
 ### Fixed

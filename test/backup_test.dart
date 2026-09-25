@@ -475,4 +475,76 @@ void main() {
       'BackupException(tooNew)',
     );
   });
+
+  group('Merge and the built-in defaults (BAK-3, REC-2, ACC-2)', () {
+    // The defaults carry the install time, so a phone set up later has
+    // "newer" untouched ones. An edit must still win, in either direction.
+    final juneEdit = DateTime.utc(2026, 6, 15);
+
+    Future<DBHelper> edited(String file) async {
+      final db = helperAt(file);
+      final cash = (await db.fetchAccounts()).firstWhere(
+        (a) => a.id == Account.cashId,
+      );
+      await db.updateAccounts([
+        cash.copyWith(
+          name: 'Wallet',
+          openingBalance: const Money(250000),
+          updatedAt: juneEdit,
+        ),
+      ]);
+      final food = (await db.fetchCategories()).firstWhere(
+        (c) => c.id == 'cat-food',
+      );
+      await db.updateCategories([
+        food.copyWith(name: 'Meals', updatedAt: juneEdit),
+      ]);
+      return db;
+    }
+
+    Future<void> mergeInto(DBHelper device, DBHelper from) async {
+      final backup = await testBackupService(from).create(await testSettings());
+      final service = testBackupService(device);
+      await service.restore(
+        await service.read(encode(backup)),
+        RestoreMode.merge,
+        await testSettings(),
+      );
+    }
+
+    Future<(String?, Money, String?)> defaultsOf(DBHelper db) async {
+      final cash = (await db.fetchAccounts()).firstWhere(
+        (a) => a.id == Account.cashId,
+      );
+      final food = (await db.fetchCategories()).firstWhere(
+        (c) => c.id == 'cat-food',
+      );
+      return (cash.name, cash.openingBalance, food.name);
+    }
+
+    test('a later phone\'s untouched defaults do not undo edits', () async {
+      final old = await edited('old-phone.db');
+      final fresh = helperAt('new-phone.db');
+
+      await mergeInto(old, fresh);
+
+      expect(await defaultsOf(old), ('Wallet', const Money(250000), 'Meals'));
+    });
+
+    test(
+      'edits come across onto a later phone\'s untouched defaults',
+      () async {
+        final old = await edited('old-phone-2.db');
+        final fresh = helperAt('new-phone-2.db');
+
+        await mergeInto(fresh, old);
+
+        expect(await defaultsOf(fresh), (
+          'Wallet',
+          const Money(250000),
+          'Meals',
+        ));
+      },
+    );
+  });
 }

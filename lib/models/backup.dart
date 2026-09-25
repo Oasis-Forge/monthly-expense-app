@@ -253,8 +253,7 @@ MergePlan planMerge(BackupTables current, BackupTables backup) {
         } else {
           plan._add(plan.inserts, table, row);
         }
-      } else if (_updatedAt(row).isAfter(_updatedAt(existing)) &&
-          !_sameContent(row, existing)) {
+      } else if (_backupWins(row, existing) && !_sameContent(row, existing)) {
         plan._add(plan.updates, table, row);
       } else {
         plan.unchanged++;
@@ -263,6 +262,23 @@ MergePlan planMerge(BackupTables current, BackupTables backup) {
   }
   return plan;
 }
+
+/// Whether the backup's version of a record replaces this device's. A record
+/// someone has changed beats one nobody has touched since it was created,
+/// whatever the clocks say: the built-in defaults are stamped when the app is
+/// installed, so a phone set up later would otherwise undo a renamed Cash
+/// account or its opening balance (BAK-3, ACC-2). Otherwise the later
+/// `updated_at` wins.
+bool _backupWins(Map<String, Object?> row, Map<String, Object?> existing) {
+  final rowEdited = !_untouched(row);
+  if (rowEdited != !_untouched(existing)) return rowEdited;
+  return _updatedAt(row).isAfter(_updatedAt(existing));
+}
+
+/// A record nobody has changed still carries its creation time as its
+/// update time.
+bool _untouched(Map<String, Object?> row) =>
+    row['created_at'] != null && row['updated_at'] == row['created_at'];
 
 /// Whether two versions of a record differ only in their timestamps, like
 /// the built-in defaults created on two devices.

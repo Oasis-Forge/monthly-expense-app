@@ -1,3 +1,4 @@
+import 'csv_export.dart' show csvColumns;
 import 'money.dart';
 import 'transaction_filter.dart' show foldForSearch;
 
@@ -563,7 +564,9 @@ final _currencyJunk = RegExp(r'''[^0-9.,\-−()]''');
 /// Reads an amount out of [value], allowing for a currency symbol, spaces,
 /// and either `.` or `,` as the decimal mark. Null when what's left isn't a
 /// number. The amount comes back positive; the sign is reported separately.
-ImportedAmount? parseImportedAmount(String value) {
+/// A mark with up to [decimals] digits after it is the decimal mark; one with
+/// more separates thousands.
+ImportedAmount? parseImportedAmount(String value, {int decimals = 2}) {
   var text = value.replaceAll(_currencyJunk, '').trim();
   if (text.isEmpty) return null;
 
@@ -577,16 +580,16 @@ ImportedAmount? parseImportedAmount(String value) {
   text = text.replaceAll('-', '').replaceAll('−', '');
   if (text.isEmpty) return null;
 
-  final normalised = _decimalPoint(text);
+  final normalised = _decimalPoint(text, decimals);
   final amount = Money.tryParse(normalised);
   if (amount == null) return null;
   return (amount: amount, isNegative: negative);
 }
 
 /// Turns whatever grouping and decimal marks [text] uses into a plain
-/// `1234.56`. The last `.` or `,` is the decimal mark when it has one or two
-/// digits after it; anything else separates thousands.
-String _decimalPoint(String text) {
+/// `1234.56`. The last `.` or `,` is the decimal mark when it has one to
+/// [decimals] digits after it; anything else separates thousands.
+String _decimalPoint(String text, int decimals) {
   final lastDot = text.lastIndexOf('.');
   final lastComma = text.lastIndexOf(',');
   final decimalAt = lastDot > lastComma ? lastDot : lastComma;
@@ -594,7 +597,9 @@ String _decimalPoint(String text) {
 
   final after = text.length - decimalAt - 1;
   // "1,234" and "1.234.567" are grouped, not fractional.
-  if (after == 0 || after > 2) return text.replaceAll(RegExp('[.,]'), '');
+  if (after == 0 || after > decimals) {
+    return text.replaceAll(RegExp('[.,]'), '');
+  }
   final whole = text.substring(0, decimalAt).replaceAll(RegExp('[.,]'), '');
   return '$whole.${text.substring(decimalAt + 1)}';
 }
@@ -813,6 +818,16 @@ ImportPlan planImport({
     return row[column];
   }
 
+  // This app's own export writes plain decimals and never groups thousands,
+  // so its "12.345" is a dinar amount to three places, not twelve thousand
+  // (IMP-2). Other files keep the reading where three digits mean grouping.
+  final ownExport =
+      table.header.length == csvColumns.length &&
+      [
+        for (var i = 0; i < csvColumns.length; i++)
+          table.header[i].trim().toLowerCase() == csvColumns[i],
+      ].every((same) => same);
+
   final rows = <ImportRow>[];
   final unknownCategories = <String>[];
   final unknownAccounts = <String>[];
@@ -827,7 +842,10 @@ ImportPlan planImport({
       cell(row, ImportField.date),
       dayFirst: dayFirst,
     );
-    final read = parseImportedAmount(cell(row, ImportField.amount));
+    final read = parseImportedAmount(
+      cell(row, ImportField.amount),
+      decimals: ownExport ? 3 : 2,
+    );
     final title = cell(row, ImportField.title);
     final note = cell(row, ImportField.note);
     final category = cell(row, ImportField.category);
