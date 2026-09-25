@@ -166,8 +166,8 @@ Future<Uint8List> buildReportPdf({
 /// Left-to-right isolate and its matching pop (U+2066, U+2069): the marks
 /// [SettingsProvider.currencyFormat]'s `isolated: true` pattern wraps round a
 /// signed figure so bidi cannot part it from its sign (LANG-5).
-const _lri = '⁦';
-const _pdi = '⁩';
+const _lri = '\u2066';
+const _pdi = '\u2069';
 
 /// A run of text laid out in the direction its own content calls for.
 ///
