@@ -504,11 +504,15 @@ void main() {
           findsOneWidget,
         );
 
+        await settings.setAccountFilterId('bank');
         await tester.tap(find.text('All accounts'));
         await tester.pumpAndSettle();
 
         expect(provider.accountFilterId, isNull);
         expect(find.text('aug'), findsOneWidget);
+        // The saved choice moves with it (EMPTY-4), or a relaunch would
+        // reopen filtered to Bank again.
+        expect(settings.accountFilterId, isNull);
       },
     );
 

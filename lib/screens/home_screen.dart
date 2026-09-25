@@ -376,8 +376,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: _EmptyDayList(
                           l10n: l10n,
                           filteredByAccount: filterHidesRecords,
-                          onShowAllAccounts: () =>
-                              provider.selectAccountFilter(null),
+                          onShowAllAccounts: () {
+                            provider.selectAccountFilter(null);
+                            unawaited(settings.setAccountFilterId(null));
+                          },
                         ),
                       ),
                     )
@@ -402,8 +404,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: _EmptyDayList(
                               l10n: l10n,
                               filteredByAccount: filterHidesRecords,
-                              onShowAllAccounts: () =>
-                                  provider.selectAccountFilter(null),
+                              onShowAllAccounts: () {
+                                provider.selectAccountFilter(null);
+                                unawaited(settings.setAccountFilterId(null));
+                              },
                             ),
                           ),
                         ),
