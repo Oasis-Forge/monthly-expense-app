@@ -806,11 +806,41 @@ class CompactCurrencyFormat {
   String format(num amount) =>
       _inner.format(amount).replaceAll(_doubledSpace, ' ');
 
-  /// [amount] with a plus on money coming in and a minus on money going out,
-  /// the same way [MoneyFormat.signedMoney] signs the full-size format
-  /// (CUR-5, A11Y-4).
+  /// U+200E/U+200F: the direction marks intl's compact format tucks
+  /// between the sign and the digits for some magnitudes -- ar's
+  /// thousand-and-up negative prefix is `\u200e-\u200f` -- which
+  /// land the sign on the wrong side of a right-to-left line since
+  /// nothing then holds it against its own figures (unlike
+  /// [SettingsProvider.currencyFormat]'s pattern, which isolates the two
+  /// together) (LANG-5, CUR-5).
+  static final _directionMarks = RegExp('[\u200e\u200f]');
+
+  /// A leading sign and the figures right after it, once
+  /// [_directionMarks] are gone.
+  static final _signedFigures = RegExp(r'^([-+])([\d.,]+)');
+
+  /// [amount] with a plus on money coming in and a minus on money going
+  /// out, the same way [MoneyFormat.signedMoney] signs the full-size
+  /// format (CUR-5, A11Y-4).
+  ///
+  /// In a right-to-left language the sign and the figures are isolated
+  /// left to right together (U+2066 ... U+2069), exactly as
+  /// [SettingsProvider.currencyFormat]'s own pattern does, so bidi cannot
+  /// part them; the compact suffix and the symbol are left outside,
+  /// where the language puts them (LANG-5).
   String signedFormat(num amount, {required bool isIncome}) {
-    final text = format(-amount);
-    return isIncome ? swapMinusForPlus(text, _inner.locale) : text;
+    final raw = format(-amount);
+    final text = isIncome ? swapMinusForPlus(raw, _inner.locale) : raw;
+    if (!rightToLeftLanguages.contains(
+      SettingsProvider._language(_inner.locale),
+    )) {
+      return text;
+    }
+    return text
+        .replaceAll(_directionMarks, '')
+        .replaceFirstMapped(
+          _signedFigures,
+          (m) => '\u2066${m[1]}${m[2]}\u2069',
+        );
   }
 }
