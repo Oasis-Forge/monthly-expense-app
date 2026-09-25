@@ -969,6 +969,13 @@ class TransactionProvider extends ChangeNotifier {
     await _saveAccounts([
       accountById(id)!.copyWith(archivedAt: _clock().toUtc()),
     ]);
+    // With one active account left, accountFilterId already falls back to
+    // every account (rules-6-10#10). Clear the stored choice too, so a
+    // later account that brings the count back to two does not silently
+    // restore it (already notified by _saveAccounts, above).
+    if (activeAccounts.length < 2) {
+      _accountFilterId = null;
+    }
   }
 
   Future<void> unarchiveAccount(String id) =>
