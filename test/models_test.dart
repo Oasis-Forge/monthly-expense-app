@@ -81,34 +81,36 @@ void main() {
     });
   });
 
-  group('signedMoney on a zero amount (CUR-5, LANG-5)', () {
-    test('en: zero income and zero expense are both signed', () {
+  group('signedMoney on a zero amount (CUR-5, x-money-format-leftovers)', () {
+    test('en: zero income and zero expense are both unsigned', () {
       final usd = NumberFormat.currency(
         locale: 'en_US',
         symbol: r'$',
         decimalDigits: 2,
       );
-      expect(usd.signedMoney(Money.zero, isIncome: true), '+\$0');
-      expect(usd.signedMoney(Money.zero, isIncome: false), '-\$0');
+      // Zero is neither coming in nor going out (a trend bar with nothing
+      // in it, a CSV row skipped before it had an amount), so it carries no
+      // sign at all rather than "+$0" or "-$0" depending on which side asked.
+      expect(usd.signedMoney(Money.zero, isIncome: true), r'$0');
+      expect(usd.signedMoney(Money.zero, isIncome: false), r'$0');
     });
 
-    test('ar: the plus on a zero income stays inside the isolate, not '
-        'pasted in front of it', () {
+    test('ar: zero income and zero expense are both unsigned', () {
       final ar = NumberFormat.currency(locale: 'ar', name: 'USD');
       final zeroIncome = ar.signedMoney(Money.zero, isIncome: true);
       final zeroExpense = ar.signedMoney(Money.zero, isIncome: false);
-      // A bare '+' pasted on afterwards would be the first character; the
-      // fix keeps it wherever the locale's own negative pattern places a
-      // sign, alongside the direction mark that protects it (LANG-5).
-      expect(zeroIncome, isNot(startsWith('+')));
-      expect(zeroIncome, contains('+'));
-      expect(zeroExpense, contains('-'));
+      expect(zeroIncome, isNot(contains('+')));
+      expect(zeroIncome, isNot(contains('-')));
+      expect(zeroIncome, zeroExpense);
     });
 
-    test('ur: zero income and zero expense are still signed', () {
+    test('ur: zero income and zero expense are both unsigned', () {
       final ur = NumberFormat.currency(locale: 'ur', name: 'USD');
-      expect(ur.signedMoney(Money.zero, isIncome: true), contains('+'));
-      expect(ur.signedMoney(Money.zero, isIncome: false), contains('-'));
+      final zeroIncome = ur.signedMoney(Money.zero, isIncome: true);
+      final zeroExpense = ur.signedMoney(Money.zero, isIncome: false);
+      expect(zeroIncome, isNot(contains('+')));
+      expect(zeroIncome, isNot(contains('-')));
+      expect(zeroIncome, zeroExpense);
     });
   });
 
