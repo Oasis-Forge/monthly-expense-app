@@ -161,7 +161,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final taken = _namesInUse(provider, type);
     final result = await showDialog<(String, String, int)>(
       context: context,
-      builder: (_) => CategoryDialog(takenNames: taken),
+      builder: (_) => CategoryDialog(
+        takenNames: taken,
+        initialColor: nextCategoryColor(provider.categoriesFor(type)),
+      ),
     );
     if (result == null || !mounted) return;
     final (name, icon, color) = result;
@@ -225,11 +228,16 @@ class CategoryDialog extends StatefulWidget {
     super.key,
     this.category,
     this.initialName = '',
+    this.initialColor,
     required this.takenNames,
   });
 
   final Category? category;
   final String initialName;
+
+  /// The colour a new category opens on, ignored when editing an existing
+  /// one (CAT-6).
+  final int? initialColor;
 
   /// Lowercase names already used by other categories of the same type.
   final Set<String> takenNames;
@@ -249,7 +257,8 @@ class _CategoryDialogState extends State<CategoryDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.initialName);
   late String _icon = widget.category?.icon ?? _icons.first;
-  late int _color = widget.category?.color ?? categoryPalette.first;
+  late int _color =
+      widget.category?.color ?? widget.initialColor ?? categoryPalette.first;
 
   @override
   void dispose() {

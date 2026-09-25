@@ -68,8 +68,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Coffee');
     await tester.tap(find.text('☕'));
-    // Not the one the dialog opens on, so saving the default would fail it.
-    final chosen = categoryPalette[3];
+    // Not the one the dialog opens on (the next unused colour), so saving
+    // the default would fail it.
+    final chosen = categoryPalette[5];
     final swatch = find.byWidgetPredicate(
       (w) => w is CircleAvatar && w.backgroundColor == Color(chosen),
     );
@@ -85,6 +86,33 @@ void main() {
     final added = provider.categoriesFor(TransactionType.expense).last;
     expect(added.color, chosen);
   });
+
+  testWidgets(
+    'a new category defaults to the next unused colour, not palette[0] '
+    '(CAT-6)',
+    (tester) async {
+      await showCategories(tester);
+
+      await tester.tap(find.byTooltip('Add category'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'Coffee');
+      await tester.tap(find.text('☕'));
+      // Leave the colour swatch untouched: accept whatever the dialog opens
+      // on.
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final added = provider.categoriesFor(TransactionType.expense).last;
+      final used = {
+        for (final c in provider.categoriesFor(TransactionType.expense))
+          if (c.id != added.id) c.color,
+      };
+      // cat-food, cat-rent and cat-other already hold palette[0..2]; the new
+      // category must not collide with any of them.
+      expect(used.contains(added.color), isFalse);
+      expect(added.color, categoryPalette[3]);
+    },
+  );
 
   testWidgets('a name already in use is rejected', (tester) async {
     await showCategories(tester);
