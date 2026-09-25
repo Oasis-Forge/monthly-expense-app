@@ -208,8 +208,17 @@ class AttachmentFieldState extends State<AttachmentField>
 
   void _openPhoto(String path) => showDialog<void>(
     context: context,
-    builder: (_) =>
-        Dialog(child: InteractiveViewer(child: Image.file(File(path)))),
+    builder: (context) => Dialog(
+      child: InteractiveViewer(
+        child: Image.file(
+          File(path),
+          // The file can be gone after a restore, same as the thumbnail
+          // (ATT-7): never a broken image behind the tap.
+          errorBuilder: (context, _, _) =>
+              Center(child: Text(AppLocalizations.of(context).photoMissing)),
+        ),
+      ),
+    ),
   );
 
   @override
@@ -259,8 +268,21 @@ class AttachmentFieldState extends State<AttachmentField>
                     width: 72,
                     height: 72,
                     fit: BoxFit.cover,
-                    // The file can be gone after a restore (ATT-7).
-                    errorBuilder: (context, _, _) => Text(l10n.photoMissing),
+                    // The file can be gone after a restore (ATT-7). Sized
+                    // to match the image slot: the errorBuilder's own widget
+                    // is not constrained by Image's width/height, and an
+                    // unwrapped Text here overflows the row beside it.
+                    errorBuilder: (context, _, _) => SizedBox(
+                      width: 72,
+                      height: 72,
+                      child: Center(
+                        child: Text(
+                          l10n.photoMissing,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

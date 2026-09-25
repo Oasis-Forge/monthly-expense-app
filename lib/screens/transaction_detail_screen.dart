@@ -262,8 +262,17 @@ class _AttachmentsState extends State<_Attachments> {
 
   void _openPhoto(String path) => showDialog<void>(
     context: context,
-    builder: (_) =>
-        Dialog(child: InteractiveViewer(child: Image.file(File(path)))),
+    builder: (context) => Dialog(
+      child: InteractiveViewer(
+        child: Image.file(
+          File(path),
+          // The file can be gone after a restore, same as the thumbnail
+          // (ATT-7): never a broken image behind the tap.
+          errorBuilder: (context, _, _) =>
+              Center(child: Text(AppLocalizations.of(context).photoMissing)),
+        ),
+      ),
+    ),
   );
 
   @override

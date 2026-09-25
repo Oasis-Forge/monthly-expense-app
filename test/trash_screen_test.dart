@@ -40,6 +40,10 @@ void main() {
   testWidgets('restoring takes a transaction out of the trash (DEL-4)', (
     tester,
   ) async {
+    // Its category is archived while it sits in the trash: restore must
+    // still bring it back with that category and date, not blank them out
+    // or refuse (DEL-4).
+    await provider.archiveCategory('cat-food');
     await showTrash(tester);
 
     expect(find.text('Lunch'), findsOneWidget);
@@ -51,6 +55,7 @@ void main() {
     expect(find.text('Trash is empty.'), findsOneWidget);
     expect(provider.transactions.single.id, 'a');
     expect(provider.transactions.single.date, DateTime(2026, 9, 10));
+    expect(provider.transactions.single.categoryId, 'cat-food');
   });
 
   testWidgets('a failed restore keeps the item and shows an error', (

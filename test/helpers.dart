@@ -617,13 +617,21 @@ class FakeAuthenticator implements Authenticator {
 /// A [ReminderService] that records calls instead of touching the device.
 /// [permissionGranted] answers [requestPermission].
 class FakeReminderService implements ReminderService {
-  FakeReminderService({this.permissionGranted = true});
+  FakeReminderService({this.permissionGranted = true, DateTime Function()? now})
+    : _now = now ?? DateTime.now;
 
   bool permissionGranted;
+
+  final DateTime Function() _now;
 
   /// Notes currently scheduled, by ID, with the [appLockOn] they were
   /// scheduled with.
   final Map<String, bool> scheduled = {};
+
+  /// The time each scheduled note's reminder was last scheduled for, and
+  /// whether app lock was on then (mirrors [DeviceReminderService]'s own
+  /// record; see [shouldCancelPassedReminder]).
+  final Map<String, ({DateTime at, bool appLockOn})> _lastScheduledAt = {};
 
   /// How many times [requestPermission] was called.
   int permissionRequests = 0;
@@ -666,17 +674,78 @@ class FakeReminderService implements ReminderService {
     required bool appLockOn,
     required Locale locale,
   }) async {
-    if (note.reminderAt == null || note.isDone || note.deletedAt != null) {
-      scheduled.remove(note.id);
-    } else {
-      scheduled[note.id] = appLockOn;
+    final at = note.reminderAt;
+    final last = _lastScheduledAt[note.id];
+    switch (reminderActionFor(note, lastScheduledAt: last?.at, now: _now())) {
+      case ReminderAction.cancel:
+        scheduled.remove(note.id);
+        _lastScheduledAt.remove(note.id);
+        return;
+      case ReminderAction.keep:
+        // Mirrors DeviceReminderService: a recently passed, unchanged time
+        // leaves whatever is already scheduled alone (NOTE-6), unless app
+        // lock just turned on, in which case the device replaces the
+        // pending alarm with the locked wording (LOCK-2). If nothing was
+        // ever actually scheduled for this passed time (last == null), the
+        // device schedules nothing either, so this must not invent an
+        // entry.
+        if (last != null && !last.appLockOn && appLockOn) {
+          scheduled[note.id] = true;
+        }
+        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        return;
+      case ReminderAction.schedule:
+        scheduled[note.id] = appLockOn;
+        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
     }
   }
 
   @override
   Future<void> cancel(Note note) async {
     scheduled.remove(note.id);
+    _lastScheduledAt.remove(note.id);
   }
+}
+
+/// Throws on every call, as the real plugin did when a release build's
+/// shrinker had dropped the notification icon (pr59#9). Screens read
+/// `context.read<ReminderService>()` directly, trusting `main.dart` to have
+/// wrapped it in [SafeReminderService]; pumping the real [MonthlyExpenseApp]
+/// with this is how a test proves that wrapping actually holds, not just
+/// that [TransactionProvider]'s own guarded calls do (NOTE-6, NUDGE-1).
+class ThrowingReminderService implements ReminderService {
+  int calls = 0;
+
+  Never _fail() {
+    calls++;
+    throw PlatformException(
+      code: 'invalid_icon',
+      message: 'The resource @drawable/ic_notification could not be found.',
+    );
+  }
+
+  @override
+  Future<bool> requestPermission() async => _fail();
+
+  @override
+  Future<bool> areNotificationsEnabled() async => _fail();
+
+  @override
+  Future<void> schedule(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async => _fail();
+
+  @override
+  Future<void> cancel(Note note) async => _fail();
+
+  @override
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async => _fail();
 }
 
 /// A [BackupService] over [db] with fake files and a fixed app version.
@@ -925,6 +994,43 @@ void usePhoneScreen(WidgetTester tester) {
   tester.view.physicalSize = const Size(1080, 2400);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
+}
+
+/// Waits for the real [MonthlyExpenseApp]'s own [TransactionProvider] (built
+/// internally, over the real database, not a [FakeDB]) to finish loading.
+/// Awaiting a real-zone future inside a `FakeAsync` widget test hangs, and a
+/// fixed pump count flakes under a loaded full-suite run, so this pumps in
+/// bounded real-time steps until the load actually finishes (pr59#9).
+Future<void> waitForRealLoad(WidgetTester tester) async {
+  final transactions = tester
+      .element(find.byType(MaterialApp))
+      .read<TransactionProvider>();
+  for (var i = 0; i < 200 && !transactions.isLoaded; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
+  }
+}
+
+/// Waits for a real dart:io file-read error (a missing photo, ATT-7) to
+/// surface through an [Image]'s error listener: it needs a real event-loop
+/// turn, not just [WidgetTester.pumpAndSettle], and a fixed pump count
+/// flakes under a loaded full-suite run, so this polls in a bounded loop
+/// instead. Clear [imageCache] first when a prior test's [Image] may have
+/// resolved the same fake missing path, so this wait proves the error
+/// surfaces again rather than reusing a stale cache entry.
+Future<void> waitForMissingPhoto(
+  WidgetTester tester,
+  Finder finder, {
+  int atLeast = 1,
+}) async {
+  for (var i = 0; i < 20 && finder.evaluate().length < atLeast; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+  }
 }
 
 /// Scrolls the open form from the top until [finder] is built and visible.

@@ -50,6 +50,58 @@ String channelNameFor(ReminderKind kind, AppLocalizations l10n) =>
       ReminderKind.emptyDay => l10n.emptyDayChannelName,
     };
 
+/// How long after its time a note reminder is still worth leaving alone,
+/// covering the inexact alarm's own delivery window (NUDGE-9).
+const passedReminderGrace = Duration(hours: 2);
+
+/// Whether a reminder whose time [at] has already passed should be
+/// cancelled outright, rather than left as whatever is already pending.
+///
+/// Opening the app (or any other reschedule) shortly after a reminder's
+/// time, but before the device's inexact alarm has actually fired, must not
+/// cancel that still-pending alarm -- that silently loses the notification
+/// for good (NOTE-6). So a passed time is left alone, unless [lastScheduledAt]
+/// (the time this reminder was scheduled for last) shows it changed, or the
+/// time is more than [passedReminderGrace] in the past.
+bool shouldCancelPassedReminder({
+  required DateTime at,
+  required DateTime? lastScheduledAt,
+  required DateTime now,
+}) {
+  if (lastScheduledAt != null && lastScheduledAt != at) return true;
+  return now.difference(at) > passedReminderGrace;
+}
+
+/// What [ReminderService.schedule] should do with a note's reminder:
+/// schedule it fresh (or replace whatever is pending), leave the pending
+/// one exactly as it is, or cancel it outright.
+enum ReminderAction { schedule, keep, cancel }
+
+/// The single decision [DeviceReminderService.schedule] and
+/// `FakeReminderService.schedule` (test/helpers.dart) must agree on, so a
+/// test that only drives the fake proves something true of the device too
+/// (pr59#9). [lastScheduledAt] is the time this note's reminder was
+/// scheduled for last, or null if it never was; see
+/// [shouldCancelPassedReminder] for the passed-time half of this.
+ReminderAction reminderActionFor(
+  Note note, {
+  required DateTime? lastScheduledAt,
+  required DateTime now,
+}) {
+  final at = note.reminderAt;
+  if (at == null || note.isDone || note.deletedAt != null) {
+    return ReminderAction.cancel;
+  }
+  if (at.isAfter(now)) return ReminderAction.schedule;
+  return shouldCancelPassedReminder(
+        at: at,
+        lastScheduledAt: lastScheduledAt,
+        now: now,
+      )
+      ? ReminderAction.cancel
+      : ReminderAction.keep;
+}
+
 /// Schedules and cancels the local notification for a note's reminder
 /// (NOTE-6). Tests use a fake instead of touching the device.
 abstract class ReminderService {
@@ -66,9 +118,15 @@ abstract class ReminderService {
 
   /// Schedules [note]'s reminder, replacing any earlier one for it, in
   /// [locale]. Does nothing (and cancels any existing one) when the note has
-  /// no reminder, is done, is deleted, or the reminder time has passed. With
-  /// [appLockOn], the notification names only the app, not the note's text
-  /// (LOCK-2).
+  /// no reminder, is done, or is deleted. A reminder whose time has passed is
+  /// cancelled only when that time changed or it passed more than
+  /// [passedReminderGrace] ago; otherwise whatever is already pending (the
+  /// device's own inexact alarm) is left alone rather than dropped for good
+  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]) -- unless app lock
+  /// just turned on, in which case that pending alarm is replaced right
+  /// away with the locked wording, so it never keeps showing the note's
+  /// text once locked. With [appLockOn], the notification names only the
+  /// app, not the note's text (LOCK-2).
   Future<void> schedule(
     Note note, {
     required bool appLockOn,
@@ -179,6 +237,13 @@ class DeviceReminderService implements ReminderService {
   /// the tapped notification's note a second time.
   Future<void>? _initializing;
 
+  /// The time each note's reminder was last scheduled for, and whether app
+  /// lock was on then, so a passed time can be told apart from one that
+  /// changed (pr59-style in-memory record; see [shouldCancelPassedReminder])
+  /// and so app lock turning on while that reminder is still pending can be
+  /// noticed (LOCK-2, NOTE-6).
+  final _lastScheduledAt = <String, ({DateTime at, bool appLockOn})>{};
+
   Future<void> _ensureInitialized() {
     final initializing = _initializing ??= _doInitialize();
     // A failed attempt is not cached: the next call starts a fresh one,
@@ -267,12 +332,42 @@ class DeviceReminderService implements ReminderService {
     required Locale locale,
   }) async {
     final at = note.reminderAt;
-    if (at == null ||
-        note.isDone ||
-        note.deletedAt != null ||
-        !at.isAfter(DateTime.now())) {
-      await cancel(note);
-      return;
+    final last = _lastScheduledAt[note.id];
+    final now = DateTime.now();
+    switch (reminderActionFor(note, lastScheduledAt: last?.at, now: now)) {
+      case ReminderAction.cancel:
+        await cancel(note);
+        return;
+      case ReminderAction.keep:
+        // Still within the grace window and unchanged: leave whatever the
+        // device already has pending alone (NOTE-6) -- unless app lock just
+        // turned on, in which case that pending alarm would still show the
+        // note's text on the lock screen: replace it right away with the
+        // locked wording instead (LOCK-2).
+        if (last != null && !last.appLockOn && appLockOn) {
+          await _ensureInitialized();
+          final l10n = await AppLocalizations.delegate.load(locale);
+          await _plugin.cancel(id: reminderNotificationId(note.id));
+          await _plugin.show(
+            id: reminderNotificationId(note.id),
+            title: l10n.noteReminderLockedTitle,
+            notificationDetails: NotificationDetails(
+              android: AndroidNotificationDetails(
+                'note_reminders',
+                noteChannelName(l10n),
+                importance: Importance.defaultImportance,
+              ),
+              iOS: const DarwinNotificationDetails(),
+              macOS: const DarwinNotificationDetails(),
+              linux: const LinuxNotificationDetails(),
+            ),
+            payload: note.id,
+          );
+        }
+        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        return;
+      case ReminderAction.schedule:
+        break;
     }
     await _ensureInitialized();
     final l10n = await AppLocalizations.delegate.load(locale);
@@ -280,7 +375,7 @@ class DeviceReminderService implements ReminderService {
       id: reminderNotificationId(note.id),
       title: appLockOn ? l10n.noteReminderLockedTitle : l10n.noteReminderTitle,
       body: appLockOn ? null : note.text,
-      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      scheduledDate: tz.TZDateTime.from(at!, tz.local),
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'note_reminders',
@@ -294,10 +389,12 @@ class DeviceReminderService implements ReminderService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: note.id,
     );
+    _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
   }
 
   @override
   Future<void> cancel(Note note) async {
+    _lastScheduledAt.remove(note.id);
     await _ensureInitialized();
     await _plugin.cancel(id: reminderNotificationId(note.id));
   }

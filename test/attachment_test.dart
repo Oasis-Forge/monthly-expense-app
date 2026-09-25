@@ -288,6 +288,72 @@ void main() {
 
       expect(await attachments.read('file1.jpg'), [7, 7, 7]);
     });
+
+    test('Merge writes only the attachment the winning side brought in, not '
+        'both (ATT-6)', () async {
+      // "shared": the backup's edit is later, so it wins the merge and
+      // its photo should land on this device.
+      final backupAttachments = FakeAttachments();
+      await backupAttachments.write('backup.jpg', const [1, 1, 1]);
+      // "kept": this device's own edit is later, so it wins and the
+      // backup's photo for it must never be written as an orphan
+      // nothing refers to, just because the zip still carries it
+      // (review-data-3).
+      await backupAttachments.write('backup-losing.jpg', const [2, 2, 2]);
+      // create() alone leaves BackupData.files empty: attachment bytes are
+      // only packaged going through an actual save-and-read round trip
+      // (saveBackup zips them; read unzips them back), same as a real
+      // restore.
+      final backupFiles = FakeBackupFiles();
+      final backupService = testBackupService(
+        FakeDB(
+          transactions: [
+            testTx('shared', expense, 10, now).copyWith(
+              createdAt: DateTime.utc(2026, 1, 1),
+              updatedAt: DateTime.utc(2026, 1, 5),
+              photoFile: 'backup.jpg',
+            ),
+            testTx('kept', expense, 10, now).copyWith(
+              createdAt: DateTime.utc(2026, 1, 1),
+              updatedAt: DateTime.utc(2026, 1, 3),
+              photoFile: 'backup-losing.jpg',
+            ),
+          ],
+        ),
+        files: backupFiles,
+        attachments: backupAttachments,
+      );
+      await backupService.saveBackup(await testSettings());
+      final backup = await backupService.read(backupFiles.saved.values.single);
+
+      final deviceAttachments = FakeAttachments();
+      final device = FakeDB(
+        transactions: [
+          testTx('shared', expense, 10, now).copyWith(
+            createdAt: DateTime.utc(2026, 1, 1),
+            updatedAt: DateTime.utc(2026, 1, 2),
+            photoFile: 'device.jpg',
+          ),
+          testTx('kept', expense, 10, now).copyWith(
+            createdAt: DateTime.utc(2026, 1, 1),
+            updatedAt: DateTime.utc(2026, 1, 10),
+            photoFile: 'device-kept.jpg',
+          ),
+        ],
+      );
+      final service = testBackupService(device, attachments: deviceAttachments);
+
+      await service.restore(backup, RestoreMode.merge, await testSettings());
+
+      // The backup's photo for "shared" won and is now on this device.
+      expect(await deviceAttachments.read('backup.jpg'), [1, 1, 1]);
+      // "kept" stayed this device's own edit; the backup's losing photo
+      // for it was never written.
+      expect(await deviceAttachments.exists('backup-losing.jpg'), isFalse);
+      final byId = {for (final t in device.rows) t.id: t};
+      expect(byId['shared']!.photoFile, 'backup.jpg');
+      expect(byId['kept']!.photoFile, 'device-kept.jpg');
+    });
   });
 
   group('playback goes through to the player (ATT-4)', () {

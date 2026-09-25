@@ -120,6 +120,39 @@ void main() {
     expect(settings.updateAskedOn, isNotNull);
   });
 
+  testWidgets(
+    'a later save the same day still holds the rating, not just the save '
+    'the update was offered on (UPD-3, rules-22-25-31-35#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
+      expect(updates.started, 1);
+      expect(reviews.asked, 0);
+
+      // A second save the same day: Play is not asked about the update
+      // again (UPD-4), but UPD-3 says the rating still waits for another
+      // day, not just for the save the update was offered on.
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
+
+      expect(reviews.asked, 0);
+    },
+  );
+
   testWidgets('a downloaded update offers the restart, and Play does it '
       '(UPD-1)', (tester) async {
     final (provider, settings) = await established();
@@ -247,25 +280,41 @@ void main() {
     expect(settings.updateAskedOn, isNull);
   });
 
-  testWidgets('a second entry the same day asks Play nothing (UPD-4)', (
-    tester,
-  ) async {
-    final (provider, settings) = await established(
-      askedOn: today.toUtc().toIso8601String(),
-    );
-    final updates = FakeUpdates(offered: true);
+  testWidgets(
+    'a second entry the same day asks Play nothing, and the rating still '
+    'waits for another day, not just for the save the update was offered '
+    'on (UPD-3, UPD-4, rules-22-25-31-35#7)',
+    (tester) async {
+      final (provider, settings) = await established(
+        askedOn: today.toUtc().toIso8601String(),
+      );
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
 
-    await saveAnEntry(
-      tester,
-      provider,
-      settings,
-      updates: updates,
-      reviews: FakeReviews(supported: false),
-    );
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
 
-    expect(updates.checked, 0);
-    expect(updates.started, 0);
-  });
+      expect(updates.checked, 0);
+      expect(updates.started, 0);
+      expect(reviews.asked, 0);
+
+      // A third save, still the same day: the rating still waits.
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
+
+      expect(reviews.asked, 0);
+    },
+  );
 
   testWidgets('a build with no Play behind it asks nothing (UPD-5)', (
     tester,
