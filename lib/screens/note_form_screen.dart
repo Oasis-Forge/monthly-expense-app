@@ -94,8 +94,10 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     // still works if it's refused.
     final granted = await context.read<ReminderService>().requestPermission();
     if (!mounted) return;
-    setState(() => _reminderTime ??= const TimeOfDay(hour: 9, minute: 0));
     if (!granted) {
+      // NUDGE-7: refused, the reminder stays off rather than being set to
+      // something the phone will swallow silently.
+      setState(() => _reminderTime = null);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -103,7 +105,9 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
           ),
         ),
       );
+      return;
     }
+    setState(() => _reminderTime ??= const TimeOfDay(hour: 9, minute: 0));
   }
 
   Future<void> _pickDueDate() async {
