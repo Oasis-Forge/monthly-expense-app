@@ -1527,18 +1527,12 @@ class TransactionProvider extends ChangeNotifier {
   /// answers a nudge that has already fired (NUDGE-5). Built once per data
   /// change rather than on every read (lifecycle-perf#10).
   Set<DateTime> get daysUsed => _daysUsedCache ??= {
-    for (final transaction in _transactions)
-      DateTime(
-        transaction.createdAt.year,
-        transaction.createdAt.month,
-        transaction.createdAt.day,
-      ),
-    for (final transfer in _transfers)
-      DateTime(
-        transfer.createdAt.year,
-        transfer.createdAt.month,
-        transfer.createdAt.day,
-      ),
+    // createdAt is always stamped in UTC (MONEY-1-style consistency); the
+    // local calendar day is what the person actually used the app on
+    // (money-time#8), and skipping .toLocal() here credited late-night and
+    // evening entries to the wrong day for anyone away from UTC.
+    for (final transaction in _transactions) _localDay(transaction.createdAt),
+    for (final transfer in _transfers) _localDay(transfer.createdAt),
   };
 
   /// Whether today has anything dated to it, which is what keeps it from
@@ -2266,3 +2260,8 @@ class _PeriodSummary {
 
 DateTime _dayOf(DateTime moment) =>
     DateTime(moment.year, moment.month, moment.day);
+
+/// The local calendar day a UTC-stamped moment (such as `createdAt`) falls
+/// on, at midnight local (money-time#8): [DateTime.toLocal] before reading
+/// the calendar fields, never [_dayOf] directly on a UTC value.
+DateTime _localDay(DateTime moment) => _dayOf(moment.toLocal());

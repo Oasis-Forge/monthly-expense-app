@@ -188,12 +188,17 @@ int countIgnoredNudges({
   required Set<DateTime> daysWithEntries,
   int ignoredSoFar = 0,
 }) {
+  // `since` is read back from storage as UTC (money-time#8); the calendar
+  // day it names, and every nudge time built from it below, must be in
+  // local time to line up with `now`, `hour`/`minute` (the device's own
+  // clock, NUDGE-6) and [daysWithEntries] (local dates).
+  final localSince = since.toLocal();
   var ignored = ignoredSoFar;
-  var day = DateTime(since.year, since.month, since.day);
+  var day = DateTime(localSince.year, localSince.month, localSince.day);
   final today = DateTime(now.year, now.month, now.day);
   while (!day.isAfter(today)) {
     final at = DateTime(day.year, day.month, day.day, hour, minute);
-    if (at.isAfter(since) && !at.isAfter(now)) {
+    if (at.isAfter(localSince) && !at.isAfter(now)) {
       ignored = daysWithEntries.contains(day) ? 0 : ignored + 1;
     }
     day = DateTime(day.year, day.month, day.day + 1);
