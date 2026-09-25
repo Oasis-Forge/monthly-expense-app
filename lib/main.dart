@@ -18,6 +18,7 @@ import 'providers/transaction_provider.dart';
 import 'screens/add_transaction_screen.dart';
 import 'screens/app_lock.dart';
 import 'screens/first_run_gate.dart';
+import 'screens/form_fields.dart' show activeUnsavedFormGuard;
 import 'screens/note_form_screen.dart';
 import 'screens/theme.dart';
 import 'screens/notes_screen.dart';
@@ -304,7 +305,14 @@ class _ShortcutTapsState extends State<_ShortcutTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
-    // Whatever was open before is not what was asked for.
+    // Whatever was open before is not what was asked for, but a form with
+    // something typed into it asks the same ADD-9 question the back button
+    // would, rather than being silently dropped (pr57#3).
+    final guard = activeUnsavedFormGuard;
+    if (guard != null && guard.hasUnsavedEdits()) {
+      final discard = await guard.confirmDiscard();
+      if (!discard || !navigator.mounted) return;
+    }
     navigator.popUntil((route) => route.isFirst);
     // A shortcut is a fresh start, so the form opens on the period the app
     // is for today rather than wherever Home was last left (DAY-9).
@@ -376,7 +384,14 @@ class _WidgetTapsState extends State<_WidgetTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
-    // Whatever was open before the tap is not what was asked for.
+    // Whatever was open before the tap is not what was asked for, but a
+    // form with something typed into it asks the same ADD-9 question the
+    // back button would, rather than being silently dropped (pr57#3).
+    final guard = activeUnsavedFormGuard;
+    if (guard != null && guard.hasUnsavedEdits()) {
+      final discard = await guard.confirmDiscard();
+      if (!discard || !navigator.mounted) return;
+    }
     navigator.popUntil((route) => route.isFirst);
     // The numbers on the widget are the current period's, so Home shows that
     // one however it was left (WID-2, WID-3).

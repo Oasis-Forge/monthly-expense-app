@@ -118,6 +118,65 @@ void main() {
     });
 
     testWidgets(
+      'one that would replace a form with unsaved edits asks first rather '
+      'than silently discarding them (ADD-9, pr57#3)',
+      (tester) async {
+        final shortcuts = FakeShortcuts();
+        await startApp(tester, shortcuts);
+
+        shortcuts.choose('add_expense');
+        await tester.pumpAndSettle();
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+        final amountField = find.widgetWithText(TextFormField, 'Amount');
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '42');
+        await tester.pump();
+
+        // A different shortcut arrives before the half-typed expense is
+        // saved: it must not simply replace the form.
+        shortcuts.choose('add_income');
+        await tester.pumpAndSettle();
+
+        expect(find.text('Discard changes?'), findsOneWidget);
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+        await tester.tap(find.text('Keep editing'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+        expect(find.text('42'), findsWidgets);
+      },
+    );
+
+    testWidgets(
+      'choosing Discard on that question lets the new shortcut through '
+      '(ADD-9, pr57#3)',
+      (tester) async {
+        final shortcuts = FakeShortcuts();
+        await startApp(tester, shortcuts);
+
+        shortcuts.choose('add_expense');
+        await tester.pumpAndSettle();
+
+        final amountField = find.widgetWithText(TextFormField, 'Amount');
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '42');
+        await tester.pump();
+
+        shortcuts.choose('transfer');
+        await tester.pumpAndSettle();
+        expect(find.text('Discard changes?'), findsOneWidget);
+
+        await tester.tap(find.text('Discard'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AddTransactionScreen), findsNothing);
+        expect(find.byType(TransferScreen), findsOneWidget);
+      },
+    );
+
+    testWidgets(
       'a shortcut chosen before the database load finishes waits for it, '
       'so the category default is filled in rather than staying empty '
       '(WID-3, ADD-3)',
@@ -393,6 +452,39 @@ void main() {
           find.byType(AddTransactionScreen, skipOffstage: false),
           findsNothing,
         );
+      },
+    );
+
+    testWidgets(
+      'a widget tap that would replace a form with unsaved edits asks '
+      'first rather than silently discarding them (ADD-9, pr57#3)',
+      (tester) async {
+        addTearDown(() => tappedWidgetAction.value = null);
+        final shortcuts = FakeShortcuts();
+        await startApp(tester, shortcuts);
+
+        shortcuts.choose('add_expense');
+        await tester.pumpAndSettle();
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+        final amountField = find.widgetWithText(TextFormField, 'Amount');
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '42');
+        await tester.pump();
+
+        // The widget's "add income" tap arrives before the half-typed
+        // expense is saved: it must not simply replace the form.
+        tappedWidgetAction.value = HomeWidgetAction.addIncome;
+        await tester.pumpAndSettle();
+
+        expect(find.text('Discard changes?'), findsOneWidget);
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+        await tester.tap(find.text('Keep editing'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(AddTransactionScreen), findsOneWidget);
+        expect(find.text('42'), findsWidgets);
       },
     );
   });
