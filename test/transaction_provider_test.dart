@@ -99,14 +99,23 @@ void main() {
         testTx('a', expense, 10, DateTime(2026, 9, 1)),
       );
       await provider.deleteTransaction('a');
+      // Its category is archived while it sits in the trash: restore must
+      // still bring the transaction back with that category, not blank it
+      // out or refuse (DEL-4).
+      await provider.archiveCategory('cat-food');
 
       await provider.restoreTransaction('a');
 
       expect(provider.deletedTransactions, isEmpty);
-      expect(provider.transactions.single.deletedAt, isNull);
+      final restored = provider.transactions.single;
+      expect(restored.deletedAt, isNull);
+      expect(restored.id, 'a');
+      expect(restored.categoryId, 'cat-food');
+      expect(restored.date, DateTime(2026, 9, 1));
       final reloaded = reloadable();
       await reloaded.load();
       expect(reloaded.transactions.single.id, 'a');
+      expect(reloaded.transactions.single.categoryId, 'cat-food');
       expect(reloaded.deletedTransactions, isEmpty);
     });
 
@@ -348,6 +357,29 @@ void main() {
       // Every account together matches Home's closing balance.
       expect(provider.closingBalance, const Money(130000));
     });
+
+    test(
+      'a transaction dated before the opening date still counts (ACC-4)',
+      () async {
+        final early = await loaded(
+          FakeDB(
+            accounts: [
+              testAccount('early', opening: 100, on: DateTime(2026, 9, 10)),
+            ],
+            transactions: [
+              testTx(
+                'e',
+                expense,
+                20,
+                DateTime(2026, 9, 5),
+              ).copyWith(accountId: 'early'),
+            ],
+          ),
+        );
+
+        expect(early.accountBalance('early'), const Money(80000));
+      },
+    );
 
     test('transfers are listed in the period but never counted (BAL-1)', () {
       expect(provider.periodIncome, const Money(50000));

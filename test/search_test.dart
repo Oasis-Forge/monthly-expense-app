@@ -72,6 +72,15 @@ void main() {
               DateTime(2026, 9, 20),
               title: 'Concert',
             ),
+            // Trashed, so it counts nowhere: not in results, not in totals
+            // (BAL-5).
+            testTx(
+              'trashed',
+              expense,
+              5000,
+              DateTime(2026, 9, 11),
+              title: 'Café gone',
+            ).copyWith(deletedAt: DateTime.utc(2026, 9, 12)),
           ],
         ),
         clock: () => DateTime(2026, 9, 15),
@@ -134,6 +143,17 @@ void main() {
 
       expect(result.transactions, hasLength(5));
       expect(result.income, const Money(2000000));
+      expect(result.expense, const Money(952500));
+    });
+
+    test('a trashed transaction counts nowhere: not in results, not in '
+        'totals (BAL-5)', () {
+      // Even a query that would otherwise match it by title.
+      expect(ids(const TransactionFilter(query: 'cafe gone')), isEmpty);
+
+      final result = run(const TransactionFilter());
+      expect(result.transactions.map((t) => t.id), isNot(contains('trashed')));
+      // Its 5000 expense is not folded into the total.
       expect(result.expense, const Money(952500));
     });
   });

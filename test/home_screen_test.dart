@@ -625,6 +625,25 @@ void main() {
     expect(provider.deletedTransactions, isEmpty);
   });
 
+  testWidgets('the Undo snackbar goes away on its own after about five seconds '
+      '(DEL-2)', (tester) async {
+    await showHome(tester);
+    await swipe(tester, 'Lunch');
+    expect(find.text('Transaction deleted'), findsOneWidget);
+
+    // persist: false is what makes this happen at all: a snack bar with
+    // an action otherwise stays open for good. The timer fires at the 5s
+    // mark, but removal runs its own exit animation across a few more
+    // frames, so a single pump(6s) isn't enough on its own.
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Transaction deleted'), findsNothing);
+    expect(find.text('Undo'), findsNothing);
+    // The delete itself was never undone; it just stopped offering to.
+    expect(provider.deletedTransactions.single.id, 'a');
+  });
+
   testWidgets('a failed undo shows an error', (tester) async {
     await showHome(tester);
     await swipe(tester, 'Lunch');
