@@ -17,6 +17,24 @@ import 'migrations.dart';
 /// One schema step. It runs inside the transaction that opens the database.
 typedef Migration = Future<void> Function(DatabaseExecutor db);
 
+/// Thrown by [DBHelper.database] when the database on disk is at a schema
+/// this build's migrations don't reach (an older build opened after a newer
+/// one, an installer downgrade, `adb install -d`, or a device moved onto an
+/// older release track). The caller shows a message instead of an empty app
+/// (x-downgrade-message).
+class DatabaseDowngradeError extends Error {
+  DatabaseDowngradeError(this.oldVersion, this.newVersion);
+
+  final int oldVersion;
+  final int newVersion;
+
+  @override
+  String toString() =>
+      'DatabaseDowngradeError: refusing to open a database at schema '
+      '$oldVersion with a build that only knows schema $newVersion; open '
+      'it with a newer build.';
+}
+
 /// Thin wrapper around the local sqflite database.
 class DBHelper {
   /// Opens the database at [path], or the app's database file when null.
@@ -81,10 +99,7 @@ class DBHelper {
       // untouched, so a later open by a build that understands this schema
       // still works.
       onDowngrade: (db, oldVersion, newVersion) {
-        throw StateError(
-          'Refusing to open a database at schema $oldVersion with a build '
-          'that only knows schema $newVersion; open it with a newer build.',
-        );
+        throw DatabaseDowngradeError(oldVersion, newVersion);
       },
     );
   }

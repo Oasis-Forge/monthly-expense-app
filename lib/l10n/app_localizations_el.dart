@@ -1121,6 +1121,13 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν ήταν δυνατή η επαναφορά του αντιγράφου. Τα δεδομένα σας δεν άλλαξαν.';
 
   @override
+  String get dbTooNewTitle => 'Απαιτείται ενημέρωση';
+
+  @override
+  String get dbTooNewMessage =>
+      'Αυτά τα δεδομένα αποθηκεύτηκαν από νεότερη έκδοση της εφαρμογής. Ενημέρωσέ την από το κατάστημα για να συνεχίσεις.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

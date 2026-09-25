@@ -301,6 +301,8 @@
   "backupTooNew": "Ta kopia zapasowa pochodzi z nowszej wersji aplikacji. Zaktualizuj aplikację i spróbuj ponownie.",
   "backupOpenFailed": "Nie udało się otworzyć pliku. Spróbuj ponownie.",
   "backupRestoreFailed": "Nie udało się przywrócić kopii zapasowej. Twoje dane nie zostały zmienione.",
+  "dbTooNewTitle": "Wymagana aktualizacja",
+  "dbTooNewMessage": "Te dane zostały zapisane przez nowszą wersję aplikacji. Zaktualizuj aplikację ze sklepu, aby kontynuować.",
   "restoredReplace": "{count, plural, =1{Przywrócono 1 transakcję} few{Przywrócono {count} transakcje} many{Przywrócono {count} transakcji} other{Przywrócono {count} transakcji}}",
   "restoredMerge": "Scalono: dodano {added}, zaktualizowano {updated}, bez zmian {unchanged}",
   "appLockLabel": "Blokada aplikacji",

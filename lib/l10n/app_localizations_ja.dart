@@ -1083,6 +1083,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get backupRestoreFailed => 'バックアップを復元できませんでした。データは変更されていません。';
 
   @override
+  String get dbTooNewTitle => '更新が必要です';
+
+  @override
+  String get dbTooNewMessage =>
+      'このデータはアプリの新しいバージョンで保存されました。続けるにはストアでアプリを更新してください。';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

@@ -1118,6 +1118,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die Sicherung konnte nicht wiederhergestellt werden. Deine Daten wurden nicht geändert.';
 
   @override
+  String get dbTooNewTitle => 'Update erforderlich';
+
+  @override
+  String get dbTooNewMessage =>
+      'Diese Daten wurden von einer neueren Version der App gespeichert. Aktualisiere die App im Store, um fortzufahren.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

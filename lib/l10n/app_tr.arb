@@ -301,6 +301,8 @@
   "backupTooNew": "Bu yedek uygulamanın daha yeni bir sürümünden. Uygulamayı güncelleyip tekrar deneyin.",
   "backupOpenFailed": "Dosya açılamadı. Tekrar deneyin.",
   "backupRestoreFailed": "Yedek geri yüklenemedi. Verileriniz değiştirilmedi.",
+  "dbTooNewTitle": "Güncelleme gerekli",
+  "dbTooNewMessage": "Bu veriler uygulamanın daha yeni bir sürümüyle kaydedildi. Devam etmek için uygulamayı mağazadan güncelleyin.",
   "restoredReplace": "{count, plural, =1{1 işlem geri yüklendi} other{{count} işlem geri yüklendi}}",
   "restoredMerge": "Birleştirildi: {added} eklendi, {updated} güncellendi, {unchanged} değişmedi",
   "appLockLabel": "Uygulama kilidi",

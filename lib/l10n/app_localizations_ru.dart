@@ -1143,6 +1143,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось восстановить копию. Ваши данные не изменились.';
 
   @override
+  String get dbTooNewTitle => 'Требуется обновление';
+
+  @override
+  String get dbTooNewMessage =>
+      'Эти данные были сохранены более новой версией приложения. Обновите приложение через магазин, чтобы продолжить.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

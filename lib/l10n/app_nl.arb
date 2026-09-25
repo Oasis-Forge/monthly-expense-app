@@ -301,6 +301,8 @@
   "backupTooNew": "Deze back-up komt van een nieuwere versie van de app. Werk de app bij en probeer het opnieuw.",
   "backupOpenFailed": "Kan het bestand niet openen. Probeer het opnieuw.",
   "backupRestoreFailed": "Kan de back-up niet herstellen. Je gegevens zijn niet gewijzigd.",
+  "dbTooNewTitle": "Update nodig",
+  "dbTooNewMessage": "Deze gegevens zijn opgeslagen door een nieuwere versie van de app. Update de app via de store om door te gaan.",
   "restoredReplace": "{count, plural, =1{1 transactie hersteld} other{{count} transacties hersteld}}",
   "restoredMerge": "Samengevoegd: {added} toegevoegd, {updated} bijgewerkt, {unchanged} ongewijzigd",
   "appLockLabel": "App-vergrendeling",

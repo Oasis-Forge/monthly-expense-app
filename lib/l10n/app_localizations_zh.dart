@@ -1078,6 +1078,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backupRestoreFailed => '无法恢复备份，你的数据未受影响。';
 
   @override
+  String get dbTooNewTitle => '需要更新';
+
+  @override
+  String get dbTooNewMessage => '此数据是由更新版本的应用保存的。请从商店更新应用以继续使用。';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

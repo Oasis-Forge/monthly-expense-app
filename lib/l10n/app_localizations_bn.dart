@@ -1114,6 +1114,13 @@ class AppLocalizationsBn extends AppLocalizations {
       'ব্যাকআপ রিস্টোর করা যায়নি। আপনার ডেটা অপরিবর্তিত আছে।';
 
   @override
+  String get dbTooNewTitle => 'আপডেট প্রয়োজন';
+
+  @override
+  String get dbTooNewMessage =>
+      'এই ডেটা অ্যাপের একটি নতুন সংস্করণ দিয়ে সংরক্ষিত হয়েছে। চালিয়ে যাওয়ার জন্য স্টোর থেকে অ্যাপটি আপডেট করুন।';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

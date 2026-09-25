@@ -1100,6 +1100,13 @@ class AppLocalizationsTh extends AppLocalizations {
       'กู้คืนไฟล์สำรองไม่สำเร็จ ข้อมูลของคุณไม่มีการเปลี่ยนแปลง';
 
   @override
+  String get dbTooNewTitle => 'ต้องอัปเดต';
+
+  @override
+  String get dbTooNewMessage =>
+      'ข้อมูลนี้บันทึกโดยแอปเวอร์ชันที่ใหม่กว่า โปรดอัปเดตแอปจากสโตร์เพื่อดำเนินการต่อ';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

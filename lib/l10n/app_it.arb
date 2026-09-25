@@ -301,6 +301,8 @@
   "backupTooNew": "Questo backup proviene da una versione più recente dell'app. Aggiorna l'app e riprova.",
   "backupOpenFailed": "Impossibile aprire il file. Riprova.",
   "backupRestoreFailed": "Impossibile ripristinare il backup. I tuoi dati non sono stati modificati.",
+  "dbTooNewTitle": "Aggiornamento necessario",
+  "dbTooNewMessage": "Questi dati sono stati salvati da una versione più recente dell'app. Aggiornala dallo store per continuare.",
   "restoredReplace": "{count, plural, =1{Ripristinata 1 transazione} other{Ripristinate {count} transazioni}}",
   "restoredMerge": "Unione completata: {added} aggiunte, {updated} aggiornate, {unchanged} invariate",
   "appLockLabel": "Blocco app",

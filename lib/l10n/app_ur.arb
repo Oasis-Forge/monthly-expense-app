@@ -301,6 +301,8 @@
   "backupTooNew": "یہ بیک اپ ایپ کے نئے ورژن سے ہے۔ ایپ کو اپ ڈیٹ کر کے دوبارہ کوشش کریں۔",
   "backupOpenFailed": "فائل نہیں کھل سکی۔ دوبارہ کوشش کریں۔",
   "backupRestoreFailed": "بیک اپ بحال نہیں ہو سکا۔ آپ کا ڈیٹا تبدیل نہیں ہوا۔",
+  "dbTooNewTitle": "اپڈیٹ درکار ہے",
+  "dbTooNewMessage": "یہ ڈیٹا ایپ کے نئے ورژن نے محفوظ کیا تھا۔ جاری رکھنے کے لیے اسٹور سے ایپ اپڈیٹ کریں۔",
   "restoredReplace": "{count, plural, =1{1 ٹرانزیکشن بحال ہوئی} other{{count} ٹرانزیکشنز بحال ہوئیں}}",
   "restoredMerge": "ضم ہو گیا: {added} شامل، {updated} اپ ڈیٹ، {unchanged} غیر تبدیل شدہ",
   "appLockLabel": "ایپ لاک",

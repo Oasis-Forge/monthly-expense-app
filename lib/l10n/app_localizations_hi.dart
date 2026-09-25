@@ -1109,6 +1109,13 @@ class AppLocalizationsHi extends AppLocalizations {
       'बैकअप रीस्टोर नहीं हो सका। आपका डेटा नहीं बदला गया।';
 
   @override
+  String get dbTooNewTitle => 'अपडेट आवश्यक है';
+
+  @override
+  String get dbTooNewMessage =>
+      'यह डेटा ऐप के नए संस्करण द्वारा सहेजा गया था। जारी रखने के लिए स्टोर से ऐप को अपडेट करें।';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

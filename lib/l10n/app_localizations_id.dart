@@ -1105,6 +1105,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Cadangan gagal dipulihkan. Data Anda tidak berubah.';
 
   @override
+  String get dbTooNewTitle => 'Perlu pembaruan';
+
+  @override
+  String get dbTooNewMessage =>
+      'Data ini disimpan oleh versi aplikasi yang lebih baru. Perbarui aplikasi dari toko untuk melanjutkan.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

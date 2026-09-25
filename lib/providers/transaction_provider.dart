@@ -116,6 +116,12 @@ class TransactionProvider extends ChangeNotifier {
   /// Whether [load] has finished at least once.
   bool get isLoaded => _loaded;
 
+  /// Set when [load] fails, most notably with a [DatabaseDowngradeError]
+  /// (x-downgrade-message): the screen checks this instead of showing an
+  /// empty Home with no explanation.
+  Object? _loadError;
+  Object? get loadError => _loadError;
+
   /// Bumped every time [_changed] runs — a save, a delete, a period or
   /// account-filter change — but not by [selectDay] or [clearSelectedDay]
   /// picking a different day inside the same period, which changes nothing
@@ -484,26 +490,29 @@ class TransactionProvider extends ChangeNotifier {
     NudgeSettings nudge = NudgeSettings.off,
   }) async {
     _dayLastSeen = _today;
-    await _attachments.deleteAll(
-      await _db.purgeDeletedBefore(_clock().subtract(trashRetention)),
-    );
-    _categories = await _db.fetchCategories();
-    _accounts = await _db.fetchAccounts();
-    _budgets = await _db.fetchBudgets();
-    _rules = await _db.fetchRecurringRules();
-    _notes = await _db.fetchNotes();
-    final occurrences = await _db.fetchOccurrences();
-    final loaded = await _db.fetchTransactions();
-    final deleted = await _db.fetchDeletedTransactions();
-    final transfers = await _db.fetchTransfers();
-    final deletedTransfers = await _db.fetchDeletedTransfers();
-    final deletedNotes = await _db.fetchDeletedNotes();
-    // Everything above only reads the database; a shortcut or widget tap
-    // waiting on [whenLoaded] (WID-3, ADD-3) must still be freed even if
-    // something below throws -- a write failure in
-    // _postAutomaticOccurrences (storage full, a locked database) or a
-    // crash while building the schedule -- rather than waiting forever.
+    // The whole body, including opening the database on the very first
+    // read, is guarded: a shortcut or widget tap waiting on [whenLoaded]
+    // (WID-3, ADD-3) must still be freed even if something throws before
+    // any data is read -- a refused downgrade open (x-downgrade-message), a
+    // write failure in _postAutomaticOccurrences (storage full, a locked
+    // database), or a crash while building the schedule -- rather than
+    // waiting forever, and the screen needs [loadError] to explain it
+    // instead of showing an empty Home.
     try {
+      await _attachments.deleteAll(
+        await _db.purgeDeletedBefore(_clock().subtract(trashRetention)),
+      );
+      _categories = await _db.fetchCategories();
+      _accounts = await _db.fetchAccounts();
+      _budgets = await _db.fetchBudgets();
+      _rules = await _db.fetchRecurringRules();
+      _notes = await _db.fetchNotes();
+      final occurrences = await _db.fetchOccurrences();
+      final loaded = await _db.fetchTransactions();
+      final deleted = await _db.fetchDeletedTransactions();
+      final transfers = await _db.fetchTransfers();
+      final deletedTransfers = await _db.fetchDeletedTransfers();
+      final deletedNotes = await _db.fetchDeletedNotes();
       _occurrences
         ..clear()
         ..addEntries([for (final o in occurrences) MapEntry(o.key, o)]);
@@ -534,6 +543,9 @@ class TransactionProvider extends ChangeNotifier {
         nudge: nudge,
       );
       _loaded = true;
+      _loadError = null;
+    } catch (e) {
+      _loadError = e;
     } finally {
       if (!_loadDone.isCompleted) _loadDone.complete();
     }

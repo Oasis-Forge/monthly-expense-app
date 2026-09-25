@@ -754,6 +754,35 @@ void main() {
     );
   });
 
+  group('a refused downgrade open (x-downgrade-message)', () {
+    test('load finishes, frees whenLoaded, and records the error instead of '
+        'hanging or throwing', () async {
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      final load = provider.load();
+      await expectLater(provider.whenLoaded, completes);
+      await load;
+
+      expect(provider.loadError, isA<DatabaseDowngradeError>());
+      expect(provider.isLoaded, isFalse);
+      expect(provider.transactions, isEmpty);
+    });
+
+    test('a later, successful load clears the error', () async {
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+      await provider.load();
+      expect(provider.loadError, isNotNull);
+
+      fake.failLoadWith = null;
+      await provider.load();
+
+      expect(provider.loadError, isNull);
+      expect(provider.isLoaded, isTrue);
+    });
+  });
+
   group('the day Home shows (DAY-1, DAY-3, DAY-5, DAY-6, DAY-9)', () {
     test('it opens on today', () async {
       final provider = await loaded(FakeDB());

@@ -225,6 +225,11 @@ class FakeDB extends DBHelper {
   final Map<String, String> purgedIds = {};
   bool failWrites = false;
 
+  /// Makes the very first read in [TransactionProvider.load] throw this,
+  /// the way an [DatabaseDowngradeError] would if this build opened a
+  /// database a newer build had already upgraded (x-downgrade-message).
+  Object? failLoadWith;
+
   void _checkWrite() {
     if (failWrites) throw StateError('write failed');
   }
@@ -254,6 +259,7 @@ class FakeDB extends DBHelper {
 
   @override
   Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
+    if (failLoadWith != null) throw failLoadWith!;
     bool old(DateTime? deletedAt) => deletedAt?.isBefore(cutoff) ?? false;
     final going = [
       for (final row in rows)

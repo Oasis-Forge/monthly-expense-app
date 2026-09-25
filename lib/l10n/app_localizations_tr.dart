@@ -1104,6 +1104,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yedek geri yüklenemedi. Verileriniz değiştirilmedi.';
 
   @override
+  String get dbTooNewTitle => 'Güncelleme gerekli';
+
+  @override
+  String get dbTooNewMessage =>
+      'Bu veriler uygulamanın daha yeni bir sürümüyle kaydedildi. Devam etmek için uygulamayı mağazadan güncelleyin.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

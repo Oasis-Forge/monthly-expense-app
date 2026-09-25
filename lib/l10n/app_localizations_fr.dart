@@ -1121,6 +1121,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de restaurer la sauvegarde. Vos données n’ont pas été modifiées.';
 
   @override
+  String get dbTooNewTitle => 'Mise à jour requise';
+
+  @override
+  String get dbTooNewMessage =>
+      'Ces données ont été enregistrées par une version plus récente de l\'application. Mettez-la à jour depuis le store pour continuer.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

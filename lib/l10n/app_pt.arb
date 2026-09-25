@@ -301,6 +301,8 @@
   "backupTooNew": "Este backup é de uma versão mais nova do app. Atualize o app e tente de novo.",
   "backupOpenFailed": "Não foi possível abrir o arquivo. Tente novamente.",
   "backupRestoreFailed": "Não foi possível restaurar o backup. Seus dados não foram alterados.",
+  "dbTooNewTitle": "Atualização necessária",
+  "dbTooNewMessage": "Esses dados foram salvos por uma versão mais recente do aplicativo. Atualize-o na loja para continuar.",
   "restoredReplace": "{count, plural, =0{{count} transações restauradas} =1{1 transação restaurada} other{{count} transações restauradas}}",
   "restoredMerge": "Mesclado: {added} adicionadas, {updated} atualizadas, {unchanged} sem alteração",
   "appLockLabel": "Bloqueio do app",

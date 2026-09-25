@@ -1119,6 +1119,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudo restaurar la copia. Tus datos no han cambiado.';
 
   @override
+  String get dbTooNewTitle => 'Actualización necesaria';
+
+  @override
+  String get dbTooNewMessage =>
+      'Estos datos se guardaron con una versión más reciente de la aplicación. Actualízala desde la tienda para continuar.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

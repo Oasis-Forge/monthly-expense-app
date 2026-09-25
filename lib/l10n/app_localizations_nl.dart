@@ -1118,6 +1118,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de back-up niet herstellen. Je gegevens zijn niet gewijzigd.';
 
   @override
+  String get dbTooNewTitle => 'Update nodig';
+
+  @override
+  String get dbTooNewMessage =>
+      'Deze gegevens zijn opgeslagen door een nieuwere versie van de app. Update de app via de store om door te gaan.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
