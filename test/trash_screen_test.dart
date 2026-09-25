@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/amount_style.dart';
 import 'package:monthly_expense_app/screens/trash_screen.dart';
 
 import 'helpers.dart';
@@ -47,7 +48,8 @@ void main() {
     await showTrash(tester);
 
     expect(find.text('Lunch'), findsOneWidget);
-    expect(find.text('\$12.50 · deleted for good in 29 days'), findsOneWidget);
+    // DEL-5, CUR-5: a trashed expense is signed, like any other amount.
+    expect(find.text('-\$12.50 · deleted for good in 29 days'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Restore'));
     await tester.pumpAndSettle();
@@ -57,6 +59,42 @@ void main() {
     expect(provider.transactions.single.date, DateTime(2026, 9, 10));
     expect(provider.transactions.single.categoryId, 'cat-food');
   });
+
+  testWidgets(
+    'a trashed transaction carries its sign and colour, income or expense '
+    '(DEL-5, CUR-5, A11Y-4, pr61#8)',
+    (tester) async {
+      fake.rows.add(
+        testTx(
+          'p',
+          TransactionType.income,
+          40,
+          DateTime(2026, 9, 11),
+          title: 'Refund',
+        ).copyWith(deletedAt: DateTime.utc(2026, 9, 15, 8)),
+      );
+      await provider.load();
+      await showTrash(tester);
+
+      expect(find.text('+\$40 · deleted for good in 30 days'), findsOneWidget);
+      expect(
+        find.text('-\$12.50 · deleted for good in 29 days'),
+        findsOneWidget,
+      );
+
+      final context = tester.element(find.text('Lunch'));
+      final expenseSpan = tester
+          .widgetList<Text>(find.text('-\$12.50 · deleted for good in 29 days'))
+          .single
+          .textSpan!;
+      expect(
+        (expenseSpan.getSpanForPosition(
+          const TextPosition(offset: 0),
+        ) as TextSpan).style?.color,
+        expenseColor(context),
+      );
+    },
+  );
 
   testWidgets('a failed restore keeps the item and shows an error', (
     tester,
