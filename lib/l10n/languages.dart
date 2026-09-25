@@ -66,11 +66,12 @@ Locale effectiveAppLocale(Locale? chosen) =>
 const _weekStartOverrides = {'PT': 1};
 
 /// The device's own first day of the week (PER-4), from [deviceLocales]
-/// (a [PlatformDispatcher.locales]) when its most-preferred locale's
-/// language is the one the app is currently showing ([appLanguage]) —
-/// else null, so the caller falls back to that language's own plain
-/// default the way it already did, the right answer for a language the
-/// user picked on purpose, unconnected to their phone's own region.
+/// (a [PlatformDispatcher.locales]) and its first entry whose language is
+/// the one the app is currently showing ([appLanguage]) — the same one
+/// [resolveAppLocale] matched when the app is following the device — else
+/// null, so the caller falls back to that language's own plain default the
+/// way it already did, the right answer for a language the user picked on
+/// purpose, unconnected to their phone's own region.
 ///
 /// [MaterialLocalizations.firstDayOfWeekIndex] only ever sees the app's
 /// own locale, which [resolveAppLocale] always resolves language-only,
@@ -78,9 +79,19 @@ const _weekStartOverrides = {'PT': 1};
 /// English (UK) or Portuguese (Portugal) got the language's plain
 /// Sunday-first default instead of its own region's Monday.
 int? deviceWeekStartIndex(List<Locale> deviceLocales, String appLanguage) {
-  if (deviceLocales.isEmpty) return null;
-  final device = deviceLocales.first;
-  if (device.languageCode != appLanguage) return null;
+  // resolveAppLocale matches the first device locale whose language the app
+  // supports, not necessarily deviceLocales.first: a phone set to
+  // [Norwegian, English (UK)] running in English resolved from en_GB, not
+  // from Norwegian. Looking only at .first would miss that match and defer
+  // to the language's plain default instead of en_GB's own Monday.
+  Locale? device;
+  for (final locale in deviceLocales) {
+    if (locale.languageCode == appLanguage) {
+      device = locale;
+      break;
+    }
+  }
+  if (device == null) return null;
   final region = device.countryCode;
   if (region == null) return null;
   final override = _weekStartOverrides[region];

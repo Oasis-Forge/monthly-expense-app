@@ -201,6 +201,20 @@ void main() {
     test('a device locale with no region defers the same way', () {
       expect(deviceWeekStartIndex(const [Locale('en')], 'en'), isNull);
     });
+
+    test('a device set to a language the app lacks first, then the resolved '
+        'one, still matches the resolved one, not just .first '
+        '(rules-1-5#5)', () {
+      // resolveAppLocale would match en_GB here, since the app has no
+      // Norwegian — not deviceLocales.first, which is Norwegian.
+      expect(
+        deviceWeekStartIndex(const [
+          Locale('nb', 'NO'),
+          Locale('en', 'GB'),
+        ], 'en'),
+        1,
+      );
+    });
   });
 
   group('screens fit in every language at 1.3× text (LANG-6)', () {
