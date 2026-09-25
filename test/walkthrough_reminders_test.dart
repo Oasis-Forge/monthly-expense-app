@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -104,6 +106,71 @@ void main() {
 
     expect(settings.walkthroughSeen, isTrue);
   });
+
+  testWidgets(
+    'restoring a backup reschedules reminders with the real app lock, not '
+    'the load() defaults (LOCK-2, NOTE-6, NUDGE-8, NUDGE-9, pr59#6)',
+    (tester) async {
+      final fake = FakeDB();
+      final theseReminders = FakeReminderService();
+      final theseProvider = TransactionProvider(
+        db: fake,
+        reminders: theseReminders,
+      );
+      await theseProvider.load();
+
+      // The backup being restored carries an open note with a reminder.
+      final other = FakeDB(
+        notes: [
+          testNote(
+            'note-1',
+            'Pay Dr. X 300',
+            dueDate: DateTime(2026, 9, 20),
+            reminderAt: DateTime(2026, 9, 20, 9),
+          ),
+        ],
+      );
+      final backupJson = (await testBackupService(
+        other,
+      ).create(await testSettings())).toJson();
+      final files = FakeBackupFiles()..toOpen = utf8.encode(backupJson);
+      final service = testBackupService(fake, files: files);
+      // The real setting on this device: app lock on.
+      final settings = await testSettings({
+        'setup_done': true,
+        'language': 'en',
+        'app_lock': true,
+      });
+
+      await tester.pumpWidget(
+        testApp(
+          theseProvider,
+          settings,
+          const WalkthroughScreen(),
+          reminders: theseReminders,
+          backup: service,
+        ),
+      );
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 4; i++) {
+        await tester.tap(find.text('Next'));
+        await tester.pumpAndSettle();
+      }
+
+      await tester.tap(find.text('Restore a backup'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Restore'));
+      await tester.pumpAndSettle();
+
+      expect(
+        theseReminders.scheduled['note-1'],
+        isTrue,
+        reason:
+            'the note reminder should be scheduled with the real app '
+            'lock, not the false default',
+      );
+    },
+  );
 
   testWidgets('a replay asks nothing at all (RUN-5)', (tester) async {
     await build();

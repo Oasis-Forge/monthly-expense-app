@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/languages.dart';
 import '../models/backup.dart';
 import '../providers/settings_provider.dart';
 import '../providers/transaction_provider.dart';
@@ -147,7 +148,15 @@ class _BackupScreenState extends State<BackupScreen> {
       }
       return;
     }
-    await transactions.load();
+    // Restore may have replaced the app lock, language, or nudge setting
+    // (BAK-2); reschedule reminders with what they are now, not the
+    // no-lock/English/no-nudge defaults `load()` falls back to (LOCK-2,
+    // NOTE-6, NUDGE-8, NUDGE-9, pr59#6).
+    await transactions.load(
+      appLockOn: settings.appLock,
+      locale: effectiveAppLocale(settings.locale),
+      nudge: settings.nudgeSettings,
+    );
     transactions.setStartDay(settings.startDay);
     if (!mounted) return;
     _show(switch (result.mode) {
