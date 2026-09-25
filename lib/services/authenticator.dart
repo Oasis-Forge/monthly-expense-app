@@ -32,6 +32,24 @@ abstract class Authenticator {
   });
 }
 
+/// The per-platform auth messages `local_auth` shows, built from the
+/// caller's own translations (LANG-2) rather than its untranslated English
+/// defaults. A pure function so a test can check the Android title and hint
+/// without a device or a fake plugin.
+List<AuthMessages> authMessagesFor(
+  String reason, {
+  String? hint,
+  String? cancelButton,
+}) => [
+  AndroidAuthMessages(
+    signInTitle: reason,
+    signInHint: hint,
+    cancelButton: cancelButton,
+  ),
+  IOSAuthMessages(cancelButton: cancelButton),
+  const WindowsAuthMessages(),
+];
+
 /// [Authenticator] backed by `local_auth` on Android, iOS, macOS, and
 /// Windows. Other platforms have no app lock.
 class DeviceAuthenticator implements Authenticator {
@@ -68,15 +86,11 @@ class DeviceAuthenticator implements Authenticator {
       final ok = await _auth.authenticate(
         localizedReason: reason,
         persistAcrossBackgrounding: true,
-        authMessages: [
-          AndroidAuthMessages(
-            signInTitle: reason,
-            signInHint: hint,
-            cancelButton: cancelButton,
-          ),
-          IOSAuthMessages(cancelButton: cancelButton),
-          const WindowsAuthMessages(),
-        ],
+        authMessages: authMessagesFor(
+          reason,
+          hint: hint,
+          cancelButton: cancelButton,
+        ),
       );
       return ok ? AuthResult.success : AuthResult.failed;
     } on LocalAuthException catch (e) {
