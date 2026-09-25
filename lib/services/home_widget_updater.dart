@@ -35,12 +35,21 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
   bool _pending = false;
   bool _started = false;
 
+  /// The [_transactions] data version [refresh] last pushed for, and
+  /// whether something on [_settings] has changed since then. Selecting or
+  /// clearing a day inside the same period notifies like anything else, but
+  /// changes nothing the widget shows — [_transactions.dataVersion] only
+  /// moves on an actual data change, so that alone tells refresh apart from
+  /// the work worth redoing (WID-5, lifecycle-perf#9).
+  int? _lastDataVersion;
+  bool _settingsChanged = true;
+
   /// Starts watching, and pushes what the widget should show right now.
   void start() {
     if (_started) return;
     _started = true;
     _transactions.addListener(_schedule);
-    _settings.addListener(_schedule);
+    _settings.addListener(_scheduleFromSettings);
     // A day can turn over while the app sits in the background, and the
     // period along with it.
     WidgetsBinding.instance.addObserver(this);
@@ -51,8 +60,13 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
     if (!_started) return;
     _started = false;
     _transactions.removeListener(_schedule);
-    _settings.removeListener(_schedule);
+    _settings.removeListener(_scheduleFromSettings);
     WidgetsBinding.instance.removeObserver(this);
+  }
+
+  void _scheduleFromSettings() {
+    _settingsChanged = true;
+    _schedule();
   }
 
   @override
@@ -70,8 +84,16 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
   }
 
   /// Builds the payload and hands it over. Public so a test can await it.
+  ///
+  /// Skips the work on a platform with no widget (WID-1), and again when
+  /// nothing the widget shows has changed since the last push — a day tap
+  /// or a period change notifies like a save does, but only a save moves
+  /// [TransactionProvider.dataVersion] (lifecycle-perf#9).
   Future<void> refresh() async {
-    if (!_transactions.isLoaded) return;
+    if (!_transactions.isLoaded || !_service.isSupported) return;
+    final dataVersion = _transactions.dataVersion;
+    if (dataVersion == _lastDataVersion && !_settingsChanged) return;
+
     final locale = effectiveAppLocale(_settings.locale);
     final l10n = await _load(locale);
     // The period's name is formatted here rather than on a screen, so the
@@ -92,5 +114,7 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
         hideAmounts: hide,
       ),
     );
+    _lastDataVersion = dataVersion;
+    _settingsChanged = false;
   }
 }

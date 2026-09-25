@@ -29,6 +29,9 @@ class FakeHomeWidgetService implements HomeWidgetService {
   Map<String, Object?> get last => updates.last;
 
   @override
+  bool isSupported = true;
+
+  @override
   Future<void> update(Map<String, Object?> payload) async =>
       updates.add(payload);
 
@@ -247,6 +250,55 @@ void main() {
 
       expect(service.updates.length, greaterThan(before));
       expect(entriesOf(service.last).first['income'], r'$500');
+    });
+
+    test('selecting a day in the same period pushes nothing new '
+        '(WID-5, lifecycle-perf#9)', () async {
+      await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
+      final before = service.updates.length;
+
+      // Tapping a day in the strip, still inside the period shown,
+      // changes nothing the widget displays (it has no notion of a
+      // selected day).
+      transactions.selectDay(DateTime(2026, 9, 5));
+      await pumpEventQueue();
+
+      expect(service.updates.length, before);
+
+      // Clearing it back to the whole period is the same kind of
+      // no-op notification.
+      transactions.clearSelectedDay();
+      await pumpEventQueue();
+
+      expect(service.updates.length, before);
+    });
+
+    test(
+      'a day tap that moves the period still reaches it (DAY-3, WID-5)',
+      () async {
+        await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
+        final before = service.updates.length;
+
+        // Outside the period shown, so this really does change the
+        // current-period numbers the widget carries.
+        transactions.selectDay(DateTime(2026, 10, 5));
+        await pumpEventQueue();
+
+        expect(service.updates.length, greaterThan(before));
+      },
+    );
+
+    test('nothing is pushed on a platform with no widget (WID-1, lifecycle-perf#9)', () async {
+      await start();
+      service.isSupported = false;
+      final before = service.updates.length;
+
+      await transactions.addTransaction(
+        testTx('new', income, 500, DateTime(2026, 9, 4)),
+      );
+      await pumpEventQueue();
+
+      expect(service.updates.length, before);
     });
 
     test('a settings change reaches it too', () async {
