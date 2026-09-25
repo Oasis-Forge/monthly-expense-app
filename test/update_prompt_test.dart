@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -247,6 +249,141 @@ void main() {
 
       expect(updates.checked, 1);
       expect(updates.started, 1);
+    },
+  );
+
+  testWidgets(
+    'a form opened while Play is still being asked skips the download for '
+    "today, and doesn't spend today's ask (UPD-2, UPD-4, pr58#7)",
+    (tester) async {
+      final (provider, settings) = await established();
+      final opening = Completer<void>();
+      final updates = FakeUpdates(
+        offered: true,
+        duringAvailable: () => opening.future,
+      );
+      final reviews = FakeReviews(supported: false);
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => afterSave(context),
+                    child: const Text('save'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddTransactionScreen(),
+                      ),
+                    ),
+                    child: const Text('open'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('save'));
+      // Play is still being asked: pump only until updates.available() has
+      // been entered, rather than a fixed count that could flake.
+      for (var i = 0; i < 10 && updates.checked == 0; i++) {
+        await tester.pump();
+      }
+      expect(updates.checked, 1);
+
+      // A form opens before Play answers.
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+      opening.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text('An update has been downloaded.'), findsNothing);
+      expect(updates.started, 0);
+      // Today's ask was never spent, so a later closing save still tries
+      // (UPD-4).
+      expect(settings.updateAskedOn, isNull);
+    },
+  );
+
+  testWidgets(
+    'a form opened during the download keeps the bar from landing over '
+    'it (UPD-1, UPD-2, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final downloading = Completer<void>();
+      final updates = FakeUpdates(
+        offered: true,
+        duringDownload: () => downloading.future,
+      );
+      final reviews = FakeReviews(supported: false);
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => afterSave(context),
+                    child: const Text('save'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddTransactionScreen(),
+                      ),
+                    ),
+                    child: const Text('open'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('save'));
+      // Pump only until download() has actually been entered -- UPD-4 is
+      // spent by then -- rather than a fixed count that could flake.
+      for (var i = 0; i < 10 && updates.started == 0; i++) {
+        await tester.pump();
+      }
+      expect(updates.started, 1);
+      expect(settings.updateAskedOn, isNotNull);
+
+      // A form opens while the 30-to-60-second download itself is still
+      // running.
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+      downloading.complete();
+      await tester.pumpAndSettle();
+
+      // The download went ahead, but the bar must not land over the open
+      // form. (UPD-1's own "already downloaded" branch, covered below,
+      // is what offers it again once due -- not reasserted here.)
+      expect(find.text('An update has been downloaded.'), findsNothing);
     },
   );
 

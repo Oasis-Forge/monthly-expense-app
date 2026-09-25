@@ -1288,7 +1288,9 @@ class FakeUpdates implements UpdateService {
     this.offered = false,
     this.downloads = true,
     bool downloaded = false,
-  }) : alreadyDownloaded = downloaded;
+    this.duringAvailable,
+    this.duringDownload,
+  }) : _downloaded = downloaded;
 
   @override
   final bool supported;
@@ -1300,9 +1302,21 @@ class FakeUpdates implements UpdateService {
   /// or failing.
   final bool downloads;
 
-  /// Whether Play already has a finished download waiting from an earlier
-  /// run (UPD-1), so [download] should never be called.
-  final bool alreadyDownloaded;
+  /// Awaited inside [available], so a test can act -- typically opening a
+  /// form -- while the real check would still be waiting on Play (UPD-2,
+  /// pr58#7).
+  final Future<void> Function()? duringAvailable;
+
+  /// Same for [download], whose real download can run 30 to 60 seconds
+  /// (UPD-1, pr58#7).
+  final Future<void> Function()? duringDownload;
+
+  /// Whether Play currently has a finished download waiting, so [download]
+  /// should never be called (UPD-1). Starts as the constructor's
+  /// `downloaded`, and turns true on its own once [download] succeeds, the
+  /// way `DeviceUpdates.downloaded()` queries Play's live status rather
+  /// than remembering what this app last did.
+  bool _downloaded;
 
   /// How many times Play was asked whether anything is waiting.
   int checked = 0;
@@ -1316,17 +1330,20 @@ class FakeUpdates implements UpdateService {
   @override
   Future<bool> available() async {
     checked++;
+    if (duringAvailable != null) await duringAvailable!();
     return offered;
   }
 
   @override
   Future<bool> download() async {
     started++;
+    if (duringDownload != null) await duringDownload!();
+    if (downloads) _downloaded = true;
     return downloads;
   }
 
   @override
-  Future<bool> downloaded() async => alreadyDownloaded;
+  Future<bool> downloaded() async => _downloaded;
 
   @override
   Future<void> install() async => installed++;
