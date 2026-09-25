@@ -427,6 +427,69 @@ void main() {
     );
 
     testWidgets(
+      'in the real form, the amount keypad shrinking the viewport scrolls '
+      'the field mid-recording past the cache extent, and Save still '
+      'attaches the note (ATT-4, review-data-2)',
+      (tester) async {
+        await open(tester);
+        // A small phone (1.3x text does the same, per LANG-6) is what pushes
+        // AttachmentField past the ListView's cache extent once the amount
+        // keypad's bottomNavigationBar shrinks the viewport further.
+        tester.view.physicalSize = const Size(320, 480);
+        tester.view.devicePixelRatio = 1;
+        addTearDown(tester.view.reset);
+        await tester.pumpAndSettle();
+
+        // Enter the amount before recording starts, so nothing below needs
+        // to settle while the countdown ticks.
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '12.50');
+
+        await record(tester);
+        expect(find.widgetWithText(FilledButton, 'Stop'), findsOneWidget);
+
+        final scrollable = find
+            .descendant(
+              of: find.byType(Form),
+              matching: find.byType(Scrollable),
+            )
+            .first;
+        // Scroll to the top and focus the amount field: its keypad docks as
+        // a bottomNavigationBar, shrinking the viewport and pushing the
+        // still-recording AttachmentField, now below the fold, past the
+        // cache extent — never pumpAndSettle here, the countdown is ticking.
+        tester.state<ScrollableState>(scrollable).position.jumpTo(0);
+        await tester.pump();
+        await tester.tap(amountField);
+        await tester.pump();
+
+        expect(
+          attachments.cancelled,
+          isFalse,
+          reason:
+              'AutomaticKeepAliveClientMixin should have kept the field '
+              'mounted despite the shrunk viewport (review-data-2)',
+        );
+
+        // Scroll down to reach Save and tap it: it must still find the
+        // recording and attach it.
+        await tester.scrollUntilVisible(
+          find.widgetWithText(FilledButton, 'Add Transaction'),
+          500,
+          scrollable: scrollable,
+        );
+        await tester.pump();
+        await tester.tap(find.widgetWithText(FilledButton, 'Add Transaction'));
+        await tester.pump();
+        // Saving stops the recording itself; nothing left ticking now.
+        await tester.pumpAndSettle();
+
+        expect(attachments.cancelled, isFalse);
+        expect(provider.transactions.single.voiceFile, 'file1.m4a');
+      },
+    );
+
+    testWidgets(
       'a throwing stop does not leave Save disabled for good, and shows the '
       'existing save-failed message (review-money-5)',
       (tester) async {
