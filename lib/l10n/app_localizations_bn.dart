@@ -75,6 +75,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি পুনরাবৃত্ত লেনদেন বাকি আছে',
       one: '1টি পুনরাবৃত্ত লেনদেন বাকি আছে',
+      zero: '$countটি পুনরাবৃত্ত লেনদেন বাকি আছে',
     );
     return '$_temp0';
   }
@@ -98,6 +99,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি বাজেট ঠিক করা',
       one: '1টি বাজেট ঠিক করা',
+      zero: '$countটি বাজেট ঠিক করা',
     );
     return '$_temp0';
   }
@@ -348,6 +350,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$days দিনে চিরতরে মুছে যাবে',
       one: '1 দিনে চিরতরে মুছে যাবে',
+      zero: '$days দিনে চিরতরে মুছে যাবে',
     );
     return '$amount · $_temp0';
   }
@@ -359,6 +362,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$days দিনে চিরতরে মুছে যাবে',
       one: '1 দিনে চিরতরে মুছে যাবে',
+      zero: '$days দিনে চিরতরে মুছে যাবে',
     );
     return '$_temp0';
   }
@@ -505,6 +509,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি ফলাফল',
       one: '1টি ফলাফল',
+      zero: '$countটি ফলাফল',
     );
     return '$_temp0 · আয় $income · ব্যয় $expense';
   }
@@ -862,6 +867,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$count মাস',
       one: '1 মাস',
+      zero: '$count মাস',
     );
     return '$_temp0';
   }
@@ -1056,6 +1062,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি লেনদেন',
       one: '1টি লেনদেন',
+      zero: '$countটি লেনদেন',
     );
     return '$date · $_temp0';
   }
@@ -1113,6 +1120,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি লেনদেন রিস্টোর হয়েছে',
       one: '1টি লেনদেন রিস্টোর হয়েছে',
+      zero: '$countটি লেনদেন রিস্টোর হয়েছে',
     );
     return '$_temp0';
   }
@@ -1281,6 +1289,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি নোট বাকি আছে',
       one: '1টি নোট বাকি আছে',
+      zero: '$countটি নোট বাকি আছে',
     );
     return '$_temp0';
   }
@@ -1535,6 +1544,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারির তারিখ অ্যাপ পড়তে পারছে না',
       one: '1টি সারির তারিখ অ্যাপ পড়তে পারছে না',
+      zero: '$countটি সারির তারিখ অ্যাপ পড়তে পারছে না',
     );
     return '$_temp0';
   }
@@ -1546,6 +1556,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারির পরিমাণ অ্যাপ পড়তে পারছে না',
       one: '1টি সারির পরিমাণ অ্যাপ পড়তে পারছে না',
+      zero: '$countটি সারির পরিমাণ অ্যাপ পড়তে পারছে না',
     );
     return '$_temp0';
   }
@@ -1557,6 +1568,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারিতে কোনো টাকার পরিমাণ নেই',
       one: '1টি সারিতে কোনো টাকার পরিমাণ নেই',
+      zero: '$countটি সারিতে কোনো টাকার পরিমাণ নেই',
     );
     return '$_temp0';
   }
@@ -1568,6 +1580,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারি আগে থেকেই অ্যাপে আছে',
       one: '1টি সারি আগে থেকেই অ্যাপে আছে',
+      zero: '$countটি সারি আগে থেকেই অ্যাপে আছে',
     );
     return '$_temp0';
   }
@@ -1579,6 +1592,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি ট্রান্সফারে শুধু একটি অ্যাকাউন্টের নাম আছে',
       one: '1টি ট্রান্সফারে শুধু একটি অ্যাকাউন্টের নাম আছে',
+      zero: '$countটি ট্রান্সফারে শুধু একটি অ্যাকাউন্টের নাম আছে',
     );
     return '$_temp0';
   }
@@ -1615,6 +1629,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: 'আরও $countটি',
       one: 'আরও 1টি',
+      zero: 'আরও $countটি',
     );
     return '$_temp0';
   }
@@ -1638,6 +1653,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি রেকর্ড ইম্পোর্ট হয়েছে',
       one: '1টি রেকর্ড ইম্পোর্ট হয়েছে',
+      zero: '$countটি রেকর্ড ইম্পোর্ট হয়েছে',
     );
     return '$_temp0';
   }
@@ -1769,6 +1785,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
       one: '1টি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
+      zero: '$countটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল।',
     );
     return '$_temp0';
   }
