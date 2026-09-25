@@ -899,14 +899,15 @@ class TransactionProvider extends ChangeNotifier {
       _saveAccounts([accountById(id)!.copyWith(archivedAt: null)]);
 
   /// Whether any transaction or transfer, deleted ones included, uses the
-  /// account.
+  /// account, or a recurring rule still posts to it (RCR-1).
   bool isAccountUsed(String id) =>
       _transactions.any((t) => t.accountId == id) ||
       _deleted.any((t) => t.accountId == id) ||
       [
         ..._transfers,
         ..._deletedTransfers,
-      ].any((t) => t.fromAccountId == id || t.toAccountId == id);
+      ].any((t) => t.fromAccountId == id || t.toAccountId == id) ||
+      _rules.any((r) => r.accountId == id);
 
   /// Deletes an unused account. An account with history can only be
   /// archived (ACC-5), and one active account must remain; otherwise this
@@ -980,10 +981,12 @@ class TransactionProvider extends ChangeNotifier {
   Future<void> unarchiveCategory(String id) =>
       _saveCategories([categoryById(id)!.copyWith(archivedAt: null)]);
 
-  /// Whether any transaction, trashed ones included, uses the category.
+  /// Whether any transaction, trashed ones included, uses the category, or a
+  /// recurring rule still posts to it (RCR-1).
   bool isCategoryUsed(String id) =>
       _transactions.any((t) => t.categoryId == id) ||
-      _deleted.any((t) => t.categoryId == id);
+      _deleted.any((t) => t.categoryId == id) ||
+      _rules.any((r) => r.categoryId == id);
 
   /// Deletes an unused category. A used category can only be archived
   /// (CAT-4), so this throws a [StateError] for one.
