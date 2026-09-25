@@ -43,6 +43,15 @@ List<int> _spliceBytes(List<int> bytes, List<int> from, List<int> to) {
   return out;
 }
 
+/// An [AttachmentService] whose writes always fail, like a full disk mid a
+/// zip restore (ATT-6).
+class _ThrowingAttachments extends FakeAttachments {
+  @override
+  Future<void> write(String name, List<int> bytes) async {
+    throw Exception('disk full');
+  }
+}
+
 void main() {
   const expense = TransactionType.expense;
   final now = DateTime(2026, 9, 15, 10);
@@ -472,6 +481,35 @@ void main() {
     // confined to.
     final escaped = File(p.join(dir.path, 'evil.txt'));
     expect(escaped.existsSync(), isFalse);
+  });
+
+  test('a Replace restore whose file write fails should not have already '
+      'committed the database (BAK-2, ATT-6, data-integrity#8)', () async {
+    final device = helperAt('restore-write-fail.db');
+    await device.insertTransaction(tx('mine', title: 'Mine'));
+
+    final other = helperAt('other-write-fail.db');
+    await other.insertTransaction(tx('dinner', title: 'Dinner'));
+    final settings = await testSettings();
+    // The incoming backup carries an attachment, so `_writeFiles` has
+    // something to write, and fail on.
+    final backup = (await testBackupService(other).create(settings)).withFiles({
+      'photo1.jpg': const [9],
+    });
+
+    final service = testBackupService(
+      device,
+      attachments: _ThrowingAttachments(),
+    );
+
+    await expectLater(
+      service.restore(backup, RestoreMode.replace, settings),
+      throwsException,
+    );
+
+    // The database should not hold the backup's data when writing its
+    // files failed partway through: nothing should be committed yet.
+    expect([for (final t in await device.fetchTransactions()) t.id], ['mine']);
   });
 
   test('a failed replace leaves the data as it was', () async {
