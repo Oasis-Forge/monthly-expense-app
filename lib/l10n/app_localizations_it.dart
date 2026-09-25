@@ -644,6 +644,9 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile salvare la transazione ricorrente. Riprova.';
 
   @override
+  String get recurringDeleted => 'Transazione ricorrente eliminata';
+
+  @override
   String get everyLabel => 'Ogni';
 
   @override
@@ -738,6 +741,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Inserisci un numero intero da 1 in su';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Inserisci un numero intero da 1 a $max';
+  }
 
   @override
   String get endDateInvalid =>

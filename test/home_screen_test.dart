@@ -1051,6 +1051,52 @@ void main() {
       expect(find.text('\$112.50 left · \$7.03 a day'), findsOneWidget);
     });
 
+    testWidgets('an overall budget: no offer on a period before it started '
+        '(BUD-11, rules-6-10#8)', (tester) async {
+      fake.budgets.add(overall(125));
+      await provider.load();
+      await showHome(tester);
+      expect(find.text('Set a monthly budget'), findsNothing);
+
+      // BUD-11: the offer goes as soon as a budget exists, whichever period
+      // Home is showing.
+      provider.previousPeriod();
+      await tester.pump();
+
+      expect(find.text('Set a monthly budget'), findsNothing);
+    });
+
+    testWidgets('from a past period the offer starts from the period before '
+        'the current one, offers no Remove, and saves for the current period '
+        '(BUD-5, BUD-11, rules-6-10#8)', (tester) async {
+      fake.rows.addAll([
+        testTx('aug', TransactionType.expense, 80, DateTime(2026, 8, 10)),
+        testTx('jul', TransactionType.expense, 40, DateTime(2026, 7, 10)),
+      ]);
+      await provider.load();
+      await showHome(tester);
+      provider.previousPeriod();
+      await tester.pump();
+
+      await tester.tap(find.text('Set a monthly budget'));
+      await tester.pumpAndSettle();
+
+      // August's spending, the period before the current one; not July's,
+      // the period before the one on screen.
+      expect(find.widgetWithText(TextFormField, '80'), findsOneWidget);
+      // Nothing is set yet, so there is nothing to remove.
+      expect(find.text('Remove'), findsNothing);
+
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        provider.budgetLimit(null, provider.currentPeriod),
+        const Money(80000),
+      );
+      expect(fake.budgets.single.effectiveFrom, DateTime(2026, 9));
+    });
+
     testWidgets('a budget that will not save says so', (tester) async {
       await showHome(tester);
       fake.failWrites = true;

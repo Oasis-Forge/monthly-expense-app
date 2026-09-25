@@ -1192,6 +1192,12 @@ abstract class AppLocalizations {
   /// **'Couldn\'t save the recurring transaction. Try again.'**
   String get recurringSaveFailed;
 
+  /// Snack bar after a recurring rule is deleted, with Undo (DEL-2).
+  ///
+  /// In en, this message translates to:
+  /// **'Recurring transaction deleted'**
+  String get recurringDeleted;
+
   /// No description provided for @everyLabel.
   ///
   /// In en, this message translates to:
@@ -1323,6 +1329,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a whole number from 1'**
   String get wholeNumberInvalid;
+
+  /// Error under the repeat interval field when it is not a whole number in range.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a whole number from 1 to {max}'**
+  String wholeNumberRange(int max);
 
   /// No description provided for @endDateInvalid.
   ///

@@ -635,6 +635,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get recurringSaveFailed => '定期取引を保存できませんでした。もう一度お試しください。';
 
   @override
+  String get recurringDeleted => '定期取引を削除しました';
+
+  @override
   String get everyLabel => '間隔';
 
   @override
@@ -729,6 +732,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1以上の整数を入力してください';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1〜$max の整数を入力してください';
+  }
 
   @override
   String get endDateInvalid => '終了日は開始日より後にしてください';

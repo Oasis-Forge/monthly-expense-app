@@ -642,6 +642,9 @@ class AppLocalizationsHi extends AppLocalizations {
       'रिकरिंग लेनदेन सेव नहीं हो सका। फिर कोशिश करें।';
 
   @override
+  String get recurringDeleted => 'रिकरिंग लेनदेन हटाया गया';
+
+  @override
   String get everyLabel => 'हर';
 
   @override
@@ -736,6 +739,11 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1 से पूरी संख्या दर्ज करें';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1 से $max तक पूरी संख्या दर्ज करें';
+  }
 
   @override
   String get endDateInvalid => 'समाप्ति तारीख़ शुरुआत के बाद होनी चाहिए';

@@ -650,6 +650,9 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de terugkerende transactie niet opslaan. Probeer het opnieuw.';
 
   @override
+  String get recurringDeleted => 'Terugkerende transactie verwijderd';
+
+  @override
   String get everyLabel => 'Elke';
 
   @override
@@ -744,6 +747,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Vul een heel getal vanaf 1 in';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Voer een heel getal van 1 tot $max in';
+  }
 
   @override
   String get endDateInvalid => 'De einddatum moet na de startdatum liggen';

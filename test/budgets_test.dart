@@ -412,6 +412,94 @@ void main() {
       },
     );
 
+    test('an archived category\'s budget stops counting from the current '
+        'period on; past periods still report it (BUD-5, BUD-6, CAT-4, '
+        'rules-6-10#9)', () async {
+      now = DateTime(2026, 8, 20);
+      await reload();
+      await provider.setBudget('cat-food', const Money(50000));
+      now = today;
+      await reload();
+
+      await provider.archiveCategory('cat-food');
+      expect(
+        provider.categoriesFor(expense).map((c) => c.id),
+        isNot(contains('cat-food')),
+      );
+
+      // Current: the budget no longer counts, and with no other budget the
+      // card has nothing to show.
+      expect(
+        provider.budgetStatuses.map((s) => s.categoryId),
+        isNot(contains('cat-food')),
+      );
+      expect(BudgetSummary.of(provider.budgetStatuses), isNull);
+
+      provider.nextPeriod();
+      expect(
+        provider.budgetStatuses.map((s) => s.categoryId),
+        isNot(contains('cat-food')),
+      );
+
+      // August is over: it still shows the result it had (BUD-6).
+      provider
+        ..previousPeriod()
+        ..previousPeriod();
+      expect(provider.budgetStatuses.single.categoryId, 'cat-food');
+
+      // Unarchiving brings it back as it was (CAT-4).
+      await provider.unarchiveCategory('cat-food');
+      provider.nextPeriod();
+      expect(provider.budgetStatuses.single.categoryId, 'cat-food');
+    });
+
+    test('the overall offer starts from the period before the current one, '
+        'whichever is selected (BUD-11, rules-6-10#8)', () async {
+      fake.rows.addAll([
+        testTx('aug', expense, 80, DateTime(2026, 8, 10)),
+        testTx('aug-in', TransactionType.income, 999, DateTime(2026, 8, 11)),
+        testTx('jul', expense, 40, DateTime(2026, 7, 10)),
+      ]);
+      await reload();
+      expect(provider.lastPeriodExpense, const Money(80000));
+
+      provider.previousPeriod();
+      expect(provider.lastPeriodExpense, const Money(80000));
+    });
+
+    test('after the start day moves, a change or removal still takes effect '
+        'at once (BUD-5, PER-2, rules-6-10#5)', () async {
+      // Set on the 1st-to-1st calendar: this version starts on 1 Sep.
+      await provider.setBudget('cat-food', const Money(300000));
+      await provider.setBudget(null, const Money(1000000));
+
+      // Now the period runs 25 Aug – 24 Sep, starting before that version.
+      provider.setStartDay(25);
+      expect(provider.budgetLimit('cat-food'), const Money(300000));
+
+      await provider.setBudget('cat-food', const Money(400000));
+      expect(provider.budgetLimit('cat-food'), const Money(400000));
+      provider.nextPeriod();
+      expect(provider.budgetLimit('cat-food'), const Money(400000));
+      provider.previousPeriod();
+
+      await provider.setBudget(null, null);
+      expect(provider.budgetLimit(null), isNull);
+      provider.nextPeriod();
+      expect(provider.budgetLimit(null), isNull);
+
+      // The period before keeps what it had: nothing was set before 1 Sep.
+      provider
+        ..previousPeriod()
+        ..previousPeriod();
+      expect(provider.budgetLimit('cat-food'), isNull);
+
+      await reload();
+      provider.setStartDay(25);
+      expect(provider.budgetLimit('cat-food'), const Money(400000));
+      expect(provider.budgetLimit(null), isNull);
+    });
+
     test(
       'a change applies from the current period on (BUD-5, BUD-6)',
       () async {

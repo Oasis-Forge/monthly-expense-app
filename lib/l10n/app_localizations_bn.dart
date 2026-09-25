@@ -644,6 +644,9 @@ class AppLocalizationsBn extends AppLocalizations {
       'পুনরাবৃত্ত লেনদেন সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।';
 
   @override
+  String get recurringDeleted => 'পুনরাবৃত্ত লেনদেন মুছে ফেলা হয়েছে';
+
+  @override
   String get everyLabel => 'প্রতি';
 
   @override
@@ -738,6 +741,11 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1 থেকে শুরু করে একটি পূর্ণ সংখ্যা লিখুন';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1 থেকে $max পর্যন্ত একটি পূর্ণ সংখ্যা লিখুন';
+  }
 
   @override
   String get endDateInvalid => 'শেষ তারিখ শুরুর তারিখের পরে হতে হবে';

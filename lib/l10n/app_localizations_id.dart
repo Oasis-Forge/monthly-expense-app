@@ -641,6 +641,9 @@ class AppLocalizationsId extends AppLocalizations {
       'Transaksi berulang gagal disimpan. Coba lagi.';
 
   @override
+  String get recurringDeleted => 'Transaksi berulang dihapus';
+
+  @override
   String get everyLabel => 'Setiap';
 
   @override
@@ -735,6 +738,11 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Masukkan bilangan bulat mulai dari 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Masukkan bilangan bulat dari 1 sampai $max';
+  }
 
   @override
   String get endDateInvalid => 'Tanggal akhir harus setelah tanggal mulai';

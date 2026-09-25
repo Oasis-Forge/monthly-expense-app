@@ -635,6 +635,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get recurringSaveFailed => '无法保存该周期交易，请重试。';
 
   @override
+  String get recurringDeleted => '周期交易已删除';
+
+  @override
   String get everyLabel => '每';
 
   @override
@@ -729,6 +732,11 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '请输入不小于1的整数';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '请输入 1 到 $max 之间的整数';
+  }
 
   @override
   String get endDateInvalid => '结束日期必须晚于开始日期';

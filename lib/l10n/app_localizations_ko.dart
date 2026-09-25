@@ -635,6 +635,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get recurringSaveFailed => '반복 거래를 저장하지 못했어요. 다시 시도해 주세요.';
 
   @override
+  String get recurringDeleted => '반복 거래가 삭제되었어요';
+
+  @override
   String get everyLabel => '매';
 
   @override
@@ -729,6 +732,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1 이상의 정수를 입력하세요';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1에서 $max 사이의 정수를 입력하세요';
+  }
 
   @override
   String get endDateInvalid => '종료일은 시작일 이후여야 해요';

@@ -642,6 +642,9 @@ class AppLocalizationsVi extends AppLocalizations {
       'Không thể lưu giao dịch định kỳ. Vui lòng thử lại.';
 
   @override
+  String get recurringDeleted => 'Đã xóa giao dịch định kỳ';
+
+  @override
   String get everyLabel => 'Mỗi';
 
   @override
@@ -736,6 +739,11 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Nhập số nguyên từ 1 trở lên';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Nhập số nguyên từ 1 đến $max';
+  }
 
   @override
   String get endDateInvalid => 'Ngày kết thúc phải sau ngày bắt đầu';

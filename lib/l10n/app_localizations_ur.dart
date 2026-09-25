@@ -643,6 +643,9 @@ class AppLocalizationsUr extends AppLocalizations {
       'تکراری ٹرانزیکشن محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔';
 
   @override
+  String get recurringDeleted => 'تکراری ٹرانزیکشن حذف ہو گئی';
+
+  @override
   String get everyLabel => 'ہر';
 
   @override
@@ -737,6 +740,11 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => '1 سے پورا نمبر درج کریں';
+
+  @override
+  String wholeNumberRange(int max) {
+    return '1 سے $max تک پورا عدد درج کریں';
+  }
 
   @override
   String get endDateInvalid => 'اختتامی تاریخ شروع کی تاریخ کے بعد ہونی چاہیے';

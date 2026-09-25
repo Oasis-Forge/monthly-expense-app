@@ -650,6 +650,9 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν ήταν δυνατή η αποθήκευση της επαναλαμβανόμενης συναλλαγής. Δοκιμάστε ξανά.';
 
   @override
+  String get recurringDeleted => 'Η επαναλαμβανόμενη συναλλαγή διαγράφηκε';
+
+  @override
   String get everyLabel => 'Κάθε';
 
   @override
@@ -744,6 +747,11 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Εισαγάγετε ακέραιο αριθμό από το 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Εισαγάγετε ακέραιο αριθμό από 1 έως $max';
+  }
 
   @override
   String get endDateInvalid =>

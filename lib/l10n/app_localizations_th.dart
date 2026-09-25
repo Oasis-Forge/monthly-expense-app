@@ -638,6 +638,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get recurringSaveFailed => 'บันทึกรายการประจำไม่สำเร็จ ลองอีกครั้ง';
 
   @override
+  String get recurringDeleted => 'ลบรายการประจำแล้ว';
+
+  @override
   String get everyLabel => 'ทุก';
 
   @override
@@ -732,6 +735,11 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'กรอกจำนวนเต็มตั้งแต่ 1 ขึ้นไป';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'ป้อนจำนวนเต็มตั้งแต่ 1 ถึง $max';
+  }
 
   @override
   String get endDateInvalid => 'วันที่สิ้นสุดต้องอยู่หลังวันที่เริ่มต้น';

@@ -641,6 +641,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t save the recurring transaction. Try again.';
 
   @override
+  String get recurringDeleted => 'Recurring transaction deleted';
+
+  @override
   String get everyLabel => 'Every';
 
   @override
@@ -735,6 +738,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Enter a whole number from 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Enter a whole number from 1 to $max';
+  }
 
   @override
   String get endDateInvalid => 'The end date must be after the start';

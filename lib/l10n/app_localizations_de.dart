@@ -651,6 +651,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Die wiederkehrende Buchung konnte nicht gespeichert werden. Versuche es erneut.';
 
   @override
+  String get recurringDeleted => 'Wiederkehrende Buchung gelöscht';
+
+  @override
   String get everyLabel => 'Alle';
 
   @override
@@ -745,6 +748,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Gib eine ganze Zahl ab 1 ein';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Gib eine ganze Zahl von 1 bis $max ein';
+  }
 
   @override
   String get endDateInvalid => 'Das Enddatum muss nach dem Beginn liegen';

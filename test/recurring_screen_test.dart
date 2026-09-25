@@ -197,6 +197,28 @@ void main() {
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
 
+    testWidgets('a deleted rule comes back with Undo (DEL-2, rules-6-10#12)', (
+      tester,
+    ) async {
+      await showRecurring(tester);
+
+      await tester.tap(find.text('Rent').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Delete'));
+      await tester.pumpAndSettle();
+
+      expect(provider.recurringRuleById('Rent'), isNull);
+      expect(find.text('Recurring transaction deleted'), findsOneWidget);
+
+      await tester.tap(find.text('Undo'));
+      await tester.pumpAndSettle();
+
+      expect({for (final r in provider.recurringRules) r.id}, {'Rent', 'Gym'});
+      expect(fake.rules.firstWhere((r) => r.id == 'Rent').deletedAt, isNull);
+      // Rent's 1 Sep is waiting in Due again.
+      expect(provider.dueOccurrences, hasLength(1));
+    });
+
     testWidgets('pausing or resuming and then saving keeps the change '
         '(RCR-5, RCR-6, audit rules-6-10#3)', (tester) async {
       await showRecurring(tester);
@@ -327,11 +349,55 @@ void main() {
       await tapInForm(tester, find.text('After'));
       await save(tester);
 
+      await revealInForm(tester, find.text('Enter a whole number from 1'));
+      expect(find.text('Enter a whole number from 1'), findsOneWidget);
+      expect(find.text('Enter a whole number from 1 to 999'), findsOneWidget);
+    });
+
+    testWidgets('the interval error names its maximum (review-state-3)', (
+      tester,
+    ) async {
+      await openForm(tester);
+
+      await enter(tester, 'Amount', '20');
+      await enter(tester, 'Every', '1000');
+      await save(tester);
+
       await revealInForm(
         tester,
-        find.text('Enter a whole number from 1').first,
+        find.text('Enter a whole number from 1 to 999'),
       );
-      expect(find.text('Enter a whole number from 1'), findsNWidgets(2));
+      expect(find.text('Enter a whole number from 1 to 999'), findsOneWidget);
+      expect(provider.recurringRules, hasLength(2));
+    });
+
+    testWidgets('the repeat count has no cap, so a rule with a long count '
+        'still saves (RCR-1, review-state-3)', (tester) async {
+      final daily = testRule('Rent', 900, DateTime(2026, 9)).copyWith(
+        frequency: RecurrenceFrequency.day,
+        endType: RecurrenceEnd.afterCount,
+        endCount: 1095,
+      );
+      fake.rules
+        ..clear()
+        ..add(daily);
+      await provider.load();
+      await openForm(tester, editing: provider.recurringRuleById('Rent'));
+
+      await enter(tester, 'Amount', '950');
+      await save(tester);
+
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+      final rule = provider.recurringRuleById('Rent')!;
+      expect((rule.amount, rule.endCount), (const Money(950000), 1095));
+
+      await openForm(tester);
+      await enter(tester, 'Amount', '5');
+      await enter(tester, 'Title (optional)', 'Coffee');
+      await tapInForm(tester, find.text('After'));
+      await enter(tester, 'Times', '100000');
+      await save(tester);
+      expect(savedRule('Coffee').endCount, 100000);
     });
 
     testWidgets(

@@ -661,6 +661,9 @@ class AppLocalizationsPl extends AppLocalizations {
       'Nie udało się zapisać cyklicznej transakcji. Spróbuj ponownie.';
 
   @override
+  String get recurringDeleted => 'Cykliczna transakcja usunięta';
+
+  @override
   String get everyLabel => 'Co';
 
   @override
@@ -767,6 +770,11 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get wholeNumberInvalid => 'Podaj liczbę całkowitą od 1';
+
+  @override
+  String wholeNumberRange(int max) {
+    return 'Wpisz liczbę całkowitą od 1 do $max';
+  }
 
   @override
   String get endDateInvalid =>
