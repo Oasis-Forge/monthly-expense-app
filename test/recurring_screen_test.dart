@@ -371,6 +371,29 @@ void main() {
       expect(provider.recurringRules, hasLength(2));
     });
 
+    testWidgets(
+      'the interval error wraps instead of clipping the maximum at normal '
+      'and larger text sizes (LANG-6)',
+      (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await openForm(tester);
+
+        await enter(tester, 'Amount', '20');
+        await enter(tester, 'Every', '1000');
+        await save(tester);
+
+        final errorFinder = find.text('Enter a whole number from 1 to 999');
+        await revealInForm(tester, errorFinder);
+        // The default single-line ellipsis (InputDecoration.errorMaxLines
+        // null) would cut off the maximum; the field must allow more than
+        // one line so the whole message lays out.
+        final error = tester.widget<Text>(errorFinder);
+        expect(error.maxLines, isNotNull);
+        expect(error.maxLines! >= 2, isTrue);
+      },
+    );
+
     testWidgets('the repeat count has no cap, so a rule with a long count '
         'still saves (RCR-1, review-state-3)', (tester) async {
       final daily = testRule('Rent', 900, DateTime(2026, 9)).copyWith(

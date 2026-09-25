@@ -336,6 +336,9 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
                     decoration: InputDecoration(
                       labelText: l10n.everyLabel,
                       border: const OutlineInputBorder(),
+                      // The message names the maximum, which can run past
+                      // one line at normal text size or larger (LANG-6).
+                      errorMaxLines: 3,
                     ),
                     validator: (value) => _interval(value) == null
                         ? l10n.wholeNumberRange(_intervalMax)
