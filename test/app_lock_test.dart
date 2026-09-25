@@ -331,6 +331,32 @@ void main() {
     });
   });
 
+  group('appIsLocked resets before every test regardless of what an earlier '
+      'one left behind (test-quality#11)', () {
+    testWidgets(
+      'deliberately leaves it locked, with no cleanup of its own: the '
+      'next test must not inherit this',
+      (tester) async {
+        appIsLocked.value = true;
+      },
+    );
+
+    testWidgets(
+      'starts unlocked even though the previous test left it locked',
+      (tester) async {
+        expect(
+          appIsLocked.value,
+          isFalse,
+          reason:
+              "flutter_test_config.dart's global setUp should have reset "
+              'this before this test ran, the same way it resets '
+              "AdsProvider's undo timer, so the ADS-9 group above cannot "
+              'depend on run order',
+        );
+      },
+    );
+  });
+
   group('telling the OS not to keep a readable snapshot of the app while App '
       'Lock is on (LOCK-2)', () {
     final channel = const MethodChannel(
