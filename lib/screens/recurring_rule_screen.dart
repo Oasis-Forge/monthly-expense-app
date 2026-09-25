@@ -25,7 +25,7 @@ class RecurringRuleScreen extends StatefulWidget {
 }
 
 class _RecurringRuleScreenState extends State<RecurringRuleScreen>
-    with AmountEntry {
+    with AmountEntry, UnsavedGuard {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _noteController = TextEditingController();
@@ -74,7 +74,27 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
       _accountId = provider.defaultAccountId();
       _startDate = DateTime(now.year, now.month, now.day);
     }
+    // ADD-9: what a later Back compares against.
+    snapshotForm();
   }
+
+  /// Everything the user can change here, for the Back guard (ADD-9).
+  @override
+  String formSnapshot() => [
+    amountController.text,
+    _titleController.text,
+    _noteController.text,
+    _intervalController.text,
+    _countController.text,
+    _type.name,
+    _categoryId ?? '',
+    _accountId ?? '',
+    _frequency.name,
+    _startDate.toIso8601String(),
+    _endType.name,
+    _endDate?.toIso8601String() ?? '',
+    _autoPost.toString(),
+  ].join('\u0000');
 
   @override
   void dispose() {
@@ -204,253 +224,263 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
     final accounts = provider.activeAccounts;
     final endDate = _endDate;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          editing == null ? l10n.addRecurringTitle : l10n.editRecurringTitle,
-        ),
-        actions: [
-          if (rule != null) ...[
-            IconButton(
-              icon: Icon(rule.isPaused ? Icons.play_arrow : Icons.pause),
-              tooltip: rule.isPaused ? l10n.resumeTooltip : l10n.pauseTooltip,
-              onPressed: () => _run(
-                () => rule.isPaused
-                    ? provider.resumeRecurringRule(rule.id)
-                    : provider.pauseRecurringRule(rule.id),
+    return guardBack(
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            editing == null ? l10n.addRecurringTitle : l10n.editRecurringTitle,
+          ),
+          actions: [
+            if (rule != null) ...[
+              IconButton(
+                icon: Icon(rule.isPaused ? Icons.play_arrow : Icons.pause),
+                tooltip: rule.isPaused ? l10n.resumeTooltip : l10n.pauseTooltip,
+                onPressed: () => _run(
+                  () => rule.isPaused
+                      ? provider.resumeRecurringRule(rule.id)
+                      : provider.pauseRecurringRule(rule.id),
+                ),
               ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline),
-              tooltip: l10n.deleteTooltip,
-              onPressed: () {
-                final messenger = ScaffoldMessenger.of(context);
-                _run(() async {
-                  final deleted = await provider.deleteRecurringRule(rule.id);
-                  // DEL-2: one tap, so Undo for five seconds, as for any
-                  // other delete.
-                  showUndoSnackBar(
-                    messenger,
-                    message: l10n.recurringDeleted,
-                    undoLabel: l10n.undoButton,
-                    failedMessage: l10n.undoFailed,
-                    onUndo: () => provider.restoreRecurringRule(deleted),
-                  );
-                }, close: true);
-              },
-            ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline),
+                tooltip: l10n.deleteTooltip,
+                onPressed: () {
+                  final messenger = ScaffoldMessenger.of(context);
+                  _run(() async {
+                    final deleted = await provider.deleteRecurringRule(rule.id);
+                    // DEL-2: one tap, so Undo for five seconds, as for any
+                    // other delete.
+                    showUndoSnackBar(
+                      messenger,
+                      message: l10n.recurringDeleted,
+                      undoLabel: l10n.undoButton,
+                      failedMessage: l10n.undoFailed,
+                      onUndo: () => provider.restoreRecurringRule(deleted),
+                    );
+                  }, close: true);
+                },
+              ),
+            ],
           ],
-        ],
-      ),
-      bottomNavigationBar: amountKeypad(),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            SegmentedButton<TransactionType>(
-              segments: [
-                ButtonSegment(
-                  value: TransactionType.expense,
-                  label: Text(l10n.expenseLabel),
-                ),
-                ButtonSegment(
-                  value: TransactionType.income,
-                  label: Text(l10n.incomeLabel),
-                ),
-              ],
-              selected: {_type},
-              onSelectionChanged: (selection) => setState(() {
-                _type = selection.first;
-                if (!provider
-                    .categoriesFor(_type)
-                    .any((c) => c.id == _categoryId)) {
-                  _categoryId = provider.defaultCategoryId(_type);
-                }
-              }),
-            ),
-            const SizedBox(height: 20),
-            amountField(currency, l10n, autofocus: editing == null),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: l10n.titleOptionalLabel,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              key: ValueKey((_type, _categoryId)),
-              // Long names shorten instead of overflowing (LANG-6).
-              isExpanded: true,
-              initialValue: categories.any((c) => c.id == _categoryId)
-                  ? _categoryId
-                  : null,
-              decoration: InputDecoration(
-                labelText: l10n.categoryLabel,
-                border: const OutlineInputBorder(),
-              ),
-              items: [
-                for (final category in categories)
-                  DropdownMenuItem(
-                    value: category.id,
-                    child: Text('${category.icon} ${category.label(l10n)}'),
+        ),
+        bottomNavigationBar: amountKeypad(),
+        body: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              SegmentedButton<TransactionType>(
+                segments: [
+                  ButtonSegment(
+                    value: TransactionType.expense,
+                    label: Text(l10n.expenseLabel),
                   ),
-              ],
-              validator: (value) =>
-                  value == null ? l10n.categoryRequired : null,
-              onChanged: (value) => setState(() => _categoryId = value),
-            ),
-            if (accounts.length > 1) ...[
+                  ButtonSegment(
+                    value: TransactionType.income,
+                    label: Text(l10n.incomeLabel),
+                  ),
+                ],
+                selected: {_type},
+                onSelectionChanged: (selection) => setState(() {
+                  _type = selection.first;
+                  if (!provider
+                      .categoriesFor(_type)
+                      .any((c) => c.id == _categoryId)) {
+                    _categoryId = provider.defaultCategoryId(_type);
+                  }
+                }),
+              ),
+              const SizedBox(height: 20),
+              amountField(currency, l10n, autofocus: editing == null),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  labelText: l10n.titleOptionalLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
+                key: ValueKey((_type, _categoryId)),
+                // Long names shorten instead of overflowing (LANG-6).
                 isExpanded: true,
-                initialValue: accounts.any((a) => a.id == _accountId)
-                    ? _accountId
+                initialValue: categories.any((c) => c.id == _categoryId)
+                    ? _categoryId
                     : null,
                 decoration: InputDecoration(
-                  labelText: l10n.accountLabel,
+                  labelText: l10n.categoryLabel,
                   border: const OutlineInputBorder(),
                 ),
                 items: [
-                  for (final account in accounts)
+                  for (final category in categories)
                     DropdownMenuItem(
-                      value: account.id,
-                      child: Text(account.label(l10n)),
+                      value: category.id,
+                      child: Text('${category.icon} ${category.label(l10n)}'),
                     ),
                 ],
-                onChanged: (value) => setState(() => _accountId = value),
+                validator: (value) =>
+                    value == null ? l10n.categoryRequired : null,
+                onChanged: (value) => setState(() => _categoryId = value),
               ),
-            ],
-            const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 96,
-                  child: TextFormField(
-                    controller: _intervalController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: InputDecoration(
-                      labelText: l10n.everyLabel,
-                      border: const OutlineInputBorder(),
-                      // The message names the maximum, which can run past
-                      // one line at normal text size or larger (LANG-6).
-                      errorMaxLines: 3,
-                    ),
-                    validator: (value) => _interval(value) == null
-                        ? l10n.wholeNumberRange(_intervalMax)
-                        : null,
+              if (accounts.length > 1) ...[
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
+                  initialValue: accounts.any((a) => a.id == _accountId)
+                      ? _accountId
+                      : null,
+                  decoration: InputDecoration(
+                    labelText: l10n.accountLabel,
+                    border: const OutlineInputBorder(),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<RecurrenceFrequency>(
-                    isExpanded: true,
-                    initialValue: _frequency,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
-                    items: [
-                      for (final (frequency, label) in [
-                        (RecurrenceFrequency.day, l10n.frequencyDays),
-                        (RecurrenceFrequency.week, l10n.frequencyWeeks),
-                        (RecurrenceFrequency.month, l10n.frequencyMonths),
-                        (RecurrenceFrequency.year, l10n.frequencyYears),
-                      ])
-                        DropdownMenuItem(value: frequency, child: Text(label)),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) setState(() => _frequency = value);
-                    },
-                  ),
+                  items: [
+                    for (final account in accounts)
+                      DropdownMenuItem(
+                        value: account.id,
+                        child: Text(account.label(l10n)),
+                      ),
+                  ],
+                  onChanged: (value) => setState(() => _accountId = value),
                 ),
               ],
-            ),
-            const SizedBox(height: 16),
-            DateField(
-              label: l10n.startsLabel,
-              date: _startDate,
-              onChanged: (date) => setState(() => _startDate = date),
-            ),
-            const SizedBox(height: 16),
-            Text(l10n.endsLabel, style: Theme.of(context).textTheme.labelLarge),
-            const SizedBox(height: 8),
-            SegmentedButton<RecurrenceEnd>(
-              segments: [
-                ButtonSegment(
-                  value: RecurrenceEnd.never,
-                  label: Text(l10n.endNever),
-                ),
-                ButtonSegment(
-                  value: RecurrenceEnd.afterCount,
-                  label: Text(l10n.endAfter),
-                ),
-                ButtonSegment(
-                  value: RecurrenceEnd.onDate,
-                  label: Text(l10n.endOnDate),
+              const SizedBox(height: 16),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 96,
+                    child: TextFormField(
+                      controller: _intervalController,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      decoration: InputDecoration(
+                        labelText: l10n.everyLabel,
+                        border: const OutlineInputBorder(),
+                        // The message names the maximum, which can run past
+                        // one line at normal text size or larger (LANG-6).
+                        errorMaxLines: 3,
+                      ),
+                      validator: (value) => _interval(value) == null
+                          ? l10n.wholeNumberRange(_intervalMax)
+                          : null,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<RecurrenceFrequency>(
+                      isExpanded: true,
+                      initialValue: _frequency,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        for (final (frequency, label) in [
+                          (RecurrenceFrequency.day, l10n.frequencyDays),
+                          (RecurrenceFrequency.week, l10n.frequencyWeeks),
+                          (RecurrenceFrequency.month, l10n.frequencyMonths),
+                          (RecurrenceFrequency.year, l10n.frequencyYears),
+                        ])
+                          DropdownMenuItem(
+                            value: frequency,
+                            child: Text(label),
+                          ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) setState(() => _frequency = value);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              DateField(
+                label: l10n.startsLabel,
+                date: _startDate,
+                onChanged: (date) => setState(() => _startDate = date),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                l10n.endsLabel,
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<RecurrenceEnd>(
+                segments: [
+                  ButtonSegment(
+                    value: RecurrenceEnd.never,
+                    label: Text(l10n.endNever),
+                  ),
+                  ButtonSegment(
+                    value: RecurrenceEnd.afterCount,
+                    label: Text(l10n.endAfter),
+                  ),
+                  ButtonSegment(
+                    value: RecurrenceEnd.onDate,
+                    label: Text(l10n.endOnDate),
+                  ),
+                ],
+                selected: {_endType},
+                onSelectionChanged: (selection) => setState(() {
+                  _endType = selection.first;
+                  if (_endType == RecurrenceEnd.onDate) {
+                    _endDate ??= DateTime(
+                      _startDate.year + 1,
+                      _startDate.month,
+                      _startDate.day,
+                    );
+                  }
+                }),
+              ),
+              if (_endType == RecurrenceEnd.afterCount) ...[
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _countController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: InputDecoration(
+                    labelText: l10n.timesLabel,
+                    border: const OutlineInputBorder(),
+                  ),
+                  validator: (value) => _wholeNumber(value) == null
+                      ? l10n.wholeNumberInvalid
+                      : null,
                 ),
               ],
-              selected: {_endType},
-              onSelectionChanged: (selection) => setState(() {
-                _endType = selection.first;
-                if (_endType == RecurrenceEnd.onDate) {
-                  _endDate ??= DateTime(
-                    _startDate.year + 1,
-                    _startDate.month,
-                    _startDate.day,
-                  );
-                }
-              }),
-            ),
-            if (_endType == RecurrenceEnd.afterCount) ...[
-              const SizedBox(height: 12),
+              if (_endType == RecurrenceEnd.onDate && endDate != null) ...[
+                const SizedBox(height: 12),
+                DateField(
+                  label: l10n.endsOnLabel,
+                  date: endDate,
+                  onChanged: (date) => setState(() => _endDate = date),
+                ),
+              ],
+              const SizedBox(height: 8),
+              SwitchListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.autoPostLabel),
+                subtitle: Text(l10n.autoPostSubtitle),
+                value: _autoPost,
+                onChanged: (value) => setState(() => _autoPost = value),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
-                controller: _countController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                controller: _noteController,
                 decoration: InputDecoration(
-                  labelText: l10n.timesLabel,
+                  labelText: l10n.noteOptionalLabel,
                   border: const OutlineInputBorder(),
                 ),
-                validator: (value) => _wholeNumber(value) == null
-                    ? l10n.wholeNumberInvalid
-                    : null,
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _save,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                ),
+                child: Text(l10n.saveButton),
               ),
             ],
-            if (_endType == RecurrenceEnd.onDate && endDate != null) ...[
-              const SizedBox(height: 12),
-              DateField(
-                label: l10n.endsOnLabel,
-                date: endDate,
-                onChanged: (date) => setState(() => _endDate = date),
-              ),
-            ],
-            const SizedBox(height: 8),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.autoPostLabel),
-              subtitle: Text(l10n.autoPostSubtitle),
-              value: _autoPost,
-              onChanged: (value) => setState(() => _autoPost = value),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _noteController,
-              decoration: InputDecoration(
-                labelText: l10n.noteOptionalLabel,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: _save,
-              style: FilledButton.styleFrom(padding: const EdgeInsets.all(16)),
-              child: Text(l10n.saveButton),
-            ),
-          ],
+          ),
         ),
       ),
     );

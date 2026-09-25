@@ -257,6 +257,47 @@ void main() {
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
 
+    testWidgets('Back asks before dropping a typed rule (ADD-9)', (
+      tester,
+    ) async {
+      await openForm(tester);
+
+      await enter(tester, 'Amount', '15');
+      await enter(tester, 'Title (optional)', 'Streaming');
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecurringRuleScreen), findsOneWidget);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+      expect(provider.recurringRules, hasLength(2));
+    });
+
+    testWidgets('Back leaves an untouched new rule form without asking '
+        '(ADD-9)', (tester) async {
+      await openForm(tester);
+
+      // The amount field autofocuses, so the first Back only closes the
+      // keypad it opened with.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+    });
+
     testWidgets('double-tapping Save on a new rule creates only one '
         '(audit data-integrity#5)', (tester) async {
       final slowFake = _SlowRuleDB();

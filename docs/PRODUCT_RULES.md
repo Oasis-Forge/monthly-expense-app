@@ -47,7 +47,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **ADD-6** The date arrows move one day back or forward; tapping the date opens a picker.
 - **ADD-7** Duplicate copies everything except the ID and sets the date to today.
 - **ADD-8** Future dates are allowed. The row is marked as upcoming until its date arrives (BAL-4).
-- **ADD-9** Leaving a form with unsaved edits asks first. Back closes the keypad if it is open, and the next Back — like the toolbar's arrow — asks "Discard changes?", with Keep editing and Discard. A form nothing has been typed into leaves without a word, and saving, "Save & add another" and deleting leave as they always did. It covers the transaction form and the transfer form.
+- **ADD-9** Leaving a form with unsaved edits asks first. Back closes the keypad if it is open, and the next Back — like the toolbar's arrow — asks "Discard changes?", with Keep editing and Discard. A form nothing has been typed into leaves without a word, and saving, "Save & add another" and deleting leave as they always did. It covers the transaction form, the transfer form, and the recurring rule form.
 
 ## 4. Categories
 
