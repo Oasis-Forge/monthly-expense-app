@@ -306,6 +306,33 @@ void main() {
     );
   });
 
+  test('a purged deletion does not come back on merge (DEL-1, DEL-3, BAK-3, '
+      'rules-1-5#7)', () async {
+    // An older backup (a second phone, or an automatic backup made before
+    // the deletion) still holds the live transaction.
+    final other = helperAt('other-purge.db');
+    await other.insertTransaction(tx('rent', title: 'Rent'));
+    final backup = await testBackupService(other).create(await testSettings());
+
+    final device = helperAt('device-purge.db');
+    await device.insertTransaction(
+      tx('rent', title: 'Rent', deleted: DateTime.utc(2026, 7, 1)),
+    );
+    // DEL-3: purged after 30 days in the trash, as load() does on start.
+    await device.purgeDeletedBefore(DateTime.utc(2026, 8, 1));
+
+    final service = testBackupService(device);
+    await service.restore(
+      await service.read(encode(backup)),
+      RestoreMode.merge,
+      await testSettings(),
+    );
+
+    // The purged deletion must win over the older backup, not come back
+    // as a live transaction.
+    expect(await device.fetchTransactions(), isEmpty);
+  });
+
   test('a backup from before colours comes back with them (CAT-6)', () async {
     final service = testBackupService(helperAt('app.db'));
 

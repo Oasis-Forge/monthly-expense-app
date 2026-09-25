@@ -213,7 +213,11 @@ class BackupService {
         await settings.restoreBackupValues(backup.settings);
         return RestoreResult.replaced(backup.transactionCount);
       case RestoreMode.merge:
-        final plan = planMerge(await _db.exportTables(), backup.tables);
+        final plan = planMerge(
+          await _db.exportTables(),
+          backup.tables,
+          purgedIds: await _db.fetchPurgedIds(),
+        );
         await _writeFiles(backup);
         await _db.applyMerge(plan);
         return RestoreResult.merged(plan);

@@ -313,3 +313,17 @@ Future<void> migrateToVersion10(DatabaseExecutor db) async {
     );
   }
 }
+
+/// Version 11: a record of every ID ever purged from the trash (DEL-3), so a
+/// later merge of an older backup never brings a deletion back once its
+/// tombstone is gone (BAK-3, rules-1-5#7). Local only: it never travels in a
+/// backup, since it says what this device has already thrown away, not
+/// anything about the record itself.
+Future<void> migrateToVersion11(DatabaseExecutor db) async {
+  await db.execute('''
+    CREATE TABLE purged_records (
+      id TEXT PRIMARY KEY,
+      purged_at TEXT NOT NULL
+    )
+  ''');
+}

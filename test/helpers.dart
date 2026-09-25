@@ -219,6 +219,9 @@ class FakeDB extends DBHelper {
 
   /// Every posted or skipped occurrence.
   final List<RecurringOccurrence> occurrences = [];
+
+  /// Every ID ever purged from the trash (DEL-3, rules-1-5#7).
+  final Set<String> purgedIds = {};
   bool failWrites = false;
 
   void _checkWrite() {
@@ -244,6 +247,13 @@ class FakeDB extends DBHelper {
       for (final row in rows)
         if (old(row.deletedAt)) row,
     ];
+    purgedIds.addAll([
+      for (final row in going) row.id,
+      for (final t in transfers)
+        if (old(t.deletedAt)) t.id,
+      for (final n in notes)
+        if (old(n.deletedAt)) n.id,
+    ]);
     rows.removeWhere((row) => old(row.deletedAt));
     transfers.removeWhere((t) => old(t.deletedAt));
     notes.removeWhere((n) => old(n.deletedAt));
@@ -251,6 +261,9 @@ class FakeDB extends DBHelper {
       for (final row in going) ...[?row.photoFile, ?row.voiceFile],
     ];
   }
+
+  @override
+  Future<Set<String>> fetchPurgedIds() async => {...purgedIds};
 
   @override
   Future<void> insertTransaction(ExpenseTransaction tx) async {

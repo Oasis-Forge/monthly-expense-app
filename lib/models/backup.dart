@@ -244,8 +244,15 @@ class MergePlan {
 /// Records only in the backup are added; when both sides have a record, the
 /// later `updated_at` wins, deletions included. An occurrence handled on both
 /// sides keeps this device's record, and the backup's transaction for it is
-/// left out, so a recurring transaction never posts twice (RCR-4).
-MergePlan planMerge(BackupTables current, BackupTables backup) {
+/// left out, so a recurring transaction never posts twice (RCR-4). A record
+/// whose ID is in [purgedIds] is left out rather than added: its tombstone
+/// has already been purged from this device (DEL-3), so the deletion still
+/// wins over an older backup that never heard about it (rules-1-5#7).
+MergePlan planMerge(
+  BackupTables current,
+  BackupTables backup, {
+  Set<String> purgedIds = const {},
+}) {
   final plan = MergePlan();
 
   final handled = {
@@ -273,6 +280,8 @@ MergePlan planMerge(BackupTables current, BackupTables backup) {
       final existing = byId[row['id']];
       if (existing == null) {
         if (table == 'transactions' && duplicatePosts.contains(row['id'])) {
+          plan.unchanged++;
+        } else if (purgedIds.contains(row['id'])) {
           plan.unchanged++;
         } else {
           plan._add(plan.inserts, table, row);
