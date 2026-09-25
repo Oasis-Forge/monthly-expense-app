@@ -577,29 +577,49 @@ void main() {
     expect(find.text('Next: Gym, in 5 days'), findsOneWidget);
   });
 
-  testWidgets('every row on the screen starts at the same left edge (CAT-6)', (
-    tester,
-  ) async {
-    // Due, upcoming and rules are three lists on one screen. A bare icon in
-    // any of them sits narrower than a CircleAvatar, and ListTile insets its
-    // title from the leading widget, so one odd row pulls a whole list out
-    // of line with the others.
-    await showRecurring(tester);
+  testWidgets(
+    'every row on the screen starts at the same left edge and the due row '
+    'is no taller than an upcoming one (CAT-6, RCR-2, pr56+60#9)',
+    (tester) async {
+      // Due, upcoming and rules are three lists on one screen. A bare icon in
+      // any of them sits narrower than a CircleAvatar, and ListTile insets
+      // its title from the leading widget, so one odd row pulls a whole list
+      // out of line with the others. Measuring the shape alone (leading is a
+      // CircleAvatar) would still pass if the due row's Skip and Post
+      // buttons moved back inside its subtitle: they'd still be circles, just
+      // ones a staircase of extra subtitle lines had pushed out of line
+      // (pr56+60#9).
+      await showRecurring(tester);
 
-    final avatars = find.descendant(
-      of: find.byType(ListTile),
-      matching: find.byType(CircleAvatar),
-    );
-    expect(avatars, findsWidgets);
+      final tiles = find.byType(ListTile);
+      final widgets = tester.widgetList<ListTile>(tiles).toList();
+      expect(widgets, isNotEmpty);
+      expect(widgets.map((tile) => tile.leading.runtimeType).toSet(), {
+        CircleAvatar,
+      }, reason: 'every row leads with the same shape, or the titles stagger');
 
-    final lefts = tester
-        .widgetList<ListTile>(find.byType(ListTile))
-        .map((tile) => tile.leading.runtimeType)
-        .toSet();
-    expect(lefts, {
-      CircleAvatar,
-    }, reason: 'every row leads with the same shape, or the titles stagger');
-  });
+      final lefts = <double>[];
+      final heights = <double>[];
+      for (var i = 0; i < widgets.length; i++) {
+        final tileFinder = tiles.at(i);
+        final titleText = (widgets[i].title! as Text).data!;
+        final titleFinder = find
+            .descendant(of: tileFinder, matching: find.text(titleText))
+            .first;
+        lefts.add(tester.getTopLeft(titleFinder).dx);
+        heights.add(tester.getSize(tileFinder).height);
+      }
+      expect(
+        lefts.toSet(),
+        hasLength(1),
+        reason: 'every title should start at the same x, got $lefts',
+      );
+
+      // Rent (due, index 0) must be no taller than Gym (upcoming, index 1):
+      // a staircase would show up here as extra height on the due row alone.
+      expect(heights[0], lessThanOrEqualTo(heights[1]));
+    },
+  );
 
   testWidgets('nothing is named next while something is overdue (RCR-8)', (
     tester,
