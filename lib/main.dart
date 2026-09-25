@@ -392,11 +392,12 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     super.dispose();
   }
 
-  /// Back in the app on a later day, Home moves on to today (DAY-1).
+  /// Back in the app on a later day, Home moves on to today (DAY-1) and any
+  /// automatic occurrence due since then posts (RCR-4).
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
-    context.read<TransactionProvider>().returnToToday();
+    unawaited(context.read<TransactionProvider>().returnToToday());
   }
 
   void _open() {

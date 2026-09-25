@@ -191,15 +191,23 @@ class TransactionProvider extends ChangeNotifier {
   /// Brings Home to today when the app comes back on a later day while Home
   /// was still showing the old today (DAY-1, PER-1), so an entry added then
   /// belongs to the new day (ADD-3). A day or period the user chose stays
-  /// chosen.
-  void returnToToday() {
+  /// chosen. Also posts any automatic occurrence that fell due while the app
+  /// stayed open across the day change, since otherwise only [load] does
+  /// (RCR-4, RCR-7).
+  Future<void> returnToToday() async {
     final today = _today;
     final before = _dayLastSeen;
     _dayLastSeen = today;
-    if (before == null || before == today || selectedDay != before) return;
-    _period = currentPeriod;
-    _daySelectionPeriod = null;
-    _changed();
+    final dayChanged = before != null && before != today;
+    if (dayChanged && selectedDay == before) {
+      _period = currentPeriod;
+      _daySelectionPeriod = null;
+      _changed();
+    }
+    if (dayChanged) {
+      await _postAutomaticOccurrences();
+      _changed();
+    }
   }
 
   final _loadDone = Completer<void>();
