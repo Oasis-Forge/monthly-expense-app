@@ -53,6 +53,30 @@ String signedAmount(
 TextStyle amountStyle([TextStyle? base]) =>
     (base ?? const TextStyle()).copyWith(fontFeatures: tabularFigures);
 
+/// Passed in place of a translated message's `{amount}` placeholder when the
+/// amount needs its own [TextSpan] — a sign, a colour — rather than plain
+/// text: format the message with this in [amount]'s place, then hand the
+/// result to [spansWithAmount] along with the styled span. Each language
+/// keeps its own separator and word order around the amount this way,
+/// instead of one hard-coded in the calling screen (pr61#8).
+const amountSentinel = '￼';
+
+/// [textWithSentinel] — a translated message formatted with [amountSentinel]
+/// standing in for its amount — split around that sentinel, with
+/// [amountSpan] dropped into its place.
+List<InlineSpan> spansWithAmount(
+  String textWithSentinel,
+  InlineSpan amountSpan,
+) {
+  final index = textWithSentinel.indexOf(amountSentinel);
+  if (index < 0) return [TextSpan(text: textWithSentinel)];
+  return [
+    TextSpan(text: textWithSentinel.substring(0, index)),
+    amountSpan,
+    TextSpan(text: textWithSentinel.substring(index + amountSentinel.length)),
+  ];
+}
+
 /// A money figure that counts to its new value instead of cutting to it
 /// (BAL-10). The figure is right from the first frame — only the way it
 /// arrives is new — and a phone asking for less motion is given it at once.

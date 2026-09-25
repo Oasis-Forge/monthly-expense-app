@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/amount_style.dart';
@@ -93,6 +94,23 @@ void main() {
         ) as TextSpan).style?.color,
         expenseColor(context),
       );
+    },
+  );
+
+  testWidgets(
+    "a trashed transaction keeps its own language's separator between the "
+    'amount and the days left, not a hard-coded one (pr61#8)',
+    (tester) async {
+      final settings = await testSettings({'language': 'ja'});
+      await tester.pumpWidget(testApp(provider, settings, const TrashScreen()));
+      await tester.pump();
+
+      final currency = settings.currencyFormat('ja');
+      final amount = currency.signedMoney(const Money(12500), isIncome: false);
+      // app_ja's trashItemSubtitle joins the amount and the days with '・'
+      // (no spaces), not the English ' · ' the screen used to paste in.
+      expect(find.text('$amount・あと29日で完全に削除されます'), findsOneWidget);
+      expect(find.textContaining(' · '), findsNothing);
     },
   );
 

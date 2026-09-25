@@ -100,9 +100,16 @@ class _TrashedTransaction extends StatelessWidget {
       // DEL-5, A11Y-4: a trashed transaction is unambiguously income or
       // expense, so it carries the same sign and colour as everywhere else
       // (CUR-5) rather than the plain figure a transfer or note amount is.
+      // The amount drops into trashItemSubtitle's own placeholder (pr61#8)
+      // rather than a hard-coded separator, so each language's own
+      // separator and word order around it survive.
       subtitle: Text.rich(
         TextSpan(
-          children: [
+          children: spansWithAmount(
+            l10n.trashItemSubtitle(
+              amountSentinel,
+              provider.trashDaysLeft(transaction),
+            ),
             TextSpan(
               text: signedAmount(
                 currency,
@@ -113,11 +120,7 @@ class _TrashedTransaction extends StatelessWidget {
                 TextStyle(color: signedColor(context, isIncome: isIncome)),
               ),
             ),
-            TextSpan(
-              text:
-                  ' · ${l10n.trashNoteSubtitle(provider.trashDaysLeft(transaction))}',
-            ),
-          ],
+          ),
         ),
       ),
       trailing: _RestoreButton(
