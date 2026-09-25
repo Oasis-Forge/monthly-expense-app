@@ -56,13 +56,30 @@ class HomeScreen extends StatefulWidget {
   /// is fetched on the way in — never waited for — and offered on the way
   /// back, once the screen it belonged to has gone (ADS-13, ADS-14).
   static void _open(BuildContext context, Widget screen) {
+    // Home's own route, captured before the push: still there under
+    // whatever [screen] pushes.
+    final homeRoute = ModalRoute.of(context);
     final opened = Navigator.of(context)
         .push(MaterialPageRoute(builder: (_) => screen));
     if (screen is! InsightsScreen) return;
     // The providers outlive the route, so the way back needs no context.
     final ads = context.read<AdsProvider>();
     unawaited(ads.primeInterstitial());
-    unawaited(opened.then((_) => ads.showAtSeam(AdSeam.leftInsights)));
+    unawaited(
+      opened.then((_) async {
+        // A shortcut or widget tap can pop back to Home and immediately
+        // push a fresh form in the same beat Insights' route future
+        // resolves in, so Home is no longer on top by the time this runs.
+        // Treat that exactly like ADS-13's "no ad ready" case rather than
+        // show the full-screen ad over whatever opened instead (ADS-1,
+        // ADS-11, ADS-14, rules-22-25-31-35#6).
+        if (homeRoute?.isCurrent != true) {
+          await ads.dropPrimedInterstitial();
+          return;
+        }
+        await ads.showAtSeam(AdSeam.leftInsights);
+      }),
+    );
   }
 
   /// Exports the selected period's transactions and transfers, across every

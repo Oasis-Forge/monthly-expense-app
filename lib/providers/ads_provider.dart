@@ -199,6 +199,18 @@ class AdsProvider extends ChangeNotifier {
     await _settings.spendAdActivity();
   }
 
+  /// Drops a primed interstitial without showing it: for a seam whose
+  /// screen is no longer the one to return to, such as a shortcut or widget
+  /// tap that moved on while Insights was still open (ADS-1, ADS-11,
+  /// ADS-14, rules-22-25-31-35#6). Treated the same as ADS-13's "no ad
+  /// ready" case: nothing is fetched to replace it.
+  Future<void> dropPrimedInterstitial() async {
+    final ad = _interstitial;
+    if (ad == null) return;
+    _interstitial = null;
+    await ad.dispose();
+  }
+
   /// Everything a banner has to satisfy (ADS-15), plus the day's own cap
   /// (ADS-12) and a build with a unit to ask with (ADS-16).
   bool _mayShowInterstitial() =>
