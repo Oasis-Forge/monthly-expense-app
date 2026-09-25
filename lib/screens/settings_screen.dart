@@ -105,7 +105,13 @@ class SettingsScreen extends StatelessWidget {
                 null,
                 l10n.weekStartDefault(
                   weekday(
-                    MaterialLocalizations.of(context).firstDayOfWeekIndex,
+                    // PER-4: the device's own region when it matches the
+                    // app's language, else the language's own default.
+                    deviceWeekStartIndex(
+                          WidgetsBinding.instance.platformDispatcher.locales,
+                          Localizations.localeOf(context).languageCode,
+                        ) ??
+                        MaterialLocalizations.of(context).firstDayOfWeekIndex,
                   ),
                 ),
               ),

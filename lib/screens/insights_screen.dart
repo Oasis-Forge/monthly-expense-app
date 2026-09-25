@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import 'empty_state.dart';
 import '../l10n/labels.dart';
+import '../l10n/languages.dart';
 import '../models/budget.dart';
 import '../models/insights.dart';
 import '../models/money.dart';
@@ -310,10 +311,15 @@ class _CalendarTabState extends State<_CalendarTab> {
     final compact = settings.compactCurrencyFormat(locale);
     final period = provider.period;
     final today = provider.today;
-    // PER-4: the chosen first day of the week, else the locale's (0 is
-    // Sunday).
+    // PER-4: the chosen first day of the week, else the device's own
+    // region when it matches the app's language, else the language's own
+    // (0 is Sunday).
     final firstWeekday =
         settings.weekStartDay ??
+        deviceWeekStartIndex(
+          WidgetsBinding.instance.platformDispatcher.locales,
+          Localizations.localeOf(context).languageCode,
+        ) ??
         MaterialLocalizations.of(context).firstDayOfWeekIndex;
     final days = [
       for (

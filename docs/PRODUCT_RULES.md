@@ -31,7 +31,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 - **PER-1** A period runs from its start date up to, but not including, the next start date. One function computes periods; Home, Stats, Budgets, and Calendar all use it.
 - **PER-2** First day of month is 1–28 or "last day of month", so a start day never falls outside a short month.
 - **PER-3** When the start day isn't 1, the period label shows both dates ("25 Aug – 24 Sep"), never just a month name.
-- **PER-4** First day of week follows the device locale until the user changes it.
+- **PER-4** First day of week follows the device locale until the user changes it: its region's own convention when the app is showing the device's own language (English (UK) or Portuguese (Portugal) start the week on Monday, not the Sunday their language alone defaults to), and otherwise the convention of whichever language the user has chosen, unconnected to their phone's region.
 
 ## 3. Adding a transaction
 

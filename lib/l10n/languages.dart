@@ -1,4 +1,5 @@
 import 'package:flutter/widgets.dart' show Locale, WidgetsBinding;
+import 'package:intl/date_symbol_data_local.dart' show dateTimeSymbolMap;
 
 /// The app's languages (LANG-1), each named in its own language. The names
 /// stay untranslated on purpose, so people can find their language whatever
@@ -52,3 +53,40 @@ Locale resolveAppLocale(List<Locale>? preferred) {
 Locale effectiveAppLocale(Locale? chosen) =>
     chosen ??
     resolveAppLocale(WidgetsBinding.instance.platformDispatcher.locales);
+
+/// First-day-of-week overrides for a region whose own convention intl's
+/// bundled data does not carry, checked directly against CLDR's own
+/// supplemental weekData. In [firstDayOfWeekIndex]'s own numbering (0 is
+/// Sunday).
+///
+/// Portugal is Monday, the same as the rest of the EU (CLDR's weekData:
+/// `PT` `firstDay="mon"`), but intl's `pt_PT` symbols still carry the same
+/// `FIRSTDAYOFWEEK` value as generic and Brazilian Portuguese (Sunday), so
+/// looking it up the way every other region below is looked up would still
+/// read Sunday.
+const _weekStartOverrides = {'PT': 1};
+
+/// The device's own first day of the week (PER-4), from [deviceLocales]
+/// (a [PlatformDispatcher.locales]) when its most-preferred locale's
+/// language is the one the app is currently showing ([appLanguage]) —
+/// else null, so the caller falls back to that language's own plain
+/// default the way it already did, the right answer for a language the
+/// user picked on purpose, unconnected to their phone's own region.
+///
+/// [MaterialLocalizations.firstDayOfWeekIndex] only ever sees the app's
+/// own locale, which [resolveAppLocale] always resolves language-only,
+/// dropping whatever region the device itself carries — so a phone set to
+/// English (UK) or Portuguese (Portugal) got the language's plain
+/// Sunday-first default instead of its own region's Monday.
+int? deviceWeekStartIndex(List<Locale> deviceLocales, String appLanguage) {
+  if (deviceLocales.isEmpty) return null;
+  final device = deviceLocales.first;
+  if (device.languageCode != appLanguage) return null;
+  final region = device.countryCode;
+  if (region == null) return null;
+  final override = _weekStartOverrides[region];
+  if (override != null) return override;
+  final symbols = dateTimeSymbolMap()['${device.languageCode}_$region'];
+  if (symbols == null) return null;
+  return (symbols.FIRSTDAYOFWEEK + 1) % 7;
+}

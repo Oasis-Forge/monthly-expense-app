@@ -479,6 +479,20 @@ void main() {
       expect(x('Mon'), lessThan(x('Sun')));
     });
 
+    testWidgets("the device's region decides the day, not just its language "
+        '(PER-4, rules-1-5#5)', (tester) async {
+      double x(String text) => tester.getCenter(find.text(text)).dx;
+
+      // A phone set to English (UK) starts the week on Monday, though
+      // the app's own language-only locale ('en') is Sunday-first.
+      tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+      expect(x('Mon'), lessThan(x('Sun')));
+    });
+
     testWidgets('outside today\'s period, a hint replaces the day list', (
       tester,
     ) async {
