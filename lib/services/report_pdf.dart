@@ -166,7 +166,7 @@ Future<Uint8List> buildReportPdf({
   // function for exactly this reason: its own body is the only scope the
   // isolate closure it creates can reach into, and that scope holds
   // nothing but its own plain parameters.
-  final headerWidget = _header(data, labels, createdAt);
+  final headerWidget = _header(data, labels, createdAt, options);
   final pageOfText = l10n.reportPageOf;
   final bytes = await _layoutAndWrite(
     document: document,
@@ -347,7 +347,12 @@ pw.Widget _heading(String text) => pw.Container(
 
 /// The app's name, what the report covers, the currency, and when it was
 /// made. No watermark and nothing promotional (PDF-3).
-pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
+pw.Widget _header(
+  ReportData data,
+  ReportLabels labels,
+  DateTime createdAt,
+  ReportOptions options,
+) {
   final l10n = labels.l10n;
   final range = data.from == data.to
       ? labels.fullDay(data.from)
@@ -391,7 +396,9 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
         if (searchInfo != null) ...[
           pw.SizedBox(height: 4),
           _run(
-            l10n.reportNarrowedTo(_searchDescription(searchInfo, l10n)),
+            l10n.reportNarrowedTo(
+              _searchDescription(searchInfo, l10n, options),
+            ),
             style: const pw.TextStyle(
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
@@ -404,18 +411,27 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
 }
 
 /// The query, type, and category a report was narrowed to, joined for the
-/// header line (PDF-1). At least one part is always present, since
-/// [ReportSearchInfo] is only attached when something narrowed the report.
-String _searchDescription(ReportSearchInfo info, AppLocalizations l10n) {
+/// header line (PDF-1). The query itself is left out when titles and notes
+/// are off (PDF-3): it may be private text of the user's own, so a report
+/// that already hides titles and notes must not print it back in the header
+/// (review-pdf-query-titles-off). At least one part is always present, since
+/// [ReportSearchInfo] is only attached when something narrowed the report:
+/// the type and category still show (neither is titles-and-notes text), and
+/// a query-only search falls back to naming the search itself.
+String _searchDescription(
+  ReportSearchInfo info,
+  AppLocalizations l10n,
+  ReportOptions options,
+) {
   final parts = [
-    if (info.query.isNotEmpty) '"${info.query}"',
+    if (info.query.isNotEmpty && options.titlesAndNotes) '"${info.query}"',
     if (info.type != null)
       info.type == TransactionType.income
           ? l10n.incomeLabel
           : l10n.expenseLabel,
     if (info.categoryName != null) info.categoryName!,
   ];
-  return parts.join(' · ');
+  return parts.isEmpty ? l10n.searchTooltip : parts.join(' · ');
 }
 
 /// Income, expense, net, and the balances either side of the range — or, for
