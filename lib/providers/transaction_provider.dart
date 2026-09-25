@@ -1273,13 +1273,27 @@ class TransactionProvider extends ChangeNotifier {
 
   /// Sets a budget, or removes it with a null [limit], from the current
   /// period onward; earlier periods keep their limits (BUD-5).
+  ///
+  /// A version that starts later inside the current period (one set before
+  /// the month start day moved earlier in the calendar, PER-2) would keep
+  /// outranking the new one, so it is removed: the new version always wins
+  /// for the current period. It never applied to an earlier period, so none
+  /// of them changes.
   Future<void> setBudget(String? categoryId, Money? limit) async {
-    final from = currentPeriod.start;
+    final current = currentPeriod;
+    final from = current.start;
     final now = _clock().toUtc();
     Budget? existing;
+    final superseded = <Budget>[];
     for (final budget in _budgets) {
-      if (budget.categoryId == categoryId && budget.effectiveFrom == from) {
+      if (budget.categoryId != categoryId || budget.deletedAt != null) {
+        continue;
+      }
+      if (budget.effectiveFrom == from) {
         existing = budget;
+      } else if (budget.effectiveFrom.isAfter(from) &&
+          budget.effectiveFrom.isBefore(current.end)) {
+        superseded.add(budget);
       }
     }
 
@@ -1305,7 +1319,17 @@ class TransactionProvider extends ChangeNotifier {
       await _db.insertBudget(budget);
       _budgets = [..._budgets, budget];
     }
-    _changed();
+    try {
+      for (final budget in superseded) {
+        await _db.updateBudget(budget.copyWith(deletedAt: now, updatedAt: now));
+        _budgets = [
+          for (final kept in _budgets)
+            if (kept.id != budget.id) kept,
+        ];
+      }
+    } finally {
+      _changed();
+    }
   }
 
   /// Progress of every budget in the selected period: the overall budget

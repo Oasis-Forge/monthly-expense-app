@@ -412,6 +412,39 @@ void main() {
       },
     );
 
+    test('after the start day moves, a change or removal still takes effect '
+        'at once (BUD-5, PER-2, rules-6-10#5)', () async {
+      // Set on the 1st-to-1st calendar: this version starts on 1 Sep.
+      await provider.setBudget('cat-food', const Money(300000));
+      await provider.setBudget(null, const Money(1000000));
+
+      // Now the period runs 25 Aug – 24 Sep, starting before that version.
+      provider.setStartDay(25);
+      expect(provider.budgetLimit('cat-food'), const Money(300000));
+
+      await provider.setBudget('cat-food', const Money(400000));
+      expect(provider.budgetLimit('cat-food'), const Money(400000));
+      provider.nextPeriod();
+      expect(provider.budgetLimit('cat-food'), const Money(400000));
+      provider.previousPeriod();
+
+      await provider.setBudget(null, null);
+      expect(provider.budgetLimit(null), isNull);
+      provider.nextPeriod();
+      expect(provider.budgetLimit(null), isNull);
+
+      // The period before keeps what it had: nothing was set before 1 Sep.
+      provider
+        ..previousPeriod()
+        ..previousPeriod();
+      expect(provider.budgetLimit('cat-food'), isNull);
+
+      await reload();
+      provider.setStartDay(25);
+      expect(provider.budgetLimit('cat-food'), const Money(400000));
+      expect(provider.budgetLimit(null), isNull);
+    });
+
     test(
       'a change applies from the current period on (BUD-5, BUD-6)',
       () async {
