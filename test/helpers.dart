@@ -603,13 +603,21 @@ class FakeAuthenticator implements Authenticator {
 /// A [ReminderService] that records calls instead of touching the device.
 /// [permissionGranted] answers [requestPermission].
 class FakeReminderService implements ReminderService {
-  FakeReminderService({this.permissionGranted = true});
+  FakeReminderService({this.permissionGranted = true, DateTime Function()? now})
+    : _now = now ?? DateTime.now;
 
   bool permissionGranted;
+
+  final DateTime Function() _now;
 
   /// Notes currently scheduled, by ID, with the [appLockOn] they were
   /// scheduled with.
   final Map<String, bool> scheduled = {};
+
+  /// The time each scheduled note's reminder was last scheduled for
+  /// (mirrors [DeviceReminderService]'s own record; see
+  /// [shouldCancelPassedReminder]).
+  final Map<String, DateTime> _lastScheduledAt = {};
 
   /// How many times [requestPermission] was called.
   int permissionRequests = 0;
@@ -652,16 +660,37 @@ class FakeReminderService implements ReminderService {
     required bool appLockOn,
     required Locale locale,
   }) async {
-    if (note.reminderAt == null || note.isDone || note.deletedAt != null) {
+    final at = note.reminderAt;
+    if (at == null || note.isDone || note.deletedAt != null) {
       scheduled.remove(note.id);
-    } else {
-      scheduled[note.id] = appLockOn;
+      _lastScheduledAt.remove(note.id);
+      return;
     }
+    final now = _now();
+    if (!at.isAfter(now)) {
+      if (shouldCancelPassedReminder(
+        at: at,
+        lastScheduledAt: _lastScheduledAt[note.id],
+        now: now,
+      )) {
+        scheduled.remove(note.id);
+        _lastScheduledAt.remove(note.id);
+      } else {
+        // Mirrors DeviceReminderService: a recently passed, unchanged time
+        // leaves whatever is already scheduled alone (NOTE-6).
+        scheduled[note.id] = appLockOn;
+        _lastScheduledAt[note.id] = at;
+      }
+      return;
+    }
+    scheduled[note.id] = appLockOn;
+    _lastScheduledAt[note.id] = at;
   }
 
   @override
   Future<void> cancel(Note note) async {
     scheduled.remove(note.id);
+    _lastScheduledAt.remove(note.id);
   }
 }
 

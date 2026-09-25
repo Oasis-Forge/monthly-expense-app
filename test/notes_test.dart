@@ -54,7 +54,7 @@ void main() {
     setUp(() async {
       now = today;
       fake = FakeDB();
-      reminders = FakeReminderService();
+      reminders = FakeReminderService(now: () => now);
       await reload();
     });
 
@@ -244,6 +244,93 @@ void main() {
       await provider.rescheduleReminders(appLockOn: true, locale: locale);
 
       expect(reminders.scheduled['a'], true);
+    });
+
+    group('a reminder whose time just passed is not cancelled for good '
+        '(NOTE-6, NUDGE-9)', () {
+      test(
+        'one minute past keeps its scheduled entry through a reschedule',
+        () async {
+          now = DateTime(2026, 9, 20, 9);
+          await add(
+            'a',
+            'Remind me',
+            dueDate: DateTime(2026, 9, 20),
+            reminderAt: DateTime(2026, 9, 20, 9),
+          );
+          now = DateTime(2026, 9, 20, 9, 1);
+
+          await provider.rescheduleReminders(appLockOn: false, locale: locale);
+
+          expect(
+            reminders.scheduled.containsKey('a'),
+            isTrue,
+            reason:
+                'the pending inexact alarm is still there; a reschedule '
+                'must not drop it',
+          );
+        },
+      );
+
+      test('a done note is still cancelled even within the window', () async {
+        now = DateTime(2026, 9, 20, 9);
+        await add(
+          'a',
+          'Remind me',
+          dueDate: DateTime(2026, 9, 20),
+          reminderAt: DateTime(2026, 9, 20, 9),
+        );
+        now = DateTime(2026, 9, 20, 9, 1);
+
+        await provider.setNoteDone('a', true, appLockOn: false, locale: locale);
+
+        expect(reminders.scheduled.containsKey('a'), isFalse);
+      });
+
+      test('more than two hours past is not rescheduled', () async {
+        now = DateTime(2026, 9, 20, 9);
+        await add(
+          'a',
+          'Remind me',
+          dueDate: DateTime(2026, 9, 20),
+          reminderAt: DateTime(2026, 9, 20, 9),
+        );
+        now = DateTime(2026, 9, 20, 9, 1);
+        await provider.rescheduleReminders(appLockOn: false, locale: locale);
+        expect(reminders.scheduled.containsKey('a'), isTrue);
+
+        now = DateTime(2026, 9, 20, 11, 1);
+        await provider.rescheduleReminders(appLockOn: false, locale: locale);
+
+        expect(reminders.scheduled.containsKey('a'), isFalse);
+      });
+
+      test(
+        'a changed time cancels the old one, even within the window',
+        () async {
+          now = DateTime(2026, 9, 20, 9);
+          await add(
+            'a',
+            'Remind me',
+            dueDate: DateTime(2026, 9, 20),
+            reminderAt: DateTime(2026, 9, 20, 9),
+          );
+          now = DateTime(2026, 9, 20, 9, 1);
+          await provider.rescheduleReminders(appLockOn: false, locale: locale);
+          expect(reminders.scheduled.containsKey('a'), isTrue);
+
+          // Edited to a different time that has also already passed.
+          await provider.updateNote(
+            provider
+                .noteById('a')!
+                .copyWith(reminderAt: DateTime(2026, 9, 20, 8)),
+            appLockOn: false,
+            locale: locale,
+          );
+
+          expect(reminders.scheduled.containsKey('a'), isFalse);
+        },
+      );
     });
   });
 }

@@ -36,6 +36,28 @@ const _nudgePrefix = 'nudge:';
 /// so this folds the UUID's hash into that range.
 int reminderNotificationId(String noteId) => noteId.hashCode & 0x7fffffff;
 
+/// How long after its time a note reminder is still worth leaving alone,
+/// covering the inexact alarm's own delivery window (NUDGE-9).
+const passedReminderGrace = Duration(hours: 2);
+
+/// Whether a reminder whose time [at] has already passed should be
+/// cancelled outright, rather than left as whatever is already pending.
+///
+/// Opening the app (or any other reschedule) shortly after a reminder's
+/// time, but before the device's inexact alarm has actually fired, must not
+/// cancel that still-pending alarm -- that silently loses the notification
+/// for good (NOTE-6). So a passed time is left alone, unless [lastScheduledAt]
+/// (the time this reminder was scheduled for last) shows it changed, or the
+/// time is more than [passedReminderGrace] in the past.
+bool shouldCancelPassedReminder({
+  required DateTime at,
+  required DateTime? lastScheduledAt,
+  required DateTime now,
+}) {
+  if (lastScheduledAt != null && lastScheduledAt != at) return true;
+  return now.difference(at) > passedReminderGrace;
+}
+
 /// Schedules and cancels the local notification for a note's reminder
 /// (NOTE-6). Tests use a fake instead of touching the device.
 abstract class ReminderService {
@@ -52,9 +74,12 @@ abstract class ReminderService {
 
   /// Schedules [note]'s reminder, replacing any earlier one for it, in
   /// [locale]. Does nothing (and cancels any existing one) when the note has
-  /// no reminder, is done, is deleted, or the reminder time has passed. With
-  /// [appLockOn], the notification names only the app, not the note's text
-  /// (LOCK-2).
+  /// no reminder, is done, or is deleted. A reminder whose time has passed is
+  /// cancelled only when that time changed or it passed more than
+  /// [passedReminderGrace] ago; otherwise whatever is already pending (the
+  /// device's own inexact alarm) is left alone rather than dropped for good
+  /// (NOTE-6, NUDGE-9, see [shouldCancelPassedReminder]). With [appLockOn],
+  /// the notification names only the app, not the note's text (LOCK-2).
   Future<void> schedule(
     Note note, {
     required bool appLockOn,
@@ -165,6 +190,11 @@ class DeviceReminderService implements ReminderService {
   /// the tapped notification's note a second time.
   Future<void>? _initializing;
 
+  /// The time each note's reminder was last scheduled for, so a passed time
+  /// can be told apart from one that changed (pr59-style in-memory record;
+  /// see [shouldCancelPassedReminder]).
+  final _lastScheduledAt = <String, DateTime>{};
+
   Future<void> _ensureInitialized() {
     final initializing = _initializing ??= _doInitialize();
     // A failed attempt is not cached: the next call starts a fresh one,
@@ -253,11 +283,23 @@ class DeviceReminderService implements ReminderService {
     required Locale locale,
   }) async {
     final at = note.reminderAt;
-    if (at == null ||
-        note.isDone ||
-        note.deletedAt != null ||
-        !at.isAfter(DateTime.now())) {
+    if (at == null || note.isDone || note.deletedAt != null) {
       await cancel(note);
+      return;
+    }
+    final now = DateTime.now();
+    if (!at.isAfter(now)) {
+      if (shouldCancelPassedReminder(
+        at: at,
+        lastScheduledAt: _lastScheduledAt[note.id],
+        now: now,
+      )) {
+        await cancel(note);
+      } else {
+        // Still within the grace window and unchanged: leave whatever the
+        // device already has pending alone (NOTE-6).
+        _lastScheduledAt[note.id] = at;
+      }
       return;
     }
     await _ensureInitialized();
@@ -280,10 +322,12 @@ class DeviceReminderService implements ReminderService {
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: note.id,
     );
+    _lastScheduledAt[note.id] = at;
   }
 
   @override
   Future<void> cancel(Note note) async {
+    _lastScheduledAt.remove(note.id);
     await _ensureInitialized();
     await _plugin.cancel(id: reminderNotificationId(note.id));
   }
