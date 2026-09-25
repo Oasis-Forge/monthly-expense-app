@@ -253,6 +253,70 @@ void main() {
   );
 
   testWidgets(
+    "with 'Save & add another' and then Back on the emptied form, the "
+    'seam still runs instead of being dropped (UPD-2, RATE-3, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AddTransactionScreen(),
+                  ),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '12');
+      await revealInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.tap(
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.pumpAndSettle();
+
+      // ADD-4 keeps the form open on the cleared entry, so nothing has
+      // asked yet.
+      expect(updates.checked, 0);
+
+      // The habit is add-another, then Back on the empty form rather than
+      // another save: the first Back only closes the keypad the amount
+      // field's own focus reopened (ADD-9).
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+      // Nothing was typed since, so the second Back leaves without a word
+      // -- and that is the only moment left to run the seam.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsNothing);
+      expect(updates.checked, 1);
+      expect(updates.started, 1);
+    },
+  );
+
+  testWidgets(
     'a form opened while Play is still being asked skips the download for '
     "today, and doesn't spend today's ask (UPD-2, UPD-4, pr58#7)",
     (tester) async {
