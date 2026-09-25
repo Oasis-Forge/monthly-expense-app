@@ -213,6 +213,35 @@ void main() {
     expect(find.textContaining('Carried forward'), findsNothing);
   });
 
+  testWidgets(
+    'with carrying forward off, the amount is the period net, not the '
+    'closing balance (BAL-3, BAL-2)',
+    (tester) async {
+      // Same earlier-period income as BAL-2, so carried forward ($100) and
+      // period net (-$12.50) are different numbers, unlike the base BAL-3
+      // test above where both happen to be the same because there is no
+      // prior period.
+      fake.rows.add(
+        testTx('pay', TransactionType.income, 100, DateTime(2026, 8, 20)),
+      );
+      await provider.load();
+      settings = await testSettings({'show_carried_forward': false});
+
+      await showHome(tester);
+
+      expect(find.text('This period'), findsOneWidget);
+      // A day row can show the same figure, so look inside the summary card.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('\$87.50')),
+        findsNothing,
+      );
+    },
+  );
+
   testWidgets('amounts use the chosen currency (CUR-2)', (tester) async {
     settings = await testSettings({'currency_code': 'EUR'});
 
