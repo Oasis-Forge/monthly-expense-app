@@ -2115,6 +2115,14 @@ class TransactionProvider extends ChangeNotifier {
   DateTime? _previousSummaryDay;
   String? _previousSummaryAccount;
 
+  /// The day [_previous] bounds itself to, so a category with nothing
+  /// dated on or before it reads the same as a category with no earlier
+  /// record at all (pr56+60#4).
+  DateTime _previousAsOf(DateTime today) {
+    final elapsedDays = today.difference(_period.start).inDays;
+    return _period.previous.start.add(Duration(days: elapsedDays));
+  }
+
   _PeriodSummary get _previous {
     final today = _today;
     final account = accountFilterId;
@@ -2124,8 +2132,7 @@ class TransactionProvider extends ChangeNotifier {
         _previousSummaryAccount == account) {
       return cached;
     }
-    final elapsedDays = today.difference(_period.start).inDays;
-    final asOf = _period.previous.start.add(Duration(days: elapsedDays));
+    final asOf = _previousAsOf(today);
     _previousSummaryDay = today;
     _previousSummaryAccount = account;
     return _previousSummary = _PeriodSummary(
@@ -2146,12 +2153,34 @@ class TransactionProvider extends ChangeNotifier {
   /// Whether anything at all was recorded before the selected period, for
   /// the chosen account. The earliest period on record has nothing to
   /// compare itself with, and a comparison against nothing reads as "you
-  /// spent nothing last month" (INS-6, ACC-7).
+  /// spent nothing last month" (INS-6, ACC-7). Kept for callers that mean
+  /// exactly that; the category chart's own comparison is gated by
+  /// [hasComparablePreviousPeriod] instead, since [_previous] bounds the
+  /// span it draws from and an earlier record outside that bound is no
+  /// more comparable than no record at all (pr56+60#4).
   bool get hasEarlierRecords {
     final account = accountFilterId;
     return _transactions.any(
       (tx) =>
           tx.date.isBefore(_period.start) &&
+          (account == null || tx.accountId == account),
+    );
+  }
+
+  /// Whether the category chart's comparison (INS-6) has a real previous
+  /// period to draw from, once bounded the same way [_previous] is: a
+  /// record dated before the bound doesn't feed it, so it must not count
+  /// as making the comparison possible either, or a partial history reads
+  /// as "you spent nothing last month" the moment its only earlier record
+  /// falls outside the bound (pr56+60#4).
+  bool get hasComparablePreviousPeriod {
+    final today = _today;
+    final asOf = _previousAsOf(today);
+    final account = accountFilterId;
+    return _transactions.any(
+      (tx) =>
+          tx.date.isBefore(_period.start) &&
+          !_dayOf(tx.date).isAfter(asOf) &&
           (account == null || tx.accountId == account),
     );
   }

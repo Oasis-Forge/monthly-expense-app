@@ -259,6 +259,25 @@ void main() {
     );
 
     testWidgets(
+      'the only earlier record falling after the bound reads as no earlier '
+      'record at all, not an empty comparison (INS-6, pr56+60#4)',
+      (tester) async {
+        // Today is the 15th, so the bound is August 1–15. The only record
+        // before September is on the 20th, past that bound: hasEarlierRecords
+        // alone would say yes, but the bounded comparison it feeds has
+        // nothing in it, which reads as "you spent nothing last month" --
+        // exactly what an empty comparison must never show.
+        await showInsights(tester, [
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 20)),
+          testTx('b', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+        ]);
+
+        expect(find.textContaining('than last month'), findsNothing);
+        expect(find.text('new'), findsNothing);
+      },
+    );
+
+    testWidgets(
       'a rising category shows a plus, and a change under half a percent '
       'shows no label at all (INS-6, pr61#5, pr56+60#2)',
       (tester) async {
