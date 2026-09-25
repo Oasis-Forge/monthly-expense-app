@@ -1279,7 +1279,7 @@ class _DaySection extends StatelessWidget {
               if (dayTotals.income.isPositive)
                 _DayTotal(
                   amount: dayTotals.income,
-                  color: incomeColor(context),
+                  isIncome: true,
                   currency: currency,
                 ),
               if (dayTotals.income.isPositive && dayTotals.expense.isPositive)
@@ -1287,7 +1287,7 @@ class _DaySection extends StatelessWidget {
               if (dayTotals.expense.isPositive)
                 _DayTotal(
                   amount: dayTotals.expense,
-                  color: expenseColor(context),
+                  isIncome: false,
                   currency: currency,
                 ),
             ],
@@ -1313,23 +1313,28 @@ class _DaySection extends StatelessWidget {
 }
 
 /// One side of a day's total, coloured like the summary card's (DAY-7).
+///
+/// A11Y-4: nothing here carries meaning by colour alone. The sign, not just
+/// the ink, says which side this is (CUR-5).
 class _DayTotal extends StatelessWidget {
   const _DayTotal({
     required this.amount,
-    required this.color,
+    required this.isIncome,
     required this.currency,
   });
 
   final Money amount;
-  final Color color;
+  final bool isIncome;
   final NumberFormat currency;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      currency.money(amount),
-      style: amountStyle(Theme.of(context).textTheme.labelLarge)
-          .copyWith(color: color, fontWeight: FontWeight.w600),
+      signedAmount(currency, amount, isIncome: isIncome),
+      style: amountStyle(Theme.of(context).textTheme.labelLarge).copyWith(
+        color: signedColor(context, isIncome: isIncome),
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }

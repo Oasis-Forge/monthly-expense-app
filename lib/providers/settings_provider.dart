@@ -12,6 +12,7 @@ import '../models/reminders.dart';
 
 import '../l10n/languages.dart';
 import '../models/currencies.dart' show arabicCurrencySymbols;
+import '../models/money.dart' show swapMinusForPlus;
 import '../models/period.dart';
 
 /// App settings kept in shared_preferences: language (LANG-1), currency
@@ -804,4 +805,12 @@ class CompactCurrencyFormat {
 
   String format(num amount) =>
       _inner.format(amount).replaceAll(_doubledSpace, ' ');
+
+  /// [amount] with a plus on money coming in and a minus on money going out,
+  /// the same way [MoneyFormat.signedMoney] signs the full-size format
+  /// (CUR-5, A11Y-4).
+  String signedFormat(num amount, {required bool isIncome}) {
+    final text = format(-amount);
+    return isIncome ? swapMinusForPlus(text, _inner.locale) : text;
+  }
 }

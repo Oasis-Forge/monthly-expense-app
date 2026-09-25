@@ -417,11 +417,15 @@ class _DayCell extends StatelessWidget {
       side: isToday ? BorderSide(color: scheme.primary) : BorderSide.none,
     );
 
-    Widget amount(Money value, Color color) => FittedBox(
+    // A11Y-4: nothing here carries meaning by colour alone. Each side of the
+    // day's total gets its sign in front of it, the same way every other
+    // amount in the app does (CUR-5).
+    Widget amount(Money value, {required bool isIncome}) => FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
-        compact.format(value.toDouble()),
-        style: amountStyle(small).copyWith(color: color),
+        compact.signedFormat(value.toDouble(), isIncome: isIncome),
+        style: amountStyle(small)
+            .copyWith(color: signedColor(context, isIncome: isIncome)),
       ),
     );
 
@@ -456,10 +460,12 @@ class _DayCell extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (totals != null && totals.expense.isPositive)
-                        amount(totals.expense, expenseColor(context)),
+                      // Income before expense, the same order Home uses for
+                      // a day's total (DAY-7).
                       if (totals != null && totals.income.isPositive)
-                        amount(totals.income, incomeColor(context)),
+                        amount(totals.income, isIncome: true),
+                      if (totals != null && totals.expense.isPositive)
+                        amount(totals.expense, isIncome: false),
                     ],
                   ),
                 ),
@@ -719,12 +725,12 @@ class _TrendTabState extends State<_TrendTab> {
                     barRods: [
                       BarChartRodData(
                         toY: bars[i].income.toDouble(),
-                        color: Colors.green,
+                        color: incomeColor(context),
                         width: rodWidth,
                       ),
                       BarChartRodData(
                         toY: bars[i].expense.toDouble(),
-                        color: Colors.red,
+                        color: expenseColor(context),
                         width: rodWidth,
                       ),
                     ],
@@ -751,9 +757,16 @@ class _TrendTabState extends State<_TrendTab> {
               ),
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
+                  // A11Y-4: the tooltip carries the sign too, not only the
+                  // bar's colour (CUR-5). rodIndex 0 is income, 1 expense,
+                  // matching the order the bars were built in above.
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
-                        currency.money(Money((rod.toY * 1000).round())),
+                        signedAmount(
+                          currency,
+                          Money((rod.toY * 1000).round()),
+                          isIncome: rodIndex == 0,
+                        ),
                         amountStyle(
                           const TextStyle(
                             color: Colors.white,

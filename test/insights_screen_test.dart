@@ -318,10 +318,22 @@ void main() {
       final compact = settings.compactCurrencyFormat('en');
 
       expect(find.text('Sep 1'), findsOneWidget);
-      expect(find.text(compact.format(30)), findsOneWidget);
-      expect(find.text(compact.format(100)), findsOneWidget);
+      // Signed, not just coloured, on the calendar cell too (A11Y-4, CUR-5).
+      expect(
+        find.text(compact.signedFormat(30, isIncome: false)),
+        findsOneWidget,
+      );
+      // The calendar cell, and the day list's own signed row for Paycheck
+      // below it, format the same for a whole number (INS-1, DET-1).
+      expect(
+        find.text(compact.signedFormat(100, isIncome: true)),
+        findsNWidgets(2),
+      );
       // Upcoming days show their amounts too, faintly.
-      expect(find.text(compact.format(40)), findsOneWidget);
+      expect(
+        find.text(compact.signedFormat(40, isIncome: false)),
+        findsOneWidget,
+      );
       expect(find.text('Tuesday, September 15, 2026'), findsOneWidget);
       expect(find.text('Paycheck'), findsOneWidget);
     });
