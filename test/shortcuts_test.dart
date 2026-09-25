@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
@@ -173,6 +174,57 @@ void main() {
 
         expect(find.byType(AddTransactionScreen), findsNothing);
         expect(find.byType(TransferScreen), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'a shortcut chosen while the transfer form has unsaved edits asks '
+      'the same question rather than silently discarding them (ADD-9, '
+      'pr57#3)',
+      (tester) async {
+        final shortcuts = FakeShortcuts();
+        // The transfer form only shows its fields with a second account to
+        // move to (ACC-1); the default database ships only the built-in
+        // Cash one. Removed again on teardown so it doesn't change what
+        // later tests in this file -- sharing the same on-disk database --
+        // find on Home.
+        final bankId = 'bank-${DateTime.now().microsecondsSinceEpoch}';
+        await tester.runAsync(
+          () => DBHelper.instance.insertAccount(testAccount(bankId)),
+        );
+        addTearDown(
+          () => tester.runAsync(
+            () async => (await DBHelper.instance.database).delete(
+              'accounts',
+              where: 'id = ?',
+              whereArgs: [bankId],
+            ),
+          ),
+        );
+        await startApp(tester, shortcuts);
+
+        shortcuts.choose('transfer');
+        await tester.pumpAndSettle();
+        expect(find.byType(TransferScreen), findsOneWidget);
+
+        final amountField = find.widgetWithText(TextFormField, 'Amount');
+        await revealInForm(tester, amountField);
+        await tester.enterText(amountField, '42');
+        await tester.pump();
+
+        // A different shortcut arrives before the half-typed transfer is
+        // saved: it must not simply replace the form.
+        shortcuts.choose('add_expense');
+        await tester.pumpAndSettle();
+
+        expect(find.text('Discard changes?'), findsOneWidget);
+        expect(find.byType(TransferScreen), findsOneWidget);
+
+        await tester.tap(find.text('Keep editing'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(TransferScreen), findsOneWidget);
+        expect(find.text('42'), findsWidgets);
       },
     );
 
@@ -487,5 +539,35 @@ void main() {
         expect(find.text('42'), findsWidgets);
       },
     );
+
+    testWidgets('choosing Discard on that question lets the widget tap through '
+        '(ADD-9, pr57#3)', (tester) async {
+      addTearDown(() => tappedWidgetAction.value = null);
+      final shortcuts = FakeShortcuts();
+      await startApp(tester, shortcuts);
+
+      shortcuts.choose('add_expense');
+      await tester.pumpAndSettle();
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+      final amountField = find.widgetWithText(TextFormField, 'Amount');
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '42');
+      await tester.pump();
+
+      tappedWidgetAction.value = HomeWidgetAction.addIncome;
+      await tester.pumpAndSettle();
+      expect(find.text('Discard changes?'), findsOneWidget);
+
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(
+        find.text('42'),
+        findsNothing,
+        reason: 'Discard should have let the widget tap open a fresh form',
+      );
+    });
   });
 }
