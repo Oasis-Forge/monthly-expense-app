@@ -296,4 +296,22 @@ void main() {
       expect(heard, [true, false]);
     });
   });
+
+  group('the mic permission is declared on every platform that offers it '
+      '(ATT-2, ATT-4)', () {
+    // The Record button has no platform guard (attachment_field.dart), so
+    // every platform that requests mic access at runtime must also declare
+    // why in its own permission plist, or the OS kills the app outright
+    // instead of asking.
+    test('macOS declares NSMicrophoneUsageDescription', () {
+      final plist = File('macos/Runner/Info.plist').readAsStringSync();
+      expect(
+        plist.contains('NSMicrophoneUsageDescription'),
+        isTrue,
+        reason:
+            'record_macos requests mic access; without this key macOS TCC '
+            'terminates the app instead of asking.',
+      );
+    });
+  });
 }

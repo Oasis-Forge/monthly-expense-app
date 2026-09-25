@@ -1177,42 +1177,58 @@ class TransactionProvider extends ChangeNotifier {
 
   // Search (SRCH-1–SRCH-3).
 
-  /// Transactions matching [filter], newest first. Text matches the title,
-  /// note, [categoryName], [accountName], or an equal amount, ignoring case
-  /// and accents.
+  /// Whether [tx] matches [filter]'s text, type, and category — the same
+  /// narrowing [search] and its CSV export apply, kept separate from
+  /// [filter]'s account and dates so a caller (the report opened from
+  /// Search, PDF-1) can apply those on its own instead. Text matches the
+  /// title, note, [categoryName], [accountName], or an equal amount,
+  /// ignoring case and accents.
+  bool matchesSearch(
+    ExpenseTransaction tx,
+    TransactionFilter filter, {
+    required String Function(Category category) categoryName,
+    required String Function(Account account) accountName,
+  }) {
+    if (filter.type != null && tx.type != filter.type) return false;
+    if (filter.categoryId != null && tx.categoryId != filter.categoryId) {
+      return false;
+    }
+    final query = foldForSearch(filter.query.trim());
+    final queryAmount = Money.tryParse(filter.query);
+    if (query.isEmpty || tx.amount == queryAmount) return true;
+    final category = categoryById(tx.categoryId);
+    final account = accountById(tx.accountId);
+    return [
+      tx.title,
+      tx.note,
+      if (category != null) categoryName(category),
+      if (account != null) accountName(account),
+    ].any((text) => text != null && foldForSearch(text).contains(query));
+  }
+
+  /// Transactions matching [filter], newest first.
   SearchResult search(
     TransactionFilter filter, {
     required String Function(Category category) categoryName,
     required String Function(Account account) accountName,
   }) {
-    final query = foldForSearch(filter.query.trim());
-    final queryAmount = Money.tryParse(filter.query);
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
-
-    bool matchesText(ExpenseTransaction tx) {
-      if (query.isEmpty || tx.amount == queryAmount) return true;
-      final category = categoryById(tx.categoryId);
-      final account = accountById(tx.accountId);
-      return [
-        tx.title,
-        tx.note,
-        if (category != null) categoryName(category),
-        if (account != null) accountName(account),
-      ].any((text) => text != null && foldForSearch(text).contains(query));
-    }
 
     final matches = <ExpenseTransaction>[];
     var income = Money.zero;
     var expense = Money.zero;
     for (final tx in _transactions) {
       final day = _dayOf(tx.date);
-      if ((filter.type != null && tx.type != filter.type) ||
-          (filter.categoryId != null && tx.categoryId != filter.categoryId) ||
-          (filter.accountId != null && tx.accountId != filter.accountId) ||
+      if ((filter.accountId != null && tx.accountId != filter.accountId) ||
           (from != null && day.isBefore(from)) ||
           (to != null && day.isAfter(to)) ||
-          !matchesText(tx)) {
+          !matchesSearch(
+            tx,
+            filter,
+            categoryName: categoryName,
+            accountName: accountName,
+          )) {
         continue;
       }
       matches.add(tx);
