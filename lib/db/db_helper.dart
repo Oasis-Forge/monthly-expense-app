@@ -71,6 +71,20 @@ class DBHelper {
       },
       onUpgrade: (db, oldVersion, newVersion) =>
           _migrate(db, from: oldVersion, to: newVersion),
+      // Without this, sqflite's default when a build with fewer migration
+      // steps opens a database a newer build already upgraded is to run no
+      // migration but still lower `user_version` to this build's version.
+      // The next time the newer build opens it, it reruns the migrations in
+      // between against columns and tables that already exist and fails
+      // (data-integrity#9). Refusing the open instead leaves `user_version`
+      // untouched, so a later open by a build that understands this schema
+      // still works.
+      onDowngrade: (db, oldVersion, newVersion) {
+        throw StateError(
+          'Refusing to open a database at schema $oldVersion with a build '
+          'that only knows schema $newVersion; open it with a newer build.',
+        );
+      },
     );
   }
 

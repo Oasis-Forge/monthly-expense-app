@@ -75,6 +75,26 @@ void main() {
         expect(await columns(v3, 'labels'), ['id']);
       },
     );
+
+    test('a build with fewer migration steps refuses to open a database a '
+        'newer build already upgraded, and never lowers its schema version '
+        '(data-integrity#9)', () async {
+      final v10 = helperAt('app.db');
+      await v10.database;
+      await v10.close();
+
+      // An older build (fewer migration steps) opens the same file, as
+      // TestFlight, `adb install -d`, or a desktop installer downgrade
+      // allow. It must refuse rather than silently lower `user_version`.
+      final v9 = helperAt('app.db', DBHelper.schemaMigrations.sublist(0, 8));
+      await expectLater(v9.database, throwsA(isA<StateError>()));
+      await v9.close();
+
+      // The newer build is installed again: it must still open cleanly,
+      // proving `user_version` was left at 10 rather than lowered to 9.
+      final v10Again = helperAt('app.db');
+      expect(await (await v10Again.database).getVersion(), 10);
+    });
   });
 
   group('app schema', () {
