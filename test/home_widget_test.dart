@@ -377,7 +377,7 @@ void main() {
     });
 
     test('a resume pushes again even though nothing tracked changed, so a '
-        "phone language change while the app sat in the background still "
+        'phone language change while the app sat in the background still '
         'reaches the widget (WID-5)', () async {
       await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
       final before = service.updates.length;
