@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">今期の支出、または予算の残り</string>
+    <string name="widget_medium_description">今期の収入、支出、残高</string>
+    <string name="widget_open_the_app">今期を見るにはMonthly Expensesを開いてください</string>
+    <string name="widget_preview_period">今期</string>
+    <string name="widget_preview_income">収入</string>
+    <string name="widget_preview_expense">支出</string>
+    <string name="widget_preview_balance">残高</string>
+    <string name="widget_preview_left">残り</string>
+    <string name="widget_preview_add_expense">支出を追加</string>
+    <string name="widget_preview_add_income">収入を追加</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

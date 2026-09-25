@@ -1134,6 +1134,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses کھولیں';
 
   @override
+  String get appLockPromptHint => 'اپنی شناخت کی تصدیق کریں';
+
+  @override
   String get appLockFailed =>
       'آپ کی تصدیق نہیں ہو سکی۔ ایپ لاک تبدیل نہیں ہوا۔';
 
@@ -1290,6 +1293,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'ایک نوٹ واجب الادا ہے';
+
+  @override
+  String get noteReminderChannelName => 'نوٹ کی یاد دہانیاں';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1753,6 +1759,9 @@ class AppLocalizationsUr extends AppLocalizations {
   String get dueEntryReminderTitle => 'ایک اندراج واجب تھا';
 
   @override
+  String get dueEntryChannelName => 'تاخیر شدہ اندراجات';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
   }
@@ -1774,6 +1783,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'آج کچھ بھی درج نہیں ہوا';
+
+  @override
+  String get emptyDayChannelName => 'بلا اندراج دن';
 
   @override
   String get emptyDayReminderBody => 'جب تک یاد ہے، اپنا خرچ درج کر لیں۔';

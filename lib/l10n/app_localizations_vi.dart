@@ -1137,6 +1137,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get appLockReason => 'Mở khóa Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Xác nhận danh tính của bạn';
+
+  @override
   String get appLockFailed =>
       'Không thể xác nhận đó là bạn. Khóa ứng dụng chưa được thay đổi.';
 
@@ -1295,6 +1298,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Có một ghi chú đến hạn';
+
+  @override
+  String get noteReminderChannelName => 'Nhắc nhở ghi chú';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1758,6 +1764,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dueEntryReminderTitle => 'Một mục đã đến hạn';
 
   @override
+  String get dueEntryChannelName => 'Các mục đã đến hạn';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title đã đến hạn hôm nay và vẫn đang chờ.';
   }
@@ -1779,6 +1788,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Hôm nay chưa ghi gì';
+
+  @override
+  String get emptyDayChannelName => 'Những ngày chưa ghi gì';
 
   @override
   String get emptyDayReminderBody =>

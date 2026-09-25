@@ -1978,6 +1978,12 @@ abstract class AppLocalizations {
   /// **'Unlock Monthly Expenses'**
   String get appLockReason;
 
+  /// The subtitle under the app-lock prompt's title (LOCK-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get appLockPromptHint;
+
   /// No description provided for @appLockFailed.
   ///
   /// In en, this message translates to:
@@ -2271,6 +2277,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A note is due'**
   String get noteReminderLockedTitle;
+
+  /// The Android notification channel for note reminders, shown in system settings (NUDGE-11).
+  ///
+  /// In en, this message translates to:
+  /// **'Note reminders'**
+  String get noteReminderChannelName;
 
   /// No description provided for @noteReminderPermissionDenied.
   ///
@@ -2980,6 +2992,12 @@ abstract class AppLocalizations {
   /// **'An entry was due'**
   String get dueEntryReminderTitle;
 
+  /// The Android notification channel for due recurring entries, shown in system settings (NUDGE-11).
+  ///
+  /// In en, this message translates to:
+  /// **'Entries that fell due'**
+  String get dueEntryChannelName;
+
   /// No description provided for @dueEntryReminderOne.
   ///
   /// In en, this message translates to:
@@ -3003,6 +3021,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Nothing recorded today'**
   String get emptyDayReminderTitle;
+
+  /// The Android notification channel for empty-day nudges, shown in system settings (NUDGE-11).
+  ///
+  /// In en, this message translates to:
+  /// **'Days with nothing recorded'**
+  String get emptyDayChannelName;
 
   /// No description provided for @emptyDayReminderBody.
   ///

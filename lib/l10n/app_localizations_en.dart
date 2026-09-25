@@ -1133,6 +1133,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appLockReason => 'Unlock Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Confirm it\'s you';
+
+  @override
   String get appLockFailed =>
       'Couldn\'t confirm it\'s you. App lock wasn\'t changed.';
 
@@ -1290,6 +1293,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'A note is due';
+
+  @override
+  String get noteReminderChannelName => 'Note reminders';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1753,6 +1759,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dueEntryReminderTitle => 'An entry was due';
 
   @override
+  String get dueEntryChannelName => 'Entries that fell due';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title was due today and is still waiting.';
   }
@@ -1774,6 +1783,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Nothing recorded today';
+
+  @override
+  String get emptyDayChannelName => 'Days with nothing recorded';
 
   @override
   String get emptyDayReminderBody =>

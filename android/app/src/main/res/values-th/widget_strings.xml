@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">รายจ่ายในงวดนี้ หรือส่วนที่เหลือของงบประมาณ</string>
+    <string name="widget_medium_description">รายรับ รายจ่าย และยอดคงเหลือของงวดนี้</string>
+    <string name="widget_open_the_app">เปิด Monthly Expenses เพื่อดูงวดนี้</string>
+    <string name="widget_preview_period">งวดนี้</string>
+    <string name="widget_preview_income">รายรับ</string>
+    <string name="widget_preview_expense">รายจ่าย</string>
+    <string name="widget_preview_balance">ยอดคงเหลือ</string>
+    <string name="widget_preview_left">คงเหลือ</string>
+    <string name="widget_preview_add_expense">เพิ่มรายจ่าย</string>
+    <string name="widget_preview_add_income">เพิ่มรายรับ</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

@@ -267,15 +267,15 @@ class DeviceReminderService implements ReminderService {
       title: appLockOn ? l10n.noteReminderLockedTitle : l10n.noteReminderTitle,
       body: appLockOn ? null : note.text,
       scheduledDate: tz.TZDateTime.from(at, tz.local),
-      notificationDetails: const NotificationDetails(
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           'note_reminders',
-          'Note reminders',
+          l10n.noteReminderChannelName,
           importance: Importance.defaultImportance,
         ),
-        iOS: DarwinNotificationDetails(),
-        macOS: DarwinNotificationDetails(),
-        linux: LinuxNotificationDetails(),
+        iOS: const DarwinNotificationDetails(),
+        macOS: const DarwinNotificationDetails(),
+        linux: const LinuxNotificationDetails(),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       payload: note.id,
@@ -340,8 +340,8 @@ class DeviceReminderService implements ReminderService {
               ReminderKind.emptyDay => 'empty_days',
             },
             switch (reminder.kind) {
-              ReminderKind.dueEntry => 'Entries that fell due',
-              ReminderKind.emptyDay => 'Days with nothing recorded',
+              ReminderKind.dueEntry => l10n.dueEntryChannelName,
+              ReminderKind.emptyDay => l10n.emptyDayChannelName,
             },
             importance: Importance.defaultImportance,
           ),

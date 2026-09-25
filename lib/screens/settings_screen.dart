@@ -305,7 +305,11 @@ class _AppLockTileState extends State<_AppLockTile> {
     final authenticator = context.read<Authenticator>();
     final transactions = context.read<TransactionProvider>();
     setState(() => _busy = true);
-    final result = await authenticator.authenticate(l10n.appLockReason);
+    final result = await authenticator.authenticate(
+      l10n.appLockReason,
+      hint: l10n.appLockPromptHint,
+      cancelButton: l10n.cancelButton,
+    );
     // Turning the lock off never needs a check the device can't perform.
     if (result == AuthResult.success ||
         (!on && result == AuthResult.unavailable)) {

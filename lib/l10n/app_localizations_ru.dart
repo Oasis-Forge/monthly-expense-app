@@ -1175,6 +1175,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appLockReason => 'Разблокировать Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Подтвердите, что это вы';
+
+  @override
   String get appLockFailed =>
       'Не удалось подтвердить личность. Настройка блокировки не изменена.';
 
@@ -1337,6 +1340,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Наступил срок заметки';
+
+  @override
+  String get noteReminderChannelName => 'Напоминания о заметках';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1820,6 +1826,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dueEntryReminderTitle => 'Наступил срок записи';
 
   @override
+  String get dueEntryChannelName => 'Просроченные записи';
+
+  @override
   String dueEntryReminderOne(String title) {
     return 'Срок $title наступил сегодня, и запись всё ещё ждёт.';
   }
@@ -1843,6 +1852,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Сегодня ничего не записано';
+
+  @override
+  String get emptyDayChannelName => 'Дни без записей';
 
   @override
   String get emptyDayReminderBody =>

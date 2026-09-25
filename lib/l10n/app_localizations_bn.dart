@@ -1145,6 +1145,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses আনলক করুন';
 
   @override
+  String get appLockPromptHint => 'আপনার পরিচয় নিশ্চিত করুন';
+
+  @override
   String get appLockFailed =>
       'আপনাকে শনাক্ত করা যায়নি। অ্যাপ লক পরিবর্তন হয়নি।';
 
@@ -1302,6 +1305,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'একটি নোট বাকি আছে';
+
+  @override
+  String get noteReminderChannelName => 'নোট রিমাইন্ডার';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1770,6 +1776,9 @@ class AppLocalizationsBn extends AppLocalizations {
   String get dueEntryReminderTitle => 'এন্ট্রি বকেয়া ছিল';
 
   @override
+  String get dueEntryChannelName => 'বকেয়া এন্ট্রি';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
   }
@@ -1792,6 +1801,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'আজ কিছু রেকর্ড করা হয়নি';
+
+  @override
+  String get emptyDayChannelName => 'রেকর্ড ছাড়া দিন';
 
   @override
   String get emptyDayReminderBody =>

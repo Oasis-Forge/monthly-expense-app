@@ -1152,6 +1152,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appLockReason => 'Déverrouiller Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Confirmez votre identité';
+
+  @override
   String get appLockFailed =>
       'Impossible de confirmer votre identité. Le verrouillage de l’app n’a pas changé.';
 
@@ -1310,6 +1313,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Une note arrive à échéance';
+
+  @override
+  String get noteReminderChannelName => 'Rappels de note';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1784,6 +1790,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dueEntryReminderTitle => 'Une saisie était due';
 
   @override
+  String get dueEntryChannelName => 'Saisies échues';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title était dû aujourd\'hui et attend toujours.';
   }
@@ -1806,6 +1815,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Rien de noté aujourd\'hui';
+
+  @override
+  String get emptyDayChannelName => 'Jours sans enregistrement';
 
   @override
   String get emptyDayReminderBody =>

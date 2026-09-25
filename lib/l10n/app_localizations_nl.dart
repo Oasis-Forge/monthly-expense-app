@@ -1148,6 +1148,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get appLockReason => 'Ontgrendel Monthly Expenses';
 
   @override
+  String get appLockPromptHint => 'Identiteit bevestigen';
+
+  @override
   String get appLockFailed =>
       'Kan niet bevestigen dat jij het bent. App-vergrendeling is niet gewijzigd.';
 
@@ -1309,6 +1312,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Een notitie vervalt';
+
+  @override
+  String get noteReminderChannelName => 'Notitieherinneringen';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1775,6 +1781,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dueEntryReminderTitle => 'Invoer vervallen';
 
   @override
+  String get dueEntryChannelName => 'Vervallen invoeren';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title was vandaag verschuldigd en wacht nog steeds.';
   }
@@ -1796,6 +1805,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Vandaag niets geregistreerd';
+
+  @override
+  String get emptyDayChannelName => 'Dagen zonder registratie';
 
   @override
   String get emptyDayReminderBody =>

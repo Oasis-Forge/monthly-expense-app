@@ -1106,6 +1106,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appLockReason => '解锁 Monthly Expenses';
 
   @override
+  String get appLockPromptHint => '确认是你';
+
+  @override
   String get appLockFailed => '无法确认身份，应用锁设置未更改。';
 
   @override
@@ -1259,6 +1262,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => '有一条备忘到期';
+
+  @override
+  String get noteReminderChannelName => '备忘提醒';
 
   @override
   String get noteReminderPermissionDenied => '请在系统设置中开启通知权限，才能收到备忘提醒。';
@@ -1706,6 +1712,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dueEntryReminderTitle => '有一笔记录到期';
 
   @override
+  String get dueEntryChannelName => '到期的记录';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title今天到期，仍在等待处理。';
   }
@@ -1726,6 +1735,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => '今天没有记录';
+
+  @override
+  String get emptyDayChannelName => '没有记录的日子';
 
   @override
   String get emptyDayReminderBody => '趁还记得，把花费记下来吧。';

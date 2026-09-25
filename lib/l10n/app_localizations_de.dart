@@ -1148,6 +1148,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses entsperren';
 
   @override
+  String get appLockPromptHint => 'Identität bestätigen';
+
+  @override
   String get appLockFailed =>
       'Deine Identität konnte nicht bestätigt werden. Die App-Sperre wurde nicht geändert.';
 
@@ -1308,6 +1311,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Eine Notiz ist fällig';
+
+  @override
+  String get noteReminderChannelName => 'Notiz-Erinnerungen';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1776,6 +1782,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dueEntryReminderTitle => 'Eintrag fällig';
 
   @override
+  String get dueEntryChannelName => 'Fällige Einträge';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title war heute fällig und wartet noch.';
   }
@@ -1797,6 +1806,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Heute nichts erfasst';
+
+  @override
+  String get emptyDayChannelName => 'Tage ohne Erfassung';
 
   @override
   String get emptyDayReminderBody =>

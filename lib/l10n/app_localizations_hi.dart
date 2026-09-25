@@ -1139,6 +1139,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses अनलॉक करें';
 
   @override
+  String get appLockPromptHint => 'अपनी पहचान की पुष्टि करें';
+
+  @override
   String get appLockFailed =>
       'आपकी पहचान की पुष्टि नहीं हो सकी। ऐप लॉक नहीं बदला गया।';
 
@@ -1296,6 +1299,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'एक नोट देय है';
+
+  @override
+  String get noteReminderChannelName => 'नोट रिमाइंडर';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1765,6 +1771,9 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dueEntryReminderTitle => 'एक प्रविष्टि बाकी थी';
 
   @override
+  String get dueEntryChannelName => 'बकाया प्रविष्टियाँ';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title आज देय था और अभी भी प्रतीक्षा में है।';
   }
@@ -1787,6 +1796,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'आज कुछ भी दर्ज नहीं हुआ';
+
+  @override
+  String get emptyDayChannelName => 'बिना रिकॉर्ड वाले दिन';
 
   @override
   String get emptyDayReminderBody => 'जब तक याद है, अपना खर्च जोड़ लें।';

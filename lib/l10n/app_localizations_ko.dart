@@ -1110,6 +1110,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses 잠금 해제';
 
   @override
+  String get appLockPromptHint => '본인 확인';
+
+  @override
   String get appLockFailed => '본인 확인에 실패했어요. 앱 잠금이 변경되지 않았어요.';
 
   @override
@@ -1264,6 +1267,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => '메모 기한이 되었어요';
+
+  @override
+  String get noteReminderChannelName => '메모 알림';
 
   @override
   String get noteReminderPermissionDenied => '메모 알림을 받으려면 시스템 설정에서 알림을 켜세요.';
@@ -1715,6 +1721,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dueEntryReminderTitle => '예정된 입력이 있었습니다';
 
   @override
+  String get dueEntryChannelName => '기한이 지난 입력';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title이(가) 오늘 예정이었고 아직 대기 중입니다.';
   }
@@ -1735,6 +1744,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => '오늘 기록된 내용이 없습니다';
+
+  @override
+  String get emptyDayChannelName => '기록이 없는 날';
 
   @override
   String get emptyDayReminderBody => '기억이 남아 있을 때 지출을 추가하세요.';

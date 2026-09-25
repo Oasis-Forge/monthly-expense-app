@@ -1134,6 +1134,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get appLockReason => 'Monthly Expenses kilidini aç';
 
   @override
+  String get appLockPromptHint => 'Kimliğini doğrula';
+
+  @override
   String get appLockFailed =>
       'Kimliğiniz doğrulanamadı. Uygulama kilidi değiştirilmedi.';
 
@@ -1291,6 +1294,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Son tarihi gelen bir not var';
+
+  @override
+  String get noteReminderChannelName => 'Not hatırlatmaları';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1753,6 +1759,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get dueEntryReminderTitle => 'Giriş vadesi geldi';
 
   @override
+  String get dueEntryChannelName => 'Vadesi gelen girişler';
+
+  @override
   String dueEntryReminderOne(String title) {
     return '$title bugün vadesi geldi ve hâlâ bekliyor.';
   }
@@ -1774,6 +1783,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get emptyDayReminderTitle => 'Bugün kayıt yok';
+
+  @override
+  String get emptyDayChannelName => 'Kayıt olmayan günler';
 
   @override
   String get emptyDayReminderBody => 'Hatırlarken harcamalarını ekle.';
