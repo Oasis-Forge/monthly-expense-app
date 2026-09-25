@@ -218,7 +218,7 @@ class BackupService {
           backup.tables,
           purgedIds: await _db.fetchPurgedIds(),
         );
-        await _writeFiles(backup);
+        await _writeMergedFiles(backup, plan);
         await _db.applyMerge(plan);
         return RestoreResult.merged(plan);
     }
@@ -230,6 +230,27 @@ class BackupService {
   Future<void> _writeFiles(BackupData backup) async {
     for (final MapEntry(key: name, value: bytes) in backup.files.entries) {
       await _attachments.write(name, bytes);
+    }
+  }
+
+  /// Writes only the attachment files [plan] actually inserts or updates
+  /// (review-data-3): a row Merge leaves out — because it is unchanged, or
+  /// tombstoned by a purge this device already carried out (DEL-3, BAK-3,
+  /// rules-1-5#7) — must not have its photo or voice file written back as an
+  /// orphan nothing refers to, just because the zip still carries it.
+  Future<void> _writeMergedFiles(BackupData backup, MergePlan plan) async {
+    final names = <String>{
+      for (final table in [
+        plan.inserts['transactions'],
+        plan.updates['transactions'],
+      ])
+        if (table != null)
+          for (final row in table)
+            for (final name in [row['photo_file'], row['voice_file']])
+              if (name != null) name as String,
+    };
+    for (final MapEntry(key: name, value: bytes) in backup.files.entries) {
+      if (names.contains(name)) await _attachments.write(name, bytes);
     }
   }
 
