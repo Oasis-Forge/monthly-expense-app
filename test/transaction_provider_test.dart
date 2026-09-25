@@ -774,6 +774,72 @@ void main() {
     );
   });
 
+  group(
+    'a side effect failing after a successful write (data-integrity#12)',
+    () {
+      test('deleting a note-linked transaction updates totals even when '
+          'reopening the note fails afterward', () async {
+        final fake = FakeDB(
+          transactions: [testTx('a', expense, 30, DateTime(2026, 9, 10))],
+          notes: [
+            testNote('n', 'Coffee').copyWith(
+              transactionId: 'a',
+              doneAt: DateTime(2026, 9, 10).toUtc(),
+            ),
+          ],
+        );
+        final provider = await loaded(fake);
+        expect(provider.periodExpense, const Money(30000));
+
+        fake.failNoteWrites = true;
+        await expectLater(provider.deleteTransaction('a'), throwsStateError);
+
+        // The row is already trashed and the list already reflects it --
+        // the caller sees the failure, but cached totals aren't left stale
+        // behind a DB write that in fact already succeeded.
+        expect(provider.transactions, isEmpty);
+        expect(provider.periodExpense, Money.zero);
+        expect(provider.deletedTransactions.single.id, 'a');
+      });
+
+      test('updating a transaction updates totals even when attachment cleanup '
+          'fails afterward', () async {
+        final fake = FakeDB(
+          transactions: [
+            testTx(
+              'a',
+              expense,
+              10,
+              DateTime(2026, 9, 10),
+            ).copyWith(photoFile: 'old.jpg'),
+          ],
+        );
+        final attachments = FakeAttachments();
+        final provider = TransactionProvider(
+          db: fake,
+          clock: () => today,
+          attachments: attachments,
+        );
+        await provider.load();
+        expect(provider.periodExpense, const Money(10000));
+
+        // Only now, so [load]'s own trash cleanup isn't what throws.
+        attachments.deleteAllThrows = true;
+        await expectLater(
+          provider.updateTransaction(
+            provider.transactions.single.copyWith(
+              amount: const Money(50000),
+              photoFile: null,
+            ),
+          ),
+          throwsStateError,
+        );
+
+        expect(provider.periodExpense, const Money(50000));
+      });
+    },
+  );
+
   group('the day Home shows (DAY-1, DAY-3, DAY-5, DAY-6, DAY-9)', () {
     test('it opens on today', () async {
       final provider = await loaded(FakeDB());

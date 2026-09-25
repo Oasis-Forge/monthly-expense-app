@@ -680,12 +680,16 @@ class TransactionProvider extends ChangeNotifier {
       final old = _transactions[index];
       _transactions[index] = stamped;
       _transactions.sort(_newestFirst);
+      // The write has already succeeded, so the cached totals move with it
+      // regardless of what the cleanup below does (data-integrity#12):
+      // otherwise a throw from it would leave them stale even though the
+      // row itself is already saved.
+      _changed();
       // A photo or voice note that was replaced leaves its file (ATT-5).
       await _attachments.deleteAll([
         if (old.photoFile != stamped.photoFile) old.photoFile,
         if (old.voiceFile != stamped.voiceFile) old.voiceFile,
       ]);
-      _changed();
     }
   }
 
@@ -702,8 +706,10 @@ class TransactionProvider extends ChangeNotifier {
     await _db.updateTransaction(deleted);
     _transactions.removeWhere((t) => t.id == id);
     _deleted.insert(0, deleted);
-    await _reopenNoteFor(id);
+    // As in updateTransaction, ahead of the note side effect (NOTE-4)
+    // rather than after it (data-integrity#12).
     _changed();
+    await _reopenNoteFor(id);
   }
 
   /// Takes the transaction out of the trash with its original ID, date, and
@@ -721,8 +727,10 @@ class TransactionProvider extends ChangeNotifier {
     _transactions
       ..add(restored)
       ..sort(_newestFirst);
-    await _relinkNoteFor(id);
+    // Same ordering as delete and update, ahead of the note relink
+    // (data-integrity#12).
     _changed();
+    await _relinkNoteFor(id);
   }
 
   /// Saves a new transfer (ACC-3). Throws an [ArgumentError] when both sides

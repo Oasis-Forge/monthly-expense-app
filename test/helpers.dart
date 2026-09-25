@@ -425,8 +425,14 @@ class FakeDB extends DBHelper {
     notes.add(note);
   }
 
+  /// Makes only [updateNote] throw, independently of [failWrites], so a
+  /// test can fail the note-reopen/relink side effect after the
+  /// transaction's own write has already succeeded (data-integrity#12).
+  bool failNoteWrites = false;
+
   @override
   Future<void> updateNote(Note note) async {
+    if (failNoteWrites) throw StateError('note write failed');
     _checkWrite();
     notes[notes.indexWhere((n) => n.id == note.id)] = note;
   }
@@ -1149,6 +1155,10 @@ class FakeAttachments implements AttachmentService {
   /// (review-money-5).
   bool stopThrows = false;
 
+  /// Makes [deleteAll] throw once, the way a locked or already-missing file
+  /// might on some platforms (data-integrity#12).
+  bool deleteAllThrows = false;
+
   String _name(String extension) => 'file${++_next}.$extension';
 
   @override
@@ -1217,6 +1227,10 @@ class FakeAttachments implements AttachmentService {
 
   @override
   Future<void> deleteAll(Iterable<String?> names) async {
+    if (deleteAllThrows) {
+      deleteAllThrows = false;
+      throw StateError('delete failed');
+    }
     names.forEach(stored.remove);
   }
 
