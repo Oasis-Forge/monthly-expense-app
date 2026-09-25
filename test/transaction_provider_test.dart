@@ -1285,7 +1285,10 @@ void main() {
       );
       provider.previousPeriod();
 
-      expect(provider.previousExpenseByCategory['cat-food'], Money(60000));
+      expect(
+        provider.previousExpenseByCategory['cat-food'],
+        const Money(60000),
+      );
     });
 
     test('is still applied while the selected period is in progress', () async {
