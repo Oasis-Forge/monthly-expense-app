@@ -58,6 +58,36 @@ bool shouldCancelPassedReminder({
   return now.difference(at) > passedReminderGrace;
 }
 
+/// What [ReminderService.schedule] should do with a note's reminder:
+/// schedule it fresh (or replace whatever is pending), leave the pending
+/// one exactly as it is, or cancel it outright.
+enum ReminderAction { schedule, keep, cancel }
+
+/// The single decision [DeviceReminderService.schedule] and
+/// `FakeReminderService.schedule` (test/helpers.dart) must agree on, so a
+/// test that only drives the fake proves something true of the device too
+/// (pr59#9). [lastScheduledAt] is the time this note's reminder was
+/// scheduled for last, or null if it never was; see
+/// [shouldCancelPassedReminder] for the passed-time half of this.
+ReminderAction reminderActionFor(
+  Note note, {
+  required DateTime? lastScheduledAt,
+  required DateTime now,
+}) {
+  final at = note.reminderAt;
+  if (at == null || note.isDone || note.deletedAt != null) {
+    return ReminderAction.cancel;
+  }
+  if (at.isAfter(now)) return ReminderAction.schedule;
+  return shouldCancelPassedReminder(
+        at: at,
+        lastScheduledAt: lastScheduledAt,
+        now: now,
+      )
+      ? ReminderAction.cancel
+      : ReminderAction.keep;
+}
+
 /// Schedules and cancels the local notification for a note's reminder
 /// (NOTE-6). Tests use a fake instead of touching the device.
 abstract class ReminderService {
@@ -288,20 +318,13 @@ class DeviceReminderService implements ReminderService {
     required Locale locale,
   }) async {
     final at = note.reminderAt;
-    if (at == null || note.isDone || note.deletedAt != null) {
-      await cancel(note);
-      return;
-    }
+    final last = _lastScheduledAt[note.id];
     final now = DateTime.now();
-    if (!at.isAfter(now)) {
-      final last = _lastScheduledAt[note.id];
-      if (shouldCancelPassedReminder(
-        at: at,
-        lastScheduledAt: last?.at,
-        now: now,
-      )) {
+    switch (reminderActionFor(note, lastScheduledAt: last?.at, now: now)) {
+      case ReminderAction.cancel:
         await cancel(note);
-      } else {
+        return;
+      case ReminderAction.keep:
         // Still within the grace window and unchanged: leave whatever the
         // device already has pending alone (NOTE-6) -- unless app lock just
         // turned on, in which case that pending alarm would still show the
@@ -327,9 +350,10 @@ class DeviceReminderService implements ReminderService {
             payload: note.id,
           );
         }
-        _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
-      }
-      return;
+        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        return;
+      case ReminderAction.schedule:
+        break;
     }
     await _ensureInitialized();
     final l10n = await AppLocalizations.delegate.load(locale);
@@ -337,7 +361,7 @@ class DeviceReminderService implements ReminderService {
       id: reminderNotificationId(note.id),
       title: appLockOn ? l10n.noteReminderLockedTitle : l10n.noteReminderTitle,
       body: appLockOn ? null : note.text,
-      scheduledDate: tz.TZDateTime.from(at, tz.local),
+      scheduledDate: tz.TZDateTime.from(at!, tz.local),
       notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           'note_reminders',

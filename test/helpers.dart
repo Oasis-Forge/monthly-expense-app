@@ -661,22 +661,13 @@ class FakeReminderService implements ReminderService {
     required Locale locale,
   }) async {
     final at = note.reminderAt;
-    if (at == null || note.isDone || note.deletedAt != null) {
-      scheduled.remove(note.id);
-      _lastScheduledAt.remove(note.id);
-      return;
-    }
-    final now = _now();
-    if (!at.isAfter(now)) {
-      final last = _lastScheduledAt[note.id];
-      if (shouldCancelPassedReminder(
-        at: at,
-        lastScheduledAt: last?.at,
-        now: now,
-      )) {
+    final last = _lastScheduledAt[note.id];
+    switch (reminderActionFor(note, lastScheduledAt: last?.at, now: _now())) {
+      case ReminderAction.cancel:
         scheduled.remove(note.id);
         _lastScheduledAt.remove(note.id);
-      } else {
+        return;
+      case ReminderAction.keep:
         // Mirrors DeviceReminderService: a recently passed, unchanged time
         // leaves whatever is already scheduled alone (NOTE-6), unless app
         // lock just turned on, in which case the device replaces the
@@ -687,12 +678,12 @@ class FakeReminderService implements ReminderService {
         if (last != null && !last.appLockOn && appLockOn) {
           scheduled[note.id] = true;
         }
-        _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
-      }
-      return;
+        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
+        return;
+      case ReminderAction.schedule:
+        scheduled[note.id] = appLockOn;
+        _lastScheduledAt[note.id] = (at: at!, appLockOn: appLockOn);
     }
-    scheduled[note.id] = appLockOn;
-    _lastScheduledAt[note.id] = (at: at, appLockOn: appLockOn);
   }
 
   @override
