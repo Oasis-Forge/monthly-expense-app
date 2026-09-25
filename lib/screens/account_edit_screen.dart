@@ -13,9 +13,13 @@ import 'form_fields.dart';
 /// (ACC-1). Editing also offers archive and, for unused accounts, delete
 /// (ACC-5).
 class AccountEditScreen extends StatefulWidget {
-  const AccountEditScreen({super.key, this.editing});
+  /// [clock] stands in for "now" (a new account's default opening date);
+  /// tests pass a fixed one so a run that crosses midnight can't flip a
+  /// comparison against the real clock.
+  const AccountEditScreen({super.key, this.editing, this.clock = DateTime.now});
 
   final Account? editing;
+  final DateTime Function() clock;
 
   @override
   State<AccountEditScreen> createState() => _AccountEditScreenState();
@@ -57,7 +61,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
     if (_initialized) return;
     _initialized = true;
     final editing = widget.editing;
-    final now = DateTime.now();
+    final now = widget.clock();
     _openingDate =
         editing?.openingDate ?? DateTime(now.year, now.month, now.day);
     if (editing != null) {

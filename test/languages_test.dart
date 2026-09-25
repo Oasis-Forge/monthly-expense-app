@@ -271,7 +271,14 @@ void main() {
             expect(find.text(l10n.walkthroughBringTitle), findsOne);
           }
           if (screen is AddTransactionScreen) {
-            await tester.tap(find.text(l10n.amountLabel));
+            // The label's own text lands on the field's RenderEditable
+            // rather than the floating label once autofocus has already
+            // opened the keypad, so this used to tap without proving
+            // anything about tapping Amount actually opening it
+            // (test-quality#12); the field itself is always hit-testable.
+            await tester.tap(
+              find.widgetWithText(TextFormField, l10n.amountLabel),
+            );
             await tester.pump();
             expect(find.byType(AmountKeypad), findsOneWidget);
             // The keypad pushes the Save buttons further down the form's
@@ -375,7 +382,9 @@ void main() {
 
     testWidgets('the keypad and the amount stay left to right', (tester) async {
       await show(tester, 'ar', const AddTransactionScreen());
-      await tester.tap(find.text(l10n.amountLabel));
+      // The field's own RenderEditable, not the floating label text, which
+      // autofocus already moved out from under the tap (test-quality#12).
+      await tester.tap(find.widgetWithText(TextFormField, l10n.amountLabel));
       await tester.pump();
 
       Finder key(String label) => find.descendant(
@@ -406,26 +415,7 @@ void main() {
       // Where it sits, not what the widget declares: the row used to force a
       // direction, and when that went the hand-pasted sign was left outside
       // the isolate and bidi carried it to the far end of the row (LANG-5).
-      final text = amount.data!;
-      final painter = TextPainter(
-        text: TextSpan(text: text),
-        textDirection: amount.textDirection ?? TextDirection.rtl,
-      )..layout();
-      addTearDown(painter.dispose);
-      Rect boxOf(int at) => painter
-          .getBoxesForSelection(
-            TextSelection(baseOffset: at, extentOffset: at + 1),
-          )
-          .first
-          .toRect();
-      final sign = boxOf(text.indexOf(RegExp('[-+\u2212]')));
-      final firstDigit = boxOf(text.indexOf(RegExp('[0-9]')));
-
-      expect(
-        sign.right,
-        closeTo(firstDigit.left, 2),
-        reason: 'the sign should touch its figures, not float away: $text',
-      );
+      expectSignTouchesFigures(amount);
     });
 
     testWidgets(
@@ -447,27 +437,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(changeFinder, findsOneWidget);
         final change = tester.widget<Text>(changeFinder);
-        final text = change.data!;
-
-        final painter = TextPainter(
-          text: TextSpan(text: text),
-          textDirection: change.textDirection ?? TextDirection.rtl,
-        )..layout();
-        addTearDown(painter.dispose);
-        Rect boxOf(int at) => painter
-            .getBoxesForSelection(
-              TextSelection(baseOffset: at, extentOffset: at + 1),
-            )
-            .first
-            .toRect();
-        final sign = boxOf(text.indexOf('+'));
-        final firstDigit = boxOf(text.indexOf(RegExp('[0-9]')));
-
-        expect(
-          sign.right,
-          closeTo(firstDigit.left, 2),
-          reason: 'the + should sit against its figures, not float away: $text',
-        );
+        expectSignTouchesFigures(change);
       },
     );
 
@@ -516,10 +486,9 @@ void main() {
       await show(tester, 'ur', const TransactionDetailScreen(id: 'a'));
 
       final amount = tester.widget<Text>(find.textContaining('1,234.50'));
-      // The sign now travels inside the currency's own isolate, so the row
-      // must not force the line's direction: doing so would carry the symbol
-      // to the wrong side of the figures in Arabic (LANG-5).
-      expect(amount.textDirection, isNull);
+      // Where the sign actually lands, not just whether the widget declares
+      // a direction: that check alone passed either way (pr56+60#7).
+      expectSignTouchesFigures(amount);
     });
   });
 }

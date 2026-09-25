@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/l10n/app_localizations.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
@@ -16,6 +17,7 @@ import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
+import 'package:monthly_expense_app/screens/transaction_row_menu.dart';
 
 import 'helpers.dart';
 
@@ -581,20 +583,43 @@ void main() {
 
       expect(find.text('Tap a day to see its transactions.'), findsOneWidget);
     });
-    testWidgets('the row leaves the amount its own direction (LANG-5)', (
-      tester,
-    ) async {
-      await showInsights(tester, month);
-      await openTab(tester, 'Calendar');
-      await tester.tap(find.text('15'));
-      await tester.pumpAndSettle();
+    for (final language in ['ar', 'ur']) {
+      testWidgets(
+        'the day\'s row keeps its sign against its figures in $language '
+        '(LANG-5, pr56+60#7)',
+        (tester) async {
+          await showInsights(
+            tester,
+            month,
+            settingsValues: {'language': language},
+          );
+          final l10n = lookupAppLocalizations(Locale(language));
+          await openTab(tester, l10n.calendarTab);
+          // Today (the fixed clock's Sept 15) is selected by default, so
+          // day-of-month digits -- which some languages format with their
+          // own numerals -- don't need tapping at all.
+          await tester.pumpAndSettle();
 
-      // The sign now travels inside the currency's own isolate, so the row
-      // must not force the line's direction: doing so would carry the symbol
-      // to the wrong side of the figures in Arabic (LANG-5).
-      final amount = tester.widget<Text>(find.textContaining('\$').last);
-      expect(amount.textDirection, isNull);
-    });
+          // Where the sign actually lands, not just whether the widget
+          // declares a direction: that check alone passed either way, even
+          // when a hand-pasted sign had drifted to the far end of the row.
+          final row = find.ancestor(
+            of: find.text('Paycheck'),
+            matching: find.byType(ListTile),
+          );
+          final amount = tester.widget<Text>(
+            find.descendant(
+              of: find.descendant(
+                of: row,
+                matching: find.byType(TransactionRowTrailing),
+              ),
+              matching: find.byType(Text),
+            ),
+          );
+          expectSignTouchesFigures(amount);
+        },
+      );
+    }
   });
 
   group('trend (INS-2)', () {

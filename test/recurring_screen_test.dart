@@ -8,6 +8,7 @@ import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/amount_style.dart';
 import 'package:monthly_expense_app/screens/recurring_rule_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
 
@@ -29,6 +30,11 @@ void main() {
   late TransactionProvider provider;
   late SettingsProvider settings;
 
+  // Fixed rather than DateTime.now(): a run that happens to cross midnight
+  // between opening the form and reading a date back must not flip a
+  // comparison against the real clock (RCR-1, test-quality#10).
+  final today = DateTime(2026, 9, 15);
+
   setUp(() async {
     // Rent came due on Sep 1; Gym starts on Sep 20.
     fake = FakeDB(
@@ -37,10 +43,7 @@ void main() {
         testRule('Gym', 30, DateTime(2026, 9, 20)),
       ],
     );
-    provider = TransactionProvider(
-      db: fake,
-      clock: () => DateTime(2026, 9, 15),
-    );
+    provider = TransactionProvider(db: fake, clock: () => today);
     await provider.load();
     settings = await testSettings();
   });
@@ -64,7 +67,8 @@ void main() {
             body: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => RecurringRuleScreen(editing: editing),
+                  builder: (_) =>
+                      RecurringRuleScreen(editing: editing, clock: () => today),
                 ),
               ),
               child: const Text('open'),
@@ -384,7 +388,7 @@ void main() {
       final slowFake = _SlowRuleDB();
       final slowProvider = TransactionProvider(
         db: slowFake,
-        clock: () => DateTime(2026, 9, 15),
+        clock: () => today,
       );
       await slowProvider.load();
       final slowSettings = await testSettings();
@@ -401,7 +405,7 @@ void main() {
               body: TextButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const RecurringRuleScreen(),
+                    builder: (_) => RecurringRuleScreen(clock: () => today),
                   ),
                 ),
                 child: const Text('open'),
@@ -435,7 +439,6 @@ void main() {
       tester,
     ) async {
       await openForm(tester);
-      final start = DateTime.now();
 
       await enter(tester, 'Amount', '20');
       await enter(tester, 'Title (optional)', 'Lessons');
@@ -460,7 +463,7 @@ void main() {
         ),
         (RecurrenceFrequency.week, 2, RecurrenceEnd.afterCount, 3, true),
       );
-      expect(rule.startDate, DateTime(start.year, start.month, start.day + 1));
+      expect(rule.startDate, DateTime(today.year, today.month, today.day + 1));
     });
 
     testWidgets('whole numbers from 1 are required', (tester) async {
@@ -732,6 +735,48 @@ void main() {
       // Rent (due, index 0) must be no taller than Gym (upcoming, index 1):
       // a staircase would show up here as extra height on the due row alone.
       expect(heights[0], lessThanOrEqualTo(heights[1]));
+    },
+  );
+
+  testWidgets(
+    'the amount is coloured and signed like everywhere else on the app '
+    '(CUR-4, CUR-5, CAT-6, pr56+60#8)',
+    (tester) async {
+      // Salary shows up in both the upcoming list (_OccurrenceTile) and the
+      // rules list (_RuleTile); Rent in both the due list (_DueTile, which
+      // has no trailing of its own -- its amount sits inside the subtitle
+      // text instead) and the rules list. Matching on a non-null trailing
+      // picks the standalone amount widgets those first two tiles style,
+      // never the due tile's unstyled subtitle.
+      fake.rules
+        ..clear()
+        ..addAll([
+          testRule('Rent', 900, DateTime(2026, 9)),
+          testRule(
+            'Salary',
+            3000,
+            DateTime(2026, 9, 20),
+          ).copyWith(type: TransactionType.income, categoryId: 'cat-salary'),
+        ]);
+      await provider.load();
+      await showRecurring(tester);
+
+      Finder trailingAmountOf(String title) => find.byWidgetPredicate((widget) {
+        if (widget is! ListTile || widget.trailing is! Text) return false;
+        final label = widget.title;
+        return label is Text && label.data == title;
+      });
+
+      Color? colorOf(String title) {
+        final trailing = tester
+            .widget<ListTile>(trailingAmountOf(title).first)
+            .trailing;
+        return (trailing as Text).style?.color;
+      }
+
+      final context = tester.element(trailingAmountOf('Salary').first);
+      expect(colorOf('Salary'), incomeColor(context));
+      expect(colorOf('Rent'), expenseColor(context));
     },
   );
 
