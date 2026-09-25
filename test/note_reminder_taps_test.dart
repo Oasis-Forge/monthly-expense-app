@@ -31,25 +31,16 @@ void main() {
       // fires while the app is dead and the tap relaunches it. The real
       // write needs the zone `runAsync` gives it: a plain `await` here
       // never returns under the test binding's fake clock.
-      // Removed again on teardown so it doesn't linger in the on-disk
-      // database for later tests in this file to see.
+      // An in-memory database of its own, so nothing lingers on disk for
+      // other tests to see, and nothing left there can change this one.
+      final db = DBHelper(path: inMemoryDatabasePath);
       final id = 'reminder-note-${DateTime.now().microsecondsSinceEpoch}';
       final text = 'Pay the $id bill';
-      await tester.runAsync(
-        () => DBHelper.instance.insertNote(Note(id: id, text: text)),
-      );
-      addTearDown(
-        () => tester.runAsync(
-          () async => (await DBHelper.instance.database).delete(
-            'notes',
-            where: 'id = ?',
-            whereArgs: [id],
-          ),
-        ),
-      );
+      await tester.runAsync(() => db.insertNote(Note(id: id, text: text)));
 
       await tester.pumpWidget(
         MonthlyExpenseApp(
+          db: db,
           settings: await testSettings({
             'setup_done': true,
             'walkthrough_seen': true,

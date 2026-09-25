@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
@@ -355,6 +356,7 @@ void main() {
 
         await tester.pumpWidget(
           MonthlyExpenseApp(
+            db: DBHelper(path: inMemoryDatabasePath),
             settings: settings,
             homeWidget: const NoopHomeWidgetService(),
             reviews: FakeReviews(supported: false),
