@@ -666,9 +666,15 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Records that setup is finished (RUN-3, RUN-5).
+  /// Records that setup is finished (RUN-3, RUN-5). Also stores the
+  /// currency in effect, which until now was only ever preselected from the
+  /// device locale (CUR-1): without this, a user who taps Continue without
+  /// opening the currency picker never gets a stored choice, and it keeps
+  /// silently re-deriving from the device locale on every later launch
+  /// (CUR-3).
   Future<void> completeSetup() async {
     if (_setupDone) return;
+    await _prefs.setString(_currencyKey, _currencyCode);
     await _prefs.setBool(_setupDoneKey, true);
     _setupDone = true;
     notifyListeners();

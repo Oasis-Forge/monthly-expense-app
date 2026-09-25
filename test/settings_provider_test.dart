@@ -359,6 +359,22 @@ void main() {
     expect((old.setupDone, old.walkthroughSeen), (true, true));
   });
 
+  test('the currency preselected at setup is saved, not re-derived every '
+      'launch (CUR-1, CUR-3, RUN-3, rules-11-13-20-21#6)', () async {
+    final prefs = await prefsWith({});
+    final setup = SettingsProvider(prefs, deviceLocale: 'ar_EG');
+    expect(setup.currencyCode, 'EGP');
+
+    // Continue on the setup page only calls completeSetup: most people
+    // never open the currency picker (RUN-3).
+    await setup.completeSetup();
+
+    // The device's language changes later; the currency chosen at setup
+    // must not silently follow it.
+    final relaunched = SettingsProvider(prefs, deviceLocale: 'en_US');
+    expect(relaunched.currencyCode, 'EGP');
+  });
+
   test('language follows the device until one is chosen (LANG-1)', () async {
     final prefs = await prefsWith({'language': 'xx'});
     final settings = SettingsProvider(prefs);
