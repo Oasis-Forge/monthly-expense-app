@@ -1255,23 +1255,47 @@ class TransactionProvider extends ChangeNotifier {
     // a comma-decimal amount query as if the currency used '.', which silently
     // rejects a correctly-typed amount instead of matching it (CUR-2).
     required String decimalMark,
+  }) => _matchesSearch(
+    tx,
+    filter,
+    foldedQuery: foldForSearch(filter.query.trim()),
+    queryAmount: Money.tryParse(filter.query, decimalMark: decimalMark),
+    categoryName: categoryName,
+    accountName: accountName,
+    categoryFold: {},
+    accountFold: {},
+  );
+
+  /// The core [matchesSearch] applies, taking the query already folded and
+  /// the amount already parsed rather than redoing that per transaction, and
+  /// memoizing a category or account's folded name in [categoryFold] /
+  /// [accountFold] the first time [search] meets it (lifecycle-perf#10).
+  bool _matchesSearch(
+    ExpenseTransaction tx,
+    TransactionFilter filter, {
+    required String foldedQuery,
+    required Money? queryAmount,
+    required String Function(Category category) categoryName,
+    required String Function(Account account) accountName,
+    required Map<String, String> categoryFold,
+    required Map<String, String> accountFold,
   }) {
     if (filter.type != null && tx.type != filter.type) return false;
     if (filter.categoryId != null && tx.categoryId != filter.categoryId) {
       return false;
     }
-    final query = foldForSearch(filter.query.trim());
-    final queryAmount = Money.tryParse(filter.query, decimalMark: decimalMark);
-    if (query.isEmpty || tx.amount == queryAmount) return true;
+    if (foldedQuery.isEmpty || tx.amount == queryAmount) return true;
     final category = categoryById(tx.categoryId);
     final account = accountById(tx.accountId);
     final (foldedTitle, foldedNote) = _foldedTextOf(tx);
     return [
       foldedTitle,
       foldedNote,
-      if (category != null) foldForSearch(categoryName(category)),
-      if (account != null) foldForSearch(accountName(account)),
-    ].any((text) => text != null && text.contains(query));
+      if (category != null)
+        categoryFold[category.id] ??= foldForSearch(categoryName(category)),
+      if (account != null)
+        accountFold[account.id] ??= foldForSearch(accountName(account)),
+    ].any((text) => text != null && text.contains(foldedQuery));
   }
 
   /// Transactions matching [filter], newest first.
@@ -1284,26 +1308,46 @@ class TransactionProvider extends ChangeNotifier {
   }) {
     final from = filter.from == null ? null : _dayOf(filter.from!);
     final to = filter.to == null ? null : _dayOf(filter.to!);
+    final checkDay = from != null || to != null;
+    // Folded and parsed once for the whole call, not once per transaction
+    // (lifecycle-perf#10).
+    final foldedQuery = foldForSearch(filter.query.trim());
+    final queryAmount = Money.tryParse(filter.query, decimalMark: decimalMark);
+    final today = _today;
+    final categoryFold = <String, String>{};
+    final accountFold = <String, String>{};
 
     final matches = <ExpenseTransaction>[];
     var income = Money.zero;
     var expense = Money.zero;
     for (final tx in _transactions) {
-      final day = _dayOf(tx.date);
-      if ((filter.accountId != null && tx.accountId != filter.accountId) ||
-          (from != null && day.isBefore(from)) ||
-          (to != null && day.isAfter(to)) ||
-          !matchesSearch(
-            tx,
-            filter,
-            categoryName: categoryName,
-            accountName: accountName,
-            decimalMark: decimalMark,
-          )) {
+      if (filter.accountId != null && tx.accountId != filter.accountId) {
+        continue;
+      }
+      // A DateTime is built here only when a date filter is actually set,
+      // rather than for every transaction on every keystroke
+      // (lifecycle-perf#10).
+      if (checkDay) {
+        final day = _dayOf(tx.date);
+        if ((from != null && day.isBefore(from)) ||
+            (to != null && day.isAfter(to))) {
+          continue;
+        }
+      }
+      if (!_matchesSearch(
+        tx,
+        filter,
+        foldedQuery: foldedQuery,
+        queryAmount: queryAmount,
+        categoryName: categoryName,
+        accountName: accountName,
+        categoryFold: categoryFold,
+        accountFold: accountFold,
+      )) {
         continue;
       }
       matches.add(tx);
-      if (isUpcoming(tx)) continue;
+      if (_dayOf(tx.date).isAfter(today)) continue; // isUpcoming, cached today
       if (tx.type == TransactionType.income) {
         income += tx.amount;
       } else {

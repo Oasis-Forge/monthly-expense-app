@@ -136,6 +136,18 @@ void main() {
       expect(result.income, const Money(2000000));
       expect(result.expense, const Money(952500));
     });
+
+    test('editing a title updates what it is found by, not just added to '
+        '(lifecycle-perf#10)', () async {
+      expect(ids(const TransactionFilter(query: 'lunch')), ['lunch']);
+      expect(ids(const TransactionFilter(query: 'dinner')), isEmpty);
+
+      final tx = provider.transactionById('lunch')!;
+      await provider.updateTransaction(tx.copyWith(title: 'Café dinner'));
+
+      expect(ids(const TransactionFilter(query: 'dinner')), ['lunch']);
+      expect(ids(const TransactionFilter(query: 'lunch')), isEmpty);
+    });
   });
 
   group(
