@@ -642,6 +642,10 @@ class FakeReminderService implements ReminderService {
   List<PlannedReminder> nudges = const [];
   bool nudgesLocked = false;
 
+  /// The currency [scheduleNudges] was last given, so a test can tell a
+  /// currency change actually reached the reminder service (CUR-2, CUR-3).
+  NumberFormat? lastCurrency;
+
   /// How many times a plan replaced the one before it, so a test can tell a
   /// reschedule from a plan that simply stayed the same.
   int nudgePlans = 0;
@@ -655,6 +659,7 @@ class FakeReminderService implements ReminderService {
   }) async {
     nudges = plan;
     nudgesLocked = appLockOn;
+    lastCurrency = currency;
     nudgePlans++;
   }
 

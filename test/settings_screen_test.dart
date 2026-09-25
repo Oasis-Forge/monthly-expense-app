@@ -71,6 +71,24 @@ void main() {
     expect(find.text('EUR · Euro'), findsOneWidget);
   });
 
+  testWidgets('changing the currency reaches the already-scheduled reminders '
+      '(CUR-2, CUR-3, rules-23-26-34#9)', (tester) async {
+    final reminders = FakeReminderService();
+    provider = TransactionProvider(
+      db: FakeDB(),
+      clock: () => DateTime(2026, 9, 15),
+      reminders: reminders,
+    );
+    await provider.load();
+
+    await showSettings(tester);
+    await chooseEuro(tester);
+    await tester.tap(find.text('Change'));
+    await tester.pumpAndSettle();
+
+    expect(reminders.lastCurrency?.currencySymbol, '€');
+  });
+
   testWidgets('cancelling keeps the current currency', (tester) async {
     await showSettings(tester);
 

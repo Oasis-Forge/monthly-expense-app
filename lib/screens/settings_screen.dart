@@ -201,6 +201,10 @@ class SettingsScreen extends StatelessWidget {
     if (code == null || code == settings.currencyCode || !context.mounted) {
       return;
     }
+    // Read before the next await rather than after: the reminders already
+    // scheduled need this regardless of the dialog's answer, and reading it
+    // here needs no second `context.mounted` check.
+    final transactions = context.read<TransactionProvider>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -218,7 +222,21 @@ class SettingsScreen extends StatelessWidget {
         ],
       ),
     );
-    if (confirmed ?? false) await settings.setCurrencyCode(code);
+    if (confirmed ?? false) {
+      // The already-scheduled due-entry reminders format their amount with
+      // the currency in force when they were last planned; without this
+      // they would keep showing the old one until the next launch, language,
+      // lock or nudge change (CUR-2, CUR-3, rules-23-26-34#9).
+      await settings.setCurrencyCode(code);
+      await transactions.rescheduleReminders(
+        appLockOn: settings.appLock,
+        locale: effectiveAppLocale(settings.locale),
+        nudge: settings.nudgeSettings,
+        currency: settings.currencyFormat(
+          effectiveAppLocale(settings.locale).toLanguageTag(),
+        ),
+      );
+    }
   }
 }
 
