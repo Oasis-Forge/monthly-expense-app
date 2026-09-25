@@ -74,7 +74,24 @@
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
             android:exported="false"/>
         <!-- Reminders are re-laid after a restart or an app update, or they
-             would be lost with the alarms the reboot cleared (NUDGE-9). -->
+             would be lost with the alarms the reboot cleared (NUDGE-9).
+
+             Known gap (pr59_10): this receiver re-arms every cached one-shot
+             at its original epoch before any Dart runs, so a reminder that
+             was already more than two hours overdue when the phone was off
+             fires immediately on boot instead of being dropped, the way a
+             reschedule from Dart already does (shouldCancelPassedReminder in
+             reminder_service.dart). The 1.31.0 decision was to drop it
+             instead of firing late; doing that here would mean replacing
+             this receiver with one of our own in
+             com.dexterous.flutterlocalnotifications that reads the plugin's
+             own cached, private-storage-format notifications, filters out
+             the stale ones, and only then calls its package-private
+             rescheduleNotifications -- a dependency on that plugin's
+             internals that is not verified on a device in this change, six
+             days before the Android launch. Documented rather than
+             implemented blind (see the finding's own two offered
+             resolutions). -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
             android:exported="false">
