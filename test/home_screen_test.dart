@@ -829,6 +829,20 @@ void main() {
       expect(find.text('Concert'), findsNothing);
     });
 
+    testWidgets("the device's region decides the day, not just its "
+        'language (PER-4, rules-1-5#5)', (tester) async {
+      double x(String text) => tester.getCenter(find.text(text)).dx;
+
+      // A phone set to English (UK) starts the week on Monday, though
+      // the app's own language-only locale ('en') is Sunday-first.
+      tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await showHome(tester);
+
+      expect(x('Mon'), lessThan(x('Sun')));
+    });
+
     testWidgets('another day in the week shows that day instead', (
       tester,
     ) async {
