@@ -205,10 +205,27 @@ class DBHelper {
       }
       final batch = txn.batch();
       for (final MapEntry(key: id, value: updatedAt) in purged.entries) {
-        batch.insert('purged_records', {
-          'id': id,
-          'updated_at': updatedAt,
-        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        // A row purged once already (its own earlier deletion, now gone)
+        // keeps the LATEST updated_at rather than the first: leaving a
+        // stale, earlier tombstone in place would let a later merge from a
+        // backup whose edit falls between the two deletions bring the row
+        // back a second time (BAK-3, rules-1-5#7).
+        //
+        // Two plain statements instead of one UPSERT: `INSERT ... ON
+        // CONFLICT ... DO UPDATE` needs SQLite 3.24, but sqflite_android
+        // runs on the OS's own SQLite, and Android 7-9 (API 24-28, still
+        // within minSdk 24) ship SQLite 3.9-3.22 (review-data-1). `INSERT OR
+        // IGNORE` and `UPDATE ... WHERE` both work back to SQLite 3.0.
+        batch.rawInsert(
+          'INSERT OR IGNORE INTO purged_records(id, updated_at) '
+          'VALUES(?, ?)',
+          [id, updatedAt],
+        );
+        batch.rawUpdate(
+          'UPDATE purged_records SET updated_at = ? '
+          'WHERE id = ? AND updated_at < ?',
+          [updatedAt, id, updatedAt],
+        );
       }
       await batch.commit(noResult: true);
     });
