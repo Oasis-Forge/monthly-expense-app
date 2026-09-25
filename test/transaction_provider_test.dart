@@ -1091,6 +1091,33 @@ void main() {
           expect(provider.daysUsed, isNot(same(first)));
         },
       );
+
+      test('the day turning over recomputes cached balances and trend with no '
+          'save at all (BAL-4, lifecycle-perf#10)', () async {
+        // A transaction dated tomorrow doesn't count yet (BAL-4). Once the
+        // clock alone crosses into that day — nothing added, changed or
+        // deleted — a cache keyed only on the last save would keep
+        // excluding it until some unrelated write happened to clear it.
+        var now = today;
+        final provider = TransactionProvider(
+          db: FakeDB(
+            accounts: [testAccount(cash, opening: 100)],
+            transactions: [testTx('a', income, 50, DateTime(2026, 9, 16))],
+          ),
+          clock: () => now,
+        );
+        await provider.load();
+
+        expect(provider.accountBalance(cash), const Money(100000));
+        expect(provider.accountsTotal, const Money(100000));
+        expect(provider.trend(1).single.income, Money.zero);
+
+        now = DateTime(2026, 9, 16, 0, 5);
+
+        expect(provider.accountBalance(cash), const Money(150000));
+        expect(provider.accountsTotal, const Money(150000));
+        expect(provider.trend(1).single.income, const Money(50000));
+      });
     },
   );
 }
