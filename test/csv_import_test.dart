@@ -345,6 +345,16 @@ void main() {
       expect(parseImportedType('Transfer'), ImportedType.transfer);
     });
 
+    test('words with accents or combining marks still match once folded '
+        '(rules-14-19_7)', () {
+      expect(parseImportedType('Έσοδα'), ImportedType.income);
+      expect(parseImportedType('Έξοδα'), ImportedType.expense);
+      expect(parseImportedType('Μεταφορά'), ImportedType.transfer);
+      expect(parseImportedType('Thu nhập'), ImportedType.income);
+      expect(parseImportedType('Chi tiêu'), ImportedType.expense);
+      expect(parseImportedType('Chuyển khoản'), ImportedType.transfer);
+    });
+
     test('a word inside a longer cell still counts', () {
       expect(parseImportedType('Expense (food)'), ImportedType.expense);
     });
