@@ -351,6 +351,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: 'exclusão definitiva em $days dias',
       one: 'exclusão definitiva em 1 dia',
+      zero: 'exclusão definitiva em $days dias',
     );
     return '$amount · $_temp0';
   }
@@ -508,6 +509,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count resultados',
       one: '1 resultado',
+      zero: '$count resultados',
     );
     return '$_temp0 · Receita $income · Despesa $expense';
   }
@@ -1116,6 +1118,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transações restauradas',
       one: '1 transação restaurada',
+      zero: '$count transações restauradas',
     );
     return '$_temp0';
   }
@@ -1529,6 +1532,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas têm uma data que o app não consegue ler',
       one: '1 linha tem uma data que o app não consegue ler',
+      zero: '$count linhas têm uma data que o app não consegue ler',
     );
     return '$_temp0';
   }
@@ -1540,6 +1544,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas têm um valor que o app não consegue ler',
       one: '1 linha tem um valor que o app não consegue ler',
+      zero: '$count linhas têm um valor que o app não consegue ler',
     );
     return '$_temp0';
   }
@@ -1551,6 +1556,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas não têm nenhum valor',
       one: '1 linha não tem nenhum valor',
+      zero: '$count linhas não têm nenhum valor',
     );
     return '$_temp0';
   }
@@ -1562,6 +1568,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count linhas já estão no app',
       one: '1 linha já está no app',
+      zero: '$count linhas já estão no app',
     );
     return '$_temp0';
   }
@@ -1573,6 +1580,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other: '$count transferências indicam só uma conta',
       one: '1 transferência indica só uma conta',
+      zero: '$count transferências indicam só uma conta',
     );
     return '$_temp0';
   }

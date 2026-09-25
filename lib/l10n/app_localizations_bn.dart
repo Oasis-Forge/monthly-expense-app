@@ -348,6 +348,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$days দিনে চিরতরে মুছে যাবে',
       one: '1 দিনে চিরতরে মুছে যাবে',
+      zero: '$days দিনে চিরতরে মুছে যাবে',
     );
     return '$amount · $_temp0';
   }
@@ -505,6 +506,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি ফলাফল',
       one: '1টি ফলাফল',
+      zero: '$countটি ফলাফল',
     );
     return '$_temp0 · আয় $income · ব্যয় $expense';
   }
@@ -1105,6 +1107,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি লেনদেন রিস্টোর হয়েছে',
       one: '1টি লেনদেন রিস্টোর হয়েছে',
+      zero: '$countটি লেনদেন রিস্টোর হয়েছে',
     );
     return '$_temp0';
   }
@@ -1509,6 +1512,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারির তারিখ অ্যাপ পড়তে পারছে না',
       one: '1টি সারির তারিখ অ্যাপ পড়তে পারছে না',
+      zero: '$countটি সারির তারিখ অ্যাপ পড়তে পারছে না',
     );
     return '$_temp0';
   }
@@ -1520,6 +1524,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারির পরিমাণ অ্যাপ পড়তে পারছে না',
       one: '1টি সারির পরিমাণ অ্যাপ পড়তে পারছে না',
+      zero: '$countটি সারির পরিমাণ অ্যাপ পড়তে পারছে না',
     );
     return '$_temp0';
   }
@@ -1531,6 +1536,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারিতে কোনো টাকার পরিমাণ নেই',
       one: '1টি সারিতে কোনো টাকার পরিমাণ নেই',
+      zero: '$countটি সারিতে কোনো টাকার পরিমাণ নেই',
     );
     return '$_temp0';
   }
@@ -1542,6 +1548,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি সারি আগে থেকেই অ্যাপে আছে',
       one: '1টি সারি আগে থেকেই অ্যাপে আছে',
+      zero: '$countটি সারি আগে থেকেই অ্যাপে আছে',
     );
     return '$_temp0';
   }
@@ -1553,6 +1560,7 @@ class AppLocalizationsBn extends AppLocalizations {
       locale: localeName,
       other: '$countটি ট্রান্সফারে শুধু একটি অ্যাকাউন্টের নাম আছে',
       one: '1টি ট্রান্সফারে শুধু একটি অ্যাকাউন্টের নাম আছে',
+      zero: '$countটি ট্রান্সফারে শুধু একটি অ্যাকাউন্টের নাম আছে',
     );
     return '$_temp0';
   }

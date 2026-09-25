@@ -349,6 +349,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$days दिनों में हमेशा के लिए हट जाएगा',
       one: '1 दिन में हमेशा के लिए हट जाएगा',
+      zero: '$days दिनों में हमेशा के लिए हट जाएगा',
     );
     return '$amount · $_temp0';
   }
@@ -503,6 +504,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count नतीजे',
       one: '1 नतीजा',
+      zero: '$count नतीजे',
     );
     return '$_temp0 · आय $income · खर्च $expense';
   }
@@ -1100,6 +1102,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count लेनदेन रीस्टोर हुए',
       one: '1 लेनदेन रीस्टोर हुआ',
+      zero: '$count लेनदेन रीस्टोर हुए',
     );
     return '$_temp0';
   }
@@ -1504,6 +1507,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियों की तारीख़ ऐप नहीं पढ़ सकता',
       one: '1 पंक्ति की तारीख़ ऐप नहीं पढ़ सकता',
+      zero: '$count पंक्तियों की तारीख़ ऐप नहीं पढ़ सकता',
     );
     return '$_temp0';
   }
@@ -1515,6 +1519,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियों की राशि ऐप नहीं पढ़ सकता',
       one: '1 पंक्ति की राशि ऐप नहीं पढ़ सकता',
+      zero: '$count पंक्तियों की राशि ऐप नहीं पढ़ सकता',
     );
     return '$_temp0';
   }
@@ -1526,6 +1531,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियों में कोई राशि नहीं है',
       one: '1 पंक्ति में कोई राशि नहीं है',
+      zero: '$count पंक्तियों में कोई राशि नहीं है',
     );
     return '$_temp0';
   }
@@ -1537,6 +1543,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count पंक्तियां पहले से ऐप में हैं',
       one: '1 पंक्ति पहले से ऐप में है',
+      zero: '$count पंक्तियां पहले से ऐप में हैं',
     );
     return '$_temp0';
   }
@@ -1548,6 +1555,7 @@ class AppLocalizationsHi extends AppLocalizations {
       locale: localeName,
       other: '$count ट्रांसफर में सिर्फ़ एक खाता है',
       one: '1 ट्रांसफर में सिर्फ़ एक खाता है',
+      zero: '$count ट्रांसफर में सिर्फ़ एक खाता है',
     );
     return '$_temp0';
   }

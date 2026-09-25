@@ -352,6 +352,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: 'supprimé définitivement dans $days jours',
       one: 'supprimé définitivement dans 1 jour',
+      zero: 'supprimé définitivement dans $days jours',
     );
     return '$amount · $_temp0';
   }
@@ -509,6 +510,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count résultats',
       one: '1 résultat',
+      zero: '$count résultats',
     );
     return '$_temp0 · Revenus $income · Dépenses $expense';
   }
@@ -1112,6 +1114,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count transactions restaurées',
       one: '1 transaction restaurée',
+      zero: '$count transactions restaurées',
     );
     return '$_temp0';
   }
@@ -1521,6 +1524,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count lignes ont une date que l\'application ne sait pas lire',
       one: '1 ligne a une date que l\'application ne sait pas lire',
+      zero: '$count lignes ont une date que l\'application ne sait pas lire',
     );
     return '$_temp0';
   }
@@ -1532,6 +1536,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count lignes ont un montant que l\'application ne sait pas lire',
       one: '1 ligne a un montant que l\'application ne sait pas lire',
+      zero: '$count lignes ont un montant que l\'application ne sait pas lire',
     );
     return '$_temp0';
   }
@@ -1543,6 +1548,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count lignes ne portent aucun montant',
       one: '1 ligne ne porte aucun montant',
+      zero: '$count lignes ne portent aucun montant',
     );
     return '$_temp0';
   }
@@ -1554,6 +1560,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count lignes sont déjà dans l\'application',
       one: '1 ligne est déjà dans l\'application',
+      zero: '$count lignes sont déjà dans l\'application',
     );
     return '$_temp0';
   }
@@ -1565,6 +1572,7 @@ class AppLocalizationsFr extends AppLocalizations {
       locale: localeName,
       other: '$count virements ne nomment qu\'un seul compte',
       one: '1 virement ne nomme qu\'un seul compte',
+      zero: '$count virements ne nomment qu\'un seul compte',
     );
     return '$_temp0';
   }

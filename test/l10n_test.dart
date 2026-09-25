@@ -132,6 +132,10 @@ void main() {
       'notesDueNotice': (l, n) => l.notesDueNotice(n),
       'importWillImport': (l, n) => l.importWillImport(n),
       'importSkippedDate': (l, n) => l.importSkippedDate(n),
+      'importSkippedAmount': (l, n) => l.importSkippedAmount(n),
+      'importSkippedZero': (l, n) => l.importSkippedZero(n),
+      'importSkippedAlreadyThere': (l, n) => l.importSkippedAlreadyThere(n),
+      'importSkippedTransfer': (l, n) => l.importSkippedTransfer(n),
       'importMoreRows': (l, n) => l.importMoreRows(n),
       'importButton': (l, n) => l.importButton(n),
       'importDone': (l, n) => l.importDone(n),
@@ -140,6 +144,7 @@ void main() {
       'scheduleWeeks': (l, n) => l.scheduleWeeks(n),
       'scheduleMonths': (l, n) => l.scheduleMonths(n),
       'scheduleYears': (l, n) => l.scheduleYears(n),
+      'trashItemSubtitle': (l, n) => l.trashItemSubtitle('A', n),
     };
 
     for (final locale in AppLocalizations.supportedLocales) {
@@ -154,6 +159,38 @@ void main() {
                 'exactly as it renders it at 1',
           );
         }
+      }
+    }
+  });
+
+  // CLDR's "one" category holds zero as well as one in French, Portuguese,
+  // Hindi and Bengali (`i = 0,1` / `i = 0 || n = 1`), so a plural message
+  // with only `=1{…}` and `other{…}` cases reads a count of zero as if it
+  // were one: a search with no matches said "1 résultat" in French
+  // (LANG-7, LANG-2, SRCH-3).
+  test('a count of zero never reads like a count of one, in the languages '
+      'whose "one" case covers zero', () {
+    final counted = <String, String Function(AppLocalizations, int)>{
+      'searchSummary': (l, n) => l.searchSummary(n, 'I', 'E'),
+      'restoredReplace': (l, n) => l.restoredReplace(n),
+      'importSkippedDate': (l, n) => l.importSkippedDate(n),
+      'importSkippedAmount': (l, n) => l.importSkippedAmount(n),
+      'importSkippedZero': (l, n) => l.importSkippedZero(n),
+      'importSkippedAlreadyThere': (l, n) => l.importSkippedAlreadyThere(n),
+      'importSkippedTransfer': (l, n) => l.importSkippedTransfer(n),
+      'trashItemSubtitle': (l, n) => l.trashItemSubtitle('A', n),
+    };
+
+    for (final code in ['fr', 'pt', 'hi', 'bn']) {
+      final l10n = lookupAppLocalizations(Locale(code));
+      for (final entry in counted.entries) {
+        expect(
+          entry.value(l10n, 0),
+          isNot(entry.value(l10n, 1)),
+          reason:
+              '$code renders ${entry.key} at 0 exactly as it renders it '
+              'at 1',
+        );
       }
     }
   });
