@@ -257,14 +257,8 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
               decoration: InputDecoration(
                 labelText: l10n.openingBalanceLabel,
                 border: const OutlineInputBorder(),
-                // CUR-5, pr61#11: the symbol sits where intl's own pattern
-                // for this language puts it, not always in front.
-                prefixText: SettingsProvider.symbolLeadsFigures(currency.locale)
-                    ? '${currency.currencySymbol} '
-                    : null,
-                suffixText: SettingsProvider.symbolLeadsFigures(currency.locale)
-                    ? null
-                    : ' ${currency.currencySymbol}',
+                prefixText: currencyAffixes(context, currency).prefix,
+                suffixText: currencyAffixes(context, currency).suffix,
                 helperText: _openingController.text.trim().isEmpty
                     ? null
                     : switch (_parseOpening(
