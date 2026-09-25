@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.27.3] - 2026-09-25
+
+### Fixed
+- Release builds opened with an empty Home: the resource shrinker dropped the notification icon, so notifications failed to start on every launch and stopped the data from loading. The icon is now kept, and a reminder that cannot be scheduled no longer stops loading or saving (NOTE-6, NUDGE-1).
+
 ## [1.27.2] - 2026-09-25
 
 ### Fixed
