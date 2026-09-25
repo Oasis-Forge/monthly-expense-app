@@ -155,10 +155,17 @@ class SafeReminderService implements ReminderService {
 /// Schedules real device notifications through `flutter_local_notifications`.
 class DeviceReminderService implements ReminderService {
   final _plugin = FlutterLocalNotificationsPlugin();
-  bool _initialized = false;
 
-  Future<void> _ensureInitialized() async {
-    if (_initialized) return;
+  /// Memoized rather than a `bool` flag (pr59#8): two callers racing each
+  /// other -- the first-frame notification-permission check and the load's
+  /// own [scheduleNudges], say -- must share the one initialize and the one
+  /// delivery of a launch payload below, not each run it and each deliver
+  /// the tapped notification's note a second time.
+  Future<void>? _initializing;
+
+  Future<void> _ensureInitialized() => _initializing ??= _doInitialize();
+
+  Future<void> _doInitialize() async {
     tz_data.initializeTimeZones();
     try {
       final here = await FlutterTimezone.getLocalTimezone();
@@ -182,7 +189,6 @@ class DeviceReminderService implements ReminderService {
     if (launch?.didNotificationLaunchApp ?? false) {
       _deliver(launch?.notificationResponse?.payload);
     }
-    _initialized = true;
   }
 
   @override

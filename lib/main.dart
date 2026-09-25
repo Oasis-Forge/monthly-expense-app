@@ -488,7 +488,21 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     final id = tappedNoteId.value;
     if (id == null) return;
     tappedNoteId.value = null;
-    MonthlyExpenseApp.navigatorKey.currentState?.push(
+    unawaited(_openNote(id));
+  }
+
+  /// The tapped note comes from the loaded database (NOTE-6), so a tap that
+  /// arrives before the load finishes -- the usual case for a cold start,
+  /// including one that delivered a launch payload before the load had even
+  /// opened the database -- waits for it, rather than reading an empty list
+  /// and opening the notes screen in the note's place (pr59#8).
+  Future<void> _openNote(String id) async {
+    final navigator = MonthlyExpenseApp.navigatorKey.currentState;
+    if (navigator == null) return;
+    final provider = navigator.context.read<TransactionProvider>();
+    await provider.whenLoaded;
+    if (!navigator.mounted) return;
+    navigator.push(
       MaterialPageRoute(
         builder: (context) {
           final note = context.read<TransactionProvider>().noteById(id);
