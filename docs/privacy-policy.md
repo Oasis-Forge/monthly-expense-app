@@ -16,7 +16,7 @@ This policy explains how the **Monthly Expenses** app ("the app") handles your i
 
 Your phone's own automatic app backup is **switched off for this app**, so Android never copies your records to Google Drive on its own. Reinstalling the app therefore starts you with nothing — the way to carry your data over is a backup you saved yourself. Moving to a new phone with Android's transfer still brings it with you.
 
-The app shows **banner ads** on two of its screens, and, at most once a day, a **full-screen ad** when you finish something such as a PDF report or a CSV export — through Google AdMob. Ads are the only reason the app uses the internet at all. AdMob receives technical information about your device in order to choose and count an ad — never anything you have recorded. You can buy "Remove ads" once, and then the ad software is never started at all.
+The app shows **banner ads** on two of its screens, and a **full-screen ad** once you have done ten things in the app that day, shown when you finish something such as a PDF report or a CSV export — through Google AdMob. Ads are the only reason the app uses the internet at all. AdMob receives technical information about your device in order to choose and count an ad — never anything you have recorded. You can buy "Remove ads" once, and then the ad software is never started at all.
 
 On Windows, Linux and macOS there are no ads, and the app makes no network connections whatsoever.
 
@@ -36,7 +36,7 @@ The developer has no access to any of it.
 
 ## Advertising
 
-The free app shows a banner at the bottom of the Home screen and the bottom of the Insights screen. It also shows a full-screen ad, at most once a day, right after you finish something and are on your way out of it — leaving Insights for Home, or after a PDF report, a CSV export, or a finished import — and never more than once you've done at least ten things in the app that day. They are served by **Google AdMob** (Google Ireland Limited / Google LLC), and they are why the Android app asks for internet access.
+The free app shows a banner at the bottom of the Home screen and the bottom of the Insights screen. It also shows a full-screen ad right after you finish something and are on your way out of it (leaving Insights for Home, or after a PDF report, a CSV export, or a finished import), but only after ten things done in the app that day (an entry saved or a screen opened). Each ad shown starts that count again. They are served by **Google AdMob** (Google Ireland Limited / Google LLC), and they are why the Android app asks for internet access.
 
 **What the app never gives the advertiser.** AdMob is handed nothing you have recorded: no amounts, titles, notes, categories, accounts, attachments or search terms, and no keywords derived from any of them. The request the app makes carries no information about you at all.
 
@@ -51,7 +51,7 @@ Google uses these to choose an ad, count and measure it, and detect fraud. Googl
 
 **Your choice.** In the EEA, the UK and Switzerland the app shows Google's consent form before it requests its first ad, and you can change your answer at any time from **Settings → Privacy options**. Saying no means the ads you see are not personalised; it never means fewer features or a nagging reminder.
 
-**No ads before you have looked round.** No ad is requested, and no consent form appears, until the setup page and the walkthrough are finished, and none is requested at all during your first session with the app. No ad loads while the app is locked, and there are no ads on the entry forms, the walkthrough, a dialog, the home-screen widget or the PDF report itself — only the two banner slots and, once a day at most, the full-screen ad described above. Buying "Remove ads" (below) hides that one too, on the same switch as the banners.
+**No ads before you have looked round.** No ad is requested, and no consent form appears, until the setup page and the walkthrough are finished, and the full-screen ad is never requested during your first session with the app. No ad loads while the app is locked, and there are no ads on the entry forms, the walkthrough, a dialog, the home-screen widget or the PDF report itself — only the two banner slots and the full-screen ad described above. Buying "Remove ads" (below) hides that one too, on the same switch as the banners.
 
 **Children.** The app is a general-purpose tool and is not directed at children, and we do not knowingly collect anything from them. Where a store's family policy applies, the ads must be suitable for it.
 
