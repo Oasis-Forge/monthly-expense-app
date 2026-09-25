@@ -208,7 +208,7 @@ This file defines how Monthly Expenses behaves: the calculations, defaults, and 
 **Learn:** an expense app holds private data, but a forgotten app PIN would lock people out of their own records.
 
 - **LOCK-1** App lock is off by default. It uses the device's own biometrics or screen lock (fingerprint, face, PIN, pattern, or password), so the app never stores a PIN. Turning it on or off asks for authentication first.
-- **LOCK-2** With app lock on, the app asks at launch and again after at least a minute in the background, and hides its content until unlocked.
+- **LOCK-2** With app lock on, the app asks at launch and again after at least a minute in the background, and hides its content until unlocked. On Android 12 and older, the OS-level protection this relies on (`FLAG_SECURE`) cannot be scoped to only the locked moments, so screenshots, screen recording and screen sharing of the app are blocked for as long as app lock is on, not only while it is actually showing the lock screen; Android 13 and newer only ever block the app-switcher thumbnail.
 - **LOCK-3** If the device no longer has biometrics or a screen lock, app lock turns itself off instead of locking the data away.
 
 ## 16. Languages
