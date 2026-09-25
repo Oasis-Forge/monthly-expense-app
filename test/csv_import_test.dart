@@ -261,6 +261,37 @@ void main() {
       expect(korean[ImportField.date], 0, reason: '날짜');
       expect(korean[ImportField.amount], 1, reason: '금액(원)');
     });
+
+    test(
+      'the cross-field veto only blocks the amount/date collision, not '
+      'every column that also names another field loosely (IMP-3, IMP-6)',
+      () {
+        // Spendee names its category column "Category name" and Mint names
+        // its account column "Account Name": the generic title alias "name"
+        // must not veto either just because it also appears in the header.
+        final spendee = matchColumns([
+          'Date',
+          'Wallet',
+          'Type',
+          'Category name',
+          'Amount',
+        ]);
+        expect(spendee[ImportField.category], 3, reason: 'Category name');
+        expect(spendee[ImportField.amount], 4, reason: 'Amount');
+
+        final mint = matchColumns(['Date', 'Account Name', 'Amount']);
+        expect(mint[ImportField.account], 1, reason: 'Account Name');
+
+        // "Tip Amount" also contains the type alias "tip", but the veto is
+        // for the amount/date collision alone ("Value Dt"), not every field.
+        final tip = matchColumns(['Tip Amount', 'Date']);
+        expect(tip[ImportField.amount], 0, reason: 'Tip Amount');
+
+        // The amount/date collision itself must still be refused.
+        final valueDt = matchColumns(['Value Dt', 'Narration']);
+        expect(valueDt.containsKey(ImportField.amount), isFalse);
+      },
+    );
   });
 
   group('reading a type (IMP-3)', () {

@@ -231,6 +231,7 @@ const _aliases = <ImportField, List<String>>{
   ],
   ImportField.category: [
     'category',
+    'category name',
     'categories',
     'group',
     'tag',
@@ -256,10 +257,12 @@ const _aliases = <ImportField, List<String>>{
   ],
   ImportField.account: [
     'account',
+    'account name',
     'from account',
     'source',
     'source account',
     'wallet',
+    'wallet name',
     'payment method',
     'paid with',
     'hesap',
@@ -436,11 +439,16 @@ Map<ImportField, int> matchColumns(List<String> header) {
           return false;
         });
         if (!hit) continue;
-        if (!exact && _readsAsAnotherField(words, entry.key)) {
-          // The header also reads as a different field ("Value Dt" is both
-          // the amount alias "value" and the date alias "dt"): a column
-          // with competing meanings is left out rather than guessed at
-          // (IMP-3), instead of the loose pass picking one arbitrarily.
+        if (!exact && entry.key == ImportField.amount && _readsAsADate(words)) {
+          // "Value Dt" reads as both the amount alias "value" and the date
+          // alias "dt": a column with competing meanings is left out rather
+          // than guessed at (IMP-3), instead of the loose pass picking one
+          // arbitrarily. The veto is narrow on purpose — only for the
+          // amount/date collision that actually causes harm (a date column
+          // read as a numeric amount) — so a generic alias like the title
+          // field's "name" (as in "Category name" or "Account Name") does
+          // not block a different field's loose match just because it also
+          // appears in the header.
           continue;
         }
         matched[entry.key] = column;
@@ -452,14 +460,12 @@ Map<ImportField, int> matchColumns(List<String> header) {
   return matched;
 }
 
-/// Whether the header words also whole-word match some field other than
-/// [field], regardless of alias length: a short alias is not trusted to
-/// pick a field on its own, but it is trusted to veto a different field's
-/// loose match when the same header could mean either.
-bool _readsAsAnotherField(List<String> words, ImportField field) => _aliases
-    .entries
-    .where((other) => other.key != field)
-    .any((other) => other.value.any((alias) => _wholeWordMatch(words, alias)));
+/// Whether the header words also whole-word match a date alias, regardless
+/// of alias length: a short alias like "dt" is not trusted to pick the date
+/// column on its own, but it is trusted to veto the amount field's loose
+/// match on the same header ("Value Dt" is both "value" and "dt").
+bool _readsAsADate(List<String> words) =>
+    _aliases[ImportField.date]!.any((alias) => _wholeWordMatch(words, alias));
 
 /// Whether [text] is made up only of Latin letters (already folded to plain
 /// a–z by [_foldHeader]) and spaces. A non-Latin alias — Arabic, CJK,
