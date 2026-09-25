@@ -42,6 +42,10 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
   /// Off by default: occurrences wait for a tap (RCR-2).
   bool _autoPost = false;
 
+  /// True while a save is in flight, so a double tap or a retry after a
+  /// slow or failed save cannot create a second rule (data-integrity#5).
+  bool _saving = false;
+
   @override
   void initState() {
     super.initState();
@@ -94,7 +98,7 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
   }
 
   Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_saving || !_formKey.currentState!.validate()) return;
     final l10n = AppLocalizations.of(context);
     final provider = context.read<TransactionProvider>();
     final messenger = ScaffoldMessenger.of(context);
@@ -143,6 +147,7 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
       updatedAt: now,
     );
 
+    _saving = true;
     try {
       if (editing == null) {
         await provider.addRecurringRule(rule);
@@ -150,9 +155,11 @@ class _RecurringRuleScreenState extends State<RecurringRuleScreen>
         await provider.updateRecurringRule(rule);
       }
     } catch (_) {
+      _saving = false;
       messenger.showSnackBar(SnackBar(content: Text(l10n.recurringSaveFailed)));
       return;
     }
+    _saving = false;
     if (mounted) Navigator.of(context).pop();
   }
 

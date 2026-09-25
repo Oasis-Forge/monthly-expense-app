@@ -12,6 +12,16 @@ import 'package:monthly_expense_app/screens/transfer_screen.dart';
 
 import 'helpers.dart';
 
+/// A [FakeDB] whose account insert takes a beat, wide enough for a second
+/// Save tap to land before the first save finishes (data-integrity#5).
+class _SlowAccountDB extends FakeDB {
+  @override
+  Future<void> insertAccount(Account account) async {
+    await Future.delayed(const Duration(milliseconds: 60));
+    await super.insertAccount(account);
+  }
+}
+
 void main() {
   late FakeDB fake;
   late TransactionProvider provider;
@@ -74,6 +84,55 @@ void main() {
     expect(find.text('Savings'), findsOneWidget);
     expect(find.text('\$250'), findsOneWidget);
     expect(provider.activeAccounts.last.type, AccountType.bank);
+  });
+
+  testWidgets('double-tapping Save on a new account creates only one '
+      '(audit data-integrity#5)', (tester) async {
+    final slowFake = _SlowAccountDB();
+    final slowProvider = TransactionProvider(db: slowFake);
+    await slowProvider.load();
+    final slowSettings = await testSettings();
+
+    // Push the form as a route, the way the Accounts screen does, so a
+    // completed save can pop back to a real screen underneath.
+    await tester.pumpWidget(
+      testApp(
+        slowProvider,
+        slowSettings,
+        Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AccountEditScreen()),
+              ),
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name'),
+      'Savings',
+    );
+
+    final saveButton = find.widgetWithText(FilledButton, 'Save');
+
+    // Two taps close together, as a real double-tap (or a retry after a
+    // slow first save) would land.
+    await tester.tap(saveButton);
+    await tester.pump(const Duration(milliseconds: 30));
+    await tester.tap(saveButton);
+    await tester.pump(const Duration(milliseconds: 200));
+    await tester.pumpAndSettle();
+
+    expect(
+      slowProvider.accounts.where((a) => a.name == 'Savings'),
+      hasLength(1),
+    );
   });
 
   testWidgets('a name already in use is rejected', (tester) async {
