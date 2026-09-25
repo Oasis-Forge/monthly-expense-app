@@ -94,6 +94,16 @@ class HomeWidgetUpdater with WidgetsBindingObserver {
     }
   }
 
+  /// Split-screen on API 29+ can change the phone's language while this
+  /// app stays resumed the whole time (WID-5): the other app in the split
+  /// gets the lifecycle transition, this one just gets told its locales
+  /// changed, so [didChangeAppLifecycleState] alone would miss it.
+  @override
+  void didChangeLocales(List<Locale>? locales) {
+    _forceRefresh = true;
+    _schedule();
+  }
+
   void _schedule() {
     _debounce?.cancel();
     _debounce = Timer(_debounceDelay, () {

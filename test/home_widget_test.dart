@@ -391,6 +391,20 @@ void main() {
       expect(service.updates.length, greaterThan(before));
     });
 
+    test('a locale change alone, with no resume, still pushes again '
+        '(WID-5)', () async {
+      // Split-screen on API 29+ can deliver didChangeLocales with no
+      // lifecycle transition at all: the app never leaves resumed, so
+      // didChangeAppLifecycleState(resumed) is not what catches this.
+      await start(rows: [testTx('a', expense, 30, DateTime(2026, 9, 3))]);
+      final before = service.updates.length;
+
+      updater.didChangeLocales([const Locale('ar')]);
+      await settle();
+
+      expect(service.updates.length, greaterThan(before));
+    });
+
     test('it stops pushing once disposed', () async {
       await start();
       updater.dispose();
