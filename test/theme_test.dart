@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 
+import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/screens/amount_style.dart';
+import 'package:monthly_expense_app/screens/budget_progress.dart';
 import 'package:monthly_expense_app/screens/theme.dart';
 
 void main() {
@@ -116,6 +118,77 @@ void main() {
       expect(
         signedAmount(currency, const Money(10000), isIncome: false),
         startsWith('-'),
+      );
+    });
+  });
+
+  group('budget bar colours (THEME-4, A11Y-3, BUD-8)', () {
+    final seeds = <String, Color?>{
+      'the app own seed': null,
+      'a red wallpaper': const Color(0xFFD32F2F),
+      'an orange wallpaper': const Color(0xFFE65100),
+    };
+
+    for (final brightness in Brightness.values) {
+      for (final entry in seeds.entries) {
+        test('ok clears 4.5:1 under ${entry.key}, '
+            '${brightness.name}', () {
+          final fromPhone = entry.value == null
+              ? null
+              : ColorScheme.fromSeed(
+                  seedColor: entry.value!,
+                  brightness: brightness,
+                );
+          final theme = appTheme(fromPhone: fromPhone, brightness: brightness);
+          final dark = brightness == Brightness.dark;
+          final ok = Color(dark ? budgetOkDark : budgetOkLight);
+          for (final bg in [
+            theme.colorScheme.surface,
+            theme.colorScheme.surfaceContainerLow,
+          ]) {
+            expect(
+              contrast(ok, bg),
+              greaterThanOrEqualTo(4.5),
+              reason: 'an OK budget must stay readable on $bg',
+            );
+          }
+        });
+      }
+    }
+
+    testWidgets('an OK budget keeps its own colour whatever the wallpaper '
+        'is (THEME-4)', (tester) async {
+      Future<Color> okColorUnder(ColorScheme? fromPhone) async {
+        late Color result;
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: appTheme(fromPhone: fromPhone, brightness: Brightness.light),
+            home: Builder(
+              builder: (context) {
+                result = budgetLevelColor(context, BudgetLevel.ok);
+                return const SizedBox();
+              },
+            ),
+          ),
+        );
+        return result;
+      }
+
+      final appOwn = await okColorUnder(null);
+      final redWallpaper = await okColorUnder(
+        ColorScheme.fromSeed(
+          seedColor: const Color(0xFFD32F2F),
+          brightness: Brightness.light,
+        ),
+      );
+
+      expect(appOwn, const Color(budgetOkLight));
+      expect(
+        redWallpaper,
+        appOwn,
+        reason:
+            'an OK budget must keep its own hue whatever the wallpaper is '
+            '(THEME-4); it must not follow colorScheme.primary',
       );
     });
   });

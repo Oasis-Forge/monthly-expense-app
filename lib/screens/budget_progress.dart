@@ -9,6 +9,20 @@ import '../models/money.dart';
 import '../models/period.dart';
 import '../providers/transaction_provider.dart';
 
+/// The colour a budget's level is drawn in, shared by this bar and Home's
+/// budgets card (BUD-8) so the two never drift apart. "Ok" and "warning" are
+/// app-owned colours pinned against the wallpaper (THEME-4); "over" keeps
+/// following the theme's error colour.
+Color budgetLevelColor(BuildContext context, BudgetLevel level) {
+  final theme = Theme.of(context);
+  final dark = theme.brightness == Brightness.dark;
+  return switch (level) {
+    BudgetLevel.ok => Color(dark ? budgetOkDark : budgetOkLight),
+    BudgetLevel.warning => Colors.orange,
+    BudgetLevel.over => theme.colorScheme.error,
+  };
+}
+
 /// One budget's bar: spent against the limit, the share used, and what's
 /// left or over (BUD-2–BUD-4, BUD-6), as Insights shows it. The budgets card
 /// on Home shows a [compact] one (BUD-8).
@@ -38,11 +52,7 @@ class BudgetProgress extends StatelessWidget {
         ? null
         : provider.categoryById(categoryId);
     final isFuture = status.timing == PeriodTiming.future;
-    final color = switch (status.level) {
-      BudgetLevel.ok => theme.colorScheme.primary,
-      BudgetLevel.warning => Colors.orange,
-      BudgetLevel.over => theme.colorScheme.error,
-    };
+    final color = budgetLevelColor(context, status.level);
     String money(Money amount) => currency.money(amount);
     final perDay = status.perDayAllowance;
     final detail = isFuture

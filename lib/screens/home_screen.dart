@@ -637,12 +637,7 @@ class _BudgetsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final color = switch (summary.level) {
-      BudgetLevel.ok => theme.colorScheme.primary,
-      BudgetLevel.warning => Colors.orange,
-      BudgetLevel.over => theme.colorScheme.error,
-    };
+    final color = budgetLevelColor(context, summary.level);
     // A future period has only its limits, so there's nothing used yet
     // (BUD-6).
     final line = summary.timing == PeriodTiming.future

@@ -101,6 +101,14 @@ Money? limitFor(Iterable<Budget> budgets, String? categoryId, Period period) {
 
 enum BudgetLevel { ok, warning, over }
 
+/// The budget bar's "within budget" colour (BUD-8, THEME-4), pinned like
+/// the income and expense inks (CUR-5) so a wallpaper repaints the app
+/// without ever making an OK budget look like a warning or an over one.
+/// Each side clears 4.5:1 against surface and surfaceContainerLow, in
+/// light, dark, and black (A11Y-3).
+const budgetOkLight = 0xFF5D5791;
+const budgetOkDark = 0xFFC6BFFF;
+
 /// A budget's progress during one period (BUD-2–BUD-6).
 class BudgetStatus {
   const BudgetStatus({
