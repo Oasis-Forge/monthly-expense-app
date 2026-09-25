@@ -435,7 +435,7 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _open();
       _openReminder();
-      unawaited(_countIgnoredNudges());
+      unawaited(_checkNotificationsThenIgnored());
     });
   }
 
@@ -448,11 +448,31 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
   }
 
   /// Back in the app on a later day, Home moves on to today (DAY-1) and any
-  /// automatic occurrence due since then posts (RCR-4).
+  /// automatic occurrence due since then posts (RCR-4). Also rechecked here:
+  /// the phone's notification permission (NUDGE-7), since it can be taken
+  /// back in the phone's own settings while the app sits in the background,
+  /// not only through this app.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed) return;
     unawaited(context.read<TransactionProvider>().returnToToday());
+    unawaited(_refreshNotificationsBlocked());
+  }
+
+  /// Whether the phone is currently blocking notifications, so Settings can
+  /// say so (NUDGE-7) and the ignored-nudge count can leave that stretch out
+  /// of it (NUDGE-5). Only asked while the nudge is on: nothing to warn
+  /// about otherwise.
+  Future<void> _refreshNotificationsBlocked() async {
+    final settings = context.read<SettingsProvider>();
+    if (!settings.emptyDayNudge) {
+      settings.setNotificationsBlocked(false);
+      return;
+    }
+    final reminders = context.read<ReminderService>();
+    final enabled = await reminders.areNotificationsEnabled();
+    if (!mounted) return;
+    context.read<SettingsProvider>().setNotificationsBlocked(!enabled);
   }
 
   void _open() {
@@ -487,6 +507,14 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     );
   }
 
+  /// Checks the phone's notification permission before counting anything
+  /// (NUDGE-7), so a phone that is currently blocking notifications never
+  /// has this stretch counted as ignored (NUDGE-5).
+  Future<void> _checkNotificationsThenIgnored() async {
+    await _refreshNotificationsBlocked();
+    await _countIgnoredNudges();
+  }
+
   /// Counts the nudges that fired while the app was closed and went
   /// unanswered, and lets the nudge stop itself after three in a row
   /// (NUDGE-5). Stopping cancels what was still scheduled.
@@ -496,6 +524,14 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     // Days with entries are the answer to a nudge; counted before they are
     // read, every day looks ignored and the nudge stops itself (NUDGE-5).
     await transactions.whenLoaded;
+    // A phone that is blocking notifications never had a chance to see one,
+    // so nothing here counts as ignored while it does (NUDGE-5, NUDGE-7).
+    // The day is still marked checked, so this stretch is never counted
+    // once the block lifts either.
+    if (settings.notificationsBlocked) {
+      await settings.recordNudgeCheckedAt(DateTime.now());
+      return;
+    }
     final now = DateTime.now();
     final since = settings.nudgeCheckedAt;
     final wasOn = settings.emptyDayNudge;

@@ -41,6 +41,13 @@ abstract class ReminderService {
   /// only when the user sets a reminder for the first time (NOTE-6).
   Future<bool> requestPermission();
 
+  /// Whether the OS is currently letting this app's notifications through
+  /// (NUDGE-7): checked again on launch and resume, since permission granted
+  /// once can be taken back later in the phone's own settings, not only
+  /// through this app. True on a platform with no way to ask, so nothing
+  /// here shows a false warning.
+  Future<bool> areNotificationsEnabled();
+
   /// Schedules [note]'s reminder, replacing any earlier one for it, in
   /// [locale]. Does nothing (and cancels any existing one) when the note has
   /// no reminder, is done, is deleted, or the reminder time has passed. With
@@ -73,6 +80,9 @@ class NoopReminderService implements ReminderService {
 
   @override
   Future<bool> requestPermission() async => false;
+
+  @override
+  Future<bool> areNotificationsEnabled() async => true;
 
   @override
   Future<void> schedule(
@@ -113,6 +123,10 @@ class SafeReminderService implements ReminderService {
 
   @override
   Future<bool> requestPermission() => _guard(inner.requestPermission, false);
+
+  @override
+  Future<bool> areNotificationsEnabled() =>
+      _guard(inner.areNotificationsEnabled, true);
 
   @override
   Future<void> schedule(
@@ -196,6 +210,22 @@ class DeviceReminderService implements ReminderService {
       return await macOS.requestPermissions(alert: true, sound: true) ?? false;
     }
     // Windows and Linux notifications don't ask permission up front.
+    return true;
+  }
+
+  @override
+  Future<bool> areNotificationsEnabled() async {
+    await _ensureInitialized();
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (android != null) {
+      return await android.areNotificationsEnabled() ?? true;
+    }
+    // iOS, macOS, Windows and Linux have no equivalent live check in the
+    // plugin, so nothing here reports a phone as blocking when it may not
+    // be (NUDGE-7).
     return true;
   }
 
