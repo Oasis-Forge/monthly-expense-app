@@ -126,6 +126,19 @@ void main() {
           evaluateAmount('1,500+3', maxDecimals: 3, decimalMark: '.'),
           isNull,
         );
+        // The comma amount as a later operand: dropping decimalMark from
+        // the second Money.tryParse call (amount_expression.dart) still
+        // passes the case above, because '3' parses the same under either
+        // mark — this covers the operand that a regression there would
+        // actually break.
+        expect(
+          evaluateAmount('3+1,500', maxDecimals: 3, decimalMark: ','),
+          const Money(4500),
+        );
+        expect(
+          evaluateAmount('3+1,500', maxDecimals: 3, decimalMark: '.'),
+          isNull,
+        );
       },
     );
   });
