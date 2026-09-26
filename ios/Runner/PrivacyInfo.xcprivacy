@@ -22,9 +22,10 @@
 	<array/>
 	<key>NSPrivacyAccessedAPITypes</key>
 	<array>
-		<!-- HomeWidgetBridge.swift writes the widget's payload into the App
-		     Group's UserDefaults suite, which only this app and its widget
-		     share (WID-5): 1C8F.1. -->
+		<!-- HomeWidgetBridge.swift removes the widget payload that 1.31.1
+		     and earlier kept in the App Group's UserDefaults suite, which
+		     only this app and its widget share, now that the payload is a
+		     file kept out of backups (WID-5, BAK-8): 1C8F.1. -->
 		<dict>
 			<key>NSPrivacyAccessedAPIType</key>
 			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>

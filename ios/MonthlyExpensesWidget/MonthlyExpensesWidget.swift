@@ -8,7 +8,12 @@ import WidgetKit
 // reads the database or works a number out (WID-5, WID-6).
 
 let appGroupId = "group.com.oasisforge.monthlyexpenses"
-private let payloadKey = "payload"
+
+/// The file the app writes the payload to, in a folder of the App Group
+/// container that it keeps out of iCloud and computer backups (BAK-8). The
+/// names must match HomeWidgetBridge.swift's.
+private let payloadFolder = "WidgetPayload"
+private let payloadFile = "payload.json"
 
 /// The payload layout this build understands.
 private let supportedVersion = 1
@@ -27,8 +32,11 @@ struct WidgetPayload: Decodable {
 
   static func read() -> WidgetPayload? {
     guard
-      let json = UserDefaults(suiteName: appGroupId)?.string(forKey: payloadKey),
-      let data = json.data(using: .utf8),
+      let file = FileManager.default
+        .containerURL(forSecurityApplicationGroupIdentifier: appGroupId)?
+        .appendingPathComponent(payloadFolder, isDirectory: true)
+        .appendingPathComponent(payloadFile, isDirectory: false),
+      let data = try? Data(contentsOf: file),
       let payload = try? JSONDecoder().decode(WidgetPayload.self, from: data),
       payload.version == supportedVersion
     else { return nil }
@@ -109,6 +117,18 @@ struct MonthlyExpensesWidgetView: View {
     payload == nil || payload!.hideAmounts || entry.entry == nil
   }
 
+  /// What stands where the amounts would. While app lock hides them the app
+  /// sent its own words for that (WID-4). Otherwise there are no amounts
+  /// because the app has not run yet, so there are no words from the app
+  /// either: this line comes from the extension's Localizable.xcstrings, in
+  /// the device's language, as Android's widget_open_the_app does (WID-6).
+  private var note: Text {
+    if let payload, payload.hideAmounts {
+      return Text(payload.label("hidden"))
+    }
+    return Text("widget_open_the_app")
+  }
+
   var body: some View {
     VStack(alignment: .leading, spacing: 6) {
       Text(hidden ? (payload?.title ?? "") : entry.entry!.period)
@@ -118,7 +138,7 @@ struct MonthlyExpensesWidgetView: View {
 
       if hidden {
         Spacer(minLength: 0)
-        Text(payload?.label("hidden") ?? "")
+        note
           .font(.caption)
           .foregroundStyle(.secondary)
           .lineLimit(3)
