@@ -853,9 +853,15 @@ class FakeAdService implements AdService {
   int privacyOptionsShown = 0;
   bool started = false;
 
+  /// How many times `start` actually ran — a lock going up and down again,
+  /// or any other retry, must never call it more than once (ADS-5, ADS-8,
+  /// LOCK-1).
+  int startCalls = 0;
+
   @override
   Future<bool> start() async {
     started = true;
+    startCalls++;
     return canStart;
   }
 

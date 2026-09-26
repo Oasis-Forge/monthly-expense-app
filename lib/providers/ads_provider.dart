@@ -42,7 +42,7 @@ class AdsProvider extends ChangeNotifier {
        _locked = locked ?? ValueNotifier(false) {
     _purchases.addListener(_onChanged);
     _settings.addListener(_onSettingsChanged);
-    _locked.addListener(_onChanged);
+    _locked.addListener(_onLockChanged);
   }
 
   final AdService _ads;
@@ -84,7 +84,9 @@ class AdsProvider extends ChangeNotifier {
   bool get supported => AdsConfig.supportsAds;
 
   /// Starts the store and, once the first minutes of the app are over, the
-  /// ad SDK (ADS-4). Safe to call again; it only acts once.
+  /// ad SDK (ADS-4) — but not while the app is locked (ADS-5, LOCK-1): a
+  /// locked launch holds the ad SDK back until it unlocks, at which point it
+  /// starts by itself. Safe to call again; it only acts once.
   Future<void> start() async {
     await _purchases.start();
     _storeAnswered = true;
@@ -103,6 +105,12 @@ class AdsProvider extends ChangeNotifier {
     // Someone who has already paid is never asked for consent to ads they
     // will not see.
     if (_purchases.adsRemoved) return;
+    // ADS-5, LOCK-1: the consent form (and, on iOS, the tracking prompt it
+    // leads to) must never appear over the lock screen. Waiting here, rather
+    // than only in `DeviceAdService`, keeps `_started` false while locked, so
+    // `_onLockChanged` can try again — and actually start things — the
+    // moment the app is unlocked.
+    if (_locked.value) return;
     _started = true;
     _mayRequest = await _ads.start();
     notifyListeners();
@@ -254,11 +262,20 @@ class AdsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _onLockChanged() {
+    // Unlocking is what lets a start held back by ADS-5/LOCK-1 happen; a
+    // fresh lock has nothing to do here beyond the notify below — `showAds`
+    // already reads `_locked` itself, and `_started` never resets, so ads
+    // that already began are never asked to start twice (ADS-8, PAY-1).
+    if (!_locked.value) _startAdsIfReady();
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _purchases.removeListener(_onChanged);
     _settings.removeListener(_onSettingsChanged);
-    _locked.removeListener(_onChanged);
+    _locked.removeListener(_onLockChanged);
     _interstitial?.dispose();
     super.dispose();
   }
