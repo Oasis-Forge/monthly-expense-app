@@ -66,6 +66,9 @@ final class SecurityBridge: NSObject {
       case "uncover":
         self?.removeCover()
         result(nil)
+      case "excludeFromBackup":
+        self?.excludeFromBackup((call.arguments as? [String]) ?? [])
+        result(nil)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -104,5 +107,36 @@ final class SecurityBridge: NSObject {
     uncoverFallbackTimer = nil
     cover?.removeFromSuperview()
     cover = nil
+  }
+
+  /// Marks each of `paths` excluded from iCloud and computer backups
+  /// (BAK-8). iOS backs up the whole of Documents and Application Support
+  /// by default — Documents holds the database (`db_helper.dart`'s
+  /// `getDatabasesPath()` resolves there on iOS), and the app's own
+  /// Application Support folder holds the attachments and the automatic
+  /// backups (`attachment_service.dart`, `backup_files.dart`) — which
+  /// would otherwise carry those records into iCloud, or into a computer
+  /// backup taken over cable, even though the privacy policy promises
+  /// they never leave the device on their own. `main.dart` sends this
+  /// once at startup, on iOS only. Excluding a directory covers its
+  /// existing contents and anything added to it later, so this never has
+  /// to single out one file.
+  ///
+  /// A path that fails — it does not exist yet because nothing has been
+  /// saved there, or `setResourceValues` refuses for its own reasons — is
+  /// logged and skipped; one failing path never stops the rest, and
+  /// nothing here ever reports failure back to Dart (which logs on its
+  /// own side and never lets this hold up startup either).
+  private func excludeFromBackup(_ paths: [String]) {
+    for path in paths {
+      var url = URL(fileURLWithPath: path, isDirectory: true)
+      do {
+        var resourceValues = URLResourceValues()
+        resourceValues.isExcludedFromBackup = true
+        try url.setResourceValues(resourceValues)
+      } catch {
+        NSLog("SecurityBridge: could not exclude '\(path)' from backup: \(error)")
+      }
+    }
   }
 }
