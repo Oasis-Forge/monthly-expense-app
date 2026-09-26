@@ -112,8 +112,10 @@
 		<string>Choosing a photo attaches a copy of it to a transaction. It stays on this device.</string>
 		<key>NSFaceIDUsageDescription</key>
 		<string>Face ID unlocks Monthly Expenses when app lock is on.</string>
-		<!-- Shown if the consent flow asks for tracking permission (ADS-5).
-		     Refusing means non-personalised ads, and nothing else changes. -->
+		<!-- The App Tracking Transparency prompt, asked once after the consent
+		     form and before the ad SDK starts (ADS-17). iOS ends the app if this
+		     text is missing when the prompt is asked. Refusing means
+		     non-personalised ads, and nothing else changes. -->
 		<key>NSUserTrackingUsageDescription</key>
 		<string>Allowing this lets the ads that pay for Monthly Expenses be chosen for you. Your transactions are never shared, whichever you choose.</string>
 		<!-- The ad networks allowed to attribute an install to an ad
