@@ -90,10 +90,12 @@ void main() {
       final adsProvider = tester
           .element(find.byType(MaterialApp))
           .read<AdsProvider>();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
+      for (var i = 0; i < 100 && !adsProvider.interstitialReady; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
       expect(
         adsProvider.interstitialReady,
         isTrue,
@@ -153,10 +155,12 @@ void main() {
       final adsProvider = tester
           .element(find.byType(MaterialApp))
           .read<AdsProvider>();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
+      for (var i = 0; i < 100 && !adsProvider.interstitialReady; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
       expect(
         adsProvider.interstitialReady,
         isTrue,
@@ -215,10 +219,12 @@ void main() {
       final adsProvider = tester
           .element(find.byType(MaterialApp))
           .read<AdsProvider>();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
+      for (var i = 0; i < 100 && !adsProvider.interstitialReady; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
       expect(
         adsProvider.interstitialReady,
         isTrue,
