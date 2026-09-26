@@ -2,6 +2,7 @@ package com.oasisforge.monthlyexpenses
 
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -14,6 +15,30 @@ class MainActivity : FlutterFragmentActivity() {
 
   /** The widget button that launched the app, until Dart asks for it. */
   private var pendingAction: String? = null
+
+  /**
+   * A launch that Android replays is not a new tap (NAV-8, WID-3, NOTE-6).
+   *
+   * Once the process has been killed, coming back from Recents or from the
+   * launcher icon recreates this activity with the intent that first
+   * started the task. When a shortcut, a widget button or a notification
+   * started it, that intent still carries the shortcut, the button or the
+   * tapped note, and the plugins would act on it again: the add form
+   * reopening over Home long after it was saved (pr57_9). A saved state or
+   * the history flag marks such a replay, so the intent is swapped for a
+   * plain launch before any plugin reads it. A real tap reaches a task that
+   * still exists through onNewIntent, which this leaves alone.
+   */
+  override fun onCreate(savedInstanceState: Bundle?) {
+    val replayed = savedInstanceState != null ||
+      (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
+    if (replayed) {
+      intent = Intent(Intent.ACTION_MAIN)
+        .addCategory(Intent.CATEGORY_LAUNCHER)
+        .setClass(this, MainActivity::class.java)
+    }
+    super.onCreate(savedInstanceState)
+  }
 
   override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
     super.configureFlutterEngine(flutterEngine)
