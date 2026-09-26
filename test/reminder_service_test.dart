@@ -262,10 +262,12 @@ void main() {
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
       late List<MethodCall> calls;
       var grant = true;
+      var enabled = true;
 
       setUp(() {
         calls = [];
         grant = true;
+        enabled = true;
         messenger.setMockMethodCallHandler(channel, (call) async {
           calls.add(call);
           switch (call.method) {
@@ -275,6 +277,8 @@ void main() {
               return null;
             case 'requestPermissions':
               return grant;
+            case 'checkPermissions':
+              return {'isEnabled': enabled};
             default:
               return null;
           }
@@ -342,6 +346,25 @@ void main() {
             useThisPlatform();
 
             expect(await DeviceReminderService().requestPermission(), isFalse);
+          });
+
+          test('areNotificationsEnabled follows the live OS permission, the '
+              'same way it already does on Android, so a refusal or a later '
+              'revoke in Settings shows as blocked instead of always enabled '
+              '(NUDGE-7)', () async {
+            useThisPlatform();
+            final service = DeviceReminderService();
+
+            enabled = false;
+            expect(await service.areNotificationsEnabled(), isFalse);
+
+            enabled = true;
+            expect(await service.areNotificationsEnabled(), isTrue);
+
+            expect(
+              calls.where((c) => c.method == 'checkPermissions'),
+              isNotEmpty,
+            );
           });
         });
       }

@@ -404,9 +404,22 @@ class DeviceReminderService implements ReminderService {
     if (android != null) {
       return await android.areNotificationsEnabled() ?? true;
     }
-    // iOS, macOS, Windows and Linux have no equivalent live check in the
-    // plugin, so nothing here reports a phone as blocking when it may not
-    // be (NUDGE-7).
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    if (ios != null) {
+      return (await ios.checkPermissions())?.isEnabled ?? true;
+    }
+    final macOS = _plugin
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >();
+    if (macOS != null) {
+      return (await macOS.checkPermissions())?.isEnabled ?? true;
+    }
+    // Windows and Linux have no equivalent live check in the plugin, so
+    // nothing here reports a phone as blocking when it may not be (NUDGE-7).
     return true;
   }
 
