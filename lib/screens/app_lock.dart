@@ -113,9 +113,11 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
   }
 
   /// Tells `SecurityBridge.swift` it can drop its own native cover, once
-  /// Dart's next frame after `resumed` has painted either the lock screen or
-  /// [_ObscureCover] (review-ads-1). A no-op on Android (no native cover to
-  /// hold back) and in tests, where `MissingPluginException` is expected.
+  /// Dart's next frame has painted something safe to show underneath it:
+  /// either the lock screen or [_ObscureCover] after `resumed`
+  /// (review-ads-1), or the real content right after [_unlock] succeeds
+  /// (LOCK-1, LOCK-2). A no-op on Android (no native cover to hold back)
+  /// and in tests, where `MissingPluginException` is expected.
   void _requestUncover() {
     if (!_hasNativeLock) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -212,7 +214,17 @@ class _AppLockState extends State<AppLock> with WidgetsBindingObserver {
     if (result == AuthResult.unavailable) await _settings.setAppLock(false);
     if (!mounted) return;
     setState(() => _authenticating = false);
-    if (result != AuthResult.failed) _setLocked(false);
+    if (result != AuthResult.failed) {
+      _setLocked(false);
+      // `didChangeAppLifecycleState` ignores every lifecycle event that
+      // arrives while `_authenticating` or `_locked` is true, which is the
+      // whole time the system Face ID prompt is up, so its own call to
+      // [_requestUncover] never runs for whatever native cover that
+      // prompt raised. Ask directly, the moment Dart itself has painted
+      // the unlocked content, instead of leaving `SecurityBridge.swift`'s
+      // own cover up for its 1 s fallback timer (LOCK-1, LOCK-2).
+      _requestUncover();
+    }
   }
 
   @override

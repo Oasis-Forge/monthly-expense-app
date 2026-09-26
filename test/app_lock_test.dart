@@ -433,8 +433,12 @@ void main() {
     testWidgets('a locked launch turns it on', (tester) async {
       await showApp(tester, appLock: true);
 
-      expect(calls.single.method, 'setSecure');
-      expect(calls.single.arguments, isTrue);
+      // The default fake authenticator succeeds right away, so the launch
+      // also auto-unlocks and asks for the (nonexistent, in this test)
+      // native cover to come down; this is only about the setSecure call
+      // that comes first.
+      expect(calls.first.method, 'setSecure');
+      expect(calls.first.arguments, isTrue);
     });
 
     testWidgets('app lock off never turns it on', (tester) async {
@@ -451,8 +455,68 @@ void main() {
         authenticator.available = false;
         await showApp(tester, appLock: true);
 
-        expect(calls.map((call) => call.arguments as bool), [true, false]);
+        expect(
+          calls
+              .where((call) => call.method == 'setSecure')
+              .map((call) => call.arguments as bool),
+          [true, false],
+        );
       },
     );
+  });
+
+  group('lifting the native privacy cover the instant an unlock succeeds, '
+      'rather than leaving it to the 1 s native fallback timer (LOCK-1, '
+      'LOCK-2)', () {
+    final channel = const MethodChannel(
+      'com.oasisforge.monthlyexpenses/security',
+    );
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    late List<MethodCall> calls;
+
+    setUp(() {
+      calls = [];
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        calls.add(call);
+        return null;
+      });
+    });
+
+    tearDown(() => messenger.setMockMethodCallHandler(channel, null));
+
+    testWidgets('a failed attempt never asks for the cover to come down: '
+        'the app is still locked', (tester) async {
+      authenticator.result = AuthResult.failed;
+      await showApp(tester, appLock: true);
+
+      expect(calls.any((call) => call.method == 'uncover'), isFalse);
+      expect(locked, findsOneWidget);
+    });
+
+    testWidgets('a successful unlock sends uncover right away, without '
+        'waiting for the app to leave and return to the foreground', (
+      tester,
+    ) async {
+      authenticator.result = AuthResult.failed;
+      await showApp(tester, appLock: true);
+      expect(calls.any((call) => call.method == 'uncover'), isFalse);
+
+      authenticator.result = AuthResult.success;
+      await tester.tap(find.text('Unlock'));
+      await tester.pumpAndSettle();
+
+      expect(locked, findsNothing);
+      expect(calls.map((call) => call.method), contains('uncover'));
+    });
+
+    testWidgets('losing app lock itself (LOCK-3, no screen lock on the '
+        'device) also asks for the cover to come down, the same as any '
+        'other successful unlock', (tester) async {
+      authenticator.available = false;
+      await showApp(tester, appLock: true);
+
+      expect(calls.map((call) => call.method), contains('uncover'));
+    });
   });
 }
