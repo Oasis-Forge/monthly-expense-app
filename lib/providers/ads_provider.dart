@@ -84,7 +84,7 @@ class AdsProvider extends ChangeNotifier {
   bool get supported => AdsConfig.supportsAds;
 
   /// Starts the store and, once the first minutes of the app are over, the
-  /// ad SDK (ADS-4) — but not while the app is locked (ADS-5, LOCK-1): a
+  /// ad SDK (ADS-4) — but not while the app is locked (ADS-5, LOCK-2): a
   /// locked launch holds the ad SDK back until it unlocks, at which point it
   /// starts by itself. Safe to call again; it only acts once.
   Future<void> start() async {
@@ -105,7 +105,7 @@ class AdsProvider extends ChangeNotifier {
     // Someone who has already paid is never asked for consent to ads they
     // will not see.
     if (_purchases.adsRemoved) return;
-    // ADS-5, LOCK-1: the consent form (and, on iOS, the tracking prompt it
+    // ADS-5, LOCK-2: the consent form (and, on iOS, the tracking prompt it
     // leads to) must never appear over the lock screen. Waiting here, rather
     // than only in `DeviceAdService`, keeps `_started` false while locked, so
     // `_onLockChanged` can try again — and actually start things — the
@@ -263,7 +263,7 @@ class AdsProvider extends ChangeNotifier {
   }
 
   void _onLockChanged() {
-    // Unlocking is what lets a start held back by ADS-5/LOCK-1 happen; a
+    // Unlocking is what lets a start held back by ADS-5/LOCK-2 happen; a
     // fresh lock has nothing to do here beyond the notify below — `showAds`
     // already reads `_locked` itself, and `_started` never resets, so ads
     // that already began are never asked to start twice (ADS-8, PAY-1).
