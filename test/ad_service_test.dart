@@ -4,6 +4,8 @@
 // and the UMP channel's public mutable static, so consent can be faked
 // without a second platform channel.
 // ignore_for_file: implementation_imports
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleState;
@@ -335,6 +337,14 @@ void main() {
         expect(await started, isTrue);
         expect(tracking.asked, 1);
         expect(fake.order.last, 'MobileAds#initialize');
+      });
+
+      test('the app hands the real service its lock (LOCK-2)', () {
+        // main.dart builds the one DeviceAdService, and no test builds the
+        // app with it, so read the source: without the lock, the wait above
+        // would only ever wait for the app to be active.
+        final main = File('lib/main.dart').readAsStringSync();
+        expect(main, contains('DeviceAdService(locked: appIsLocked)'));
       });
 
       test('is never asked on Android', () async {

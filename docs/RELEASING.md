@@ -225,4 +225,4 @@ Also declare the ads themselves under **Ads** in the store listing, and answer t
 - **Diagnostics → Crash/Performance Data** — only if you enable anything of the sort; today the app has none of its own.
 - Everything the user records: **not collected**.
 
-Because the app shows ads and may ask for tracking, `NSUserTrackingUsageDescription` is in `Info.plist`; keep its wording honest about what refusing does (nothing, except less-relevant ads).
+The iOS app asks App Tracking Transparency itself, right after the consent form and before the ad SDK starts (ADS-17), which is what makes declaring "Data Used to Track You" honest. Its prompt shows `NSUserTrackingUsageDescription` from `Info.plist`; keep that wording honest about what refusing does (nothing, except less-relevant ads). App Review checks the prompt appears, so test it on a fresh install: finish setup and the walkthrough, answer the consent form if one shows, and the ATT prompt should follow. It does not come back once answered; delete the app to see it again.
