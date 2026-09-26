@@ -150,4 +150,33 @@ void main() {
       },
     );
   });
+
+  // The phone was off at the nudge's time every evening and came back too
+  // late, or in the quiet hours, so the boot receiver dropped each nudge
+  // rather than show it (NUDGE-9, pr59_10).
+  group('nudges the phone dropped at a restart (NUDGE-5, NUDGE-9)', () {
+    testWidgets('are not counted as ignored, so the nudge does not give up '
+        'on nights it was never shown', (tester) async {
+      final now = DateTime.now();
+      // The same five days as the case above that gives up on the nudge.
+      final reminders = FakeReminderService()
+        ..droppedEmptyDays = [
+          for (var back = 0; back <= 5; back++)
+            DateTime(now.year, now.month, now.day - back, 21),
+        ];
+      final checkedAt = now.subtract(const Duration(days: 5));
+      final settings = await startWithNudgeOn(
+        tester,
+        reminders,
+        values: {
+          'empty_day_nudge_checked': checkedAt.toUtc().toIso8601String(),
+        },
+      );
+
+      expect(settings.notificationsBlocked, isFalse);
+      expect(settings.nudgeIgnored, 0);
+      expect(settings.nudgeStopped, isFalse);
+      expect(settings.emptyDayNudge, isTrue);
+    });
+  });
 }

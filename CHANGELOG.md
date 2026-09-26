@@ -4,6 +4,13 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.32.1] - 2026-09-26
+
+### Fixed
+- A reminder that was due more than two hours before the phone was restarted or the app was updated is dropped instead of arriving late; one due less than two hours ago still arrives (NUDGE-9, NOTE-6, pr59_10).
+- After a restart, an empty-day nudge is never sent during the quiet hours, and one dropped at the restart no longer counts as ignored (NUDGE-5, NUDGE-6).
+- Search's date range reaches records from before 2015 and after 2100 (SRCH-2).
+
 ## [1.32.0] - 2026-09-26
 
 ### Added

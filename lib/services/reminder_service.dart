@@ -1,6 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -31,8 +32,15 @@ const _nudgeIdBase = 0x7fff0000;
 /// before it (NUDGE-1).
 const _nudgeIdSlots = 8;
 
-/// Marks a payload as the app's own reminder rather than a note's.
-const _nudgePrefix = 'nudge:';
+/// Marks a payload as the app's own reminder rather than a note's. The
+/// Android boot receiver tells the two apart by it too
+/// (`NUDGE_PAYLOAD_PREFIX` in ReminderBootReceiver.kt, held equal by
+/// test/android_manifest_test.dart), to keep the quiet hours after a
+/// restart (NUDGE-6, NUDGE-9).
+const nudgePayloadPrefix = 'nudge:';
+
+/// The payload of the app's own reminder of [kind] (NUDGE-1).
+String nudgePayload(ReminderKind kind) => '$nudgePayloadPrefix${kind.name}';
 
 /// A stable notification ID for [noteId]. Notification IDs are 32-bit ints,
 /// so this folds the UUID's hash into that range.
@@ -54,6 +62,11 @@ String channelNameFor(ReminderKind kind, AppLocalizations l10n) =>
 
 /// How long after its time a note reminder is still worth leaving alone,
 /// covering the inexact alarm's own delivery window (NUDGE-9).
+///
+/// A restart applies the same number before Dart runs: the Android boot
+/// receiver (`PASSED_REMINDER_GRACE_MS` in ReminderBootReceiver.kt) drops
+/// every one-shot reminder more overdue than this rather than fire it late
+/// (pr59_10), and test/android_manifest_test.dart holds the two equal.
 const passedReminderGrace = Duration(hours: 2);
 
 /// Whether a reminder whose time [at] has already passed should be
@@ -199,6 +212,12 @@ abstract class ReminderService {
     required Locale locale,
     required NumberFormat currency,
   });
+
+  /// When each empty-day nudge was due that the phone dropped at a restart
+  /// instead of showing it, late or in the quiet hours (NUDGE-9, NUDGE-6).
+  /// Nobody saw it, so nobody ignored it: those days are left out of the
+  /// count that stops the nudge (NUDGE-5). Empty where nothing is dropped.
+  Future<List<DateTime>> droppedEmptyDayNudges();
 }
 
 /// Does nothing. [TransactionProvider]'s default, so building one without
@@ -230,6 +249,9 @@ class NoopReminderService implements ReminderService {
     required Locale locale,
     required NumberFormat currency,
   }) async {}
+
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() async => const [];
 }
 
 /// Passes every call to [inner], and logs and swallows whatever it throws.
@@ -286,6 +308,10 @@ class SafeReminderService implements ReminderService {
     ),
     null,
   );
+
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() =>
+      _guard(inner.droppedEmptyDayNudges, const <DateTime>[]);
 }
 
 /// Schedules real device notifications through `flutter_local_notifications`.
@@ -558,8 +584,8 @@ class DeviceReminderService implements ReminderService {
   /// payload, and everything else is a note's ID (NOTE-6, NUDGE-1).
   void _deliver(String? payload) {
     if (payload == null) return;
-    if (payload.startsWith(_nudgePrefix)) {
-      final name = payload.substring(_nudgePrefix.length);
+    if (payload.startsWith(nudgePayloadPrefix)) {
+      final name = payload.substring(nudgePayloadPrefix.length);
       tappedReminder.value = ReminderKind.values
           .where((kind) => kind.name == name)
           .firstOrNull;
@@ -616,9 +642,28 @@ class DeviceReminderService implements ReminderService {
         // Inexact, so Play is never asked for the exact-alarm permission and
         // the phone may deliver it a few minutes late (NUDGE-9).
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        payload: '$_nudgePrefix${reminder.kind.name}',
+        payload: nudgePayload(reminder.kind),
       );
     }
+  }
+
+  /// Where MainActivity hands over what ReminderBootReceiver.kt dropped.
+  static const bootChannel = MethodChannel(
+    'com.oasisforge.monthlyexpenses/reminders',
+  );
+
+  /// Only Android's boot receiver drops anything, and it records when each
+  /// empty-day nudge it dropped was due, in epoch milliseconds.
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const [];
+    }
+    final dropped = await bootChannel.invokeListMethod<int>('droppedEmptyDays');
+    return [
+      for (final at in dropped ?? const <int>[])
+        DateTime.fromMillisecondsSinceEpoch(at),
+    ];
   }
 }
 

@@ -577,6 +577,7 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
   Future<void> _countIgnoredNudges() async {
     final settings = context.read<SettingsProvider>();
     final transactions = context.read<TransactionProvider>();
+    final reminders = context.read<ReminderService>();
     // Days with entries are the answer to a nudge; counted before they are
     // read, every day looks ignored and the nudge stops itself (NUDGE-5).
     await transactions.whenLoaded;
@@ -593,9 +594,14 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
       await settings.recordNudgeCheckedAt(DateTime.now());
       return;
     }
-    final now = DateTime.now();
     final since = settings.nudgeCheckedAt;
     final wasOn = settings.emptyDayNudge;
+    // A nudge the phone dropped at a restart was never shown, so it was
+    // never ignored either (NUDGE-5, NUDGE-9).
+    final dropped = wasOn && since != null
+        ? await reminders.droppedEmptyDayNudges()
+        : const <DateTime>[];
+    final now = DateTime.now();
     await settings.recordNudgesIgnored(
       wasOn && since != null
           ? countIgnoredNudges(
@@ -605,6 +611,7 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
               minute: settings.nudgeMinute,
               daysWithEntries: transactions.daysUsed,
               ignoredSoFar: settings.nudgeIgnored,
+              dropped: dropped,
             )
           : settings.nudgeIgnored,
       now,

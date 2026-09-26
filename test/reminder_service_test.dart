@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, debugDefaultTargetPlatformOverride;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -566,6 +565,51 @@ void main() {
       );
 
       expect(body, l10n.emptyDayReminderBody);
+    });
+  });
+
+  // ReminderBootReceiver.kt records when each empty-day nudge it dropped at
+  // a restart was due, and MainActivity hands the record over; a nudge
+  // nobody saw is not counted as ignored (NUDGE-5, NUDGE-9, pr59_10).
+  group('the nudges the phone dropped at a restart', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    tearDown(() {
+      messenger.setMockMethodCallHandler(
+        DeviceReminderService.bootChannel,
+        null,
+      );
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    test("are read from the boot receiver's record on Android", () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      final due = [DateTime(2026, 9, 23, 21), DateTime(2026, 9, 24, 21, 30)];
+      final calls = <String>[];
+      messenger.setMockMethodCallHandler(DeviceReminderService.bootChannel, (
+        call,
+      ) async {
+        calls.add(call.method);
+        return [for (final at in due) at.millisecondsSinceEpoch];
+      });
+
+      expect(await DeviceReminderService().droppedEmptyDayNudges(), due);
+      expect(calls, ['droppedEmptyDays']);
+    });
+
+    test('are none where nothing records them', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      var asked = false;
+      messenger.setMockMethodCallHandler(DeviceReminderService.bootChannel, (
+        call,
+      ) async {
+        asked = true;
+        return <int>[];
+      });
+
+      expect(await DeviceReminderService().droppedEmptyDayNudges(), isEmpty);
+      expect(asked, isFalse);
     });
   });
 }
