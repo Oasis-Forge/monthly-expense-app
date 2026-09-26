@@ -1,4 +1,10 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, debugDefaultTargetPlatformOverride;
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show Locale;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -17,6 +23,11 @@ import 'helpers.dart';
 /// that only drives the fake proves nothing about the device unless both
 /// sides are known to agree, and this is what proves that.
 void main() {
+  // Needed below for TestDefaultBinaryMessengerBinding.instance, since this
+  // file uses plain test() rather than testWidgets() (which does this on its
+  // own).
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final at = DateTime(2026, 9, 20, 9);
 
   group('reminderActionFor', () {
@@ -239,6 +250,120 @@ void main() {
 
       expect(fake.scheduled.containsKey('a'), isFalse);
     });
+  });
+
+  group(
+    'DeviceReminderService on iOS and macOS (NOTE-6, NUDGE-1, NUDGE-7)',
+    () {
+      const channel = MethodChannel(
+        'dexterous.com/flutter/local_notifications',
+      );
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      late List<MethodCall> calls;
+      var grant = true;
+
+      setUp(() {
+        calls = [];
+        grant = true;
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
+          switch (call.method) {
+            case 'initialize':
+              return true;
+            case 'getNotificationAppLaunchDetails':
+              return null;
+            case 'requestPermissions':
+              return grant;
+            default:
+              return null;
+          }
+        });
+      });
+
+      tearDown(() {
+        messenger.setMockMethodCallHandler(channel, null);
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      // The plugin picks its platform implementation off
+      // defaultTargetPlatform, exactly as the device does; nothing here is
+      // iOS/macOS-specific beyond that switch (pr59_7).
+      for (final platform in [TargetPlatform.iOS, TargetPlatform.macOS]) {
+        void useThisPlatform() {
+          debugDefaultTargetPlatformOverride = platform;
+          FlutterLocalNotificationsPlatform.instance =
+              platform == TargetPlatform.iOS
+              ? IOSFlutterLocalNotificationsPlugin()
+              : MacOSFlutterLocalNotificationsPlugin();
+        }
+
+        group(platform.name, () {
+          test(
+            'initializing asks the OS for no permission up front, so it '
+            'does not prompt before any reminder is ever turned on',
+            () async {
+              useThisPlatform();
+              await DeviceReminderService().requestPermission();
+
+              final init = calls.singleWhere((c) => c.method == 'initialize');
+              final settings = init.arguments as Map<dynamic, dynamic>;
+              expect(settings['requestAlertPermission'], isFalse);
+              expect(settings['requestSoundPermission'], isFalse);
+              expect(settings['requestBadgePermission'], isFalse);
+            },
+          );
+
+          test('turning on a reminder asks for alert, sound and badge -- the '
+              'same moment Android is asked for POST_NOTIFICATIONS', () async {
+            useThisPlatform();
+            final granted = await DeviceReminderService().requestPermission();
+
+            expect(granted, isTrue);
+            final request = calls.singleWhere(
+              (c) => c.method == 'requestPermissions',
+            );
+            expect(request.arguments, {
+              'sound': true,
+              'alert': true,
+              'badge': true,
+              'provisional': false,
+              'critical': false,
+              // CarPlay is iOS-only; MacOSFlutterLocalNotificationsPlugin's
+              // requestPermissions() has no such parameter at all.
+              if (platform == TargetPlatform.iOS) 'carPlay': false,
+              'providesAppNotificationSettings': false,
+            });
+          });
+
+          test('a refusal is reported back as false, the same as a refusal on '
+              'Android is', () async {
+            grant = false;
+            useThisPlatform();
+
+            expect(await DeviceReminderService().requestPermission(), isFalse);
+          });
+        });
+      }
+    },
+  );
+
+  group('AppDelegate sets the notification delegate (NOTE-6, NUDGE-1)', () {
+    test(
+      'UNUserNotificationCenter has a delegate, so a tapped note reminder '
+      'or nudge on iOS reaches the app instead of doing nothing (pr59_7)',
+      () {
+        final appDelegate = File('ios/Runner/AppDelegate.swift')
+            .readAsStringSync();
+        expect(
+          appDelegate,
+          contains('UNUserNotificationCenter.current().delegate'),
+          reason:
+              'Without this, flutter_local_notifications never learns a '
+              'notification was tapped on iOS.',
+        );
+      },
+    );
   });
 
   group('nudgeBody (NUDGE-2, rules-23-26-34#9)', () {
