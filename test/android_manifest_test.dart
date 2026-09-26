@@ -346,6 +346,94 @@ void main() {
         contains('FlutterLocalNotificationsPlugin.rescheduleNotifications'),
       );
     });
+
+    // An app update keeps the alarms a restart clears, and a one-shot the
+    // phone held back (Doze, a seldom-opened app's standby bucket) can still
+    // be armed hours after its time. Out of the plugin's copy but still
+    // armed, it would fire that late anyway, so the receiver disarms it too.
+    test("disarms a dropped reminder's alarm the way the plugin cancels one "
+        '(NUDGE-9, pr59_10)', () {
+      final plugin = pluginJava('FlutterLocalNotificationsPlugin.java');
+      // A method's body, from its signature to the closing brace at its
+      // indent; any run of whitespace in the signature matches any other.
+      String body(String signature) {
+        final match = RegExp(
+          '${signature.split(' ').map(RegExp.escape).join(r'\s+')}'
+          r'(.*?)\r?\n  \}',
+          dotAll: true,
+        ).firstMatch(plugin);
+        expect(match, isNotNull, reason: '$signature is gone');
+        return match!.group(1)!;
+      }
+
+      // The alarm's PendingIntent: the plugin's receiver, no action or data
+      // (extras do not count when Android matches one), request code the
+      // notification's id, and immutable from API 23, below this app's
+      // minSdk.
+      final zoned = body(
+        'private static void zonedScheduleNotification( Context context,',
+      );
+      expect(
+        zoned,
+        contains(
+          'Intent notificationIntent = new Intent(context, '
+          'ScheduledNotificationReceiver.class);',
+        ),
+      );
+      expect(zoned, isNot(contains('notificationIntent.set')));
+      expect(
+        zoned,
+        contains(
+          'getBroadcastPendingIntent(context, notificationDetails.id, '
+          'notificationIntent)',
+        ),
+      );
+      final pending = body(
+        'private static PendingIntent getBroadcastPendingIntent('
+        'Context context, int id, Intent intent) {',
+      );
+      expect(pending, contains('flags |= PendingIntent.FLAG_IMMUTABLE;'));
+      expect(
+        pending,
+        contains('PendingIntent.getBroadcast(context, id, intent, flags)'),
+      );
+      // The plugin's own cancel rebuilds it the same way.
+      final cancel = body(
+        'private void cancelNotification(Integer id, String tag) {',
+      );
+      expect(
+        cancel,
+        contains(
+          'new Intent(applicationContext, ScheduledNotificationReceiver.class)',
+        ),
+      );
+      expect(cancel, contains('alarmManager.cancel(pendingIntent)'));
+
+      // And the receiver does the same, finding rather than making one.
+      expect(
+        kotlin,
+        contains('Intent(context, ScheduledNotificationReceiver::class.java)'),
+      );
+      expect(
+        kotlin,
+        contains(
+          'PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE',
+        ),
+      );
+      expect(kotlin, contains('as AlarmManager).cancel(pending)'));
+      // Once the copy no longer has them: still in it, the plugin would lay
+      // them again straight after and undo it.
+      final drop = RegExp(
+        r'fun drop\(context: Context.*?\{(.*?)\r?\n  \}',
+        dotAll: true,
+      ).firstMatch(kotlin)?.group(1);
+      expect(drop, isNotNull, reason: 'StaleReminders.drop is gone');
+      final saved = drop!.indexOf('.commit()');
+      final disarmed = drop.indexOf('cancelAlarm(context, it)');
+      expect(saved, isNonNegative);
+      expect(disarmed, greaterThan(saved));
+      expect(drop, contains('for (entry in pruned.dropped)'));
+    });
   });
 
   // Nothing here reruns on its own if it silently regresses: no test in the

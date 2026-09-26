@@ -1,9 +1,12 @@
 package com.oasisforge.monthlyexpenses
 
+import android.app.AlarmManager
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver
+import com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -93,18 +96,22 @@ object StaleReminders {
 
   /**
    * Rewrites the plugin's copy without the stale one-shots, before the
-   * plugin reads it. Nothing is written when nothing is stale.
+   * plugin reads it, and disarms whatever alarm is still waiting for them
+   * ([cancelAlarm]). Nothing is written when nothing is stale.
    */
   fun drop(context: Context, nowMillis: Long = System.currentTimeMillis()) {
     try {
       val prefs = context.getSharedPreferences(PLUGIN_PREFS, Context.MODE_PRIVATE)
       val cached = prefs.getString(PLUGIN_KEY, null) ?: return
-      val kept = withoutStale(cached, nowMillis) ?: return
-      if (prefs.edit().putString(PLUGIN_KEY, kept).commit()) {
-        Log.i(TAG, "Dropped the reminders more than two hours overdue")
-      } else {
+      val pruned = withoutStale(cached, nowMillis) ?: return
+      if (!prefs.edit().putString(PLUGIN_KEY, pruned.kept).commit()) {
         Log.w(TAG, "Could not save the reminders left; the plugin lays all of them")
+        return
       }
+      // Only once they are out of the copy: still in it, the plugin would
+      // lay them again straight after, and disarming them would be undone.
+      for (entry in pruned.dropped) idOf(entry)?.let { cancelAlarm(context, it) }
+      Log.i(TAG, "Dropped the reminders more than two hours overdue")
     } catch (error: Exception) {
       Log.w(
         TAG,
@@ -115,20 +122,49 @@ object StaleReminders {
     }
   }
 
+  /** What [withoutStale] leaves in the plugin's copy, and what it takes out. */
+  class Pruned(val kept: String, val dropped: List<JSONObject>)
+
   /**
    * [cached] without the stale one-shots, or null when none of them is
    * stale. Throws when [cached] is not a JSON array at all.
    */
-  fun withoutStale(cached: String, nowMillis: Long): String? {
+  fun withoutStale(cached: String, nowMillis: Long): Pruned? {
     val all = JSONArray(cached)
     val kept = JSONArray()
-    var dropped = 0
+    val dropped = mutableListOf<JSONObject>()
     for (index in 0 until all.length()) {
       val entry = all.get(index)
-      if (entry is JSONObject && isStale(entry, nowMillis)) dropped++ else kept.put(entry)
+      if (entry is JSONObject && isStale(entry, nowMillis)) dropped.add(entry) else kept.put(entry)
     }
-    return if (dropped == 0) null else kept.toString()
+    return if (dropped.isEmpty()) null else Pruned(kept.toString(), dropped)
   }
+
+  /**
+   * Disarms the alarm the plugin laid for notification [id], if one is
+   * still waiting. After a restart none is: the restart cleared them all.
+   * An app update keeps them, though, and a one-shot the phone has held
+   * back (Doze, or the standby bucket of an app seldom opened) can still be
+   * waiting hours after its time; dropped from the copy alone, it would
+   * fire that late all the same. The PendingIntent is the one the plugin's
+   * getBroadcastPendingIntent builds: request code the id, the plugin's
+   * receiver, immutable (the plugin adds that flag from API 23, below this
+   * app's minSdk). Those are what an alarm's PendingIntent is matched on;
+   * FLAG_NO_CREATE finds it without making one when there is none.
+   */
+  private fun cancelAlarm(context: Context, id: Int) {
+    val pending = PendingIntent.getBroadcast(
+      context,
+      id,
+      Intent(context, ScheduledNotificationReceiver::class.java),
+      PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE,
+    ) ?: return
+    (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pending)
+    pending.cancel()
+  }
+
+  /** The notification id the plugin keeps [entry] under, if it reads as one. */
+  private fun idOf(entry: JSONObject): Int? = (entry.opt("id") as? Number)?.toInt()
 
   /**
    * Whether [entry] is a one-shot whose time is more than
