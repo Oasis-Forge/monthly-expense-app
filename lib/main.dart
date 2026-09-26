@@ -29,6 +29,7 @@ import 'services/ad_service.dart';
 import 'services/ads_config.dart';
 import 'services/attachment_service.dart';
 import 'services/authenticator.dart';
+import 'services/backup_exclusion.dart';
 import 'services/backup_service.dart';
 import 'services/home_widget_service.dart';
 import 'services/home_widget_updater.dart';
@@ -47,6 +48,10 @@ Future<void> main() async {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+  // BAK-8: keeps the database, attachments and automatic backups out of
+  // iCloud and computer backups on iOS. A no-op everywhere else, and a
+  // failure here is logged rather than ever holding up the first frame.
+  unawaited(excludeDataFromDeviceBackup());
   final settings = SettingsProvider(
     await SharedPreferences.getInstance(),
     deviceLocale: WidgetsBinding.instance.platformDispatcher.locale.toString(),
@@ -142,7 +147,12 @@ class MonthlyExpenseApp extends StatelessWidget {
             settings,
             // Windows and Linux have neither SDK, and asking them for
             // anything would throw.
-            ads: ads ?? (AdsConfig.supportsAds ? DeviceAdService() : null),
+            // iOS's tracking prompt never goes over the lock (ADS-17).
+            ads:
+                ads ??
+                (AdsConfig.supportsAds
+                    ? DeviceAdService(locked: appIsLocked)
+                    : null),
             purchases:
                 purchases ??
                 (AdsConfig.supportsAds ? DevicePurchaseService() : null),

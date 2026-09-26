@@ -6,7 +6,7 @@ title: Privacy Policy – Monthly Expenses
 
 # Privacy Policy
 
-_Last updated: 25 September 2026_
+_Last updated: 26 September 2026_
 
 This policy explains how the **Monthly Expenses** app ("the app") handles your information. It covers the app on Android, iOS, macOS, Windows, and Linux.
 
@@ -14,7 +14,7 @@ This policy explains how the **Monthly Expenses** app ("the app") handles your i
 
 **Nothing you record leaves your device.** Your transactions, titles, notes, categories, accounts, budgets and attachments are stored only on your device, and only you can send them anywhere — by saving a backup or an export.
 
-Your phone's own automatic app backup is **switched off for this app**, so Android never copies your records to Google Drive on its own. Reinstalling the app therefore starts you with nothing — the way to carry your data over is a backup you saved yourself. Moving to a new phone with Android's transfer still brings it with you on Android 12 and later; on Android 11 and below, the transfer does not carry it, so a backup you saved yourself is the way to bring it along.
+Your records — your transactions, attachments, and the automatic backups the app keeps for undo — are kept out of your phone's own automatic backup. On Android, this app never lets Google Drive back up any of the app's data on its own, including your settings and the widget's numbers. On iOS, the app asks iOS to leave the folders holding your records, and the numbers shown on the home-screen widget, out of an iCloud backup and a computer backup taken over a cable; your settings are not covered by that request, so iOS can still carry them in a backup like it would for any other app. Reinstalling the app therefore starts you with nothing — the way to carry your data over is a backup you saved yourself. Moving to a new phone with Android's own transfer still brings it with you on Android 12 and later, because a device-to-device move is you taking your own data with you rather than a copy kept somewhere; on Android 11 and below, that transfer does not carry it either. On iOS, a device-to-device move (Quick Start) is expected not to carry it either, but Apple does not document exactly what such a move keeps, so a backup you saved yourself is the reliable way to bring it to a new iPhone.
 
 The app shows **banner ads** on two of its screens, and a **full-screen ad** once you have done ten things in the app that day, shown when you finish something such as a PDF report or a CSV export — through Google AdMob. Ads are the only reason the app uses the internet at all. AdMob receives technical information about your device in order to choose and count an ad — never anything you have recorded. You can buy "Remove ads" once, and then the ad software is never started at all.
 
@@ -49,9 +49,9 @@ The free app shows a banner at the bottom of the Home screen and the bottom of t
 
 Google uses these to choose an ad, count and measure it, and detect fraud. Google's own explanation is at [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites).
 
-**Your choice.** In the EEA, the UK and Switzerland the app shows Google's consent form before it requests its first ad, and you can change your answer at any time from **Settings → Privacy options**. Saying no means the ads you see are not personalised; it never means fewer features or a nagging reminder.
+**Your choice.** In the EEA, the UK and Switzerland the app shows Google's consent form before it requests its first ad, and you can change your answer at any time from **Settings → Privacy options**. On iOS, wherever you are, the app also asks once, through iOS's own prompt and after that consent form where there is one, whether ads may be chosen using your device's advertising identifier; you can change that answer later in your iPhone's **Settings → Privacy & Security → Tracking**. Saying no to either still shows ads, just not personalised ones; it never means fewer features or a nagging reminder, and it changes nothing about what you record, which the advertiser is never given either way.
 
-**No ads before you have looked round.** No ad is requested, and no consent form appears, until the setup page and the walkthrough are finished, and the full-screen ad is never requested during your first session with the app. No ad loads while the app is locked, and there are no ads on the entry forms, the walkthrough, a dialog, the home-screen widget or the PDF report itself — only the two banner slots and the full-screen ad described above. Buying "Remove ads" (below) hides that one too, on the same switch as the banners.
+**No ads before you have looked round.** No ad is requested, and neither the consent form nor iOS's tracking prompt appears, until the setup page and the walkthrough are finished, and the full-screen ad is never requested during your first session with the app. No ad loads while the app is locked, and there are no ads on the entry forms, the walkthrough, a dialog, the home-screen widget or the PDF report itself — only the two banner slots and the full-screen ad described above. Buying "Remove ads" (below) hides that one too, on the same switch as the banners.
 
 **Children.** The app is a general-purpose tool and is not directed at children, and we do not knowingly collect anything from them. Where a store's family policy applies, the ads must be suitable for it.
 
@@ -77,7 +77,8 @@ Google uses these to choose an ad, count and measure it, and detect fraud. Googl
 
 - The widget is optional; nothing changes unless you add one to your home screen.
 - The app gives it only the numbers it shows — this period's income, spending, balance, and what is left of an overall budget — already written out in your language and currency. It never gets your transactions, titles, notes, accounts, or the database itself.
-- Those numbers are kept in a private area shared by the app and the widget on your device (a private file on Android, an App Group on iOS), so the widget can still show them when the app isn't running. Nothing is sent anywhere, and the widget never uses the internet.
+- Those numbers are kept in a private area shared by the app and the widget on your device (a private file on Android, a file in an App Group on iOS), so the widget can still show them when the app isn't running. The widget never uses the internet, so nothing about it goes over the network.
+- They are kept out of your phone's own automatic backup on both: on Android by the same backup refusal as everything else the app stores, and on iOS in a folder the app asks iOS to leave out of an iCloud or computer backup, like your records (see **Summary** above).
 - With app lock on, the amounts aren't given to the widget at all, so it shows only its buttons — unless you turn on "Show amounts on the widget" in Settings.
 - Removing the widget from your home screen leaves those numbers behind until the app next runs; uninstalling the app removes them.
 
@@ -89,6 +90,7 @@ App lock is optional and off by default. When it is on, the app asks your device
 
 - **Internet** (Android `INTERNET`): used only so the banner and full-screen ad slots can load an ad. No other part of the app connects to the network: entry, budgets, recurring, notes, insights, reports, import, backup and attachments all work with the network off.
 - **Advertising ID** (Android `com.google.android.gms.permission.AD_ID`): used by AdMob as described above. Android lets you delete or reset this identifier in your device settings, and the app has no other way to recognise you.
+- **Tracking** (iOS App Tracking Transparency): iOS's own prompt, asked once after the setup page, the walkthrough and any consent form, so that ads may be chosen using the identifier for advertisers. Saying no still shows ads, just not personalised ones, and you can change the answer later in your iPhone's **Settings → Privacy & Security → Tracking**. It is never asked once "Remove ads" is bought.
 - **Network state** (Android `ACCESS_NETWORK_STATE`) and Android's own advertising services (`ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION`, `ACCESS_ADSERVICES_TOPICS`): declared by Google's ad library, not by us. The last of these is Android's **Topics** system, by which the operating system — not this app — may give an advertiser a broad interest category worked out from the apps you use. It is governed by your consent answer and by your Android settings, and it is never told anything you have recorded here. Buying "Remove ads" means the library is never started, so none of it runs.
 - **Camera** and **microphone:** used only when you choose to attach a photo or record a voice note. Both stay on your device.
 - **Biometrics** (Android `USE_BIOMETRIC`, Face ID on iOS): used only for app lock.

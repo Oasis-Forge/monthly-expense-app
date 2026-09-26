@@ -100,7 +100,7 @@ Split out on 18 September 2026, to come after Google Play and before the Apple p
 
 ## Phase 7 — Apple: iOS and macOS (App Store, Mac App Store)
 Kept apart from Google Play on 18 September 2026, and macOS joined it the same day: both go through one Apple Developer account, App Store Connect and Apple's signing.
-- [ ] **Add Google's `SKAdNetworkItems` to `ios/Runner/Info.plist`**, from AdMob's iOS guide. Without it, SKAdNetwork attribution doesn't work and the iOS ads earn less. It changes nothing on Android (ADS-6).
+- [x] **Add Google's `SKAdNetworkItems` to `ios/Runner/Info.plist`**, from AdMob's iOS guide: 50 identifiers from the quick start's Info.plist example on 2026-09-24, to be refreshed from that page before each iOS release (`docs/RELEASING.md`). Without it, SKAdNetwork attribution doesn't work and the iOS ads earn less. It changes nothing on Android (ADS-6).
 - [ ] Add the iOS signing secrets, exercise `release-ios.yml`, and send a release to TestFlight.
 - [ ] **Mac App Store:** Mac signing and the sandboxed build that `build-desktop.yml` makes, uploaded through App Store Connect and tried through TestFlight. The Mac build carries no ads and makes no network calls (RUN-2).
 - [ ] **"Remove ads" in App Store Connect:** a Non-Consumable with the ID `remove_ads` for the iOS app, bought with a Sandbox Apple Account, then restored after a reinstall (PAY-1, PAY-5, PAY-8). The Mac app has no ads, so it sells nothing.

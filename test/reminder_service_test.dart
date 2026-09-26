@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show Locale;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -18,6 +22,11 @@ import 'helpers.dart';
 /// that only drives the fake proves nothing about the device unless both
 /// sides are known to agree, and this is what proves that.
 void main() {
+  // Needed below for TestDefaultBinaryMessengerBinding.instance, since this
+  // file uses plain test() rather than testWidgets() (which does this on its
+  // own).
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final at = DateTime(2026, 9, 20, 9);
 
   group('reminderActionFor', () {
@@ -239,6 +248,187 @@ void main() {
       fake.schedule(edited, appLockOn: false, locale: const Locale('en'));
 
       expect(fake.scheduled.containsKey('a'), isFalse);
+    });
+  });
+
+  group(
+    'DeviceReminderService on iOS and macOS (NOTE-6, NUDGE-1, NUDGE-7)',
+    () {
+      const channel = MethodChannel(
+        'dexterous.com/flutter/local_notifications',
+      );
+      final messenger =
+          TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+      late List<MethodCall> calls;
+      var grant = true;
+      var enabled = true;
+
+      setUp(() {
+        calls = [];
+        grant = true;
+        enabled = true;
+        messenger.setMockMethodCallHandler(channel, (call) async {
+          calls.add(call);
+          switch (call.method) {
+            case 'initialize':
+              return true;
+            case 'getNotificationAppLaunchDetails':
+              return null;
+            case 'requestPermissions':
+              return grant;
+            case 'checkPermissions':
+              return {'isEnabled': enabled};
+            default:
+              return null;
+          }
+        });
+      });
+
+      tearDown(() {
+        messenger.setMockMethodCallHandler(channel, null);
+        debugDefaultTargetPlatformOverride = null;
+      });
+
+      // The plugin picks its platform implementation off
+      // defaultTargetPlatform, exactly as the device does; nothing here is
+      // iOS/macOS-specific beyond that switch (pr59_7).
+      for (final platform in [TargetPlatform.iOS, TargetPlatform.macOS]) {
+        void useThisPlatform() {
+          debugDefaultTargetPlatformOverride = platform;
+          FlutterLocalNotificationsPlatform.instance =
+              platform == TargetPlatform.iOS
+              ? IOSFlutterLocalNotificationsPlugin()
+              : MacOSFlutterLocalNotificationsPlugin();
+        }
+
+        group(platform.name, () {
+          test(
+            'initializing asks the OS for no permission up front, so it '
+            'does not prompt before any reminder is ever turned on',
+            () async {
+              useThisPlatform();
+              await DeviceReminderService().requestPermission();
+
+              final init = calls.singleWhere((c) => c.method == 'initialize');
+              final settings = init.arguments as Map<dynamic, dynamic>;
+              expect(settings['requestAlertPermission'], isFalse);
+              expect(settings['requestSoundPermission'], isFalse);
+              expect(settings['requestBadgePermission'], isFalse);
+            },
+          );
+
+          test('turning on a reminder asks for alert, sound and badge -- the '
+              'same moment Android is asked for POST_NOTIFICATIONS', () async {
+            useThisPlatform();
+            final granted = await DeviceReminderService().requestPermission();
+
+            expect(granted, isTrue);
+            final request = calls.singleWhere(
+              (c) => c.method == 'requestPermissions',
+            );
+            expect(request.arguments, {
+              'sound': true,
+              'alert': true,
+              'badge': true,
+              'provisional': false,
+              'critical': false,
+              // CarPlay is iOS-only; MacOSFlutterLocalNotificationsPlugin's
+              // requestPermissions() has no such parameter at all.
+              if (platform == TargetPlatform.iOS) 'carPlay': false,
+              'providesAppNotificationSettings': false,
+            });
+          });
+
+          test('a refusal is reported back as false, the same as a refusal on '
+              'Android is', () async {
+            grant = false;
+            useThisPlatform();
+
+            expect(await DeviceReminderService().requestPermission(), isFalse);
+          });
+
+          test('areNotificationsEnabled follows the live OS permission, the '
+              'same way it already does on Android, so a refusal or a later '
+              'revoke in Settings shows as blocked instead of always enabled '
+              '(NUDGE-7)', () async {
+            useThisPlatform();
+            final service = DeviceReminderService();
+
+            enabled = false;
+            expect(await service.areNotificationsEnabled(), isFalse);
+
+            enabled = true;
+            expect(await service.areNotificationsEnabled(), isTrue);
+
+            expect(
+              calls.where((c) => c.method == 'checkPermissions'),
+              isNotEmpty,
+            );
+          });
+        });
+      }
+    },
+  );
+
+  group('AppDelegate sets the notification delegate (NOTE-6, NUDGE-1)', () {
+    test('the delegate is set in didFinishLaunchingWithOptions, before launch '
+        'finishes, and not (only) in didInitializeImplicitFlutterEngine, '
+        'which runs later and can still miss a reminder tapped from a '
+        'terminated app (pr59_7)', () {
+      final appDelegate = File('ios/Runner/AppDelegate.swift')
+          .readAsStringSync();
+
+      final launchStart = appDelegate.indexOf('func application(');
+      final launchEnd = appDelegate.indexOf(
+        'return super.application(',
+        launchStart,
+      );
+      expect(
+        launchStart,
+        greaterThanOrEqualTo(0),
+        reason:
+            'Expected an application(didFinishLaunchingWithOptions:) '
+            'override.',
+      );
+      expect(
+        launchEnd,
+        greaterThan(launchStart),
+        reason: 'Expected that override to call through to super.',
+      );
+      final launchBody = appDelegate.substring(launchStart, launchEnd);
+
+      final delegateLine = RegExp(
+        r'^\s*UNUserNotificationCenter\.current\(\)\.delegate\s*=\s*self',
+        multiLine: true,
+      );
+      expect(
+        delegateLine.hasMatch(launchBody),
+        isTrue,
+        reason:
+            'The delegate must be set (on an uncommented line) in '
+            'didFinishLaunchingWithOptions, before launch finishes, or '
+            'flutter_local_notifications can miss a reminder tapped from '
+            'a cold start.',
+      );
+
+      final engineStart = appDelegate.indexOf(
+        'func didInitializeImplicitFlutterEngine(',
+      );
+      expect(
+        engineStart,
+        greaterThanOrEqualTo(0),
+        reason: 'Expected a didInitializeImplicitFlutterEngine override.',
+      );
+      expect(
+        appDelegate
+            .substring(engineStart)
+            .contains('UNUserNotificationCenter.current().delegate'),
+        isFalse,
+        reason:
+            'Setting it there too is too late: '
+            'didInitializeImplicitFlutterEngine only runs after '
+            'didFinishLaunchingWithOptions returns.',
+      );
     });
   });
 

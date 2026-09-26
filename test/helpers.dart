@@ -36,6 +36,7 @@ import 'package:monthly_expense_app/services/reminder_service.dart';
 import 'package:monthly_expense_app/services/review_service.dart';
 import 'package:monthly_expense_app/services/update_service.dart';
 import 'package:monthly_expense_app/services/shortcut_service.dart';
+import 'package:monthly_expense_app/services/tracking_prompt.dart';
 
 final _created = DateTime.utc(2026);
 
@@ -862,9 +863,15 @@ class FakeAdService implements AdService {
   int privacyOptionsShown = 0;
   bool started = false;
 
+  /// How many times `start` actually ran — a lock going up and down again,
+  /// or any other retry, must never call it more than once (ADS-5, ADS-8,
+  /// LOCK-2).
+  int startCalls = 0;
+
   @override
   Future<bool> start() async {
     started = true;
+    startCalls++;
     return canStart;
   }
 
@@ -936,6 +943,42 @@ class FakeAdService implements AdService {
     }
     if (!fills) return null;
     return _banner(placement: placement);
+  }
+}
+
+/// Stands in for iOS's tracking prompt (ADS-17), so a test can say what iOS
+/// already knows and what the user answers, and see whether they were asked.
+class FakeTrackingPrompt implements TrackingPrompt {
+  FakeTrackingPrompt({
+    this.current = TrackingStatus.notDetermined,
+    this.answer = TrackingStatus.authorized,
+    this.log,
+  });
+
+  /// What iOS holds before anyone is asked.
+  TrackingStatus current;
+
+  /// What the user picks when the prompt goes up.
+  TrackingStatus answer;
+
+  /// Where each call is written down, in order with whatever else the test
+  /// records there (the consent steps, the SDK's own start).
+  final List<String>? log;
+
+  /// How many times the prompt went up.
+  int asked = 0;
+
+  @override
+  Future<TrackingStatus> status() async {
+    log?.add('tracking status');
+    return current;
+  }
+
+  @override
+  Future<TrackingStatus> request() async {
+    asked++;
+    log?.add('tracking prompt');
+    return current = answer;
   }
 }
 

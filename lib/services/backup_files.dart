@@ -56,6 +56,11 @@ class DeviceBackupFiles implements BackupFiles {
     return Directory(p.join(support.path, 'backups')).create(recursive: true);
   }
 
+  /// The folder automatic backups are kept in. Exposed so startup can mark
+  /// it excluded from iCloud and computer backups on iOS (BAK-8,
+  /// `backup_exclusion.dart`); everything else here only needs it privately.
+  Future<Directory> directory() => _folder();
+
   Future<File> _kept(String name) async =>
       File(p.join((await _folder()).path, name));
 

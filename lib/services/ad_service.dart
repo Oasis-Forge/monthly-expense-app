@@ -1,10 +1,14 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, ValueListenable, defaultTargetPlatform, kDebugMode;
+import 'package:flutter/services.dart'
+    show MissingPluginException, PlatformException;
 import 'package:flutter/widgets.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'ads_config.dart';
+import 'tracking_prompt.dart';
 
 /// A banner that has loaded and can go on screen, with the height the slot
 /// has to reserve for it (ADS-2).
@@ -48,7 +52,8 @@ class LoadedInterstitial {
 /// (ADS-7). The only request the app makes carries no targeting at all.
 abstract interface class AdService {
   /// Starts the SDK and settles consent where the law asks for it — the EEA,
-  /// the UK and Switzerland (ADS-5). Returns whether ads may be requested;
+  /// the UK and Switzerland (ADS-5) — then, on iOS, asks whether the ads may
+  /// use the advertising identifier (ADS-17). Returns whether ads may be requested;
   /// false when consent was refused outright, the SDK failed to start, or
   /// this build has no units (ADS-2).
   Future<bool> start();
@@ -129,6 +134,17 @@ DebugGeography? consentTestGeography({
 
 /// The real thing, over `google_mobile_ads`.
 class DeviceAdService implements AdService {
+  /// [tracking] is iOS's tracking prompt; tests pass their own. [locked] is
+  /// whether the lock screen is up, which that prompt never covers (ADS-17,
+  /// LOCK-2).
+  DeviceAdService({
+    this._tracking = const DeviceTrackingPrompt(),
+    this._locked,
+  });
+
+  final TrackingPrompt _tracking;
+  final ValueListenable<bool>? _locked;
+
   bool _started = false;
   bool _canRequest = false;
   PrivacyOptionsRequirementStatus _privacyOptions =
@@ -148,8 +164,30 @@ class DeviceAdService implements AdService {
 
     await _settleConsent();
     if (!_canRequest) return false;
+    await _askAboutTracking();
     await MobileAds.instance.initialize();
     return _canRequest;
+  }
+
+  /// On iOS, once consent allows ads at all, asks iOS's own question —
+  /// whether the ads may be chosen using the advertising identifier — before
+  /// the SDK starts, so its very first request already knows the answer
+  /// (ADS-17). Only while iOS still has no answer: an earlier launch, or a
+  /// consent message that asked it itself, has already settled it.
+  ///
+  /// Whatever the answer, the SDK starts next. Saying no, or a prompt that
+  /// fails, means ads that are not personalised, never none (ADS-5).
+  Future<void> _askAboutTracking() async {
+    if (defaultTargetPlatform != TargetPlatform.iOS) return;
+    try {
+      if (await _tracking.status() != TrackingStatus.notDetermined) return;
+      await untilPromptable(WidgetsBinding.instance, locked: _locked);
+      await _tracking.request();
+    } on PlatformException {
+      // Unanswered counts as no: the SDK reads the status itself.
+    } on MissingPluginException {
+      // No native side: an old build.
+    }
   }
 
   /// Runs the consent flow to its end: the form appears only where it is
