@@ -84,6 +84,30 @@ void main() {
       expect(policy, contains('**Nothing you record leaves your device.**'));
     });
 
+    test('lists the iOS tracking prompt among the permissions (ADS-17)', () {
+      // A reader looking for what the app asks the system for goes to the
+      // Permissions list, and the tracking prompt is the one system question
+      // the app itself puts up on iOS.
+      final start = policy.indexOf('## Permissions');
+      expect(start, isNot(-1));
+      final end = policy.indexOf('\n## ', start + 1);
+      final permissions = policy.substring(
+        start,
+        end == -1 ? policy.length : end,
+      );
+
+      expect(permissions, contains('iOS App Tracking Transparency'));
+      expect(
+        permissions,
+        contains('Saying no still shows ads, just not personalised ones'),
+      );
+      expect(
+        permissions,
+        contains('**Settings → Privacy & Security → Tracking**'),
+      );
+      expect(permissions, contains('never asked once "Remove ads" is bought'));
+    });
+
     test('exempts only the full-screen ad from the first session', () {
       // AdsProvider._startAdsIfReady gates a banner on setup, the
       // walkthrough, consent and purchase only — never on a first session —
