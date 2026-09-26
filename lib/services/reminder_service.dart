@@ -54,6 +54,11 @@ String channelNameFor(ReminderKind kind, AppLocalizations l10n) =>
 
 /// How long after its time a note reminder is still worth leaving alone,
 /// covering the inexact alarm's own delivery window (NUDGE-9).
+///
+/// A restart applies the same number before Dart runs: the Android boot
+/// receiver (`PASSED_REMINDER_GRACE_MS` in ReminderBootReceiver.kt) drops
+/// every one-shot reminder more overdue than this rather than fire it late
+/// (pr59_10), and test/android_manifest_test.dart holds the two equal.
 const passedReminderGrace = Duration(hours: 2);
 
 /// Whether a reminder whose time [at] has already passed should be

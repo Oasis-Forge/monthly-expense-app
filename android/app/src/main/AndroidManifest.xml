@@ -59,28 +59,35 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_medium_info" />
         </receiver>
-        <!-- flutter_local_notifications ships these three but declares none
-             of them: its own manifest carries two permissions and nothing
-             else, so an app that does not declare them here schedules alarms
-             whose PendingIntent points at a component that does not exist.
-             Android then fires the alarm on time, the broadcast resolves to
-             nothing, and no notification is ever posted — silently, with no
-             log and no error. That is what kept every reminder from arriving
-             (NOTE-6, NUDGE-1). None is exported: they are ours alone. -->
+        <!-- flutter_local_notifications ships three receivers but declares
+             none of them: its own manifest carries two permissions and
+             nothing else, so an app that does not declare them here
+             schedules alarms whose PendingIntent points at a component that
+             does not exist. Android then fires the alarm on time, the
+             broadcast resolves to nothing, and no notification is ever
+             posted — silently, with no log and no error. That is what kept
+             every reminder from arriving (NOTE-6, NUDGE-1). Two are declared
+             as they are; the third, its boot receiver, is replaced by ours
+             below. None is exported: they are ours alone. -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
             android:exported="false"/>
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
             android:exported="false"/>
-        <!-- Reminders are re-laid after a restart or an app update, or they
-             would be lost with the alarms the reboot cleared (NUDGE-9).
-             Known gap (pr59_10): the plugin's receiver re-arms a missed
-             reminder at boot even when it is more than two hours overdue.
-             Dropping it would need a receiver of our own over the plugin's
-             private cache, so it is left for after launch. -->
+        <!-- Reminders are laid again after a restart or an app update, or
+             they would be lost with the alarms the reboot cleared (NUDGE-9).
+             ReminderBootReceiver stands in for the plugin's own boot
+             receiver, which is not declared: that one alone would fire a
+             reminder whose time passed while the phone was off the moment
+             the phone is back, however late (pr59_10). Ours first drops from
+             the plugin's copy every one-shot reminder more than two hours
+             overdue, the rule Dart applies when it reschedules
+             (passedReminderGrace, NOTE-6), and then hands the rest to the
+             plugin to lay again as before. Reminders that repeat are left
+             alone, and a copy it cannot read is laid again whole. -->
         <receiver
-            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:name=".ReminderBootReceiver"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>

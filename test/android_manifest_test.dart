@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:monthly_expense_app/services/reminder_service.dart';
 
 /// The Android manifest is not Dart and no widget test reaches it, so the one
 /// thing that can go wrong here goes wrong silently.
@@ -21,8 +23,8 @@ void main() {
       'com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver',
       // Handles a tap on a notification's action button.
       'com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver',
-      // Lays the alarms again after a restart, which clears them.
-      'com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver',
+      // The third, which lays the alarms again after a restart, is replaced
+      // by the app's own ReminderBootReceiver: see the group below.
     ]) {
       test('declares ${receiver.split('.').last}', () {
         expect(
@@ -46,7 +48,7 @@ void main() {
       expect(manifest, contains('android.intent.action.MY_PACKAGE_REPLACED'));
     });
 
-    test('none of the three is exported: they are ours alone', () {
+    test('none of the receivers is exported: they are ours alone', () {
       // Every receiver in this file is private; an exported one would let
       // any app on the phone post notifications as this one.
       expect(manifest.contains('android:exported="true"'), isTrue);
@@ -103,6 +105,246 @@ void main() {
       for (final drawable in named) {
         expect(kept, contains(drawable), reason: '$drawable is not kept');
       }
+    });
+  });
+
+  // After a restart the plugin's own boot receiver lays every cached
+  // notification again at its original time, so a reminder whose time passed
+  // while the phone was off fired the moment it was back, however late
+  // (pr59_10). Dart does not run at boot; ReminderBootReceiver.kt stands in
+  // for the plugin's receiver, drops the one-shots more than
+  // passedReminderGrace overdue from the plugin's copy, and hands the rest
+  // over. It is native, so these read the sources: no Dart test reaches it.
+  group('a restart drops a reminder more than two hours overdue '
+      '(NUDGE-9, NOTE-6, pr59_10)', () {
+    const kotlinPath =
+        'android/app/src/main/kotlin/com/oasisforge/monthlyexpenses/'
+        'ReminderBootReceiver.kt';
+    final kotlin = File(kotlinPath).readAsStringSync();
+    final withoutComments = manifest.replaceAll(
+      RegExp(r'<!--.*?-->', dotAll: true),
+      '',
+    );
+
+    String? kotlinConst(String name) =>
+        RegExp('const val $name = "([^"]*)"').firstMatch(kotlin)?.group(1);
+
+    test('ReminderBootReceiver is declared, private, and hears a restart '
+        'and an update', () {
+      final receiver = RegExp(
+        r'<receiver\s+android:name="\.ReminderBootReceiver"(.*?)</receiver>',
+        dotAll: true,
+      ).firstMatch(withoutComments)?.group(1);
+      expect(
+        receiver,
+        isNotNull,
+        reason: 'Without it nothing lays the reminders again after a restart.',
+      );
+      expect(receiver, contains('android:exported="false"'));
+      // The same four actions the plugin's own receiver answers.
+      for (final action in const [
+        'android.intent.action.BOOT_COMPLETED',
+        'android.intent.action.MY_PACKAGE_REPLACED',
+        'android.intent.action.QUICKBOOT_POWERON',
+        'com.htc.intent.action.QUICKBOOT_POWERON',
+      ]) {
+        expect(receiver, contains('<action android:name="$action"/>'));
+      }
+      // And the receiver itself drops only on those.
+      for (final action in const [
+        'Intent.ACTION_BOOT_COMPLETED',
+        'Intent.ACTION_MY_PACKAGE_REPLACED',
+        '"android.intent.action.QUICKBOOT_POWERON"',
+        '"com.htc.intent.action.QUICKBOOT_POWERON"',
+      ]) {
+        expect(kotlin, contains(action));
+      }
+    });
+
+    test("the plugin's own boot receiver is not declared", () {
+      expect(
+        withoutComments,
+        isNot(contains('ScheduledNotificationBootReceiver')),
+        reason:
+            'Declared too, it would lay the overdue reminders again at boot '
+            'whatever ReminderBootReceiver dropped, and fire them late.',
+      );
+    });
+
+    test('drops first, then hands over to the plugin to lay the rest', () {
+      expect(
+        kotlin,
+        contains(
+          'class ReminderBootReceiver : ScheduledNotificationBootReceiver()',
+        ),
+      );
+      final onReceive = RegExp(
+        r'override fun onReceive\(context: Context, intent: Intent\) \{'
+        r'(.*?)\r?\n  \}',
+        dotAll: true,
+      ).firstMatch(kotlin)?.group(1);
+      expect(
+        onReceive,
+        isNotNull,
+        reason: 'ReminderBootReceiver has no onReceive',
+      );
+      final drop = onReceive!.indexOf('StaleReminders.drop(context)');
+      final handOver = onReceive.indexOf('super.onReceive(context, intent)');
+      expect(drop, isNonNegative, reason: 'nothing is dropped');
+      expect(handOver, isNonNegative, reason: 'nothing is laid again');
+      expect(drop, lessThan(handOver));
+    });
+
+    test('the Kotlin grace is passedReminderGrace, to the millisecond', () {
+      final match = RegExp(r'const val PASSED_REMINDER_GRACE_MS = ([\d_]+)L')
+          .firstMatch(kotlin);
+      expect(match, isNotNull, reason: 'PASSED_REMINDER_GRACE_MS is gone');
+      expect(
+        int.parse(match!.group(1)!.replaceAll('_', '')),
+        passedReminderGrace.inMilliseconds,
+        reason:
+            'A restart and a reschedule from Dart must drop a passed '
+            'reminder at the same age (NUDGE-9, NOTE-6).',
+      );
+      // Strictly more than the grace, as shouldCancelPassedReminder has it.
+      expect(kotlin, contains('nowMillis - due > PASSED_REMINDER_GRACE_MS'));
+    });
+
+    test('is checked against the flutter_local_notifications version '
+        'pubspec.lock uses', () {
+      final lock = File('pubspec.lock').readAsStringSync();
+      final locked = RegExp(
+        r'^  flutter_local_notifications:\r?$(.*?)^    version: "([^"]+)"',
+        multiLine: true,
+        dotAll: true,
+      ).firstMatch(lock)?.group(2);
+      expect(locked, isNotNull);
+      expect(
+        kotlinConst('CHECKED_PLUGIN_VERSION'),
+        locked,
+        reason:
+            'flutter_local_notifications moved to $locked. '
+            'ReminderBootReceiver.kt reads that plugin\'s private cache of '
+            'scheduled notifications, so recheck its format in the new '
+            "version's Android source (FlutterLocalNotificationsPlugin."
+            'rescheduleNotifications and loadScheduledNotifications, '
+            'NotificationDetails, ScheduledNotificationBootReceiver) before '
+            'raising CHECKED_PLUGIN_VERSION to match.',
+      );
+    });
+
+    // The locked version's own Android source, wherever pub put it: the
+    // package config pub get writes names every package's root.
+    Directory pluginRoot() {
+      final config = File('.dart_tool/package_config.json');
+      final packages =
+          (jsonDecode(config.readAsStringSync())
+                  as Map<String, dynamic>)['packages']
+              as List<dynamic>;
+      final plugin =
+          packages.cast<Map<String, dynamic>>().singleWhere(
+                (p) => p['name'] == 'flutter_local_notifications',
+              )['rootUri']
+              as String;
+      return Directory.fromUri(
+        config.absolute.uri.resolve(plugin.endsWith('/') ? plugin : '$plugin/'),
+      );
+    }
+
+    String pluginJava(String path) => File.fromUri(
+      pluginRoot().uri.resolve(
+        'android/src/main/java/com/dexterous/flutterlocalnotifications/$path',
+      ),
+    ).readAsStringSync();
+
+    test("reads the plugin's cache where that version keeps it", () {
+      final plugin = pluginJava('FlutterLocalNotificationsPlugin.java');
+      final name = RegExp(r'String SCHEDULED_NOTIFICATIONS = "([^"]+)";')
+          .firstMatch(plugin)
+          ?.group(1);
+      expect(name, isNotNull);
+      final load = RegExp(
+        r'ArrayList<NotificationDetails> loadScheduledNotifications\('
+        r'Context context\) \{(.*?)\r?\n  \}',
+        dotAll: true,
+      ).firstMatch(plugin)?.group(1);
+      expect(load, isNotNull, reason: 'loadScheduledNotifications is gone');
+      expect(
+        load,
+        contains(
+          'getSharedPreferences(SCHEDULED_NOTIFICATIONS, '
+          'Context.MODE_PRIVATE)',
+        ),
+      );
+      expect(load, contains('getString(SCHEDULED_NOTIFICATIONS, null)'));
+      // A JSON array of NotificationDetails.
+      expect(load, contains('TypeToken<ArrayList<NotificationDetails>>'));
+      expect(kotlinConst('PLUGIN_PREFS'), name);
+      expect(kotlinConst('PLUGIN_KEY'), name);
+
+      // Gson writes each field under its Java name: no naming policy, and
+      // the class is kept whole, so R8 does not rename them in a release.
+      final gson = RegExp(
+        r'static Gson buildGson\(\) \{(.*?)\r?\n  \}',
+        dotAll: true,
+      ).firstMatch(plugin)?.group(1);
+      expect(gson, isNotNull);
+      expect(gson, isNot(contains('FieldNaming')));
+      final details = pluginJava('models/NotificationDetails.java');
+      expect(
+        details,
+        contains(RegExp(r'@Keep\s+public class NotificationDetails')),
+      );
+      final fields = {
+        for (final match in RegExp(r'"([a-z][A-Za-z]*)"').allMatches(kotlin))
+          match.group(1)!,
+      };
+      expect(fields, containsAll(['scheduledDateTime', 'timeZoneName']));
+      for (final field in fields) {
+        expect(
+          details,
+          contains(RegExp('public [A-Za-z<>]+ $field;')),
+          reason: 'NotificationDetails has no field $field',
+        );
+      }
+    });
+
+    test('works out when a reminder is due the way the plugin does', () {
+      final plugin = pluginJava('FlutterLocalNotificationsPlugin.java');
+      final reschedule = RegExp(
+        r'static void rescheduleNotifications\(Context context\) \{(.*?)'
+        r'\r?\n  \}',
+        dotAll: true,
+      ).firstMatch(plugin)?.group(1);
+      expect(reschedule, isNotNull, reason: 'rescheduleNotifications is gone');
+      // Repeating first, then zoned, then the older plain epoch time.
+      final repeat = reschedule!.indexOf(
+        'notificationDetails.repeatInterval != null',
+      );
+      final zoned = reschedule.indexOf(
+        'notificationDetails.timeZoneName != null',
+      );
+      expect(repeat, isNonNegative);
+      expect(zoned, greaterThan(repeat));
+      expect(
+        plugin,
+        contains('LocalDateTime.parse(notificationDetails.scheduledDateTime)'),
+      );
+      expect(plugin, contains('ZoneId.of(notificationDetails.timeZoneName)'));
+      expect(plugin, contains('notificationDetails.millisecondsSinceEpoch'));
+      // What the plugin's own receiver does is all the handover relies on.
+      final boot = pluginJava('ScheduledNotificationBootReceiver.java');
+      expect(
+        boot,
+        contains(
+          'public class ScheduledNotificationBootReceiver extends '
+          'BroadcastReceiver',
+        ),
+      );
+      expect(
+        boot,
+        contains('FlutterLocalNotificationsPlugin.rescheduleNotifications'),
+      );
     });
   });
 
