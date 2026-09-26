@@ -435,10 +435,12 @@ void main() {
 
       // The default fake authenticator succeeds right away, so the launch
       // also auto-unlocks and asks for the (nonexistent, in this test)
-      // native cover to come down; this is only about the setSecure call
-      // that comes first.
-      expect(calls.first.method, 'setSecure');
-      expect(calls.first.arguments, isTrue);
+      // native cover to come down; filtering to setSecure keeps this test
+      // checking what it always did -- that setSecure itself goes out
+      // exactly once, because _syncSecure only sends when the value
+      // changes.
+      final secure = calls.where((call) => call.method == 'setSecure');
+      expect(secure.single.arguments, isTrue);
     });
 
     testWidgets('app lock off never turns it on', (tester) async {
