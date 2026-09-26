@@ -162,8 +162,8 @@ void main() {
     expect(calls.single.method, 'excludeFromBackup');
   });
 
-  test('a directory that fails to resolve never throws either, and nothing '
-      'is sent for that run', () async {
+  test('a directory that fails to resolve never throws, and does not stop '
+      'the others from being excluded', () async {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
 
     await expectLater(
@@ -171,6 +171,22 @@ void main() {
         databasesPath: db,
         attachmentsDirectory: () async => throw StateError('no plugin'),
         backupsDirectory: backups,
+      ),
+      completes,
+    );
+
+    expect(calls.single.method, 'excludeFromBackup');
+    expect(calls.single.arguments, ['/documents', '/support/backups']);
+  });
+
+  test('when every directory fails to resolve, nothing is sent', () async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+
+    await expectLater(
+      excludeDataFromDeviceBackup(
+        databasesPath: () async => throw StateError('no plugin'),
+        attachmentsDirectory: () async => throw StateError('no plugin'),
+        backupsDirectory: () async => throw StateError('no plugin'),
       ),
       completes,
     );

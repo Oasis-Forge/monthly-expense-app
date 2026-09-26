@@ -25,7 +25,10 @@ const _securityChannelName = 'com.oasisforge.monthlyexpenses/security';
 /// semantics), so this never has to single out a file created afterwards.
 ///
 /// A failure along the way — the channel, or resolving a directory — is
-/// logged and never allowed to stop the app from starting. The three
+/// logged and never allowed to stop the app from starting. Each directory
+/// is resolved on its own, so one failing (a full disk, a missing plugin)
+/// still lets the others be excluded this run; only the ones that resolved
+/// are sent, and the call is skipped entirely if none did. The three
 /// resolvers default to the app's real directories (`db_helper.dart`'s
 /// `getDatabasesPath()`, `attachment_service.dart`'s attachments folder,
 /// `backup_files.dart`'s automatic-backups folder); tests pass their own so
@@ -37,13 +40,29 @@ Future<void> excludeDataFromDeviceBackup({
   MethodChannel? channel,
 }) async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+  final resolvers = <Future<String> Function()>[
+    databasesPath ?? getDatabasesPath,
+    () async =>
+        (await (attachmentsDirectory ?? DeviceAttachmentFiles().directory)())
+            .path,
+    () async =>
+        (await (backupsDirectory ?? DeviceBackupFiles().directory)()).path,
+  ];
+  // Each directory is resolved on its own, so one that fails (a full disk,
+  // a missing plugin) never keeps the others from being excluded this run.
+  final paths = <String>[];
+  for (final resolve in resolvers) {
+    try {
+      paths.add(await resolve());
+    } catch (e) {
+      debugPrint(
+        'excludeDataFromDeviceBackup: could not resolve a directory to '
+        'exclude from device backup: $e',
+      );
+    }
+  }
+  if (paths.isEmpty) return;
   try {
-    final paths = [
-      await (databasesPath ?? getDatabasesPath)(),
-      (await (attachmentsDirectory ?? DeviceAttachmentFiles().directory)())
-          .path,
-      (await (backupsDirectory ?? DeviceBackupFiles().directory)()).path,
-    ];
     await (channel ?? const MethodChannel(_securityChannelName))
         .invokeMethod<void>('excludeFromBackup', paths);
   } catch (e) {
