@@ -347,6 +347,42 @@ void main() {
         expect(main, contains('DeviceAdService(locked: appIsLocked)'));
       });
 
+      test('Info.plist explains the question it asks (ADS-17)', () {
+        // iOS ends the app at once when it is asked for tracking without
+        // NSUserTrackingUsageDescription, so while any code asks, the key
+        // and its text must be there. No Dart test reaches Info.plist, so
+        // read both sources.
+        final asks = Directory('lib')
+            .listSync(recursive: true)
+            .whereType<File>()
+            .where((file) => file.path.endsWith('.dart'))
+            .any(
+              (file) => file.readAsStringSync().contains(
+                'requestTrackingAuthorization',
+              ),
+            );
+        expect(
+          asks,
+          isTrue,
+          reason:
+              'Nothing asks for tracking any more: remove this test and '
+              'NSUserTrackingUsageDescription together.',
+        );
+
+        final plist = File('ios/Runner/Info.plist').readAsStringSync();
+        final text = RegExp(
+          r'<key>NSUserTrackingUsageDescription</key>\s*'
+          r'<string>([^<]*)</string>',
+        ).firstMatch(plist)?.group(1);
+        expect(
+          text?.trim(),
+          isNotEmpty,
+          reason:
+              'Without NSUserTrackingUsageDescription, iOS terminates the '
+              'app right after the consent form, for every iOS user.',
+        );
+      });
+
       test('is never asked on Android', () async {
         debugDefaultTargetPlatformOverride = TargetPlatform.android;
         final fake = fakeConsent(canRequest: true);
