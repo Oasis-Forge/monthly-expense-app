@@ -178,7 +178,7 @@ None of these is a secret: they ship inside every binary, so they belong in the 
 
 ### Before the iOS release
 
-Add Google's **`SKAdNetworkItems`** to `ios/Runner/Info.plist`, from [AdMob's iOS guide](https://developers.google.com/admob/ios/ios14#skadnetwork). It is a long list of network identifiers that Google keeps up to date; without it, iOS ad attribution under SKAdNetwork doesn't work and the ads earn less. It affects nothing on Android, which is why it isn't in yet.
+Refresh Google's **`SKAdNetworkItems`** in `ios/Runner/Info.plist`. The list is in: 50 network identifiers, Google's own `cstr6suwn9` first, copied on 2026-09-24 from the Info.plist example in [AdMob's iOS quick start](https://developers.google.com/admob/ios/quick-start). Google adds and drops buyers, so before each iOS release compare it with that page and copy any change, keeping Google's order. Without an up-to-date list, SKAdNetwork attribution misses those networks and the iOS ads earn less (ADS-6). `test/ios_project_test.dart` checks that Google's own ID is there and that the list wasn't cut down.
 
 ### The "Remove ads" product
 
