@@ -257,6 +257,28 @@ void main() {
       ),
     ).readAsStringSync();
 
+    // A method of FlutterLocalNotificationsPlugin.java, from its signature
+    // to the closing brace at its indent; any run of whitespace in the
+    // signature matches any other.
+    String pluginMethod(String signature) {
+      final match = RegExp(
+        '${signature.split(' ').map(RegExp.escape).join(r'\s+')}'
+        r'(.*?)\r?\n  \}',
+        dotAll: true,
+      ).firstMatch(pluginJava('FlutterLocalNotificationsPlugin.java'));
+      expect(match, isNotNull, reason: '$signature is gone');
+      return match!.group(1)!;
+    }
+
+    // One function of StaleReminders, up to the next declaration at its
+    // indent (or the end of the file).
+    String kotlinFun(String name) {
+      final start = kotlin.indexOf(RegExp('fun $name\\('));
+      expect(start, isNonNegative, reason: 'StaleReminders.$name is gone');
+      final end = kotlin.indexOf(RegExp(r'\n  [^ }\r\n]'), start);
+      return kotlin.substring(start, end < 0 ? kotlin.length : end);
+    }
+
     test("reads the plugin's cache where that version keeps it", () {
       final plugin = pluginJava('FlutterLocalNotificationsPlugin.java');
       final name = RegExp(r'String SCHEDULED_NOTIFICATIONS = "([^"]+)";')
@@ -309,7 +331,10 @@ void main() {
       }
     });
 
-    test('works out when a reminder is due the way the plugin does', () {
+    // What the plugin itself does, which the receiver relies on; the tests
+    // after it hold the receiver's Kotlin to the same.
+    test('the plugin still lays repeats, zoned and plain reminders as the '
+        'receiver assumes', () {
       final plugin = pluginJava('FlutterLocalNotificationsPlugin.java');
       final reschedule = RegExp(
         r'static void rescheduleNotifications\(Context context\) \{(.*?)'
@@ -347,30 +372,153 @@ void main() {
       );
     });
 
+    // Dropping a notification that repeats would end the series for good:
+    // nothing would lay the next one.
+    test('keeps every notification the plugin treats as repeating', () {
+      // What the plugin lays again as a repeat after a restart...
+      final reschedule = pluginMethod(
+        'static void rescheduleNotifications(Context context) {',
+      );
+      final repeatBranch = RegExp(
+        r'if \((.*?)\) \{\s*repeatNotification\(',
+        dotAll: true,
+      ).firstMatch(reschedule)?.group(1);
+      expect(repeatBranch, isNotNull, reason: 'the repeat branch is gone');
+      // ...and what it lays the next of once one fires: every branch but
+      // the last, which takes a one-shot out of its copy.
+      final next = pluginMethod(
+        'static void scheduleNextNotification(Context context, '
+        'NotificationDetails notificationDetails) {',
+      );
+      final oneShot = next.lastIndexOf(
+        RegExp(
+          r'\} else \{\s*'
+          r'removeNotificationFromCache\(context, notificationDetails\.id\);',
+        ),
+      );
+      expect(oneShot, isNonNegative, reason: 'a fired one-shot is kept');
+      final repeating = {
+        for (final source in [repeatBranch!, next.substring(0, oneShot)])
+          for (final match in RegExp(
+            r'notificationDetails\.(\w+) != null',
+          ).allMatches(source))
+            match.group(1)!,
+      };
+      expect(
+        repeating,
+        containsAll(const [
+          'repeatInterval',
+          'repeatIntervalMilliseconds',
+          'matchDateTimeComponents',
+          'scheduledNotificationRepeatFrequency',
+        ]),
+      );
+
+      final listed = RegExp(
+        r'val REPEAT_FIELDS = listOf\((.*?)\)',
+        dotAll: true,
+      ).firstMatch(kotlin)?.group(1);
+      expect(listed, isNotNull, reason: 'REPEAT_FIELDS is gone');
+      final kept = {
+        for (final match in RegExp(r'"(\w+)"').allMatches(listed!))
+          match.group(1)!,
+      };
+      for (final field in repeating) {
+        expect(
+          kept,
+          contains(field),
+          reason:
+              'The plugin repeats a notification with $field set; dropped at '
+              'boot, its series would end.',
+        );
+      }
+      expect(
+        kotlinFun('isStale'),
+        contains(
+          'if (REPEAT_FIELDS.any { entry.has(it) && !entry.isNull(it) }) '
+          'return false',
+        ),
+      );
+    });
+
+    test("reads a reminder's time the way the plugin lays it", () {
+      final due = kotlinFun('dueMillis');
+      // Zoned first, in its own zone, then the older plain epoch time, as
+      // the plugin's rescheduleNotifications has them.
+      final zoned = due.indexOf(
+        'entry.has("timeZoneName") && !entry.isNull("timeZoneName")',
+      );
+      final plain = due.indexOf(
+        'entry.has("millisecondsSinceEpoch") && '
+        '!entry.isNull("millisecondsSinceEpoch")',
+      );
+      expect(zoned, isNonNegative, reason: 'a zoned time is not read as one');
+      expect(plain, greaterThan(zoned));
+      for (final part in const [
+        'LocalDateTime.parse(entry.getString("scheduledDateTime"))',
+        'ZoneId.of(entry.getString("timeZoneName"))',
+        '.toInstant().toEpochMilli()',
+        'entry.getLong("millisecondsSinceEpoch")',
+        // A time it cannot read keeps the reminder (isStale).
+        'else -> null',
+      ]) {
+        expect(due, contains(part));
+      }
+      // Which is how the plugin lays each of them.
+      final zonedLaid = pluginMethod(
+        'private static void zonedScheduleNotification( Context context,',
+      );
+      expect(
+        zonedLaid,
+        contains('LocalDateTime.parse(notificationDetails.scheduledDateTime)'),
+      );
+      expect(
+        zonedLaid,
+        contains('ZoneId.of(notificationDetails.timeZoneName)'),
+      );
+      expect(
+        pluginMethod(
+          'private static void scheduleNotification( Context context,',
+        ),
+        contains('notificationDetails.millisecondsSinceEpoch'),
+      );
+    });
+
+    // Swapping the two branches would lose every reminder still due.
+    test('drops only the stale ones, and saves everything else', () {
+      expect(
+        kotlinFun('withoutStale'),
+        allOf(
+          contains(
+            'if (entry is JSONObject && isStale(entry, nowMillis)) '
+            'dropped.add(entry) else kept.put(entry)',
+          ),
+          // Nothing is written when nothing is stale.
+          contains(
+            'return if (dropped.isEmpty()) null '
+            'else Pruned(kept.toString(), dropped)',
+          ),
+        ),
+      );
+      expect(
+        kotlinFun('isStale'),
+        contains('val due = dueMillis(entry) ?: return false'),
+        reason: 'a time it cannot read keeps the reminder',
+      );
+      expect(kotlinFun('drop'), contains('putString(PLUGIN_KEY, pruned.kept)'));
+    });
+
     // An app update keeps the alarms a restart clears, and a one-shot the
     // phone held back (Doze, a seldom-opened app's standby bucket) can still
     // be armed hours after its time. Out of the plugin's copy but still
     // armed, it would fire that late anyway, so the receiver disarms it too.
     test("disarms a dropped reminder's alarm the way the plugin cancels one "
         '(NUDGE-9, pr59_10)', () {
-      final plugin = pluginJava('FlutterLocalNotificationsPlugin.java');
-      // A method's body, from its signature to the closing brace at its
-      // indent; any run of whitespace in the signature matches any other.
-      String body(String signature) {
-        final match = RegExp(
-          '${signature.split(' ').map(RegExp.escape).join(r'\s+')}'
-          r'(.*?)\r?\n  \}',
-          dotAll: true,
-        ).firstMatch(plugin);
-        expect(match, isNotNull, reason: '$signature is gone');
-        return match!.group(1)!;
-      }
-
       // The alarm's PendingIntent: the plugin's receiver, no action or data
       // (extras do not count when Android matches one), request code the
       // notification's id, and immutable from API 23, below this app's
       // minSdk.
-      final zoned = body(
+      final zoned = pluginMethod(
         'private static void zonedScheduleNotification( Context context,',
       );
       expect(
@@ -388,7 +536,7 @@ void main() {
           'notificationIntent)',
         ),
       );
-      final pending = body(
+      final pending = pluginMethod(
         'private static PendingIntent getBroadcastPendingIntent('
         'Context context, int id, Intent intent) {',
       );
@@ -398,7 +546,7 @@ void main() {
         contains('PendingIntent.getBroadcast(context, id, intent, flags)'),
       );
       // The plugin's own cancel rebuilds it the same way.
-      final cancel = body(
+      final cancel = pluginMethod(
         'private void cancelNotification(Integer id, String tag) {',
       );
       expect(
@@ -423,12 +571,8 @@ void main() {
       expect(kotlin, contains('as AlarmManager).cancel(pending)'));
       // Once the copy no longer has them: still in it, the plugin would lay
       // them again straight after and undo it.
-      final drop = RegExp(
-        r'fun drop\(context: Context.*?\{(.*?)\r?\n  \}',
-        dotAll: true,
-      ).firstMatch(kotlin)?.group(1);
-      expect(drop, isNotNull, reason: 'StaleReminders.drop is gone');
-      final saved = drop!.indexOf('.commit()');
+      final drop = kotlinFun('drop');
+      final saved = drop.indexOf('.commit()');
       final disarmed = drop.indexOf('cancelAlarm(context, it)');
       expect(saved, isNonNegative);
       expect(disarmed, greaterThan(saved));
