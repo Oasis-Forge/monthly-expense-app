@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- The app's own privacy manifest: what the Swift in ios/Runner does.
+     Flutter, every plugin and the Google Mobile Ads SDK ship their own, and
+     Xcode puts them all together in the app's privacy report. -->
+<plist version="1.0">
+<dict>
+	<!-- The app's own code tracks no one. What the ad SDK does is in the
+	     SDK's own manifest (ADS-6). -->
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<!-- Nothing the app collects leaves the device: the records go only into
+	     an export or a backup the user makes (BAK-6, ADS-7). -->
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array/>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<!-- HomeWidgetBridge.swift writes the widget's payload into the App
+		     Group's UserDefaults suite, which only this app and its widget
+		     share (WID-5): 1C8F.1. -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>1C8F.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
