@@ -6,7 +6,7 @@ title: Privacy Policy – Monthly Expenses
 
 # Privacy Policy
 
-_Last updated: 25 September 2026_
+_Last updated: 26 September 2026_
 
 This policy explains how the **Monthly Expenses** app ("the app") handles your information. It covers the app on Android, iOS, macOS, Windows, and Linux.
 
@@ -49,9 +49,9 @@ The free app shows a banner at the bottom of the Home screen and the bottom of t
 
 Google uses these to choose an ad, count and measure it, and detect fraud. Google's own explanation is at [How Google uses information from sites or apps that use our services](https://policies.google.com/technologies/partner-sites).
 
-**Your choice.** In the EEA, the UK and Switzerland the app shows Google's consent form before it requests its first ad, and you can change your answer at any time from **Settings → Privacy options**. Saying no means the ads you see are not personalised; it never means fewer features or a nagging reminder.
+**Your choice.** In the EEA, the UK and Switzerland the app shows Google's consent form before it requests its first ad, and you can change your answer at any time from **Settings → Privacy options**. On iOS, wherever you are, the app also asks once, through iOS's own prompt and after that consent form where there is one, whether ads may be chosen using your device's advertising identifier; you can change that answer later in your iPhone's **Settings → Privacy & Security → Tracking**. Saying no to either still shows ads, just not personalised ones; it never means fewer features or a nagging reminder, and it changes nothing about what you record, which the advertiser is never given either way.
 
-**No ads before you have looked round.** No ad is requested, and no consent form appears, until the setup page and the walkthrough are finished, and the full-screen ad is never requested during your first session with the app. No ad loads while the app is locked, and there are no ads on the entry forms, the walkthrough, a dialog, the home-screen widget or the PDF report itself — only the two banner slots and the full-screen ad described above. Buying "Remove ads" (below) hides that one too, on the same switch as the banners.
+**No ads before you have looked round.** No ad is requested, and neither the consent form nor iOS's tracking prompt appears, until the setup page and the walkthrough are finished, and the full-screen ad is never requested during your first session with the app. No ad loads while the app is locked, and there are no ads on the entry forms, the walkthrough, a dialog, the home-screen widget or the PDF report itself — only the two banner slots and the full-screen ad described above. Buying "Remove ads" (below) hides that one too, on the same switch as the banners.
 
 **Children.** The app is a general-purpose tool and is not directed at children, and we do not knowingly collect anything from them. Where a store's family policy applies, the ads must be suitable for it.
 
@@ -89,6 +89,7 @@ App lock is optional and off by default. When it is on, the app asks your device
 
 - **Internet** (Android `INTERNET`): used only so the banner and full-screen ad slots can load an ad. No other part of the app connects to the network: entry, budgets, recurring, notes, insights, reports, import, backup and attachments all work with the network off.
 - **Advertising ID** (Android `com.google.android.gms.permission.AD_ID`): used by AdMob as described above. Android lets you delete or reset this identifier in your device settings, and the app has no other way to recognise you.
+- **Tracking** (iOS App Tracking Transparency): iOS's own prompt, asked once after the setup page, the walkthrough and any consent form, so that ads may be chosen using the identifier for advertisers. Saying no still shows ads, just not personalised ones, and you can change the answer later in your iPhone's **Settings → Privacy & Security → Tracking**. It is never asked once "Remove ads" is bought.
 - **Network state** (Android `ACCESS_NETWORK_STATE`) and Android's own advertising services (`ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION`, `ACCESS_ADSERVICES_TOPICS`): declared by Google's ad library, not by us. The last of these is Android's **Topics** system, by which the operating system — not this app — may give an advertiser a broad interest category worked out from the apps you use. It is governed by your consent answer and by your Android settings, and it is never told anything you have recorded here. Buying "Remove ads" means the library is never started, so none of it runs.
 - **Camera** and **microphone:** used only when you choose to attach a photo or record a voice note. Both stay on your device.
 - **Biometrics** (Android `USE_BIOMETRIC`, Face ID on iOS): used only for app lock.
