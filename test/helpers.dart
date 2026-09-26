@@ -855,7 +855,7 @@ class FakeAdService implements AdService {
 
   /// How many times `start` actually ran — a lock going up and down again,
   /// or any other retry, must never call it more than once (ADS-5, ADS-8,
-  /// LOCK-1).
+  /// LOCK-2).
   int startCalls = 0;
 
   @override

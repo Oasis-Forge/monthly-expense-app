@@ -249,7 +249,7 @@ void main() {
   });
 
   group(
-    'the consent form and tracking prompt wait for unlock (ADS-5, LOCK-1)',
+    'the consent form and tracking prompt wait for unlock (ADS-5, LOCK-2)',
     () {
       test('a locked launch does not start ads', () async {
         final locked = ValueNotifier(true);
