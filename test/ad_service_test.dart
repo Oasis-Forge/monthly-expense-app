@@ -283,14 +283,21 @@ void main() {
       });
 
       test('a prompt that fails still starts the SDK', () async {
-        final fake = fakeConsent(canRequest: true);
-        fake.install();
+        // A plugin error, or no native side at all (an old build).
+        for (final error in [
+          PlatformException(code: 'unavailable'),
+          MissingPluginException(),
+        ]) {
+          final fake = fakeConsent(canRequest: true);
+          fake.install();
 
-        final started = await DeviceAdService(tracking: _BrokenTrackingPrompt())
-            .start();
+          final started = await DeviceAdService(
+            tracking: _BrokenTrackingPrompt(error),
+          ).start();
 
-        expect(started, isTrue);
-        expect(fake.order.last, 'MobileAds#initialize');
+          expect(started, isTrue, reason: '$error');
+          expect(fake.order.last, 'MobileAds#initialize', reason: '$error');
+        }
       });
 
       test('waits for the app to be active, which iOS insists on', () async {
@@ -441,11 +448,14 @@ void main() {
   });
 }
 
-/// A tracking prompt whose plugin call fails.
+/// A tracking prompt whose plugin call fails with [error].
 class _BrokenTrackingPrompt extends FakeTrackingPrompt {
+  _BrokenTrackingPrompt(this.error);
+
+  final Exception error;
+
   @override
-  Future<TrackingStatus> request() async =>
-      throw PlatformException(code: 'unavailable');
+  Future<TrackingStatus> request() async => throw error;
 }
 
 class _FakeConsentInformation implements ConsentInformation {
