@@ -372,21 +372,65 @@ void main() {
   );
 
   group('AppDelegate sets the notification delegate (NOTE-6, NUDGE-1)', () {
-    test(
-      'UNUserNotificationCenter has a delegate, so a tapped note reminder '
-      'or nudge on iOS reaches the app instead of doing nothing (pr59_7)',
-      () {
-        final appDelegate = File('ios/Runner/AppDelegate.swift')
-            .readAsStringSync();
-        expect(
-          appDelegate,
-          contains('UNUserNotificationCenter.current().delegate'),
-          reason:
-              'Without this, flutter_local_notifications never learns a '
-              'notification was tapped on iOS.',
-        );
-      },
-    );
+    test('the delegate is set in didFinishLaunchingWithOptions, before launch '
+        'finishes, and not (only) in didInitializeImplicitFlutterEngine, '
+        'which runs later and can still miss a reminder tapped from a '
+        'terminated app (pr59_7)', () {
+      final appDelegate = File('ios/Runner/AppDelegate.swift')
+          .readAsStringSync();
+
+      final launchStart = appDelegate.indexOf('func application(');
+      final launchEnd = appDelegate.indexOf(
+        'return super.application(',
+        launchStart,
+      );
+      expect(
+        launchStart,
+        greaterThanOrEqualTo(0),
+        reason:
+            'Expected an application(didFinishLaunchingWithOptions:) '
+            'override.',
+      );
+      expect(
+        launchEnd,
+        greaterThan(launchStart),
+        reason: 'Expected that override to call through to super.',
+      );
+      final launchBody = appDelegate.substring(launchStart, launchEnd);
+
+      final delegateLine = RegExp(
+        r'^\s*UNUserNotificationCenter\.current\(\)\.delegate\s*=\s*self',
+        multiLine: true,
+      );
+      expect(
+        delegateLine.hasMatch(launchBody),
+        isTrue,
+        reason:
+            'The delegate must be set (on an uncommented line) in '
+            'didFinishLaunchingWithOptions, before launch finishes, or '
+            'flutter_local_notifications can miss a reminder tapped from '
+            'a cold start.',
+      );
+
+      final engineStart = appDelegate.indexOf(
+        'func didInitializeImplicitFlutterEngine(',
+      );
+      expect(
+        engineStart,
+        greaterThanOrEqualTo(0),
+        reason: 'Expected a didInitializeImplicitFlutterEngine override.',
+      );
+      expect(
+        appDelegate
+            .substring(engineStart)
+            .contains('UNUserNotificationCenter.current().delegate'),
+        isFalse,
+        reason:
+            'Setting it there too is too late: '
+            'didInitializeImplicitFlutterEngine only runs after '
+            'didFinishLaunchingWithOptions returns.',
+      );
+    });
   });
 
   group('nudgeBody (NUDGE-2, rules-23-26-34#9)', () {
