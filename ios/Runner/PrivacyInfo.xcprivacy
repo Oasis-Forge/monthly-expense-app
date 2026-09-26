@@ -28,6 +28,19 @@
 				<string>1C8F.1</string>
 			</array>
 		</dict>
+		<!-- Not our Swift: the SQLite library that the sqlite3 package's build
+		     hook downloads and bundles into the app (it comes with
+		     sqflite_common_ffi, and ships no manifest of its own). Its file
+		     layer calls stat, fstat and lstat on the database files, which
+		     live in the app's container: C617.1. -->
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>C617.1</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

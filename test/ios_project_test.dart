@@ -65,6 +65,23 @@ final _requiredReasonApis = {
   ),
 };
 
+/// Required-reason APIs that native code bundled into a target calls, where
+/// that code ships no manifest of its own, so the target's manifest has to
+/// declare them: per target, each category, the reasons it needs, and the
+/// package in pubspec.lock whose build puts the code into the bundle.
+const _bundledNativeApis = {
+  _runner: {
+    // sqlite3's build hook downloads a prebuilt SQLite for iOS and bundles
+    // it (sqflite_common_ffi brings it in on every platform). SQLite's file
+    // layer calls stat, fstat and lstat on the database files, which live
+    // in the app's container.
+    'NSPrivacyAccessedAPICategoryFileTimestamp': (
+      package: 'sqlite3',
+      reasons: {'C617.1'},
+    ),
+  },
+};
+
 /// The target's own Swift, without its comments, which may name an API
 /// without calling it.
 String _swiftOf(String target) {
@@ -177,13 +194,16 @@ void main() {
         expect(manifest['NSPrivacyCollectedDataTypes'], isEmpty);
       });
 
-      test('$folder declares exactly the required-reason APIs its Swift '
-          'calls, each with a reason Apple documents', () {
+      test('$folder declares exactly the required-reason APIs its Swift and '
+          'its bundled native code call, each with a reason Apple '
+          'documents', () {
         final swift = _swiftOf(target);
+        final bundled = _bundledNativeApis[target] ?? const {};
         final used = {
           for (final MapEntry(key: category, value: api)
               in _requiredReasonApis.entries)
             if (api.uses.hasMatch(swift)) category,
+          ...bundled.keys,
         };
         final declared = <String, List<String>>{
           for (final entry
@@ -202,6 +222,13 @@ void main() {
             _requiredReasonApis[category]!.reasons,
             containsAll(reasons),
             reason: '$category: only Apple\'s own reason codes',
+          );
+        }
+        for (final MapEntry(key: category, value: code) in bundled.entries) {
+          expect(
+            declared[category],
+            containsAll(code.reasons),
+            reason: '$category, for what ${code.package} bundles',
           );
         }
 
@@ -235,6 +262,24 @@ void main() {
         }
       });
     }
+
+    test('every package whose native code a manifest declares for is still '
+        'in pubspec.lock', () {
+      // When a package listed in _bundledNativeApis leaves pubspec.lock, its
+      // declarations have to be looked at again rather than linger.
+      final lock = File('pubspec.lock').readAsStringSync();
+      for (final apis in _bundledNativeApis.values) {
+        for (final MapEntry(key: category, value: code) in apis.entries) {
+          expect(
+            lock,
+            contains(
+              RegExp('^  ${RegExp.escape(code.package)}:\$', multiLine: true),
+            ),
+            reason: '$category is declared for ${code.package}',
+          );
+        }
+      }
+    });
 
     test('the app itself declares the App Group defaults it writes for the '
         'widget', () {
