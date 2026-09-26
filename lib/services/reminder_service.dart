@@ -331,8 +331,19 @@ class DeviceReminderService implements ReminderService {
     await _plugin.initialize(
       settings: const InitializationSettings(
         android: AndroidInitializationSettings('@drawable/ic_notification'),
-        iOS: DarwinInitializationSettings(),
-        macOS: DarwinInitializationSettings(),
+        // Asked for later, the same moment Android's POST_NOTIFICATIONS is
+        // (NOTE-6, NUDGE-7): initializing must not itself prompt, or iOS and
+        // macOS ask before the user has ever turned on a reminder.
+        iOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestSoundPermission: false,
+          requestBadgePermission: false,
+        ),
+        macOS: DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestSoundPermission: false,
+          requestBadgePermission: false,
+        ),
         linux: LinuxInitializationSettings(defaultActionName: 'Open'),
       ),
       onDidReceiveNotificationResponse: (response) =>
@@ -360,14 +371,24 @@ class DeviceReminderService implements ReminderService {
           IOSFlutterLocalNotificationsPlugin
         >();
     if (ios != null) {
-      return await ios.requestPermissions(alert: true, sound: true) ?? false;
+      return await ios.requestPermissions(
+            alert: true,
+            sound: true,
+            badge: true,
+          ) ??
+          false;
     }
     final macOS = _plugin
         .resolvePlatformSpecificImplementation<
           MacOSFlutterLocalNotificationsPlugin
         >();
     if (macOS != null) {
-      return await macOS.requestPermissions(alert: true, sound: true) ?? false;
+      return await macOS.requestPermissions(
+            alert: true,
+            sound: true,
+            badge: true,
+          ) ??
+          false;
     }
     // Windows and Linux notifications don't ask permission up front.
     return true;
@@ -383,9 +404,22 @@ class DeviceReminderService implements ReminderService {
     if (android != null) {
       return await android.areNotificationsEnabled() ?? true;
     }
-    // iOS, macOS, Windows and Linux have no equivalent live check in the
-    // plugin, so nothing here reports a phone as blocking when it may not
-    // be (NUDGE-7).
+    final ios = _plugin
+        .resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin
+        >();
+    if (ios != null) {
+      return (await ios.checkPermissions())?.isEnabled ?? true;
+    }
+    final macOS = _plugin
+        .resolvePlatformSpecificImplementation<
+          MacOSFlutterLocalNotificationsPlugin
+        >();
+    if (macOS != null) {
+      return (await macOS.checkPermissions())?.isEnabled ?? true;
+    }
+    // Windows and Linux have no equivalent live check in the plugin, so
+    // nothing here reports a phone as blocking when it may not be (NUDGE-7).
     return true;
   }
 
