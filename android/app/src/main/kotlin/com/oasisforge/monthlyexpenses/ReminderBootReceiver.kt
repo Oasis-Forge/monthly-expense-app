@@ -7,6 +7,7 @@ import android.content.Intent
 import android.util.Log
 import com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver
 import com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -39,7 +40,8 @@ class ReminderBootReceiver : ScheduledNotificationBootReceiver() {
 
 /**
  * Drops, from flutter_local_notifications' copy of what it has scheduled,
- * every one-shot reminder more than [PASSED_REMINDER_GRACE_MS] overdue.
+ * every one-shot reminder more than [PASSED_REMINDER_GRACE_MS] overdue, and
+ * every one of the app's own reminders already due inside the quiet hours.
  *
  * The copy is the plugin's private storage, read here as it is laid out in
  * the version [CHECKED_PLUGIN_VERSION]: a JSON array of its
@@ -74,6 +76,21 @@ object StaleReminders {
   const val PLUGIN_PREFS = "scheduled_notifications"
   const val PLUGIN_KEY = "scheduled_notifications"
 
+  /**
+   * Nothing the app sends on its own goes out before this hour or from that
+   * one, by the device's own clock: `quietUntilHour` and `quietFromHour` in
+   * lib/models/reminders.dart (NUDGE-6), which the test holds these equal to.
+   */
+  const val QUIET_UNTIL_HOUR = 8
+  const val QUIET_FROM_HOUR = 22
+
+  /**
+   * What the payload of every reminder the app sends on its own starts with,
+   * where a note's reminder carries the note's id: `nudgePayloadPrefix` in
+   * lib/services/reminder_service.dart, held equal by the test.
+   */
+  const val NUDGE_PAYLOAD_PREFIX = "nudge:"
+
   /** The plugin's own boot receiver answers exactly these. */
   val BOOT_ACTIONS = setOf(
     Intent.ACTION_BOOT_COMPLETED,
@@ -99,11 +116,16 @@ object StaleReminders {
    * plugin reads it, and disarms whatever alarm is still waiting for them
    * ([cancelAlarm]). Nothing is written when nothing is stale.
    */
-  fun drop(context: Context, nowMillis: Long = System.currentTimeMillis()) {
+  fun drop(
+    context: Context,
+    nowMillis: Long = System.currentTimeMillis(),
+    // The device's own clock, as the quiet hours are (NUDGE-6).
+    zone: ZoneId = ZoneId.systemDefault(),
+  ) {
     try {
       val prefs = context.getSharedPreferences(PLUGIN_PREFS, Context.MODE_PRIVATE)
       val cached = prefs.getString(PLUGIN_KEY, null) ?: return
-      val pruned = withoutStale(cached, nowMillis) ?: return
+      val pruned = withoutStale(cached, nowMillis, zone) ?: return
       if (!prefs.edit().putString(PLUGIN_KEY, pruned.kept).commit()) {
         Log.w(TAG, "Could not save the reminders left; the plugin lays all of them")
         return
@@ -111,7 +133,7 @@ object StaleReminders {
       // Only once they are out of the copy: still in it, the plugin would
       // lay them again straight after, and disarming them would be undone.
       for (entry in pruned.dropped) idOf(entry)?.let { cancelAlarm(context, it) }
-      Log.i(TAG, "Dropped the reminders more than two hours overdue")
+      Log.i(TAG, "Dropped the reminders too late to send, and the nudges due in the quiet hours")
     } catch (error: Exception) {
       Log.w(
         TAG,
@@ -129,13 +151,13 @@ object StaleReminders {
    * [cached] without the stale one-shots, or null when none of them is
    * stale. Throws when [cached] is not a JSON array at all.
    */
-  fun withoutStale(cached: String, nowMillis: Long): Pruned? {
+  fun withoutStale(cached: String, nowMillis: Long, zone: ZoneId): Pruned? {
     val all = JSONArray(cached)
     val kept = JSONArray()
     val dropped = mutableListOf<JSONObject>()
     for (index in 0 until all.length()) {
       val entry = all.get(index)
-      if (entry is JSONObject && isStale(entry, nowMillis)) dropped.add(entry) else kept.put(entry)
+      if (entry is JSONObject && isStale(entry, nowMillis, zone)) dropped.add(entry) else kept.put(entry)
     }
     return if (dropped.isEmpty()) null else Pruned(kept.toString(), dropped)
   }
@@ -167,14 +189,29 @@ object StaleReminders {
   private fun idOf(entry: JSONObject): Int? = (entry.opt("id") as? Number)?.toInt()
 
   /**
-   * Whether [entry] is a one-shot whose time is more than
-   * [PASSED_REMINDER_GRACE_MS] in the past. Strictly more, as in Dart: one
-   * exactly two hours overdue still goes out.
+   * Whether [entry] is a one-shot that should not go out now: its time is
+   * more than [PASSED_REMINDER_GRACE_MS] in the past (strictly more, as in
+   * Dart: one exactly two hours overdue still goes out), or it is one of the
+   * app's own reminders, already due, while [zone]'s clock is inside the
+   * quiet hours. Laid again, that one would arrive the moment the phone is
+   * back, in the night the app promises to keep quiet (NUDGE-6). A note's
+   * reminder has no quiet hours: its time was the user's own choice.
    */
-  fun isStale(entry: JSONObject, nowMillis: Long): Boolean {
+  fun isStale(entry: JSONObject, nowMillis: Long, zone: ZoneId): Boolean {
     if (REPEAT_FIELDS.any { entry.has(it) && !entry.isNull(it) }) return false
     val due = dueMillis(entry) ?: return false
-    return nowMillis - due > PASSED_REMINDER_GRACE_MS
+    if (nowMillis - due > PASSED_REMINDER_GRACE_MS) return true
+    return due <= nowMillis && isNudge(entry) && isQuiet(nowMillis, zone)
+  }
+
+  /** Whether [entry] is one of the app's own reminders, not a note's. */
+  private fun isNudge(entry: JSONObject): Boolean =
+    entry.optString("payload").startsWith(NUDGE_PAYLOAD_PREFIX)
+
+  /** Whether [nowMillis] is inside the quiet hours on [zone]'s clock. */
+  private fun isQuiet(nowMillis: Long, zone: ZoneId): Boolean {
+    val hour = Instant.ofEpochMilli(nowMillis).atZone(zone).hour
+    return hour < QUIET_UNTIL_HOUR || hour >= QUIET_FROM_HOUR
   }
 
   /**

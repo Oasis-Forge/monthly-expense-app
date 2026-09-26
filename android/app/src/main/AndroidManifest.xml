@@ -83,9 +83,11 @@
              the phone is back, however late (pr59_10). Ours first drops from
              the plugin's copy every one-shot reminder more than two hours
              overdue, the rule Dart applies when it reschedules
-             (passedReminderGrace, NOTE-6), and then hands the rest to the
-             plugin to lay again as before. Reminders that repeat are left
-             alone, and a copy it cannot read is laid again whole. -->
+             (passedReminderGrace, NOTE-6), and every one of the app's own
+             nudges already due while the clock is in the quiet hours
+             (NUDGE-6), and then hands the rest to the plugin to lay again
+             as before. Reminders that repeat are left alone, and a copy it
+             cannot read is laid again whole. -->
         <receiver
             android:name=".ReminderBootReceiver"
             android:exported="false">

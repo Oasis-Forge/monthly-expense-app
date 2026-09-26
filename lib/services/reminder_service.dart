@@ -31,8 +31,15 @@ const _nudgeIdBase = 0x7fff0000;
 /// before it (NUDGE-1).
 const _nudgeIdSlots = 8;
 
-/// Marks a payload as the app's own reminder rather than a note's.
-const _nudgePrefix = 'nudge:';
+/// Marks a payload as the app's own reminder rather than a note's. The
+/// Android boot receiver tells the two apart by it too
+/// (`NUDGE_PAYLOAD_PREFIX` in ReminderBootReceiver.kt, held equal by
+/// test/android_manifest_test.dart), to keep the quiet hours after a
+/// restart (NUDGE-6, NUDGE-9).
+const nudgePayloadPrefix = 'nudge:';
+
+/// The payload of the app's own reminder of [kind] (NUDGE-1).
+String nudgePayload(ReminderKind kind) => '$nudgePayloadPrefix${kind.name}';
 
 /// A stable notification ID for [noteId]. Notification IDs are 32-bit ints,
 /// so this folds the UUID's hash into that range.
@@ -529,8 +536,8 @@ class DeviceReminderService implements ReminderService {
   /// payload, and everything else is a note's ID (NOTE-6, NUDGE-1).
   void _deliver(String? payload) {
     if (payload == null) return;
-    if (payload.startsWith(_nudgePrefix)) {
-      final name = payload.substring(_nudgePrefix.length);
+    if (payload.startsWith(nudgePayloadPrefix)) {
+      final name = payload.substring(nudgePayloadPrefix.length);
       tappedReminder.value = ReminderKind.values
           .where((kind) => kind.name == name)
           .firstOrNull;
@@ -587,7 +594,7 @@ class DeviceReminderService implements ReminderService {
         // Inexact, so Play is never asked for the exact-alarm permission and
         // the phone may deliver it a few minutes late (NUDGE-9).
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        payload: '$_nudgePrefix${reminder.kind.name}',
+        payload: nudgePayload(reminder.kind),
       );
     }
   }

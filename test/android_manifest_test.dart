@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/services/reminder_service.dart';
 
 /// The Android manifest is not Dart and no widget test reaches it, so the one
@@ -275,8 +276,16 @@ void main() {
     String kotlinFun(String name) {
       final start = kotlin.indexOf(RegExp('fun $name\\('));
       expect(start, isNonNegative, reason: 'StaleReminders.$name is gone');
-      final end = kotlin.indexOf(RegExp(r'\n  [^ }\r\n]'), start);
+      final end = kotlin.indexOf(
+        RegExp(r'\n  (/\*\*|(private |override )?(fun|class|val|const) )'),
+        start,
+      );
       return kotlin.substring(start, end < 0 ? kotlin.length : end);
+    }
+
+    int? kotlinInt(String name) {
+      final match = RegExp('const val $name = (\\d+)\\b').firstMatch(kotlin);
+      return match == null ? null : int.parse(match.group(1)!);
     }
 
     test("reads the plugin's cache where that version keeps it", () {
@@ -490,7 +499,7 @@ void main() {
         kotlinFun('withoutStale'),
         allOf(
           contains(
-            'if (entry is JSONObject && isStale(entry, nowMillis)) '
+            'if (entry is JSONObject && isStale(entry, nowMillis, zone)) '
             'dropped.add(entry) else kept.put(entry)',
           ),
           // Nothing is written when nothing is stale.
@@ -506,6 +515,56 @@ void main() {
         reason: 'a time it cannot read keeps the reminder',
       );
       expect(kotlinFun('drop'), contains('putString(PLUGIN_KEY, pruned.kept)'));
+    });
+
+    // A nudge whose time passed while the phone was off would be laid again
+    // for the moment the phone is back, and that can be the middle of the
+    // night. Within the grace or not, it is not sent then.
+    test('drops a nudge already due when the phone is back in the quiet '
+        'hours (NUDGE-6, NUDGE-9)', () {
+      expect(kotlinInt('QUIET_UNTIL_HOUR'), quietUntilHour);
+      expect(kotlinInt('QUIET_FROM_HOUR'), quietFromHour);
+      // The complement of the hours the app may speak in.
+      expect(
+        File('lib/models/reminders.dart').readAsStringSync(),
+        contains('hour >= quietUntilHour && hour < quietFromHour'),
+      );
+      expect(
+        kotlinFun('isQuiet'),
+        allOf(
+          contains('Instant.ofEpochMilli(nowMillis).atZone(zone).hour'),
+          contains('hour < QUIET_UNTIL_HOUR || hour >= QUIET_FROM_HOUR'),
+        ),
+      );
+      // By the device's own clock, as the quiet hours are.
+      expect(
+        kotlinFun('drop'),
+        contains('zone: ZoneId = ZoneId.systemDefault()'),
+      );
+
+      // Told apart from a note's reminder, which has no quiet hours, by the
+      // payload every nudge carries.
+      expect(kotlinConst('NUDGE_PAYLOAD_PREFIX'), nudgePayloadPrefix);
+      for (final kind in ReminderKind.values) {
+        expect(nudgePayload(kind), startsWith(nudgePayloadPrefix));
+      }
+      expect(
+        File('lib/services/reminder_service.dart').readAsStringSync(),
+        contains('payload: nudgePayload(reminder.kind),'),
+      );
+      expect(
+        kotlinFun('isNudge'),
+        contains('entry.optString("payload").startsWith(NUDGE_PAYLOAD_PREFIX)'),
+      );
+
+      // Only the app's own, only once due, only in the quiet hours.
+      expect(
+        kotlinFun('isStale'),
+        contains(
+          'return due <= nowMillis && isNudge(entry) && '
+          'isQuiet(nowMillis, zone)',
+        ),
+      );
     });
 
     // An app update keeps the alarms a restart clears, and a one-shot the
