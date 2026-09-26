@@ -226,6 +226,11 @@ List<PlannedReminder> planReminders({
 /// [daysWithEntries] holds local dates at midnight. A day the user recorded
 /// on is an answer, so the count starts again from there — it is three in a
 /// row that stops the nudge, not three in all.
+///
+/// [dropped] holds when each nudge was due that the phone dropped at a
+/// restart rather than show it late or in the quiet hours (NUDGE-9). Nobody
+/// saw it, so its day counts neither way: it is not ignored, and it does
+/// not end a run either, though an entry that day still answers.
 int countIgnoredNudges({
   required DateTime now,
   required DateTime since,
@@ -233,7 +238,12 @@ int countIgnoredNudges({
   required int minute,
   required Set<DateTime> daysWithEntries,
   int ignoredSoFar = 0,
+  Iterable<DateTime> dropped = const [],
 }) {
+  final unseen = {
+    for (final at in dropped.map((at) => at.toLocal()))
+      DateTime(at.year, at.month, at.day),
+  };
   // `since` is read back from storage as UTC (money-time#8); the calendar
   // day it names, and every nudge time built from it below, must be in
   // local time to line up with `now`, `hour`/`minute` (the device's own
@@ -245,7 +255,11 @@ int countIgnoredNudges({
   while (!day.isAfter(today)) {
     final at = DateTime(day.year, day.month, day.day, hour, minute);
     if (at.isAfter(localSince) && !at.isAfter(now)) {
-      ignored = daysWithEntries.contains(day) ? 0 : ignored + 1;
+      if (daysWithEntries.contains(day)) {
+        ignored = 0;
+      } else if (!unseen.contains(day)) {
+        ignored++;
+      }
     }
     day = DateTime(day.year, day.month, day.day + 1);
   }

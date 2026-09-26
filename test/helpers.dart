@@ -673,6 +673,13 @@ class FakeReminderService implements ReminderService {
   /// reschedule from a plan that simply stayed the same.
   int nudgePlans = 0;
 
+  /// What [droppedEmptyDayNudges] answers: the empty-day nudges the phone
+  /// dropped at a restart rather than show (NUDGE-9, NUDGE-5).
+  List<DateTime> droppedEmptyDays = [];
+
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() async => droppedEmptyDays;
+
   @override
   Future<void> scheduleNudges(
     List<PlannedReminder> plan, {
@@ -792,6 +799,9 @@ class ThrowingReminderService implements ReminderService {
     required Locale locale,
     required NumberFormat currency,
   }) async => _fail();
+
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() async => _fail();
 }
 
 /// A [BackupService] over [db] with fake files and a fixed app version.

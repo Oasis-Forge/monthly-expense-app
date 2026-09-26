@@ -379,6 +379,71 @@ void main() {
       );
     });
 
+    // The phone was off at the nudge's time and came back too late, or in
+    // the quiet hours, so it dropped the nudge rather than show it (NUDGE-9).
+    group('a nudge the phone dropped at a restart (NUDGE-5, NUDGE-9)', () {
+      test('is not counted as ignored', () {
+        expect(
+          countIgnoredNudges(
+            now: DateTime(2026, 9, 24, 22),
+            since: DateTime(2026, 9, 22, 8),
+            hour: 21,
+            minute: 0,
+            daysWithEntries: const {},
+            dropped: [DateTime(2026, 9, 23, 21)],
+          ),
+          2,
+          reason: 'the 22nd and the 24th; the 23rd was never shown',
+        );
+      });
+
+      test('nor does it end a run already counting', () {
+        expect(
+          countIgnoredNudges(
+            now: DateTime(2026, 9, 23, 22),
+            since: DateTime(2026, 9, 23, 8),
+            hour: 21,
+            minute: 0,
+            daysWithEntries: const {},
+            ignoredSoFar: 2,
+            dropped: [DateTime(2026, 9, 23, 21)],
+          ),
+          2,
+        );
+      });
+
+      test('but an entry that day still answers', () {
+        expect(
+          countIgnoredNudges(
+            now: DateTime(2026, 9, 23, 22),
+            since: DateTime(2026, 9, 23, 8),
+            hour: 21,
+            minute: 0,
+            daysWithEntries: {DateTime(2026, 9, 23)},
+            ignoredSoFar: 2,
+            dropped: [DateTime(2026, 9, 23, 21)],
+          ),
+          0,
+        );
+      });
+
+      test('three nights with the phone off stop nothing', () {
+        expect(
+          countIgnoredNudges(
+            now: DateTime(2026, 9, 25, 7),
+            since: DateTime(2026, 9, 22, 8),
+            hour: 21,
+            minute: 0,
+            daysWithEntries: const {},
+            dropped: [
+              for (var day = 22; day <= 24; day++) DateTime(2026, 9, day, 21),
+            ],
+          ),
+          0,
+        );
+      });
+    });
+
     test('and an entry on the day clears what was carried', () {
       expect(
         countIgnoredNudges(
