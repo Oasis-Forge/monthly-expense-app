@@ -210,6 +210,124 @@ void main() {
     },
   );
 
+  testWidgets(
+    'a date range can end after 2100 when a future-dated record exists, '
+    'and finds it (SRCH-2, rules-1-5#12)',
+    (tester) async {
+      final futureFake = FakeDB(
+        accounts: [testAccount(Account.cashId)],
+        transactions: [
+          testTx(
+            'future',
+            TransactionType.expense,
+            15,
+            DateTime(2101, 6, 1),
+            title: 'Future expense',
+          ),
+          testTx(
+            'current',
+            TransactionType.expense,
+            10,
+            DateTime(2026, 9, 10),
+            title: 'Current expense',
+          ),
+        ],
+      );
+      final futureProvider = TransactionProvider(
+        db: futureFake,
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await futureProvider.load();
+
+      await tester.pumpWidget(
+        testApp(futureProvider, settings, const SearchScreen()),
+      );
+      await tester.pump();
+
+      await tester.ensureVisible(find.text('All time'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('All time'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Switch to input'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Start Date'),
+        '05/25/2101',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'End Date'),
+        '06/05/2101',
+      );
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('May 25 – Jun 5'), findsOneWidget);
+      expect(find.text('Future expense'), findsOneWidget);
+      expect(find.text('Current expense'), findsNothing);
+    },
+  );
+
+  testWidgets('reopening the range picker after the record that widened it is '
+      'deleted does not crash, and keeps the picked range (SRCH-2, '
+      'rules-1-5#12)', (tester) async {
+    final oldFake = FakeDB(
+      accounts: [testAccount(Account.cashId)],
+      transactions: [
+        testTx(
+          'old2012',
+          TransactionType.expense,
+          40,
+          DateTime(2012, 3, 4),
+          title: 'Old expense',
+        ),
+      ],
+    );
+    final oldProvider = TransactionProvider(
+      db: oldFake,
+      clock: () => DateTime(2026, 9, 15),
+    );
+    await oldProvider.load();
+
+    await tester.pumpWidget(
+      testApp(oldProvider, settings, const SearchScreen()),
+    );
+    await tester.pump();
+
+    await tester.ensureVisible(find.text('All time'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('All time'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Switch to input'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Start Date'),
+      '03/01/2012',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'End Date'),
+      '03/10/2012',
+    );
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text('Mar 1 – Mar 10'), findsOneWidget);
+
+    // The only 2012 record is gone. Without widening firstDate/lastDate
+    // to bracket the range already picked, _dateBounds would snap
+    // firstDate back to 2015 and showDateRangePicker's initialDateRange
+    // assertion would fire on reopen -- the same crash DateField already
+    // guards against (rules-1-5#12).
+    await oldProvider.deleteTransaction('old2012');
+    await tester.pump();
+
+    await tester.ensureVisible(find.text('Mar 1 – Mar 10'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Mar 1 – Mar 10'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Mar 1 – Mar 10'), findsOneWidget);
+  });
+
   testWidgets('no matches shows a message; a result opens to read (DET-1)', (
     tester,
   ) async {
