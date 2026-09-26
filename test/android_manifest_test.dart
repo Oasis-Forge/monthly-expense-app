@@ -227,4 +227,28 @@ void main() {
     expect(files, isNotEmpty);
     expect(offenders, isEmpty);
   });
+
+  // Once the process has been killed, Recents and the launcher icon recreate
+  // MainActivity with the intent that first started the task, so a shortcut,
+  // a widget button or a tapped notification ran again on every such return
+  // (pr57_9). It was seen on the emulator; no widget test can reach it.
+  test('MainActivity drops a replayed launch before any plugin reads it '
+      '(NAV-8, WID-3, NOTE-6)', () {
+    final activity = File(
+      'android/app/src/main/kotlin/com/oasisforge/monthlyexpenses/'
+      'MainActivity.kt',
+    ).readAsStringSync();
+    final onCreate = RegExp(
+      r'override fun onCreate\(savedInstanceState: Bundle\?\) \{(.*?)\r?\n  \}',
+      dotAll: true,
+    ).firstMatch(activity)?.group(1);
+    expect(onCreate, isNotNull, reason: 'MainActivity has no onCreate');
+    expect(onCreate, contains('savedInstanceState != null'));
+    expect(onCreate, contains('FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY'));
+    // The swap has to come first: the plugins read the intent while
+    // super.onCreate attaches them.
+    final swap = onCreate!.indexOf('intent = ');
+    expect(swap, isNonNegative, reason: 'the intent is never replaced');
+    expect(swap, lessThan(onCreate.indexOf('super.onCreate')));
+  });
 }
