@@ -32,11 +32,61 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _accountId;
   DateTimeRange? _range;
 
+  /// The oldest and newest date across every loaded transaction and
+  /// transfer, so the range picker can always reach a record an import or
+  /// restore carried in from outside 2015-2100 (SRCH-2). `DateTime(2015)`
+  /// and `DateTime(2100)` are the fallback with nothing loaded, and stay
+  /// the bound whenever the data doesn't need it widened -- reusing
+  /// TransactionProvider's already-loaded lists rather than a new query.
+  /// Both lists sort newest first, so the oldest is the last entry and the
+  /// newest is the first.
+  (DateTime, DateTime) _dateBounds(TransactionProvider provider) {
+    var firstDate = DateTime(2015);
+    var lastDate = DateTime(2100);
+    final transactions = provider.transactions;
+    final transfers = provider.transfers;
+    DateTime? oldest = transactions.isNotEmpty ? transactions.last.date : null;
+    DateTime? newest = transactions.isNotEmpty ? transactions.first.date : null;
+    if (transfers.isNotEmpty) {
+      final oldestTransfer = transfers.last.date;
+      final newestTransfer = transfers.first.date;
+      if (oldest == null || oldestTransfer.isBefore(oldest)) {
+        oldest = oldestTransfer;
+      }
+      if (newest == null || newestTransfer.isAfter(newest)) {
+        newest = newestTransfer;
+      }
+    }
+    if (oldest != null && oldest.isBefore(firstDate)) {
+      firstDate = DateTime(oldest.year);
+    }
+    if (newest != null && newest.isAfter(lastDate)) {
+      lastDate = DateTime(newest.year, 12, 31);
+    }
+    // Widen further to bracket a range picked earlier, since
+    // showDateRangePicker asserts initialDateRange falls within the two
+    // (as showDatePicker does for DateField, rules-1-5#12) -- the bounds
+    // above can shrink between openings if the record that justified them
+    // is deleted while a range built from it is still selected.
+    final range = _range;
+    if (range != null) {
+      if (range.start.isBefore(firstDate)) {
+        firstDate = DateTime(range.start.year);
+      }
+      if (range.end.isAfter(lastDate)) {
+        lastDate = DateTime(range.end.year, 12, 31);
+      }
+    }
+    return (firstDate, lastDate);
+  }
+
   Future<void> _pickRange() async {
+    final provider = context.read<TransactionProvider>();
+    final (firstDate, lastDate) = _dateBounds(provider);
     final picked = await showDateRangePicker(
       context: context,
-      firstDate: DateTime(2015),
-      lastDate: DateTime(2100),
+      firstDate: firstDate,
+      lastDate: lastDate,
       initialDateRange: _range,
     );
     if (picked != null) setState(() => _range = picked);

@@ -149,6 +149,68 @@ void main() {
     expect(find.text('Salary'), findsOneWidget);
   });
 
+  testWidgets(
+    'a date range can start before 2015 when older records exist, and '
+    'finds them (SRCH-2, rules-1-5#12)',
+    (tester) async {
+      final oldFake = FakeDB(
+        accounts: [testAccount(Account.cashId)],
+        transactions: [
+          testTx(
+            'old',
+            TransactionType.expense,
+            40,
+            DateTime(2012, 3, 4),
+            title: 'Old expense',
+          ),
+          testTx(
+            'new',
+            TransactionType.expense,
+            10,
+            DateTime(2026, 9, 10),
+            title: 'New expense',
+          ),
+        ],
+      );
+      final oldProvider = TransactionProvider(
+        db: oldFake,
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await oldProvider.load();
+
+      await tester.pumpWidget(
+        testApp(oldProvider, settings, const SearchScreen()),
+      );
+      await tester.pump();
+
+      await tester.ensureVisible(find.text('All time'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('All time'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Switch to input'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Start Date'),
+        '03/01/2012',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextField, 'End Date'),
+        '03/10/2012',
+      );
+      await tester.pump();
+      // A fixed firstDate of 2015 shows this error and leaves the range
+      // unset instead; SRCH-2 says a date range must be able to reach
+      // every record.
+      expect(find.text('Out of range.'), findsNothing);
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mar 1 – Mar 10'), findsOneWidget);
+      expect(find.text('Old expense'), findsOneWidget);
+      expect(find.text('New expense'), findsNothing);
+    },
+  );
+
   testWidgets('no matches shows a message; a result opens to read (DET-1)', (
     tester,
   ) async {
