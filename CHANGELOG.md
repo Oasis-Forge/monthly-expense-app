@@ -4,6 +4,19 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.32.0] - 2026-09-26
+
+### Added
+- iOS asks App Tracking Transparency once, after the consent form and before any ad is requested; saying no still shows ads, just not personalised (ADS-17).
+- iOS privacy manifests for the app and its widget, Google's SKAdNetwork list, and the app's 21 languages declared to iOS, with the Face ID, camera, microphone, photo and tracking prompts and the widget gallery text translated (LANG-1, LANG-2, WID-6).
+
+### Fixed
+- The ad consent form no longer opens over the app-lock screen at launch; it waits until the app is unlocked (ADS-5, LOCK-2).
+- iOS: tapping a reminder opens its note or the upcoming list; the notification permission is asked when a reminder is first turned on, not at first launch (NOTE-6, NUDGE-1, NUDGE-7).
+- iOS keeps the records, attachments, automatic backups and the widget's figures out of iCloud and computer backups, as Android already does (BAK-8, WID-5).
+- iOS: the widget asks you to open the app before its first run instead of showing empty labels (WID-6).
+- iOS lifts the privacy cover the moment Face ID succeeds instead of up to a second later (LOCK-1, LOCK-2).
+
 ## [1.31.1] - 2026-09-26
 
 ### Fixed
