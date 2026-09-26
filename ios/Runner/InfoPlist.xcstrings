@@ -1,0 +1,930 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        }
+      }
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Expenses"
+          }
+        }
+      }
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Privacy - Camera Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تلتقط الكاميرا صورة للإيصال لحفظها مع المعاملة. تبقى الصور على هذا الجهاز."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ক্যামেরা দিয়ে রসিদের ছবি তুলে লেনদেনের সঙ্গে রাখা হয়। ছবিগুলো এই ডিভাইসেই থাকে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit der Kamera fotografierst du einen Beleg, der bei der Buchung bleibt. Fotos bleiben auf diesem Gerät."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Η κάμερα τραβά φωτογραφία της απόδειξης για να τη φυλάξετε μαζί με μια συναλλαγή. Οι φωτογραφίες παραμένουν σε αυτή τη συσκευή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The camera takes a photo of a receipt to keep with a transaction. Photos stay on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La cámara hace una foto del recibo para guardarla con la transacción. Las fotos se quedan en este dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’appareil photo prend une photo du reçu à conserver avec la transaction. Les photos restent sur cet appareil."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कैमरा रसीद की फोटो खींचता है ताकि उसे लेनदेन के साथ रखा जा सके। फोटो इसी डिवाइस पर रहती हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera mengambil foto struk untuk disimpan bersama transaksi. Foto tetap di perangkat ini."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La fotocamera scatta una foto dello scontrino da conservare con la transazione. Le foto restano su questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カメラでレシートを撮影し、取引と一緒に保存します。写真はこの端末だけに保存されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "카메라로 영수증 사진을 찍어 거래와 함께 보관합니다. 사진은 이 기기에만 저장됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Met de camera maak je een foto van de bon om bij een transactie te bewaren. Foto’s blijven op dit apparaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparat robi zdjęcie paragonu, które zostaje przy transakcji. Zdjęcia zostają na tym urządzeniu."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A câmera tira uma foto do recibo para guardar com a transação. As fotos ficam neste aparelho."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Камера снимает чек, чтобы сохранить его вместе с операцией. Фото хранятся только на этом устройстве."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "กล้องใช้ถ่ายรูปใบเสร็จเพื่อเก็บไว้กับรายการ รูปภาพจะถูกเก็บไว้ในอุปกรณ์นี้เท่านั้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera, bir işlemle birlikte saklamak için fişin fotoğrafını çeker. Fotoğraflar bu cihazda kalır."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "کیمرا رسید کی تصویر لیتا ہے تاکہ اسے ٹرانزیکشن کے ساتھ رکھا جا سکے۔ تصاویر اسی ڈیوائس پر رہتی ہیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Máy ảnh chụp hóa đơn để lưu kèm giao dịch. Ảnh chỉ lưu trên thiết bị này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "相机用于拍摄小票照片，与交易一起保存。照片仅保存在本设备上。"
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription" : {
+      "comment" : "Privacy - Face ID Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يفتح Face ID قفل Monthly Expenses عندما يكون قفل التطبيق مفعّلًا."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অ্যাপ লক চালু থাকলে Face ID দিয়ে Monthly Expenses আনলক হয়।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID entsperrt Monthly Expenses, wenn die App-Sperre an ist."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το Face ID ξεκλειδώνει το Monthly Expenses όταν είναι ενεργό το κλείδωμα εφαρμογής."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID unlocks Monthly Expenses when app lock is on."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID desbloquea Monthly Expenses cuando el bloqueo de la app está activado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID déverrouille Monthly Expenses lorsque le verrouillage de l’app est activé."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऐप लॉक चालू होने पर Face ID से Monthly Expenses अनलॉक होता है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID membuka kunci Monthly Expenses saat kunci aplikasi aktif."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID sblocca Monthly Expenses quando il blocco app è attivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリロックがオンのとき、Face ID で Monthly Expenses のロックを解除します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 잠금이 켜져 있으면 Face ID로 Monthly Expenses의 잠금을 해제합니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID ontgrendelt Monthly Expenses als app-vergrendeling aan staat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID odblokowuje Monthly Expenses, gdy blokada aplikacji jest włączona."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Face ID desbloqueia o Monthly Expenses quando o bloqueio do app está ativado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID разблокирует Monthly Expenses, когда включена блокировка приложения."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID ใช้ปลดล็อก Monthly Expenses เมื่อเปิดล็อกแอปไว้"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uygulama kilidi açıkken Face ID, Monthly Expenses’ın kilidini açar."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ایپ لاک آن ہو تو Face ID سے Monthly Expenses ان لاک ہوتا ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID mở khóa Monthly Expenses khi khóa ứng dụng đang bật."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开启应用锁后，使用面容 ID 解锁 Monthly Expenses。"
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "comment" : "Privacy - Microphone Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "يسجّل الميكروفون ملاحظة صوتية لحفظها مع المعاملة. تبقى التسجيلات على هذا الجهاز."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "মাইক্রোফোন দিয়ে ভয়েস নোট রেকর্ড করে লেনদেনের সঙ্গে রাখা হয়। রেকর্ডিংগুলো এই ডিভাইসেই থাকে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit dem Mikrofon nimmst du eine Sprachnotiz auf, die bei der Buchung bleibt. Aufnahmen bleiben auf diesem Gerät."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Το μικρόφωνο ηχογραφεί μια φωνητική σημείωση για να τη φυλάξετε μαζί με μια συναλλαγή. Οι ηχογραφήσεις παραμένουν σε αυτή τη συσκευή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The microphone records a voice note to keep with a transaction. Recordings stay on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El micrófono graba una nota de voz para guardarla con la transacción. Las grabaciones se quedan en este dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le micro enregistre une note vocale à conserver avec la transaction. Les enregistrements restent sur cet appareil."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "माइक्रोफ़ोन वॉइस नोट रिकॉर्ड करता है ताकि उसे लेनदेन के साथ रखा जा सके। रिकॉर्डिंग इसी डिवाइस पर रहती हैं।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mikrofon merekam catatan suara untuk disimpan bersama transaksi. Rekaman tetap di perangkat ini."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il microfono registra una nota vocale da conservare con la transazione. Le registrazioni restano su questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マイクで音声メモを録音し、取引と一緒に保存します。録音はこの端末だけに保存されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "마이크로 음성 메모를 녹음해 거래와 함께 보관합니다. 녹음은 이 기기에만 저장됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Met de microfoon neem je een spraaknotitie op om bij een transactie te bewaren. Opnames blijven op dit apparaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mikrofon nagrywa notatkę głosową, która zostaje przy transakcji. Nagrania zostają na tym urządzeniu."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O microfone grava uma nota de voz para guardar com a transação. As gravações ficam neste aparelho."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Микрофон записывает голосовую заметку, чтобы сохранить её вместе с операцией. Записи хранятся только на этом устройстве."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ไมโครโฟนใช้บันทึกเสียงเพื่อเก็บไว้กับรายการ ไฟล์เสียงจะถูกเก็บไว้ในอุปกรณ์นี้เท่านั้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mikrofon, bir işlemle birlikte saklamak için sesli not kaydeder. Kayıtlar bu cihazda kalır."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "مائیکروفون صوتی نوٹ ریکارڈ کرتا ہے تاکہ اسے ٹرانزیکشن کے ساتھ رکھا جا سکے۔ ریکارڈنگز اسی ڈیوائس پر رہتی ہیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Micrô ghi âm để lưu kèm giao dịch. Bản ghi âm chỉ lưu trên thiết bị này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风用于录制语音备注，与交易一起保存。录音仅保存在本设备上。"
+          }
+        }
+      }
+    },
+    "NSPhotoLibraryUsageDescription" : {
+      "comment" : "Privacy - Photo Library Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "عند اختيار صورة تُرفق نسخة منها بالمعاملة. تبقى النسخة على هذا الجهاز."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "একটি ছবি বেছে নিলে তার একটি কপি লেনদেনের সঙ্গে যুক্ত হয়। সেটি এই ডিভাইসেই থাকে।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du ein Foto auswählst, wird eine Kopie davon an die Buchung angehängt. Sie bleibt auf diesem Gerät."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Όταν επιλέγετε μια φωτογραφία, ένα αντίγραφό της επισυνάπτεται στη συναλλαγή. Παραμένει σε αυτή τη συσκευή."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choosing a photo attaches a copy of it to a transaction. It stays on this device."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al elegir una foto, se adjunta una copia a la transacción. Se queda en este dispositivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir une photo en joint une copie à la transaction. Elle reste sur cet appareil."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "फोटो चुनने पर उसकी एक कॉपी लेनदेन के साथ जुड़ जाती है। वह इसी डिवाइस पर रहती है।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memilih foto akan melampirkan salinannya ke transaksi. Salinan itu tetap di perangkat ini."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scegliendo una foto, una sua copia viene allegata alla transazione. Resta su questo dispositivo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "写真を選ぶと、そのコピーが取引に添付されます。コピーはこの端末だけに保存されます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사진을 선택하면 사본이 거래에 첨부됩니다. 사본은 이 기기에만 저장됩니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als je een foto kiest, wordt er een kopie van aan de transactie toegevoegd. Die blijft op dit apparaat."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wybranie zdjęcia dołącza jego kopię do transakcji. Kopia zostaje na tym urządzeniu."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ao escolher uma foto, uma cópia dela é anexada à transação. Ela fica neste aparelho."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбранное фото прикрепляется к операции в виде копии. Копия хранится только на этом устройстве."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "เมื่อเลือกรูปภาพ สำเนาของรูปจะถูกแนบไปกับรายการ และจะถูกเก็บไว้ในอุปกรณ์นี้เท่านั้น"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir fotoğraf seçtiğinizde kopyası işleme eklenir. Kopya bu cihazda kalır."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تصویر منتخب کرنے پر اس کی ایک کاپی ٹرانزیکشن کے ساتھ منسلک ہو جاتی ہے۔ وہ اسی ڈیوائس پر رہتی ہے۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Khi chọn ảnh, một bản sao sẽ được đính kèm vào giao dịch. Bản sao chỉ lưu trên thiết bị này."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择照片后，会将一份副本附加到交易中。副本仅保存在本设备上。"
+          }
+        }
+      }
+    },
+    "NSUserTrackingUsageDescription" : {
+      "comment" : "Privacy - Tracking Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "السماح بذلك يتيح اختيار الإعلانات التي تموّل Monthly Expenses بما يناسبك. لا تتم مشاركة معاملاتك أبدًا، أيًّا كان اختيارك."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "অনুমতি দিলে Monthly Expenses-এর খরচ জোগানো বিজ্ঞাপনগুলো আপনার জন্য বেছে নেওয়া হয়। আপনি যা-ই বেছে নিন, আপনার লেনদেন কখনো শেয়ার করা হয় না।"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du das erlaubst, wird die Werbung, die Monthly Expenses finanziert, für dich ausgewählt. Deine Buchungen werden nie weitergegeben, egal wie du dich entscheidest."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Αν το επιτρέψετε, οι διαφημίσεις που χρηματοδοτούν το Monthly Expenses θα επιλέγονται για εσάς. Οι συναλλαγές σας δεν κοινοποιούνται ποτέ, ό,τι κι αν επιλέξετε."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowing this lets the ads that pay for Monthly Expenses be chosen for you. Your transactions are never shared, whichever you choose."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si lo permites, los anuncios que financian Monthly Expenses se elegirán para ti. Tus transacciones nunca se comparten, elijas lo que elijas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Si vous l’autorisez, les publicités qui financent Monthly Expenses seront choisies pour vous. Vos transactions ne sont jamais partagées, quel que soit votre choix."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "इसकी अनुमति देने पर Monthly Expenses का खर्च चलाने वाले विज्ञापन आपके लिए चुने जाते हैं। आप जो भी चुनें, आपके लेनदेन कभी साझा नहीं किए जाते।"
+          }
+        },
+        "id" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jika diizinkan, iklan yang membiayai Monthly Expenses akan dipilih sesuai dengan Anda. Transaksi Anda tidak pernah dibagikan, apa pun pilihan Anda."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se lo consenti, gli annunci che finanziano Monthly Expenses verranno scelti per te. Le tue transazioni non vengono mai condivise, qualunque cosa tu scelga."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "許可すると、Monthly Expenses を支える広告があなたに合わせて選ばれます。どちらを選んでも、取引が共有されることはありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "허용하면 Monthly Expenses 운영을 돕는 광고가 사용자에게 맞춰 선택됩니다. 무엇을 선택하든 거래 내역은 절대 공유되지 않습니다."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als je dit toestaat, worden de advertenties die Monthly Expenses bekostigen voor jou gekozen. Je transacties worden nooit gedeeld, wat je ook kiest."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeśli na to pozwolisz, reklamy, które finansują Monthly Expenses, będą dobierane dla ciebie. Twoje transakcje nigdy nie są udostępniane, niezależnie od wyboru."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se você permitir, os anúncios que mantêm o Monthly Expenses serão escolhidos para você. Suas transações nunca são compartilhadas, seja qual for sua escolha."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Если разрешить, реклама, которая оплачивает Monthly Expenses, будет подбираться для вас. Ваши операции никогда не передаются, что бы вы ни выбрали."
+          }
+        },
+        "th" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "หากอนุญาต โฆษณาที่ช่วยสนับสนุน Monthly Expenses จะถูกเลือกให้เหมาะกับคุณ รายการของคุณจะไม่ถูกแชร์ ไม่ว่าคุณจะเลือกแบบใด"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İzin verirseniz, Monthly Expenses’ı finanse eden reklamlar size göre seçilir. Seçiminiz ne olursa olsun işlemleriniz asla paylaşılmaz."
+          }
+        },
+        "ur" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "اجازت دینے پر Monthly Expenses کا خرچ اٹھانے والے اشتہارات آپ کے لیے منتخب کیے جاتے ہیں۔ آپ جو بھی منتخب کریں، آپ کی ٹرانزیکشنز کبھی شیئر نہیں کی جاتیں۔"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nếu cho phép, quảng cáo giúp duy trì Monthly Expenses sẽ được chọn phù hợp với bạn. Giao dịch của bạn không bao giờ được chia sẻ, dù bạn chọn thế nào."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许后，为 Monthly Expenses 提供资金的广告将根据你的偏好进行选择。无论你如何选择，你的交易都绝不会被分享。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

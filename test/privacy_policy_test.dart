@@ -12,7 +12,7 @@ void main() {
       .readAsStringSync();
   final ads = File('lib/providers/ads_provider.dart').readAsStringSync();
 
-  group('the privacy policy (ADS-6, ADS-12, Decision 40)', () {
+  group('the privacy policy (ADS-6, ADS-12, ADS-17, Decision 40)', () {
     test('never claims a daily cap on the full-screen ad', () {
       // ADS-12 / Decision 40: earning ten things resets the count to zero
       // (SettingsProvider.spendAdActivity), so ten more can earn another the
@@ -58,6 +58,84 @@ void main() {
         ),
       );
       expect(policy, contains('Android 12 and later'));
+    });
+
+    test('says the widget\'s numbers are kept out of iOS backups too '
+        '(BAK-8, WID-5)', () {
+      // HomeWidgetBridge.swift writes them to a file in a folder it marks
+      // excluded from backup, not into the App Group's UserDefaults, so the
+      // policy no longer warns that an iCloud backup can carry them.
+      final bridge = File('ios/Runner/HomeWidgetBridge.swift')
+          .readAsStringSync();
+      expect(bridge, contains('isExcludedFromBackup = true'));
+
+      expect(policy, isNot(contains('can be carried along in an iCloud')));
+      expect(
+        policy,
+        isNot(contains('the numbers shown on the home-screen widget are not')),
+      );
+      expect(
+        policy,
+        contains(
+          'the folders holding your records, and the numbers shown on the '
+          'home-screen widget, out of an iCloud backup',
+        ),
+      );
+      final start = policy.indexOf('## Home-screen widget');
+      expect(start, isNot(-1));
+      final end = policy.indexOf('\n## ', start + 1);
+      expect(
+        policy.substring(start, end == -1 ? policy.length : end),
+        contains("kept out of your phone's own automatic backup on both"),
+      );
+    });
+
+    test('tells iOS users about the tracking prompt the app asks, and that '
+        'saying no still shows ads (ADS-17)', () {
+      // DeviceAdService.start asks it on iOS, after the consent flow and
+      // before the SDK starts, so the published policy has to say so.
+      final adService = File('lib/services/ad_service.dart').readAsStringSync();
+      expect(adService, contains('await _askAboutTracking();'));
+
+      expect(
+        policy,
+        contains(
+          "whether ads may be chosen using your device's advertising "
+          'identifier',
+        ),
+      );
+      expect(
+        policy,
+        contains(
+          'Saying no to either still shows ads, just not personalised ones',
+        ),
+      );
+      // The promise about the user's own records stands either way (ADS-7).
+      expect(policy, contains('**Nothing you record leaves your device.**'));
+    });
+
+    test('lists the iOS tracking prompt among the permissions (ADS-17)', () {
+      // A reader looking for what the app asks the system for goes to the
+      // Permissions list, and the tracking prompt is the one system question
+      // the app itself puts up on iOS.
+      final start = policy.indexOf('## Permissions');
+      expect(start, isNot(-1));
+      final end = policy.indexOf('\n## ', start + 1);
+      final permissions = policy.substring(
+        start,
+        end == -1 ? policy.length : end,
+      );
+
+      expect(permissions, contains('iOS App Tracking Transparency'));
+      expect(
+        permissions,
+        contains('Saying no still shows ads, just not personalised ones'),
+      );
+      expect(
+        permissions,
+        contains('**Settings → Privacy & Security → Tracking**'),
+      );
+      expect(permissions, contains('never asked once "Remove ads" is bought'));
     });
 
     test('exempts only the full-screen ad from the first session', () {

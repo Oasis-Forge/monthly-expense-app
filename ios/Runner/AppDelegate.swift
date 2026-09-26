@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -7,6 +8,13 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // Required by flutter_local_notifications so a tapped note reminder or
+    // nudge reaches the app (NOTE-6, NUDGE-1). Must be set before launch
+    // finishes -- set any later (e.g. in didInitializeImplicitFlutterEngine)
+    // and a tap that launches the app from a terminated state can be missed.
+    // `FlutterAppDelegate` already conforms to `UNUserNotificationCenterDelegate`,
+    // so `as` rather than `as?`.
+    UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

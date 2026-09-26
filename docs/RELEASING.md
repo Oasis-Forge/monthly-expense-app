@@ -178,7 +178,7 @@ None of these is a secret: they ship inside every binary, so they belong in the 
 
 ### Before the iOS release
 
-Add Google's **`SKAdNetworkItems`** to `ios/Runner/Info.plist`, from [AdMob's iOS guide](https://developers.google.com/admob/ios/ios14#skadnetwork). It is a long list of network identifiers that Google keeps up to date; without it, iOS ad attribution under SKAdNetwork doesn't work and the ads earn less. It affects nothing on Android, which is why it isn't in yet.
+Refresh Google's **`SKAdNetworkItems`** in `ios/Runner/Info.plist`. The list is in: 50 network identifiers, Google's own `cstr6suwn9` first, copied on 2026-09-24 from the Info.plist example in [AdMob's iOS quick start](https://developers.google.com/admob/ios/quick-start). Google adds and drops buyers, so before each iOS release compare it with that page and copy any change, keeping Google's order. Without an up-to-date list, SKAdNetwork attribution misses those networks and the iOS ads earn less (ADS-6). `test/ios_project_test.dart` checks that Google's own ID is there and that the list wasn't cut down.
 
 ### The "Remove ads" product
 
@@ -225,4 +225,4 @@ Also declare the ads themselves under **Ads** in the store listing, and answer t
 - **Diagnostics → Crash/Performance Data** — only if you enable anything of the sort; today the app has none of its own.
 - Everything the user records: **not collected**.
 
-Because the app shows ads and may ask for tracking, `NSUserTrackingUsageDescription` is in `Info.plist`; keep its wording honest about what refusing does (nothing, except less-relevant ads).
+The iOS app asks App Tracking Transparency itself, right after the consent form and before the ad SDK starts (ADS-17), which is what makes declaring "Data Used to Track You" honest. Its prompt shows `NSUserTrackingUsageDescription` from `Info.plist`; keep that wording honest about what refusing does (nothing, except less-relevant ads). App Review checks the prompt appears, so test it on a fresh install: finish setup and the walkthrough, answer the consent form if one shows, and the ATT prompt should follow. It does not come back once answered; delete the app to see it again. Because it waits for setup and the walkthrough, App Review often misses it and rejects under guideline 2.1 ("unable to locate the App Tracking Transparency permission request"), so in **App Store Connect → App Review Information → Notes** say where it is: right after finishing the setup page and the walkthrough, after Google's consent form in the EEA, the UK and Switzerland, on a fresh install only, and never once "Remove ads" is bought.

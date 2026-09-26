@@ -8,7 +8,12 @@ import WidgetKit
 // reads the database or works a number out (WID-5, WID-6).
 
 let appGroupId = "group.com.oasisforge.monthlyexpenses"
-private let payloadKey = "payload"
+
+/// The file the app writes the payload to, in a folder of the App Group
+/// container that it keeps out of iCloud and computer backups (BAK-8). The
+/// names must match HomeWidgetBridge.swift's.
+private let payloadFolder = "WidgetPayload"
+private let payloadFile = "payload.json"
 
 /// The payload layout this build understands.
 private let supportedVersion = 1
@@ -27,8 +32,11 @@ struct WidgetPayload: Decodable {
 
   static func read() -> WidgetPayload? {
     guard
-      let json = UserDefaults(suiteName: appGroupId)?.string(forKey: payloadKey),
-      let data = json.data(using: .utf8),
+      let file = FileManager.default
+        .containerURL(forSecurityApplicationGroupIdentifier: appGroupId)?
+        .appendingPathComponent(payloadFolder, isDirectory: true)
+        .appendingPathComponent(payloadFile, isDirectory: false),
+      let data = try? Data(contentsOf: file),
       let payload = try? JSONDecoder().decode(WidgetPayload.self, from: data),
       payload.version == supportedVersion
     else { return nil }
@@ -98,15 +106,37 @@ struct Provider: TimelineProvider {
 
 struct MonthlyExpensesWidgetView: View {
   @Environment(\.widgetFamily) private var family
+  /// The device's direction, as the system hands it to the widget.
+  @Environment(\.layoutDirection) private var systemDirection
   let entry: WidgetTimelineEntry
 
   private var payload: WidgetPayload? { entry.payload }
+
+  /// The app's words come in the app's language, so the app says which way
+  /// they run. Before it has sent any, the only line is the catalog's, in the
+  /// device's language, so the device's direction stays (WID-6).
+  private var direction: LayoutDirection {
+    guard let payload else { return systemDirection }
+    return payload.rtl ? .rightToLeft : .leftToRight
+  }
 
   /// Nothing to show before the app has ever run, and nothing to show while
   /// app lock hides the amounts — which the app enforces by not sending them
   /// at all (WID-4).
   private var hidden: Bool {
     payload == nil || payload!.hideAmounts || entry.entry == nil
+  }
+
+  /// What stands where the amounts would. While app lock hides them the app
+  /// sent its own words for that (WID-4). Otherwise there are no amounts
+  /// because the app has not run yet, so there are no words from the app
+  /// either: this line comes from the extension's Localizable.xcstrings, in
+  /// the device's language, as Android's widget_open_the_app does (WID-6).
+  private var note: Text {
+    if let payload, payload.hideAmounts {
+      return Text(payload.label("hidden"))
+    }
+    return Text("widget_open_the_app")
   }
 
   var body: some View {
@@ -118,7 +148,7 @@ struct MonthlyExpensesWidgetView: View {
 
       if hidden {
         Spacer(minLength: 0)
-        Text(payload?.label("hidden") ?? "")
+        note
           .font(.caption)
           .foregroundStyle(.secondary)
           .lineLimit(3)
@@ -132,7 +162,7 @@ struct MonthlyExpensesWidgetView: View {
       buttons
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .environment(\.layoutDirection, payload?.rtl == true ? .rightToLeft : .leftToRight)
+    .environment(\.layoutDirection, direction)
     .widgetBackground()
     // The whole widget is one tap target. On the medium one the Links above
     // take their own taps and this is what is left — the numbers, which open
@@ -246,8 +276,11 @@ struct MonthlyExpensesWidget: Widget {
       entry in
       MonthlyExpensesWidgetView(entry: entry)
     }
-    .configurationDisplayName("Monthly Expenses")
-    .description("This period's income, spending, and balance")
+    // What the widget gallery shows, looked up in this extension's
+    // Localizable.xcstrings in the device's language (LANG-2, WID-6): the
+    // same words as the Android widget picker.
+    .configurationDisplayName(Text("widget_name"))
+    .description(Text("widget_description"))
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }

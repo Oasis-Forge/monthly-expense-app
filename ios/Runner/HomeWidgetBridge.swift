@@ -11,10 +11,20 @@ final class HomeWidgetBridge {
   static let shared = HomeWidgetBridge()
 
   static let channelName = "com.oasisforge.monthlyexpenses/home_widget"
-  private static let payloadKey = "payload"
   private static let appGroupId = "group.com.oasisforge.monthlyexpenses"
   private static let urlScheme = "monthlyexpenses"
   private static let urlHost = "widget"
+
+  /// Where the payload goes: a file in the App Group container, in a folder
+  /// excluded from iCloud and computer backups (BAK-8). The widget reads the
+  /// same file (`WidgetPayload.read` in MonthlyExpensesWidget.swift), so
+  /// these names must match there.
+  private static let payloadFolder = "WidgetPayload"
+  private static let payloadFile = "payload.json"
+
+  /// Where 1.31.1 and earlier kept the payload: the App Group's
+  /// UserDefaults suite, whose plist no app can keep out of a backup.
+  private static let legacyPayloadKey = "payload"
 
   private var channel: FlutterMethodChannel?
 
@@ -33,8 +43,22 @@ final class HomeWidgetBridge {
           result(FlutterError(code: "bad_payload", message: nil, details: nil))
           return
         }
+        do {
+          try Self.store(json)
+        } catch {
+          result(
+            FlutterError(
+              code: "write_failed",
+              message: error.localizedDescription,
+              details: nil
+            )
+          )
+          return
+        }
+        // The file is written, so the copy an older version kept in the
+        // suite has no reader left and would only linger in backups.
         UserDefaults(suiteName: Self.appGroupId)?
-          .set(json, forKey: Self.payloadKey)
+          .removeObject(forKey: Self.legacyPayloadKey)
         WidgetCenter.shared.reloadAllTimelines()
         result(nil)
       case "launchAction":
@@ -46,6 +70,31 @@ final class HomeWidgetBridge {
       }
     }
     self.channel = channel
+  }
+
+  /// Writes the payload where the widget reads it. The folder is marked
+  /// excluded from backup every time, before the file goes in, so the
+  /// figures are never in a folder a backup would take; the mark sits on
+  /// the folder because replacing the file, as an atomic write does, would
+  /// drop a mark set on the file itself. Atomic, so the widget never reads
+  /// half a payload.
+  private static func store(_ json: String) throws {
+    guard
+      var folder = FileManager.default
+        .containerURL(forSecurityApplicationGroupIdentifier: appGroupId)?
+        .appendingPathComponent(payloadFolder, isDirectory: true)
+    else {
+      throw CocoaError(.fileNoSuchFile)
+    }
+    try FileManager.default.createDirectory(
+      at: folder,
+      withIntermediateDirectories: true
+    )
+    var values = URLResourceValues()
+    values.isExcludedFromBackup = true
+    try folder.setResourceValues(values)
+    let file = folder.appendingPathComponent(payloadFile, isDirectory: false)
+    try Data(json.utf8).write(to: file, options: .atomic)
   }
 
   /// Handles `monthlyexpenses://widget/<action>` from a tapped widget.
