@@ -79,6 +79,27 @@ void main() {
     expect(find.byType(TransferScreen), findsNothing);
   });
 
+  testWidgets('two transfers get distinct UUID v4 IDs (REC-2)', (tester) async {
+    await open(tester);
+    await enterAmount(tester, '10');
+    await tapButton(tester, 'Add Transfer');
+
+    await open(tester);
+    await enterAmount(tester, '20');
+    await tapButton(tester, 'Add Transfer');
+
+    expect(provider.transfers, hasLength(2));
+    final ids = provider.transfers.map((t) => t.id).toList();
+    expect(
+      ids.toSet(),
+      hasLength(2),
+      reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
+    );
+    for (final id in ids) {
+      expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+    }
+  });
+
   testWidgets('the same account on both sides is rejected', (tester) async {
     await open(tester);
     await enterAmount(tester, '50');

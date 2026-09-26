@@ -3,6 +3,9 @@
     <color name="widget_background">#FF1B1B1F</color>
     <color name="widget_label">#FFC9C5D0</color>
     <color name="widget_amount">#FFF3EFF7</color>
+    <!-- expenseInkDark (lib/models/money.dart): clears 4.5:1 here too
+         (CUR-5, A11Y-3, THEME-4). -->
+    <color name="widget_over_budget">#FFFFB4AB</color>
     <color name="widget_accent">#FFCEC2FF</color>
     <color name="widget_on_button">#FF33246B</color>
     <color name="widget_outline">#FF4A4458</color>

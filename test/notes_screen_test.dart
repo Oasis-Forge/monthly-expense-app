@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
+import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -9,11 +12,17 @@ import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
 import 'package:monthly_expense_app/screens/notes_screen.dart';
 import 'package:monthly_expense_app/screens/transaction_detail_screen.dart';
+import 'package:monthly_expense_app/services/home_widget_service.dart';
 import 'package:monthly_expense_app/services/reminder_service.dart';
 
 import 'helpers.dart';
 
 void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
   late FakeDB fake;
   late TransactionProvider provider;
   late SettingsProvider settings;
@@ -123,6 +132,31 @@ void main() {
     expect(find.byType(NoteFormScreen), findsNothing);
   });
 
+  testWidgets('two notes get distinct UUID v4 IDs (REC-2)', (tester) async {
+    Future<void> addNote(String text) async {
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Note'), text);
+      await tester.tap(find.widgetWithText(FilledButton, 'Add a note'));
+      await tester.pumpAndSettle();
+    }
+
+    await showNotes(tester);
+    await addNote('First');
+    await addNote('Second');
+
+    expect(provider.notes, hasLength(2));
+    final ids = provider.notes.map((n) => n.id).toList();
+    expect(
+      ids.toSet(),
+      hasLength(2),
+      reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
+    );
+    for (final id in ids) {
+      expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+    }
+  });
+
   testWidgets('the checkbox marks a note done and moves it to Done', (
     tester,
   ) async {
@@ -219,7 +253,19 @@ void main() {
   testWidgets(
     'a due date and reminder are saved and scheduled (NOTE-1, NOTE-6)',
     (tester) async {
-      final reminders = FakeReminderService();
+      // Toggling the due date on sets it to the real wall-clock "now"
+      // (_toggleDueDate), so the note's default 9am reminder is derived
+      // from whatever day and hour this happens to run on -- on any day's
+      // last date, "tomorrow" wraps into next month, and on a run any time
+      // after 11am today's default 9am reminder is already more than two
+      // hours past (NOTE-6). Rather than drive the date picker to a
+      // fixed offset (which itself broke on a month's last day: tapping
+      // tomorrow's day-of-month number in a picker still showing this
+      // month selects that day THIS month instead, pr59#9), the fake's own
+      // clock is pinned far in the past so today's real date is always in
+      // its future, independent of the day or hour this test happens to
+      // run on.
+      final reminders = FakeReminderService(now: () => DateTime(2000));
       // The same fake schedules for both the provider and the permission
       // request, so this exercises the whole path (NOTE-6).
       provider = TransactionProvider(
@@ -251,7 +297,8 @@ void main() {
   );
 
   testWidgets(
-    'a refused reminder permission still saves, with a notice (NOTE-6)',
+    'a refused reminder permission leaves the reminder off, with a notice '
+    '(NOTE-6, NUDGE-7)',
     (tester) async {
       await openForm(
         tester,
@@ -275,9 +322,16 @@ void main() {
         ),
         findsOneWidget,
       );
+      // NUDGE-7: refused, so the switch itself must not read as on -- a
+      // switch left on with nothing that will ever arrive is worse than one
+      // that stayed off.
+      final reminderSwitch = tester.widget<SwitchListTile>(
+        find.widgetWithText(SwitchListTile, 'Remind me'),
+      );
+      expect(reminderSwitch.value, isFalse);
 
       await tapInForm(tester, find.widgetWithText(FilledButton, 'Add a note'));
-      expect(provider.notes.single.reminderAt, isNotNull);
+      expect(provider.notes.single.reminderAt, isNull);
     },
   );
 
@@ -389,6 +443,26 @@ void main() {
     expect(find.text('🍔 Food'), findsWidgets);
   });
 
+  testWidgets(
+    "the amount field's symbol side matches the locale's display side, in "
+    'German (CUR-5, LANG-5, pr61#11)',
+    (tester) async {
+      // German writes the symbol after the figures, unlike English.
+      settings = await testSettings({'language': 'de'});
+      await openForm(tester);
+
+      final field = tester
+          .widgetList<TextField>(find.byType(TextField))
+          .firstWhere(
+            (f) =>
+                f.decoration?.prefixText != null ||
+                f.decoration?.suffixText != null,
+          );
+      expect(field.decoration?.prefixText, isNull);
+      expect(field.decoration?.suffixText, contains('\$'));
+    },
+  );
+
   testWidgets('the form rejects empty text and an unparseable amount', (
     tester,
   ) async {
@@ -492,4 +566,66 @@ void main() {
     expect(find.text("Couldn't save the note. Try again."), findsOneWidget);
     expect(provider.notes, isEmpty);
   });
+
+  testWidgets(
+    'the reminder toggle survives a reminder plugin that throws, through '
+    "the real app's own wiring, not just testApp's (NOTE-6, pr59#9)",
+    (tester) async {
+      final realSettings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'language': 'en',
+      });
+      usePhoneScreen(tester);
+
+      await tester.pumpWidget(
+        MonthlyExpenseApp(
+          db: DBHelper(path: inMemoryDatabasePath),
+          settings: realSettings,
+          homeWidget: const NoopHomeWidgetService(),
+          reviews: FakeReviews(supported: false),
+          updates: FakeUpdates(supported: false),
+          shortcuts: FakeShortcuts(),
+          // Without these the real ad SDK is built and leaves a timer
+          // running long after the test.
+          ads: FakeAdService(),
+          purchases: FakePurchases(),
+          reminders: ThrowingReminderService(),
+        ),
+      );
+      await tester.pump();
+      await waitForRealLoad(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Open navigation menu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Notes'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Add a note'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Note'),
+        'Pay rent',
+      );
+      await tapInForm(
+        tester,
+        find.widgetWithText(SwitchListTile, 'Set a due date'),
+      );
+      await tapInForm(tester, find.widgetWithText(SwitchListTile, 'Remind me'));
+
+      // A plugin failure is treated like a refusal, never a crash: this
+      // only holds because main.dart wraps `reminders` in SafeReminderService
+      // before handing it to the widget tree -- testApp() does not.
+      expect(tester.takeException(), isNull);
+      expect(
+        find.text(
+          'Turn on notifications in system settings to get reminders for '
+          'notes.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
 }

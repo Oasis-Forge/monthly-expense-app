@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
+import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/settings_screen.dart';
+import 'package:monthly_expense_app/services/home_widget_service.dart';
 
 import 'helpers.dart';
 
 void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
   late FakeDB fake;
   late TransactionProvider provider;
   late SettingsProvider settings;
@@ -330,6 +339,61 @@ void main() {
         expect(
           find.textContaining('Turn on notifications in system settings'),
           findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'turning it on survives a reminder plugin that throws, through the '
+      "real app's own wiring, not just testApp's (NUDGE-7, pr59#9)",
+      (tester) async {
+        final settings = await testSettings({
+          'setup_done': true,
+          'walkthrough_seen': true,
+          'language': 'en',
+        });
+        usePhoneScreen(tester);
+
+        await tester.pumpWidget(
+          MonthlyExpenseApp(
+            db: DBHelper(path: inMemoryDatabasePath),
+            settings: settings,
+            homeWidget: const NoopHomeWidgetService(),
+            reviews: FakeReviews(supported: false),
+            updates: FakeUpdates(supported: false),
+            shortcuts: FakeShortcuts(),
+            // Without these the real ad SDK is built and leaves a timer
+            // running long after the test.
+            ads: FakeAdService(),
+            purchases: FakePurchases(),
+            reminders: ThrowingReminderService(),
+          ),
+        );
+        await tester.pump();
+        await waitForRealLoad(tester);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.byTooltip('Settings'));
+        await tester.pumpAndSettle();
+        await tester.scrollUntilVisible(
+          find.text('Remind me on an empty day'),
+          200,
+        );
+
+        await tester.tap(find.text('Remind me on an empty day'));
+        await tester.pumpAndSettle();
+
+        // A plugin failure is treated like a refusal, never a crash: this
+        // only holds because main.dart wraps `reminders` in
+        // SafeReminderService before handing it to the widget tree --
+        // testApp() does not.
+        expect(tester.takeException(), isNull);
+        expect(settings.emptyDayNudge, isFalse);
+        expect(
+          find.text(
+            'Turn on notifications in system settings to get reminders.',
+          ),
+          findsOneWidget,
         );
       },
     );

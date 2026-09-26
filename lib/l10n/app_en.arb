@@ -6,6 +6,10 @@
   "searchTooltip": "Search",
   "addButton": "Add",
   "emptyPeriod": "No transactions in this period yet.",
+  "emptyPeriodFilteredByAccount": "Nothing for this account this period.",
+  "@emptyPeriodFilteredByAccount": {
+    "description": "Home's empty-day-list message when an account filter hides every row this period, offered with a way back to every account (EMPTY-4, ACC-6)."
+  },
   "balanceLabel": "Balance",
   "expandSummaryTooltip": "Show income and expense",
   "@expandSummaryTooltip": {
@@ -293,6 +297,70 @@
   "categoryNameLabel": "Name",
   "categoryNameRequired": "Enter a name",
   "categoryNameTaken": "That name is already used",
+  "categoryColorPurple": "Purple",
+  "@categoryColorPurple": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorTeal": "Teal",
+  "@categoryColorTeal": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorRust": "Rust",
+  "@categoryColorRust": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorBlue": "Blue",
+  "@categoryColorBlue": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorPink": "Pink",
+  "@categoryColorPink": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorGreen": "Green",
+  "@categoryColorGreen": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorMagenta": "Magenta",
+  "@categoryColorMagenta": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorCyan": "Cyan",
+  "@categoryColorCyan": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorBrown": "Brown",
+  "@categoryColorBrown": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorIndigo": "Indigo",
+  "@categoryColorIndigo": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorRed": "Red",
+  "@categoryColorRed": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorSlate": "Slate",
+  "@categoryColorSlate": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorOrange": "Orange",
+  "@categoryColorOrange": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorEmerald": "Emerald",
+  "@categoryColorEmerald": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorViolet": "Violet",
+  "@categoryColorViolet": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
+  "categoryColorRaspberry": "Raspberry",
+  "@categoryColorRaspberry": {
+    "description": "The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10)."
+  },
   "archiveAction": "Archive",
   "unarchiveAction": "Unarchive",
   "deleteAction": "Delete",
@@ -833,6 +901,14 @@
   "backupTooNew": "This backup is from a newer version of the app. Update the app, then try again.",
   "backupOpenFailed": "Couldn't open the file. Try again.",
   "backupRestoreFailed": "Couldn't restore the backup. Your data wasn't changed.",
+  "dbTooNewTitle": "Update needed",
+  "@dbTooNewTitle": {
+    "description": "Title shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message)."
+  },
+  "dbTooNewMessage": "This data was saved by a newer version of the app. Update it from the store to continue.",
+  "@dbTooNewMessage": {
+    "description": "Message shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message)."
+  },
   "restoredReplace": "{count, plural, =1{Restored 1 transaction} other{Restored {count} transactions}}",
   "@restoredReplace": {
     "placeholders": {
@@ -859,6 +935,14 @@
   "appLockSubtitle": "Unlock with your fingerprint, face, or screen lock",
   "appLockUnavailable": "Set up a screen lock on this device to use app lock",
   "appLockReason": "Unlock Monthly Expenses",
+  "appLockTitle": "Monthly Expenses",
+  "@appLockTitle": {
+    "description": "The system unlock prompt's title, kept distinct from appLockReason (its description), so the prompt does not show the same text twice (LOCK-1)."
+  },
+  "appLockPromptHint": "Confirm it's you",
+  "@appLockPromptHint": {
+    "description": "The subtitle under the app-lock prompt's title (LOCK-1)."
+  },
   "appLockFailed": "Couldn't confirm it's you. App lock wasn't changed.",
   "lockedTitle": "Monthly Expenses is locked",
   "unlockButton": "Unlock",
@@ -918,6 +1002,10 @@
   "dayNotesDueHeader": "Notes due",
   "noteReminderTitle": "Note reminder",
   "noteReminderLockedTitle": "A note is due",
+  "noteReminderChannelName": "Note reminders",
+  "@noteReminderChannelName": {
+    "description": "The Android notification channel for note reminders, shown in system settings (NUDGE-11)."
+  },
   "noteReminderPermissionDenied": "Turn on notifications in system settings to get reminders for notes.",
   "reportRange": "{from} to {to}",
   "@reportRange": {
@@ -1224,15 +1312,56 @@
     "description": "Subtitle of the Privacy options row (ADS-5)."
   },
   "dueEntryReminderTitle": "An entry was due",
-  "dueEntryReminderOne": "{title} was due today and is still waiting.",
+  "dueEntryChannelName": "Entries that fell due",
+  "@dueEntryChannelName": {
+    "description": "The Android notification channel for due recurring entries, shown in system settings (NUDGE-11)."
+  },
+  "dueEntryReminderOne": "{title} ({amount}) was due today and is still waiting.",
   "@dueEntryReminderOne": {
     "placeholders": {
       "title": {
         "type": "String"
+      },
+      "amount": {
+        "type": "String"
       }
     }
   },
-  "dueEntryReminderUntitled": "A repeating entry was due today and is still waiting.",
+  "dueEntryReminderOneOverdue": "{title} ({amount}) was due {date} and is still waiting.",
+  "@dueEntryReminderOneOverdue": {
+    "description": "The due-entry reminder body when the occurrence's day has already passed, so it names the actual day instead of saying 'today' (NUDGE-2, rules-23-26-34#9).",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "dueEntryReminderUntitled": "A repeating entry ({amount}) was due today and is still waiting.",
+  "@dueEntryReminderUntitled": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "dueEntryReminderUntitledOverdue": "A repeating entry ({amount}) was due {date} and is still waiting.",
+  "@dueEntryReminderUntitledOverdue": {
+    "description": "Like dueEntryReminderUntitled, but the occurrence's day has already passed (NUDGE-2, rules-23-26-34#9).",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "dueEntryReminderMany": "{count, plural, =1{1 repeating entry was due today.} other{{count} repeating entries were due today.}}",
   "@dueEntryReminderMany": {
     "placeholders": {
@@ -1241,7 +1370,20 @@
       }
     }
   },
+  "dueEntryReminderManyWaiting": "{count, plural, =1{1 repeating entry is waiting.} other{{count} repeating entries are waiting.}}",
+  "@dueEntryReminderManyWaiting": {
+    "description": "Like dueEntryReminderMany, but for a group where at least one occurrence was carried over from an earlier, unhandled day, so the notification does not claim they were all due today (rules-23-26-34#9).",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "emptyDayReminderTitle": "Nothing recorded today",
+  "emptyDayChannelName": "Days with nothing recorded",
+  "@emptyDayChannelName": {
+    "description": "The Android notification channel for empty-day nudges, shown in system settings (NUDGE-11)."
+  },
   "emptyDayReminderBody": "Add what you spent while you still remember it.",
   "reminderLockedTitle": "Something is waiting",
   "nudgeSettingsTitle": "Remind me on an empty day",

@@ -8,6 +8,7 @@ import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
+import 'package:monthly_expense_app/screens/database_too_new_screen.dart';
 import 'package:monthly_expense_app/screens/transfer_screen.dart';
 import 'package:monthly_expense_app/services/home_widget_service.dart';
 
@@ -21,12 +22,20 @@ void main() {
 
   /// The whole app, past setup, with the icon's menu in a list instead of on
   /// an icon. Deliberately not the device's services: no test reaches the
-  /// platform.
+  /// platform, and each call gets its own in-memory [db] (closed on
+  /// teardown, once the load below has finished with it) rather than the
+  /// file `flutter run` uses, so no test's data can taint another's
+  /// (test-quality#9).
   Future<void> startApp(
     WidgetTester tester,
     FakeShortcuts shortcuts, {
     Map<String, Object> values = const {},
+    DBHelper? db,
   }) async {
+    if (db == null) {
+      db = DBHelper(path: inMemoryDatabasePath);
+      addTearDown(db.close);
+    }
     await tester.pumpWidget(
       MonthlyExpenseApp(
         settings: await testSettings({
@@ -34,6 +43,7 @@ void main() {
           'walkthrough_seen': true,
           ...values,
         }),
+        db: db,
         homeWidget: const NoopHomeWidgetService(),
         reviews: FakeReviews(supported: false),
         updates: FakeUpdates(supported: false),
@@ -185,23 +195,12 @@ void main() {
         final shortcuts = FakeShortcuts();
         // The transfer form only shows its fields with a second account to
         // move to (ACC-1); the default database ships only the built-in
-        // Cash one. Removed again on teardown so it doesn't change what
-        // later tests in this file -- sharing the same on-disk database --
-        // find on Home.
-        final bankId = 'bank-${DateTime.now().microsecondsSinceEpoch}';
-        await tester.runAsync(
-          () => DBHelper.instance.insertAccount(testAccount(bankId)),
-        );
-        addTearDown(
-          () => tester.runAsync(
-            () async => (await DBHelper.instance.database).delete(
-              'accounts',
-              where: 'id = ?',
-              whereArgs: [bankId],
-            ),
-          ),
-        );
-        await startApp(tester, shortcuts);
+        // Cash one. Seeded into this test's own isolated database (closed
+        // on teardown), not the shared one other tests might use.
+        final db = DBHelper(path: inMemoryDatabasePath);
+        addTearDown(db.close);
+        await tester.runAsync(() => db.insertAccount(testAccount('bank')));
+        await startApp(tester, shortcuts, db: db);
 
         shortcuts.choose('transfer');
         await tester.pumpAndSettle();
@@ -257,12 +256,15 @@ void main() {
         });
 
         final shortcuts = FakeShortcuts();
+        final db = DBHelper(path: inMemoryDatabasePath);
+        addTearDown(db.close);
         await tester.pumpWidget(
           MonthlyExpenseApp(
             settings: await testSettings({
               'setup_done': true,
               'walkthrough_seen': true,
             }),
+            db: db,
             homeWidget: const NoopHomeWidgetService(),
             reviews: FakeReviews(supported: false),
             updates: FakeUpdates(supported: false),
@@ -328,9 +330,12 @@ void main() {
       'opens over it (RUN-5)',
       (tester) async {
         final shortcuts = FakeShortcuts();
+        final db = DBHelper(path: inMemoryDatabasePath);
+        addTearDown(db.close);
         await tester.pumpWidget(
           MonthlyExpenseApp(
             settings: await testSettings({'setup_done': false}),
+            db: db,
             homeWidget: const NoopHomeWidgetService(),
             reviews: FakeReviews(supported: false),
             updates: FakeUpdates(supported: false),
@@ -397,12 +402,15 @@ void main() {
         });
         addTearDown(() => tappedWidgetAction.value = null);
 
+        final db = DBHelper(path: inMemoryDatabasePath);
+        addTearDown(db.close);
         await tester.pumpWidget(
           MonthlyExpenseApp(
             settings: await testSettings({
               'setup_done': true,
               'walkthrough_seen': true,
             }),
+            db: db,
             homeWidget: const NoopHomeWidgetService(),
             reviews: FakeReviews(supported: false),
             updates: FakeUpdates(supported: false),
@@ -469,9 +477,12 @@ void main() {
       (tester) async {
         addTearDown(() => tappedWidgetAction.value = null);
 
+        final db = DBHelper(path: inMemoryDatabasePath);
+        addTearDown(db.close);
         await tester.pumpWidget(
           MonthlyExpenseApp(
             settings: await testSettings({'setup_done': false}),
+            db: db,
             homeWidget: const NoopHomeWidgetService(),
             reviews: FakeReviews(supported: false),
             updates: FakeUpdates(supported: false),
@@ -569,5 +580,42 @@ void main() {
         reason: 'Discard should have let the widget tap open a fresh form',
       );
     });
+  });
+
+  group('a refused downgrade open (x-downgrade-message)', () {
+    testWidgets(
+      'a shortcut lands on the update screen instead of a dead-end form',
+      (tester) async {
+        final shortcuts = FakeShortcuts();
+        final failedDb = FakeDB()
+          ..failLoadWith = DatabaseDowngradeError(11, 10);
+        await tester.pumpWidget(
+          MonthlyExpenseApp(
+            settings: await testSettings({
+              'setup_done': true,
+              'walkthrough_seen': true,
+            }),
+            homeWidget: const NoopHomeWidgetService(),
+            reviews: FakeReviews(supported: false),
+            updates: FakeUpdates(supported: false),
+            shortcuts: shortcuts,
+            ads: FakeAdService(),
+            purchases: FakePurchases(),
+            db: failedDb,
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(DatabaseTooNewScreen), findsOneWidget);
+
+        shortcuts.choose('add_expense');
+        await tester.pumpAndSettle();
+
+        expect(
+          find.byType(AddTransactionScreen, skipOffstage: false),
+          findsNothing,
+        );
+        expect(find.byType(DatabaseTooNewScreen), findsOneWidget);
+      },
+    );
   });
 }

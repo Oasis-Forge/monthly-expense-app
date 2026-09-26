@@ -329,3 +329,36 @@ Future<void> migrateToVersion11(DatabaseExecutor db) async {
     )
   ''');
 }
+
+/// Version 12: `migrateToVersion10` coloured every category from its own
+/// frozen snapshot of the palette, which is right for that merged step, but
+/// the live `categoryPalette` has since moved seven of those sixteen values
+/// to clear WCAG's 3:1 non-text bar (CAT-6, THEME-4, pr58#9) and nothing
+/// carried that into rows a device already coloured -- including the
+/// fifteen default categories `migrateToVersion3` seeds on every fresh
+/// install, since a fresh install runs every step in order and inherits
+/// `migrateToVersion10`'s values before this one runs. Remaps each retired
+/// value to its replacement in place, so an upgraded install and a fresh one
+/// end up drawing the same, currently-readable sixteen colours.
+Future<void> migrateToVersion12(DatabaseExecutor db) async {
+  const remap = {
+    0xFF8E24AA: 0xFFA028BF,
+    0xFF5D4037: 0xFF835A4E,
+    0xFF3949AB: 0xFF4A5BC3,
+    0xFF00695C: 0xFF007365,
+    0xFF4527A0: 0xFF6C4BD3,
+    0xFFAD1457: 0xFFBF1660,
+    // Cleared the dark and black surfaces but not the light theme's own,
+    // much paler one (pr58#9's own re-check).
+    0xFFEF6C00: 0xFFE65100,
+  };
+  final now = DateTime.now().toUtc().toIso8601String();
+  for (final entry in remap.entries) {
+    await db.update(
+      'categories',
+      {'color': entry.value, 'updated_at': now},
+      where: 'color = ?',
+      whereArgs: [entry.key],
+    );
+  }
+}

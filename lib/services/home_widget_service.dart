@@ -35,6 +35,11 @@ enum HomeWidgetAction {
 /// Hands the home-screen widget the numbers it shows (WID-5). Tests use a
 /// fake instead of touching the platform.
 abstract class HomeWidgetService {
+  /// Whether this platform has a home-screen widget at all (WID-1). A
+  /// caller building the payload can check this first, so it doesn't do
+  /// that work only for [update] to throw it away (lifecycle-perf#9).
+  bool get isSupported => true;
+
   /// Replaces what every widget shows with [payload] and redraws them.
   Future<void> update(Map<String, Object?> payload);
 
@@ -46,6 +51,9 @@ abstract class HomeWidgetService {
 /// Does nothing, for tests and for the platforms without a widget (WID-1).
 class NoopHomeWidgetService implements HomeWidgetService {
   const NoopHomeWidgetService();
+
+  @override
+  bool get isSupported => false;
 
   @override
   Future<void> update(Map<String, Object?> payload) async {}
@@ -64,8 +72,8 @@ class DeviceHomeWidgetService implements HomeWidgetService {
     'com.oasisforge.monthlyexpenses/home_widget',
   );
 
-  /// Whether this platform has a home-screen widget at all (WID-1).
-  static bool get isSupported =>
+  @override
+  bool get isSupported =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS);

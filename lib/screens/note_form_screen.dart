@@ -19,9 +19,13 @@ import 'transaction_detail_screen.dart';
 /// Adds or edits a note: text, and an optional due date, reminder, amount,
 /// and category (NOTE-1).
 class NoteFormScreen extends StatefulWidget {
-  const NoteFormScreen({super.key, this.editing});
+  /// [clock] stands in for "now" (the default due date when it is turned
+  /// on, NOTE-4); tests pass a fixed one so a run that crosses midnight
+  /// can't flip a comparison against the real clock.
+  const NoteFormScreen({super.key, this.editing, this.clock = DateTime.now});
 
   final Note? editing;
+  final DateTime Function() clock;
 
   @override
   State<NoteFormScreen> createState() => _NoteFormScreenState();
@@ -81,7 +85,7 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   }
 
   void _toggleDueDate(bool on) => setState(() {
-    _dueDate = on ? DateTime.now() : null;
+    _dueDate = on ? widget.clock() : null;
     if (!on) _reminderTime = null;
   });
 
@@ -94,8 +98,10 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
     // still works if it's refused.
     final granted = await context.read<ReminderService>().requestPermission();
     if (!mounted) return;
-    setState(() => _reminderTime ??= const TimeOfDay(hour: 9, minute: 0));
     if (!granted) {
+      // NUDGE-7: refused, the reminder stays off rather than being set to
+      // something the phone will swallow silently.
+      setState(() => _reminderTime = null);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -103,13 +109,15 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
           ),
         ),
       );
+      return;
     }
+    setState(() => _reminderTime ??= const TimeOfDay(hour: 9, minute: 0));
   }
 
   Future<void> _pickDueDate() async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _dueDate ?? DateTime.now(),
+      initialDate: _dueDate ?? widget.clock(),
       firstDate: DateTime(2015),
       lastDate: DateTime(2100),
     );
@@ -210,7 +218,10 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
   void _record() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => AddTransactionScreen(recordingNote: widget.editing),
+        builder: (_) => AddTransactionScreen(
+          recordingNote: widget.editing,
+          clock: widget.clock,
+        ),
       ),
     );
   }
@@ -279,7 +290,8 @@ class _NoteFormScreenState extends State<NoteFormScreen> {
               decoration: InputDecoration(
                 labelText: l10n.noteAmountOptionalLabel,
                 border: const OutlineInputBorder(),
-                prefixText: '${currency.currencySymbol} ',
+                prefixText: currencyAffixes(context, currency).prefix,
+                suffixText: currencyAffixes(context, currency).suffix,
                 // A live preview (CUR-2), so a mistyped decimal mark is seen
                 // before it's saved wrong instead of silently.
                 helperText: _amountController.text.trim().isEmpty

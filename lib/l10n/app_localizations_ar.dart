@@ -28,6 +28,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get emptyPeriod => 'لا توجد معاملات في هذه الفترة بعد.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'لا شيء لهذا الحساب في هذه الفترة.';
+
+  @override
   String get balanceLabel => 'الرصيد';
 
   @override
@@ -399,6 +403,54 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'هذا الاسم مستخدم بالفعل';
+
+  @override
+  String get categoryColorPurple => 'بنفسجي';
+
+  @override
+  String get categoryColorTeal => 'أزرق مخضر';
+
+  @override
+  String get categoryColorRust => 'صدئي';
+
+  @override
+  String get categoryColorBlue => 'أزرق';
+
+  @override
+  String get categoryColorPink => 'وردي';
+
+  @override
+  String get categoryColorGreen => 'أخضر';
+
+  @override
+  String get categoryColorMagenta => 'أرجواني';
+
+  @override
+  String get categoryColorCyan => 'سماوي';
+
+  @override
+  String get categoryColorBrown => 'بني';
+
+  @override
+  String get categoryColorIndigo => 'نيلي';
+
+  @override
+  String get categoryColorRed => 'أحمر';
+
+  @override
+  String get categoryColorSlate => 'رمادي مزرق';
+
+  @override
+  String get categoryColorOrange => 'برتقالي';
+
+  @override
+  String get categoryColorEmerald => 'زمردي';
+
+  @override
+  String get categoryColorViolet => 'بنفسجي داكن';
+
+  @override
+  String get categoryColorRaspberry => 'توتي';
 
   @override
   String get archiveAction => 'أرشفة';
@@ -1140,6 +1192,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّرت استعادة النسخة الاحتياطية. لم تتغير بياناتك.';
 
   @override
+  String get dbTooNewTitle => 'التحديث مطلوب';
+
+  @override
+  String get dbTooNewMessage =>
+      'تم حفظ هذه البيانات بواسطة إصدار أحدث من التطبيق. حدّثه من المتجر للمتابعة.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1170,6 +1229,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get appLockReason => 'افتح قفل Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'تأكيد الهوية';
 
   @override
   String get appLockFailed => 'تعذّر التحقق من هويتك. لم يتغير قفل التطبيق.';
@@ -1330,6 +1395,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'هناك ملاحظة مستحقة';
+
+  @override
+  String get noteReminderChannelName => 'تذكيرات بالملاحظات';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1816,13 +1884,27 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dueEntryReminderTitle => 'إدخال متكرر مستحق';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title كان مستحقًا اليوم ولا يزال بانتظارك.';
+  String get dueEntryChannelName => 'إدخالات مستحقة';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) كان مستحقًا اليوم ولا يزال بانتظارك.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'إدخال متكرر كان مستحقًا اليوم ولا يزال بانتظارك.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) كان مستحقًا $date ولا يزال بانتظارك.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'إدخال متكرر ($amount) كان مستحقًا اليوم ولا يزال بانتظارك.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'إدخال متكرر ($amount) كان مستحقًا $date ولا يزال بانتظارك.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1840,7 +1922,25 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count إدخال متكرر في الانتظار.',
+      many: '$count إدخالًا متكررًا في الانتظار.',
+      few: '$count إدخالات متكررة في الانتظار.',
+      two: 'إدخالان متكرران في الانتظار.',
+      one: 'إدخال متكرر واحد في الانتظار.',
+      zero: 'لا توجد إدخالات متكررة في الانتظار.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'لا شيء مسجل اليوم';
+
+  @override
+  String get emptyDayChannelName => 'أيام بدون تسجيل';
 
   @override
   String get emptyDayReminderBody => 'أضف ما أنفقته بينما ما زلت تتذكره.';

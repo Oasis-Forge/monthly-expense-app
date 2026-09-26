@@ -28,6 +28,10 @@ class AppLocalizationsHi extends AppLocalizations {
   String get emptyPeriod => 'इस अवधि में अभी तक कोई लेनदेन नहीं।';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'इस अवधि में इस खाते के लिए कुछ नहीं है।';
+
+  @override
   String get balanceLabel => 'बैलेंस';
 
   @override
@@ -391,6 +395,54 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'यह नाम पहले से इस्तेमाल हो रहा है';
+
+  @override
+  String get categoryColorPurple => 'बैंगनी';
+
+  @override
+  String get categoryColorTeal => 'फ़िरोज़ी हरा';
+
+  @override
+  String get categoryColorRust => 'जंग रंग';
+
+  @override
+  String get categoryColorBlue => 'नीला';
+
+  @override
+  String get categoryColorPink => 'गुलाबी';
+
+  @override
+  String get categoryColorGreen => 'हरा';
+
+  @override
+  String get categoryColorMagenta => 'मैजेंटा';
+
+  @override
+  String get categoryColorCyan => 'सियान';
+
+  @override
+  String get categoryColorBrown => 'भूरा';
+
+  @override
+  String get categoryColorIndigo => 'नीलम रंग';
+
+  @override
+  String get categoryColorRed => 'लाल';
+
+  @override
+  String get categoryColorSlate => 'स्लेटी नीला';
+
+  @override
+  String get categoryColorOrange => 'नारंगी';
+
+  @override
+  String get categoryColorEmerald => 'पन्ना हरा';
+
+  @override
+  String get categoryColorViolet => 'बैंगनी नीला';
+
+  @override
+  String get categoryColorRaspberry => 'रास्पबेरी';
 
   @override
   String get archiveAction => 'आर्काइव करें';
@@ -1109,6 +1161,13 @@ class AppLocalizationsHi extends AppLocalizations {
       'बैकअप रीस्टोर नहीं हो सका। आपका डेटा नहीं बदला गया।';
 
   @override
+  String get dbTooNewTitle => 'अपडेट आवश्यक है';
+
+  @override
+  String get dbTooNewMessage =>
+      'यह डेटा ऐप के नए संस्करण द्वारा सहेजा गया था। जारी रखने के लिए स्टोर से ऐप को अपडेट करें।';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1137,6 +1196,12 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expenses अनलॉक करें';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'अपनी पहचान की पुष्टि करें';
 
   @override
   String get appLockFailed =>
@@ -1296,6 +1361,9 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'एक नोट देय है';
+
+  @override
+  String get noteReminderChannelName => 'नोट रिमाइंडर';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1765,13 +1833,27 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dueEntryReminderTitle => 'एक प्रविष्टि बाकी थी';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title आज देय था और अभी भी प्रतीक्षा में है।';
+  String get dueEntryChannelName => 'बकाया प्रविष्टियाँ';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) आज देय था और अभी भी प्रतीक्षा में है।';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'एक आवर्ती प्रविष्टि आज देय थी और अभी भी प्रतीक्षा में है।';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date देय था और अभी भी प्रतीक्षा में है।';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'एक आवर्ती प्रविष्टि ($amount) आज देय थी और अभी भी प्रतीक्षा में है।';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'एक आवर्ती प्रविष्टि ($amount) $date देय थी और अभी भी प्रतीक्षा में है।';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1786,7 +1868,22 @@ class AppLocalizationsHi extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count आवर्ती प्रविष्टियाँ प्रतीक्षा में हैं।',
+      one: '1 आवर्ती प्रविष्टि प्रतीक्षा में है।',
+      zero: '$count आवर्ती प्रविष्टियाँ प्रतीक्षा में हैं।',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'आज कुछ भी दर्ज नहीं हुआ';
+
+  @override
+  String get emptyDayChannelName => 'बिना रिकॉर्ड वाले दिन';
 
   @override
   String get emptyDayReminderBody => 'जब तक याद है, अपना खर्च जोड़ लें।';

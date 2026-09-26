@@ -28,6 +28,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get emptyPeriod => 'No transactions in this period yet.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Nothing for this account this period.';
+
+  @override
   String get balanceLabel => 'Balance';
 
   @override
@@ -386,6 +390,54 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'That name is already used';
+
+  @override
+  String get categoryColorPurple => 'Purple';
+
+  @override
+  String get categoryColorTeal => 'Teal';
+
+  @override
+  String get categoryColorRust => 'Rust';
+
+  @override
+  String get categoryColorBlue => 'Blue';
+
+  @override
+  String get categoryColorPink => 'Pink';
+
+  @override
+  String get categoryColorGreen => 'Green';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Cyan';
+
+  @override
+  String get categoryColorBrown => 'Brown';
+
+  @override
+  String get categoryColorIndigo => 'Indigo';
+
+  @override
+  String get categoryColorRed => 'Red';
+
+  @override
+  String get categoryColorSlate => 'Slate';
+
+  @override
+  String get categoryColorOrange => 'Orange';
+
+  @override
+  String get categoryColorEmerald => 'Emerald';
+
+  @override
+  String get categoryColorViolet => 'Violet';
+
+  @override
+  String get categoryColorRaspberry => 'Raspberry';
 
   @override
   String get archiveAction => 'Archive';
@@ -1103,6 +1155,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Couldn\'t restore the backup. Your data wasn\'t changed.';
 
   @override
+  String get dbTooNewTitle => 'Update needed';
+
+  @override
+  String get dbTooNewMessage =>
+      'This data was saved by a newer version of the app. Update it from the store to continue.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1131,6 +1190,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appLockReason => 'Unlock Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Confirm it\'s you';
 
   @override
   String get appLockFailed =>
@@ -1290,6 +1355,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'A note is due';
+
+  @override
+  String get noteReminderChannelName => 'Note reminders';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1753,13 +1821,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dueEntryReminderTitle => 'An entry was due';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title was due today and is still waiting.';
+  String get dueEntryChannelName => 'Entries that fell due';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) was due today and is still waiting.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'A repeating entry was due today and is still waiting.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) was due $date and is still waiting.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'A repeating entry ($amount) was due today and is still waiting.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'A repeating entry ($amount) was due $date and is still waiting.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1773,7 +1855,21 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count repeating entries are waiting.',
+      one: '1 repeating entry is waiting.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Nothing recorded today';
+
+  @override
+  String get emptyDayChannelName => 'Days with nothing recorded';
 
   @override
   String get emptyDayReminderBody =>

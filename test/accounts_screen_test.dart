@@ -86,6 +86,29 @@ void main() {
     expect(provider.activeAccounts.last.type, AccountType.bank);
   });
 
+  testWidgets(
+    "the opening balance field's symbol side matches the locale's display "
+    'side, in German (CUR-5, LANG-5, pr61#11)',
+    (tester) async {
+      // German writes the symbol after the figures, unlike English.
+      settings = await testSettings({'language': 'de'});
+      await showAccounts(tester);
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+
+      final field = tester
+          .widgetList<TextField>(find.byType(TextField))
+          .firstWhere(
+            (f) =>
+                f.decoration?.prefixText != null ||
+                f.decoration?.suffixText != null,
+          );
+      expect(field.decoration?.prefixText, isNull);
+      expect(field.decoration?.suffixText, contains('\$'));
+    },
+  );
+
   testWidgets('double-tapping Save on a new account creates only one '
       '(audit data-integrity#5)', (tester) async {
     final slowFake = _SlowAccountDB();

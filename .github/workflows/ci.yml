@@ -55,6 +55,18 @@ jobs:
       - name: Test
         run: flutter test --coverage
 
+      # These few tests skip themselves everywhere else: this machine's own
+      # local zone is the only thing that can cross a DST change or a UTC
+      # day boundary that local calendar days do not (money-time#8,
+      # money-time#9), and the Dart VM honours TZ on Linux, so a revert to
+      # elapsed-time or UTC-day arithmetic would otherwise pass CI unnoticed.
+      - name: Test the local-day and DST guards in a real western zone
+        env:
+          TZ: America/New_York
+        run: |
+          flutter test test/reminders_test.dart test/widget_summary_test.dart \
+            test/insights_screen_test.dart test/transaction_provider_test.dart
+
       - name: Upload coverage
         if: always() && hashFiles('coverage/lcov.info') != ''
         uses: actions/upload-artifact@v7
@@ -96,7 +108,7 @@ jobs:
           echo "This PR takes the app to $name+$build ($BASE is at $base_name+$base_build)."
 
   android:
-    name: Android build (debug)
+    name: Android build (release)
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -116,8 +128,42 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build APK
-        run: flutter build apk --debug
+      # A PR checkout has no android/key.properties, so this falls back to
+      # debug signing: `CI=true`, which GitHub Actions always sets, is one of
+      # the two escape hatches build.gradle.kts checks for before it would
+      # otherwise fail the build. It is still a real release build --  R8 and
+      # resource shrinking run exactly as they would for the one the user
+      # eventually uploads -- just not one Play would accept as it stands.
+      - name: Build APK (release)
+        run: flutter build apk --release
+
+      # A --debug build skips R8 and resource shrinking, the exact step that
+      # stripped ic_notification in 1.27.2 and left every release build's
+      # launch failing to initialise notifications (NOTE-6), silently and
+      # without this job ever noticing. test/android_manifest_test.dart
+      # already checks that res/raw/keep.xml lists every drawable lib/ names
+      # by resource id; this checks the built APK itself, so a shrinker
+      # regression or a keep.xml mistake is caught here too, not only when
+      # someone happens to launch a release build by hand.
+      - name: Check the release APK kept every drawable it must (android-release_2)
+        run: |
+          aapt2=$(ls "$ANDROID_HOME"/build-tools/*/aapt2 | sort -V | tail -n 1)
+          "$aapt2" dump resources build/app/outputs/flutter-apk/app-release.apk \
+            > resources.txt
+          kept=$(grep -oE '@drawable/[A-Za-z0-9_]+' \
+            android/app/src/main/res/raw/keep.xml | sed 's#@drawable/##' | sort -u)
+          if [ -z "$kept" ]; then
+            echo "::error::res/raw/keep.xml names no drawable to check (android-release_2)."
+            exit 1
+          fi
+          missing=0
+          for drawable in $kept; do
+            if ! grep -q "drawable/$drawable\b" resources.txt; then
+              echo "::error::The release APK is missing drawable '$drawable': res/raw/keep.xml says to keep it, but the shrinker dropped it anyway (android-release_2)."
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
 
   ios:
     name: iOS build (unsigned)

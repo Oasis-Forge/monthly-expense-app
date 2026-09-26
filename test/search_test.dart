@@ -25,6 +25,14 @@ void main() {
     final tatweel = String.fromCharCode(0x0640);
     expect(foldForSearch('م$damma$tatweelحمد'), 'محمد');
     expect(foldForSearch('أحمد'), foldForSearch('احمد'));
+    // Vietnamese precomposed tone/modifier letters (LANG-4).
+    expect(foldForSearch('Phở bò'), 'pho bo');
+    expect(foldForSearch('Cà phê sữa đá'), 'ca phe sua da');
+    // Polish ą, alongside the already-covered ę.
+    expect(foldForSearch('Mąka'), 'maka');
+    // Greek tonos and final sigma, which must fold like medial sigma.
+    expect(foldForSearch('Καφές'), foldForSearch('καφες'));
+    expect(foldForSearch('ΚΑΦΈΣ'), foldForSearch('καφές'));
   });
 
   group('search (SRCH-1–SRCH-3)', () {
@@ -72,6 +80,15 @@ void main() {
               DateTime(2026, 9, 20),
               title: 'Concert',
             ),
+            // Trashed, so it counts nowhere: not in results, not in totals
+            // (BAL-5).
+            testTx(
+              'trashed',
+              expense,
+              5000,
+              DateTime(2026, 9, 11),
+              title: 'Café gone',
+            ).copyWith(deletedAt: DateTime.utc(2026, 9, 12)),
           ],
         ),
         clock: () => DateTime(2026, 9, 15),
@@ -134,6 +151,29 @@ void main() {
 
       expect(result.transactions, hasLength(5));
       expect(result.income, const Money(2000000));
+      expect(result.expense, const Money(952500));
+    });
+
+    test('editing a title updates what it is found by, not just added to '
+        '(lifecycle-perf#10)', () async {
+      expect(ids(const TransactionFilter(query: 'lunch')), ['lunch']);
+      expect(ids(const TransactionFilter(query: 'dinner')), isEmpty);
+
+      final tx = provider.transactionById('lunch')!;
+      await provider.updateTransaction(tx.copyWith(title: 'Café dinner'));
+
+      expect(ids(const TransactionFilter(query: 'dinner')), ['lunch']);
+      expect(ids(const TransactionFilter(query: 'lunch')), isEmpty);
+    });
+
+    test('a trashed transaction counts nowhere: not in results, not in '
+        'totals (BAL-5)', () {
+      // Even a query that would otherwise match it by title.
+      expect(ids(const TransactionFilter(query: 'cafe gone')), isEmpty);
+
+      final result = run(const TransactionFilter());
+      expect(result.transactions.map((t) => t.id), isNot(contains('trashed')));
+      // Its 5000 expense is not folded into the total.
       expect(result.expense, const Money(952500));
     });
   });

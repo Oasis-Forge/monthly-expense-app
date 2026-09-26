@@ -28,6 +28,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get emptyPeriod => 'この期間の取引はまだありません。';
 
   @override
+  String get emptyPeriodFilteredByAccount => 'この期間、このアカウントには何もありません。';
+
+  @override
   String get balanceLabel => '残高';
 
   @override
@@ -382,6 +385,54 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'その名前はすでに使われています';
+
+  @override
+  String get categoryColorPurple => '紫';
+
+  @override
+  String get categoryColorTeal => 'ティール';
+
+  @override
+  String get categoryColorRust => '錆色';
+
+  @override
+  String get categoryColorBlue => '青';
+
+  @override
+  String get categoryColorPink => 'ピンク';
+
+  @override
+  String get categoryColorGreen => '緑';
+
+  @override
+  String get categoryColorMagenta => 'マゼンタ';
+
+  @override
+  String get categoryColorCyan => 'シアン';
+
+  @override
+  String get categoryColorBrown => '茶色';
+
+  @override
+  String get categoryColorIndigo => '藍色';
+
+  @override
+  String get categoryColorRed => '赤';
+
+  @override
+  String get categoryColorSlate => 'スレート';
+
+  @override
+  String get categoryColorOrange => 'オレンジ';
+
+  @override
+  String get categoryColorEmerald => 'エメラルド';
+
+  @override
+  String get categoryColorViolet => 'バイオレット';
+
+  @override
+  String get categoryColorRaspberry => 'ラズベリー';
 
   @override
   String get archiveAction => 'アーカイブ';
@@ -1083,6 +1134,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get backupRestoreFailed => 'バックアップを復元できませんでした。データは変更されていません。';
 
   @override
+  String get dbTooNewTitle => '更新が必要です';
+
+  @override
+  String get dbTooNewMessage =>
+      'このデータはアプリの新しいバージョンで保存されました。続けるにはストアでアプリを更新してください。';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1109,6 +1167,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expensesのロックを解除';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => '本人確認をしてください';
 
   @override
   String get appLockFailed => '本人確認ができませんでした。アプリロックは変更されていません。';
@@ -1264,6 +1328,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => '期日のメモがあります';
+
+  @override
+  String get noteReminderChannelName => 'メモの通知';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1715,12 +1782,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get dueEntryReminderTitle => '入力期限が来ました';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$titleは本日期限でしたが、まだ未対応です。';
+  String get dueEntryChannelName => '期限切れの入力';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title（$amount）は本日期限でしたが、まだ未対応です。';
   }
 
   @override
-  String get dueEntryReminderUntitled => '定期入力の期限が今日でしたが、まだ未対応です。';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title（$amount）は$dateが期限でしたが、まだ未対応です。';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return '定期入力（$amount）の期限が今日でしたが、まだ未対応です。';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return '定期入力（$amount）の期限が$dateでしたが、まだ未対応です。';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1734,7 +1816,21 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '保留中の定期入力が$count件あります。',
+      one: '保留中の定期入力が$count件あります。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => '今日は何も記録されていません';
+
+  @override
+  String get emptyDayChannelName => '記録のない日';
 
   @override
   String get emptyDayReminderBody => '忘れないうちに支出を記録しましょう。';

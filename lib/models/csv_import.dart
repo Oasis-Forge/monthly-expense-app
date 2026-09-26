@@ -624,16 +624,25 @@ const _typeWords = <ImportedType, List<String>>{
   ],
 };
 
+/// [_typeWords] folded the same way as the cell it's compared against
+/// (`foldForSearch`), so accented and combining-mark words ("Έξοδα", "Chuyển
+/// khoản", "व्यय", "รายรับ", "آمدنی") still match after folding strips their
+/// diacritics.
+final _foldedTypeWords = <ImportedType, List<String>>{
+  for (final MapEntry(key: type, value: words) in _typeWords.entries)
+    type: [for (final word in words) foldForSearch(word)],
+};
+
 /// Reads a type out of [value], in any of the app's 21 languages or the
 /// usual English shorthands. Null when it says nothing recognisable.
 ImportedType? parseImportedType(String value) {
   final folded = foldForSearch(value).trim();
   if (folded.isEmpty) return null;
-  for (final entry in _typeWords.entries) {
+  for (final entry in _foldedTypeWords.entries) {
     if (entry.value.contains(folded)) return entry.key;
   }
   // "Expense (food)" and the like: fall back to a word inside the cell.
-  for (final entry in _typeWords.entries) {
+  for (final entry in _foldedTypeWords.entries) {
     for (final word in entry.value) {
       if (RegExp('\\b${RegExp.escape(word)}\\b').hasMatch(folded)) {
         return entry.key;
@@ -864,6 +873,17 @@ String importIdentity({
   foldForSearch(title).trim(),
 ].join('|');
 
+/// A leading apostrophe that csv_export.dart's `_text` adds before `=`, `+`,
+/// `-`, or `@`, or before the user's own apostrophe followed by one of
+/// those (BAK-5), stripped only from this app's own export (IMP-2,
+/// rules-11-13-20-21#11). The lookahead only recognises what `_text`'s
+/// `_formulaStart` would have guarded, so a foreign file's own leading
+/// apostrophe -- one not followed by a formula character -- is left alone.
+final _formulaGuard = RegExp(r"^'(?=[=+\-@]|'[=+\-@])");
+
+String _stripFormulaGuard(String value) =>
+    value.replaceFirst(_formulaGuard, '');
+
 /// Reads [table] into a plan, without writing anything.
 ///
 /// [columns] overrides the header matching, so the preview can correct it.
@@ -938,11 +958,21 @@ ImportPlan planImport({
       cell(row, ImportField.amount),
       decimals: ownExport ? 3 : 2,
     );
-    final title = cell(row, ImportField.title);
-    final note = cell(row, ImportField.note);
-    final category = cell(row, ImportField.category);
-    final account = cell(row, ImportField.account);
-    final toAccount = cell(row, ImportField.toAccount);
+    // This app's own export guards a title, note, category, or account name
+    // that would otherwise read as a formula by adding a leading apostrophe
+    // (BAK-5); reading its own export back strips that one apostrophe again
+    // so it reads back exactly (IMP-2). A foreign file's text is left alone:
+    // a leading apostrophe there is the user's own.
+    String unguard(ImportField field) {
+      final value = cell(row, field);
+      return ownExport ? _stripFormulaGuard(value) : value;
+    }
+
+    final title = unguard(ImportField.title);
+    final note = unguard(ImportField.note);
+    final category = unguard(ImportField.category);
+    final account = unguard(ImportField.account);
+    final toAccount = unguard(ImportField.toAccount);
 
     // A type column is believed; failing that, a minus sign means it went
     // out, which is how an app with no type column writes an expense.

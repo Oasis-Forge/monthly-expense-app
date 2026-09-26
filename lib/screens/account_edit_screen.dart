@@ -13,9 +13,13 @@ import 'form_fields.dart';
 /// (ACC-1). Editing also offers archive and, for unused accounts, delete
 /// (ACC-5).
 class AccountEditScreen extends StatefulWidget {
-  const AccountEditScreen({super.key, this.editing});
+  /// [clock] stands in for "now" (a new account's default opening date);
+  /// tests pass a fixed one so a run that crosses midnight can't flip a
+  /// comparison against the real clock.
+  const AccountEditScreen({super.key, this.editing, this.clock = DateTime.now});
 
   final Account? editing;
+  final DateTime Function() clock;
 
   @override
   State<AccountEditScreen> createState() => _AccountEditScreenState();
@@ -57,7 +61,7 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
     if (_initialized) return;
     _initialized = true;
     final editing = widget.editing;
-    final now = DateTime.now();
+    final now = widget.clock();
     _openingDate =
         editing?.openingDate ?? DateTime(now.year, now.month, now.day);
     if (editing != null) {
@@ -157,9 +161,8 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final provider = context.watch<TransactionProvider>();
-    final currency = context.watch<SettingsProvider>().currencyFormat(
-      l10n.localeName,
-    );
+    final settings = context.watch<SettingsProvider>();
+    final currency = settings.currencyFormat(l10n.localeName);
     final editing = widget.editing;
     final isArchived = editing?.archivedAt != null;
     final canLeaveActive = isArchived || provider.activeAccounts.length > 1;
@@ -186,7 +189,15 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
             IconButton(
               icon: const Icon(Icons.archive_outlined),
               tooltip: l10n.archiveAction,
-              onPressed: () => _run(() => provider.archiveAccount(editing.id)),
+              onPressed: () => _run(() async {
+                await provider.archiveAccount(editing.id);
+                // archiveAccount clears the in-memory choice once one
+                // active account is left (rules-6-10#10); save that so a
+                // later relaunch does not restore the old filter either.
+                if (provider.accountFilterId == null) {
+                  await settings.setAccountFilterId(null);
+                }
+              }),
             ),
           if (editing != null &&
               canLeaveActive &&
@@ -257,7 +268,8 @@ class _AccountEditScreenState extends State<AccountEditScreen> {
               decoration: InputDecoration(
                 labelText: l10n.openingBalanceLabel,
                 border: const OutlineInputBorder(),
-                prefixText: '${currency.currencySymbol} ',
+                prefixText: currencyAffixes(context, currency).prefix,
+                suffixText: currencyAffixes(context, currency).suffix,
                 helperText: _openingController.text.trim().isEmpty
                     ? null
                     : switch (_parseOpening(

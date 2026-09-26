@@ -28,6 +28,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get emptyPeriod => 'Bu dönemde henüz işlem yok.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Bu dönemde bu hesap için hiçbir şey yok.';
+
+  @override
   String get balanceLabel => 'Bakiye';
 
   @override
@@ -385,6 +389,54 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Bu ad zaten kullanılıyor';
+
+  @override
+  String get categoryColorPurple => 'Mor';
+
+  @override
+  String get categoryColorTeal => 'Petrol mavisi';
+
+  @override
+  String get categoryColorRust => 'Pas rengi';
+
+  @override
+  String get categoryColorBlue => 'Mavi';
+
+  @override
+  String get categoryColorPink => 'Pembe';
+
+  @override
+  String get categoryColorGreen => 'Yeşil';
+
+  @override
+  String get categoryColorMagenta => 'Eflatun';
+
+  @override
+  String get categoryColorCyan => 'Camgöbeği';
+
+  @override
+  String get categoryColorBrown => 'Kahverengi';
+
+  @override
+  String get categoryColorIndigo => 'Çivit mavisi';
+
+  @override
+  String get categoryColorRed => 'Kırmızı';
+
+  @override
+  String get categoryColorSlate => 'Arduvaz';
+
+  @override
+  String get categoryColorOrange => 'Turuncu';
+
+  @override
+  String get categoryColorEmerald => 'Zümrüt yeşili';
+
+  @override
+  String get categoryColorViolet => 'Menekşe';
+
+  @override
+  String get categoryColorRaspberry => 'Ahududu';
 
   @override
   String get archiveAction => 'Arşivle';
@@ -1104,6 +1156,13 @@ class AppLocalizationsTr extends AppLocalizations {
       'Yedek geri yüklenemedi. Verileriniz değiştirilmedi.';
 
   @override
+  String get dbTooNewTitle => 'Güncelleme gerekli';
+
+  @override
+  String get dbTooNewMessage =>
+      'Bu veriler uygulamanın daha yeni bir sürümüyle kaydedildi. Devam etmek için uygulamayı mağazadan güncelleyin.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1132,6 +1191,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expenses kilidini aç';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Kimliğini doğrula';
 
   @override
   String get appLockFailed =>
@@ -1291,6 +1356,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Son tarihi gelen bir not var';
+
+  @override
+  String get noteReminderChannelName => 'Not hatırlatmaları';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1753,13 +1821,27 @@ class AppLocalizationsTr extends AppLocalizations {
   String get dueEntryReminderTitle => 'Giriş vadesi geldi';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title bugün vadesi geldi ve hâlâ bekliyor.';
+  String get dueEntryChannelName => 'Vadesi gelen girişler';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) bugün vadesi geldi ve hâlâ bekliyor.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Tekrarlanan bir kayıt bugün vadesi geldi ve hâlâ bekliyor.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date vadesi geldi ve hâlâ bekliyor.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Tekrarlanan bir kayıt ($amount) bugün vadesi geldi ve hâlâ bekliyor.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Tekrarlanan bir kayıt ($amount) $date vadesi geldi ve hâlâ bekliyor.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1773,7 +1855,21 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tekrarlanan kayıt bekliyor.',
+      one: '1 tekrarlanan kayıt bekliyor.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Bugün kayıt yok';
+
+  @override
+  String get emptyDayChannelName => 'Kayıt olmayan günler';
 
   @override
   String get emptyDayReminderBody => 'Hatırlarken harcamalarını ekle.';

@@ -28,6 +28,10 @@ class AppLocalizationsUr extends AppLocalizations {
   String get emptyPeriod => 'اس مدت میں ابھی کوئی ٹرانزیکشن نہیں۔';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'اس مدت میں اس اکاؤنٹ کے لیے کچھ نہیں۔';
+
+  @override
   String get balanceLabel => 'بیلنس';
 
   @override
@@ -386,6 +390,54 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'یہ نام پہلے سے استعمال میں ہے';
+
+  @override
+  String get categoryColorPurple => 'بنفشی';
+
+  @override
+  String get categoryColorTeal => 'فیروزی سبز';
+
+  @override
+  String get categoryColorRust => 'زنگ آلود';
+
+  @override
+  String get categoryColorBlue => 'نیلا';
+
+  @override
+  String get categoryColorPink => 'گلابی';
+
+  @override
+  String get categoryColorGreen => 'سبز';
+
+  @override
+  String get categoryColorMagenta => 'ماجنٹا';
+
+  @override
+  String get categoryColorCyan => 'سیان';
+
+  @override
+  String get categoryColorBrown => 'بھورا';
+
+  @override
+  String get categoryColorIndigo => 'نیلگوں';
+
+  @override
+  String get categoryColorRed => 'سرخ';
+
+  @override
+  String get categoryColorSlate => 'سلیٹی نیلا';
+
+  @override
+  String get categoryColorOrange => 'نارنجی';
+
+  @override
+  String get categoryColorEmerald => 'زمردی';
+
+  @override
+  String get categoryColorViolet => 'گہرا بنفشی';
+
+  @override
+  String get categoryColorRaspberry => 'رسبری';
 
   @override
   String get archiveAction => 'آرکائیو کریں';
@@ -1105,6 +1157,13 @@ class AppLocalizationsUr extends AppLocalizations {
       'بیک اپ بحال نہیں ہو سکا۔ آپ کا ڈیٹا تبدیل نہیں ہوا۔';
 
   @override
+  String get dbTooNewTitle => 'اپڈیٹ درکار ہے';
+
+  @override
+  String get dbTooNewMessage =>
+      'یہ ڈیٹا ایپ کے نئے ورژن نے محفوظ کیا تھا۔ جاری رکھنے کے لیے اسٹور سے ایپ اپڈیٹ کریں۔';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1132,6 +1191,12 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expenses کھولیں';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'اپنی شناخت کی تصدیق کریں';
 
   @override
   String get appLockFailed =>
@@ -1290,6 +1355,9 @@ class AppLocalizationsUr extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'ایک نوٹ واجب الادا ہے';
+
+  @override
+  String get noteReminderChannelName => 'نوٹ کی یاد دہانیاں';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1753,13 +1821,27 @@ class AppLocalizationsUr extends AppLocalizations {
   String get dueEntryReminderTitle => 'ایک اندراج واجب تھا';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  String get dueEntryChannelName => 'تاخیر شدہ اندراجات';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'ایک تکراری اندراج آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'ایک تکراری اندراج ($amount) آج واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'ایک تکراری اندراج ($amount) $date واجب الادا تھا اور اب بھی زیر التوا ہے۔';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1773,7 +1855,21 @@ class AppLocalizationsUr extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تکراری اندراجات زیرِ انتظار ہیں۔',
+      one: '1 تکراری اندراج زیرِ انتظار ہے۔',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'آج کچھ بھی درج نہیں ہوا';
+
+  @override
+  String get emptyDayChannelName => 'بلا اندراج دن';
 
   @override
   String get emptyDayReminderBody => 'جب تک یاد ہے، اپنا خرچ درج کر لیں۔';

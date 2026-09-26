@@ -195,11 +195,14 @@ class _SearchScreenState extends State<SearchScreen> {
           Expanded(
             child: result.transactions.isEmpty
                 ? Center(child: Text(l10n.noSearchResults))
-                : ListView(
-                    children: [
-                      for (final tx in result.transactions)
-                        _ResultTile(transaction: tx, currency: currency),
-                    ],
+                : ListView.builder(
+                    // Builds only the rows on screen, rather than every
+                    // match at once (SRCH-1, lifecycle-perf#10).
+                    itemCount: result.transactions.length,
+                    itemBuilder: (context, index) => _ResultTile(
+                      transaction: result.transactions[index],
+                      currency: currency,
+                    ),
                   ),
           ),
         ],

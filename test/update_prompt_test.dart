@@ -1,8 +1,10 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/rating.dart';
-import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
@@ -19,19 +21,14 @@ void main() {
   Future<(TransactionProvider, SettingsProvider)> established({
     String? askedOn,
   }) async {
-    final provider = TransactionProvider(
-      db: FakeDB(
-        transactions: [
-          for (var i = 0; i < ratingEntries; i++)
-            testTx('t$i', TransactionType.expense, 5, DateTime(2026, 9, 10)),
-        ],
-      ),
-      clock: () => today,
-    );
+    final provider = TransactionProvider(db: FakeDB(), clock: () => today);
     await provider.load();
     final settings = await testSettings({
       'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
       'update_asked_on': ?askedOn,
+      // RATE-1 counts entries saved by hand, not the list's length
+      // (pr57#10); this device has crossed both of its lines.
+      'manual_entries_recorded': ratingEntries,
     });
     return (provider, settings);
   }
@@ -44,6 +41,7 @@ void main() {
     SettingsProvider settings, {
     required FakeUpdates updates,
     required FakeReviews reviews,
+    ValueListenable<bool>? locked,
   }) async {
     usePhoneScreen(tester);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -54,6 +52,7 @@ void main() {
         const AddTransactionScreen(),
         reviews: reviews,
         updates: updates,
+        locked: locked,
       ),
     );
     await tester.pump();
@@ -120,6 +119,338 @@ void main() {
     expect(settings.updateAskedOn, isNotNull);
   });
 
+  testWidgets('a failed save asks Play nothing, even with an update due '
+      '(UPD-2, rules-22-25-31-35#10)', (tester) async {
+    final fake = FakeDB();
+    final provider = TransactionProvider(db: fake, clock: () => today);
+    await provider.load();
+    final settings = await testSettings({
+      'first_opened_at': DateTime(2026, 9, 10).toIso8601String(),
+      'manual_entries_recorded': ratingEntries,
+    });
+    final updates = FakeUpdates(offered: true);
+    final reviews = FakeReviews(appVersion: '1.26.0+38');
+    // Due on the line above, but the write itself fails.
+    fake.failWrites = true;
+
+    await saveAnEntry(
+      tester,
+      provider,
+      settings,
+      updates: updates,
+      reviews: reviews,
+    );
+
+    expect(
+      find.text("Couldn't save the transaction. Try again."),
+      findsOneWidget,
+    );
+    expect(updates.checked, 0);
+    expect(settings.updateAskedOn, isNull);
+  });
+
+  testWidgets('never while the app is locked, even with an update due '
+      '(UPD-2, LOCK-1, rules-22-25-31-35#10)', (tester) async {
+    final (provider, settings) = await established();
+    final updates = FakeUpdates(offered: true);
+    final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+    await saveAnEntry(
+      tester,
+      provider,
+      settings,
+      updates: updates,
+      reviews: reviews,
+      locked: ValueNotifier(true),
+    );
+
+    expect(updates.checked, 0);
+    expect(settings.updateAskedOn, isNull);
+  });
+
+  testWidgets(
+    'a later save the same day still holds the rating, not just the save '
+    'the update was offered on (UPD-3, rules-22-25-31-35#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
+      expect(updates.started, 1);
+      expect(reviews.asked, 0);
+
+      // A second save the same day: Play is not asked about the update
+      // again (UPD-4), but UPD-3 says the rating still waits for another
+      // day, not just for the save the update was offered on.
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
+
+      expect(reviews.asked, 0);
+    },
+  );
+
+  testWidgets(
+    "with 'Save & add another', the ask waits for the form to actually "
+    'close instead of landing over the next entry (UPD-2, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          const AddTransactionScreen(),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '12');
+      await revealInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.tap(
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.pumpAndSettle();
+
+      // ADD-4 keeps the form open on the cleared entry: nothing may have
+      // asked yet, or the update sheet would land over the keypad (UPD-2).
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(updates.checked, 0);
+      expect(reviews.asked, 0);
+
+      // Only closing the form for good lets the seam finally run.
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '9');
+      await revealInForm(
+        tester,
+        find.widgetWithText(FilledButton, 'Add Transaction'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Add Transaction'));
+      await tester.pumpAndSettle();
+
+      expect(updates.checked, 1);
+      expect(updates.started, 1);
+    },
+  );
+
+  testWidgets(
+    "with 'Save & add another' and then Back on the emptied form, the "
+    'seam still runs instead of being dropped (UPD-2, RATE-3, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AddTransactionScreen(),
+                  ),
+                ),
+                child: const Text('open'),
+              ),
+            ),
+          ),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '12');
+      await revealInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.tap(
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+      await tester.pumpAndSettle();
+
+      // ADD-4 keeps the form open on the cleared entry, so nothing has
+      // asked yet.
+      expect(updates.checked, 0);
+
+      // The habit is add-another, then Back on the empty form rather than
+      // another save: the first Back only closes the keypad the amount
+      // field's own focus reopened (ADD-9).
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+      // Nothing was typed since, so the second Back leaves without a word
+      // -- and that is the only moment left to run the seam.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AddTransactionScreen), findsNothing);
+      expect(updates.checked, 1);
+      expect(updates.started, 1);
+    },
+  );
+
+  testWidgets(
+    'a form opened while Play is still being asked skips the download for '
+    "today, and doesn't spend today's ask (UPD-2, UPD-4, pr58#7)",
+    (tester) async {
+      final (provider, settings) = await established();
+      final opening = Completer<void>();
+      final updates = FakeUpdates(
+        offered: true,
+        duringAvailable: () => opening.future,
+      );
+      final reviews = FakeReviews(supported: false);
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => afterSave(context),
+                    child: const Text('save'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddTransactionScreen(),
+                      ),
+                    ),
+                    child: const Text('open'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('save'));
+      // Play is still being asked: pump only until updates.available() has
+      // been entered, rather than a fixed count that could flake.
+      for (var i = 0; i < 10 && updates.checked == 0; i++) {
+        await tester.pump();
+      }
+      expect(updates.checked, 1);
+
+      // A form opens before Play answers.
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+      opening.complete();
+      await tester.pumpAndSettle();
+
+      expect(find.text('An update has been downloaded.'), findsNothing);
+      expect(updates.started, 0);
+      // Today's ask was never spent, so a later closing save still tries
+      // (UPD-4).
+      expect(settings.updateAskedOn, isNull);
+    },
+  );
+
+  testWidgets(
+    'a form opened during the download keeps the bar from landing over '
+    'it (UPD-1, UPD-2, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final downloading = Completer<void>();
+      final updates = FakeUpdates(
+        offered: true,
+        duringDownload: () => downloading.future,
+      );
+      final reviews = FakeReviews(supported: false);
+
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => afterSave(context),
+                    child: const Text('save'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddTransactionScreen(),
+                      ),
+                    ),
+                    child: const Text('open'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          reviews: reviews,
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('save'));
+      // Pump only until download() has actually been entered -- UPD-4 is
+      // spent by then -- rather than a fixed count that could flake.
+      for (var i = 0; i < 10 && updates.started == 0; i++) {
+        await tester.pump();
+      }
+      expect(updates.started, 1);
+      expect(settings.updateAskedOn, isNotNull);
+
+      // A form opens while the 30-to-60-second download itself is still
+      // running.
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+
+      downloading.complete();
+      await tester.pumpAndSettle();
+
+      // The download went ahead, but the bar must not land over the open
+      // form. (UPD-1's own "already downloaded" branch, covered below,
+      // is what offers it again once due -- not reasserted here.)
+      expect(find.text('An update has been downloaded.'), findsNothing);
+    },
+  );
+
   testWidgets('a downloaded update offers the restart, and Play does it '
       '(UPD-1)', (tester) async {
     final (provider, settings) = await established();
@@ -179,6 +510,69 @@ void main() {
 
     expect(find.text('Could not save.'), findsOneWidget);
   });
+
+  testWidgets(
+    "Restart asks before discarding a form's unsaved edits, rather than "
+    'taking them down with it (ADD-9, UPD-2, pr58#7)',
+    (tester) async {
+      final (provider, settings) = await established();
+      final updates = FakeUpdates(offered: true);
+
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextButton(
+                    onPressed: () => afterSave(context),
+                    child: const Text('save'),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddTransactionScreen(),
+                      ),
+                    ),
+                    child: const Text('open'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          reviews: FakeReviews(supported: false),
+          updates: updates,
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.text('save'));
+      await tester.pumpAndSettle();
+      expect(find.text('An update has been downloaded.'), findsOneWidget);
+
+      // A new form opens -- and gets something typed into it -- while the
+      // Restart bar is still up.
+      usePhoneScreen(tester);
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await revealInForm(tester, amountField);
+      await tester.enterText(amountField, '12');
+
+      await tester.tap(find.text('Restart'));
+      await tester.pumpAndSettle();
+
+      // Restart asks the same "Discard changes?" question Back would
+      // (ADD-9), rather than throw the unsaved entry away.
+      expect(find.text('Discard changes?'), findsOneWidget);
+      expect(updates.installed, 0);
+
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+      expect(updates.installed, 1);
+    },
+  );
 
   testWidgets(
     'a download Play already finished offers the restart without starting '
@@ -247,25 +641,41 @@ void main() {
     expect(settings.updateAskedOn, isNull);
   });
 
-  testWidgets('a second entry the same day asks Play nothing (UPD-4)', (
-    tester,
-  ) async {
-    final (provider, settings) = await established(
-      askedOn: today.toUtc().toIso8601String(),
-    );
-    final updates = FakeUpdates(offered: true);
+  testWidgets(
+    'a second entry the same day asks Play nothing, and the rating still '
+    'waits for another day, not just for the save the update was offered '
+    'on (UPD-3, UPD-4, rules-22-25-31-35#7)',
+    (tester) async {
+      final (provider, settings) = await established(
+        askedOn: today.toUtc().toIso8601String(),
+      );
+      final updates = FakeUpdates(offered: true);
+      final reviews = FakeReviews(appVersion: '1.26.0+38');
 
-    await saveAnEntry(
-      tester,
-      provider,
-      settings,
-      updates: updates,
-      reviews: FakeReviews(supported: false),
-    );
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
 
-    expect(updates.checked, 0);
-    expect(updates.started, 0);
-  });
+      expect(updates.checked, 0);
+      expect(updates.started, 0);
+      expect(reviews.asked, 0);
+
+      // A third save, still the same day: the rating still waits.
+      await saveAnEntry(
+        tester,
+        provider,
+        settings,
+        updates: updates,
+        reviews: reviews,
+      );
+
+      expect(reviews.asked, 0);
+    },
+  );
 
   testWidgets('a build with no Play behind it asks nothing (UPD-5)', (
     tester,

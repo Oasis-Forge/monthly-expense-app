@@ -154,12 +154,28 @@ class AttachmentService {
   }
 
   /// Stops a recording and returns its file name, or null if nothing was
-  /// recorded.
+  /// recorded. If the recorder throws while stopping (a `PlatformException`
+  /// after an audio-focus loss or a phone call), the recorder is released
+  /// and the partial file it was writing is dropped rather than left behind
+  /// with no row pointing at it (ATT-4, ATT-5).
   Future<String?> stopRecording() async {
-    final written = await _files.stopRecording();
     final name = _recording;
-    _recording = null;
-    return written == null ? null : name;
+    try {
+      final written = await _files.stopRecording();
+      _recording = null;
+      return written == null ? null : name;
+    } catch (_) {
+      _recording = null;
+      try {
+        await _files.cancelRecording();
+      } catch (_) {
+        // The recorder is already in a broken state; the file delete below
+        // is what actually matters here, and the original error is what the
+        // caller needs to see.
+      }
+      await delete(name);
+      rethrow;
+    }
   }
 
   /// Throws away a recording in progress, file and all.

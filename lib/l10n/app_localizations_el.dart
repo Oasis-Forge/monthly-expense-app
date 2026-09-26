@@ -28,6 +28,10 @@ class AppLocalizationsEl extends AppLocalizations {
   String get emptyPeriod => 'Δεν υπάρχουν συναλλαγές σε αυτή την περίοδο.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Τίποτα για αυτόν τον λογαριασμό αυτήν την περίοδο.';
+
+  @override
   String get balanceLabel => 'Υπόλοιπο';
 
   @override
@@ -390,6 +394,54 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Αυτό το όνομα χρησιμοποιείται ήδη';
+
+  @override
+  String get categoryColorPurple => 'Μοβ';
+
+  @override
+  String get categoryColorTeal => 'Γαλαζοπράσινο';
+
+  @override
+  String get categoryColorRust => 'Σκουριά';
+
+  @override
+  String get categoryColorBlue => 'Μπλε';
+
+  @override
+  String get categoryColorPink => 'Ροζ';
+
+  @override
+  String get categoryColorGreen => 'Πράσινο';
+
+  @override
+  String get categoryColorMagenta => 'Ματζέντα';
+
+  @override
+  String get categoryColorCyan => 'Κυανό';
+
+  @override
+  String get categoryColorBrown => 'Καφέ';
+
+  @override
+  String get categoryColorIndigo => 'Λουλακί';
+
+  @override
+  String get categoryColorRed => 'Κόκκινο';
+
+  @override
+  String get categoryColorSlate => 'Σχιστόλιθος';
+
+  @override
+  String get categoryColorOrange => 'Πορτοκαλί';
+
+  @override
+  String get categoryColorEmerald => 'Σμαραγδί';
+
+  @override
+  String get categoryColorViolet => 'Ιώδες';
+
+  @override
+  String get categoryColorRaspberry => 'Βατόμουρο';
 
   @override
   String get archiveAction => 'Αρχειοθέτηση';
@@ -1121,6 +1173,13 @@ class AppLocalizationsEl extends AppLocalizations {
       'Δεν ήταν δυνατή η επαναφορά του αντιγράφου. Τα δεδομένα σας δεν άλλαξαν.';
 
   @override
+  String get dbTooNewTitle => 'Απαιτείται ενημέρωση';
+
+  @override
+  String get dbTooNewMessage =>
+      'Αυτά τα δεδομένα αποθηκεύτηκαν από νεότερη έκδοση της εφαρμογής. Ενημέρωσέ την από το κατάστημα για να συνεχίσεις.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1149,6 +1208,12 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get appLockReason => 'Ξεκλείδωμα Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Επιβεβαίωση ταυτότητας';
 
   @override
   String get appLockFailed =>
@@ -1312,6 +1377,9 @@ class AppLocalizationsEl extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Μια σημείωση λήγει';
+
+  @override
+  String get noteReminderChannelName => 'Υπενθυμίσεις σημειώσεων';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1782,13 +1850,27 @@ class AppLocalizationsEl extends AppLocalizations {
   String get dueEntryReminderTitle => 'Καταχώριση οφειλόταν';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return 'Το $title οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+  String get dueEntryChannelName => 'Ληξιπρόθεσμες καταχωρίσεις';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return 'Το $title ($amount) οφειλόταν σήμερα και εκκρεμεί ακόμα.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Μια επαναλαμβανόμενη καταχώριση οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return 'Το $title ($amount) οφειλόταν στις $date και εκκρεμεί ακόμα.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Μια επαναλαμβανόμενη καταχώριση ($amount) οφειλόταν σήμερα και εκκρεμεί ακόμα.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Μια επαναλαμβανόμενη καταχώριση ($amount) οφειλόταν στις $date και εκκρεμεί ακόμα.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1802,7 +1884,21 @@ class AppLocalizationsEl extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count τακτικές καταχωρίσεις εκκρεμούν.',
+      one: '1 τακτική καταχώριση εκκρεμεί.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Καμία καταχώριση σήμερα';
+
+  @override
+  String get emptyDayChannelName => 'Ημέρες χωρίς καταχώριση';
 
   @override
   String get emptyDayReminderBody =>

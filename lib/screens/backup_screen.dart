@@ -156,6 +156,9 @@ class _BackupScreenState extends State<BackupScreen> {
       appLockOn: settings.appLock,
       locale: effectiveAppLocale(settings.locale),
       nudge: settings.nudgeSettings,
+      currency: settings.currencyFormat(
+        effectiveAppLocale(settings.locale).toLanguageTag(),
+      ),
     );
     transactions.setStartDay(settings.startDay);
     if (!mounted) return;

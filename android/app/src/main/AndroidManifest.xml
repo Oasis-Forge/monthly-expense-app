@@ -74,7 +74,11 @@
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
             android:exported="false"/>
         <!-- Reminders are re-laid after a restart or an app update, or they
-             would be lost with the alarms the reboot cleared (NUDGE-9). -->
+             would be lost with the alarms the reboot cleared (NUDGE-9).
+             Known gap (pr59_10): the plugin's receiver re-arms a missed
+             reminder at boot even when it is more than two hours overdue.
+             Dropping it would need a receiver of our own over the plugin's
+             private cache, so it is left for after launch. -->
         <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
             android:exported="false">

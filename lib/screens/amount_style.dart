@@ -33,8 +33,10 @@ Color signedColor(BuildContext context, {required bool isIncome}) =>
     isIncome ? incomeColor(context) : expenseColor(context);
 
 /// The colour of a figure that can fall either way — a balance, a net, an
-/// account, a day's own total. It is coloured only below zero (CUR-5), and
-/// null leaves the text its ordinary colour.
+/// account. It is coloured only below zero (CUR-5), and null leaves the text
+/// its ordinary colour. A day's own total isn't one of these: Home shows a
+/// day's income and expense apart rather than netting them (DAY-7), so each
+/// goes through [signedColor] instead.
 Color? balanceColor(BuildContext context, Money amount) =>
     amount.isNegative ? expenseColor(context) : null;
 
@@ -50,6 +52,30 @@ String signedAmount(
 /// [base] set in the app's figures (CUR-4).
 TextStyle amountStyle([TextStyle? base]) =>
     (base ?? const TextStyle()).copyWith(fontFeatures: tabularFigures);
+
+/// Passed in place of a translated message's `{amount}` placeholder when the
+/// amount needs its own [TextSpan] — a sign, a colour — rather than plain
+/// text: format the message with this in [amount]'s place, then hand the
+/// result to [spansWithAmount] along with the styled span. Each language
+/// keeps its own separator and word order around the amount this way,
+/// instead of one hard-coded in the calling screen (pr61#8).
+const amountSentinel = '￼';
+
+/// [textWithSentinel] — a translated message formatted with [amountSentinel]
+/// standing in for its amount — split around that sentinel, with
+/// [amountSpan] dropped into its place.
+List<InlineSpan> spansWithAmount(
+  String textWithSentinel,
+  InlineSpan amountSpan,
+) {
+  final index = textWithSentinel.indexOf(amountSentinel);
+  if (index < 0) return [TextSpan(text: textWithSentinel)];
+  return [
+    TextSpan(text: textWithSentinel.substring(0, index)),
+    amountSpan,
+    TextSpan(text: textWithSentinel.substring(index + amountSentinel.length)),
+  ];
+}
 
 /// A money figure that counts to its new value instead of cutting to it
 /// (BAL-10). The figure is right from the first frame — only the way it

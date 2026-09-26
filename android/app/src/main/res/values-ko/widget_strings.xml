@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">이번 기간의 지출, 또는 남은 예산</string>
+    <string name="widget_medium_description">이번 기간의 수입, 지출, 잔액</string>
+    <string name="widget_open_the_app">이번 기간을 보려면 Monthly Expenses를 여세요</string>
+    <string name="widget_preview_period">이번 기간</string>
+    <string name="widget_preview_income">수입</string>
+    <string name="widget_preview_expense">지출</string>
+    <string name="widget_preview_balance">잔액</string>
+    <string name="widget_preview_left">남음</string>
+    <string name="widget_preview_add_expense">지출 추가</string>
+    <string name="widget_preview_add_income">수입 추가</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

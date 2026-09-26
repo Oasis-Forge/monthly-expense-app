@@ -8,6 +8,7 @@ import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/search_screen.dart';
+import 'package:monthly_expense_app/screens/transaction_row_menu.dart';
 
 import 'helpers.dart';
 
@@ -52,7 +53,8 @@ void main() {
     settings = await testSettings();
   });
 
-  Future<void> showSearch(WidgetTester tester) async {
+  Future<void> showSearch(WidgetTester tester, {String? language}) async {
+    if (language != null) settings = await testSettings({'language': language});
     await tester.pumpWidget(testApp(provider, settings, const SearchScreen()));
     await tester.pump();
   }
@@ -215,16 +217,35 @@ void main() {
     expect(find.text('Transaction deleted'), findsOneWidget);
   });
 
-  testWidgets('the row leaves the amount its own direction (LANG-5)', (
-    tester,
-  ) async {
-    await showSearch(tester);
-    await tester.pumpAndSettle();
+  for (final language in ['ar', 'ur']) {
+    testWidgets(
+      'the row keeps its sign against its figures in $language (LANG-5, '
+      'pr56+60#7)',
+      (tester) async {
+        await showSearch(tester, language: language);
+        await tester.pumpAndSettle();
 
-    // The sign now travels inside the currency's own isolate, so the row
-    // must not force the line's direction: doing so would carry the symbol
-    // to the wrong side of the figures in Arabic (LANG-5).
-    final amount = tester.widget<Text>(find.textContaining('-\$').first);
-    expect(amount.textDirection, isNull);
-  });
+        // Where the sign actually lands, not just whether the widget
+        // declares a direction: that check alone passed either way, even
+        // when a hand-pasted sign had drifted to the far end of the row.
+        // Found by the row it belongs to rather than by matching digits or
+        // an ASCII '-$', neither of which every language's currency
+        // pattern renders literally.
+        final row = find.ancestor(
+          of: find.text('Café lunch'),
+          matching: find.byType(ListTile),
+        );
+        final amount = tester.widget<Text>(
+          find.descendant(
+            of: find.descendant(
+              of: row,
+              matching: find.byType(TransactionRowTrailing),
+            ),
+            matching: find.byType(Text),
+          ),
+        );
+        expectSignTouchesFigures(amount);
+      },
+    );
+  }
 }

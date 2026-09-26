@@ -28,6 +28,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get emptyPeriod => 'Ancora nessuna transazione in questo periodo.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Niente per questo conto in questo periodo.';
+
+  @override
   String get balanceLabel => 'Saldo';
 
   @override
@@ -388,6 +392,54 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Questo nome è già in uso';
+
+  @override
+  String get categoryColorPurple => 'Viola';
+
+  @override
+  String get categoryColorTeal => 'Verde acqua';
+
+  @override
+  String get categoryColorRust => 'Ruggine';
+
+  @override
+  String get categoryColorBlue => 'Blu';
+
+  @override
+  String get categoryColorPink => 'Rosa';
+
+  @override
+  String get categoryColorGreen => 'Verde';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Ciano';
+
+  @override
+  String get categoryColorBrown => 'Marrone';
+
+  @override
+  String get categoryColorIndigo => 'Indaco';
+
+  @override
+  String get categoryColorRed => 'Rosso';
+
+  @override
+  String get categoryColorSlate => 'Ardesia';
+
+  @override
+  String get categoryColorOrange => 'Arancione';
+
+  @override
+  String get categoryColorEmerald => 'Smeraldo';
+
+  @override
+  String get categoryColorViolet => 'Violetto';
+
+  @override
+  String get categoryColorRaspberry => 'Lampone';
 
   @override
   String get archiveAction => 'Archivia';
@@ -1111,6 +1163,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile ripristinare il backup. I tuoi dati non sono stati modificati.';
 
   @override
+  String get dbTooNewTitle => 'Aggiornamento necessario';
+
+  @override
+  String get dbTooNewMessage =>
+      'Questi dati sono stati salvati da una versione più recente dell\'app. Aggiornala dallo store per continuare.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1138,6 +1197,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get appLockReason => 'Sblocca Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Confermare l\'identità';
 
   @override
   String get appLockFailed =>
@@ -1297,6 +1362,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Una nota è in scadenza';
+
+  @override
+  String get noteReminderChannelName => 'Promemoria note';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1762,13 +1830,27 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dueEntryReminderTitle => 'Una voce era scaduta';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title era previsto per oggi ed è ancora in attesa.';
+  String get dueEntryChannelName => 'Voci scadute';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) era previsto per oggi ed è ancora in attesa.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Una voce ricorrente era prevista per oggi ed è ancora in attesa.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) era previsto per il $date ed è ancora in attesa.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Una voce ricorrente ($amount) era prevista per oggi ed è ancora in attesa.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Una voce ricorrente ($amount) era prevista per il $date ed è ancora in attesa.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1782,7 +1864,21 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count voci ricorrenti sono ancora in attesa.',
+      one: '1 voce ricorrente è ancora in attesa.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Nessuna registrazione oggi';
+
+  @override
+  String get emptyDayChannelName => 'Giorni senza registrazioni';
 
   @override
   String get emptyDayReminderBody =>

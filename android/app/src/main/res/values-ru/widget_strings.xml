@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">Расходы за этот период, или то, что осталось от бюджета</string>
+    <string name="widget_medium_description">Доход, расход и баланс за этот период</string>
+    <string name="widget_open_the_app">Откройте Monthly Expenses, чтобы увидеть этот период</string>
+    <string name="widget_preview_period">За этот период</string>
+    <string name="widget_preview_income">Доход</string>
+    <string name="widget_preview_expense">Расход</string>
+    <string name="widget_preview_balance">Баланс</string>
+    <string name="widget_preview_left">Осталось</string>
+    <string name="widget_preview_add_expense">Добавить расход</string>
+    <string name="widget_preview_add_income">Добавить доход</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

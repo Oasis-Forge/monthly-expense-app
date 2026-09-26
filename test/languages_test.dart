@@ -107,6 +107,36 @@ void main() {
     await tester.pump();
   }
 
+  /// Drags [scrollable] to its end in bounded steps, so a lazy list lays out
+  /// every child at least once (LANG-6, test-quality#8): otherwise only the
+  /// first screenful — what a phone shows before scrolling — is ever built
+  /// and checked for overflow. A no-op when nothing is scrollable (e.g. the
+  /// report screen with no font for the language).
+  Future<void> scrollToEnd(WidgetTester tester, Finder scrollable) async {
+    if (scrollable.evaluate().isEmpty) return;
+    var position = tester.state<ScrollableState>(scrollable).position;
+    var guard = 0;
+    while (position.pixels < position.maxScrollExtent && guard < 60) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump();
+      position = tester.state<ScrollableState>(scrollable).position;
+      guard++;
+    }
+  }
+
+  /// Screen names (as keyed in [screens]) whose content is a plain lazy
+  /// `ListView`, so only the rows already on a phone's screen are ever laid
+  /// out unless something scrolls the rest into view (test-quality#8).
+  const lazyListScreens = {
+    'Settings',
+    'Backup',
+    'Export PDF',
+    'Transaction details',
+    'Remove ads',
+    'Recurring',
+    'Budgets',
+  };
+
   /// A file with something for every part of the import preview: two rows to
   /// import, one skipped for each reason, and names this app hasn't got.
   const importSample =
@@ -144,6 +174,48 @@ void main() {
     'Walkthrough': WalkthroughScreen(),
     'Remove ads': RemoveAdsScreen(),
   };
+
+  group('deviceWeekStartIndex follows the device region, not just the '
+      'language (PER-4, rules-1-5#5)', () {
+    test('English (UK) is Monday, unlike plain English (Sunday)', () {
+      expect(deviceWeekStartIndex(const [Locale('en', 'GB')], 'en'), 1);
+    });
+
+    test('Portugal is Monday, though intl reads Sunday for it, same as '
+        'Brazil', () {
+      expect(deviceWeekStartIndex(const [Locale('pt', 'PT')], 'pt'), 1);
+      expect(deviceWeekStartIndex(const [Locale('pt', 'BR')], 'pt'), 0);
+    });
+
+    test('a language the user picked on purpose, unconnected to the '
+        "device's region, defers to the caller's own default", () {
+      // The device is set to English (US); the user chose French, so
+      // the device's region says nothing about French's own default.
+      expect(deviceWeekStartIndex(const [Locale('en', 'US')], 'fr'), isNull);
+    });
+
+    test('no device locale at all defers the same way', () {
+      expect(deviceWeekStartIndex(const [], 'en'), isNull);
+    });
+
+    test('a device locale with no region defers the same way', () {
+      expect(deviceWeekStartIndex(const [Locale('en')], 'en'), isNull);
+    });
+
+    test('a device set to a language the app lacks first, then the resolved '
+        'one, still matches the resolved one, not just .first '
+        '(rules-1-5#5)', () {
+      // resolveAppLocale would match en_GB here, since the app has no
+      // Norwegian — not deviceLocales.first, which is Norwegian.
+      expect(
+        deviceWeekStartIndex(const [
+          Locale('nb', 'NO'),
+          Locale('en', 'GB'),
+        ], 'en'),
+        1,
+      );
+    });
+  });
 
   group('screens fit in every language at 1.3× text (LANG-6)', () {
     for (final language in appLanguages.keys) {
@@ -199,9 +271,28 @@ void main() {
             expect(find.text(l10n.walkthroughBringTitle), findsOne);
           }
           if (screen is AddTransactionScreen) {
-            await tester.tap(find.text(l10n.amountLabel));
+            // The label's own text lands on the field's RenderEditable
+            // rather than the floating label once autofocus has already
+            // opened the keypad, so this used to tap without proving
+            // anything about tapping Amount actually opening it
+            // (test-quality#12); the field itself is always hit-testable.
+            await tester.tap(
+              find.widgetWithText(TextFormField, l10n.amountLabel),
+            );
             await tester.pump();
             expect(find.byType(AmountKeypad), findsOneWidget);
+            // The keypad pushes the Save buttons further down the form's
+            // own lazy list, so scroll past it to lay them out too
+            // (test-quality#8).
+            await scrollToEnd(
+              tester,
+              find
+                  .descendant(
+                    of: find.byType(Form),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first,
+            );
           }
           if (screen is InsightsScreen) {
             for (final tab in [l10n.calendarTab, l10n.trendTab]) {
@@ -224,6 +315,9 @@ void main() {
                 await tester.pumpAndSettle();
               }
             }
+          }
+          if (lazyListScreens.contains(name)) {
+            await scrollToEnd(tester, find.byType(Scrollable).first);
           }
         });
       }
@@ -288,7 +382,9 @@ void main() {
 
     testWidgets('the keypad and the amount stay left to right', (tester) async {
       await show(tester, 'ar', const AddTransactionScreen());
-      await tester.tap(find.text(l10n.amountLabel));
+      // The field's own RenderEditable, not the floating label text, which
+      // autofocus already moved out from under the tap (test-quality#12).
+      await tester.tap(find.widgetWithText(TextFormField, l10n.amountLabel));
       await tester.pump();
 
       Finder key(String label) => find.descendant(
@@ -319,27 +415,31 @@ void main() {
       // Where it sits, not what the widget declares: the row used to force a
       // direction, and when that went the hand-pasted sign was left outside
       // the isolate and bidi carried it to the far end of the row (LANG-5).
-      final text = amount.data!;
-      final painter = TextPainter(
-        text: TextSpan(text: text),
-        textDirection: amount.textDirection ?? TextDirection.rtl,
-      )..layout();
-      addTearDown(painter.dispose);
-      Rect boxOf(int at) => painter
-          .getBoxesForSelection(
-            TextSelection(baseOffset: at, extentOffset: at + 1),
-          )
-          .first
-          .toRect();
-      final sign = boxOf(text.indexOf(RegExp('[-+\u2212]')));
-      final firstDigit = boxOf(text.indexOf(RegExp('[0-9]')));
-
-      expect(
-        sign.right,
-        closeTo(firstDigit.left, 2),
-        reason: 'the sign should touch its figures, not float away: $text',
-      );
+      expectSignTouchesFigures(amount);
     });
+
+    testWidgets(
+      'a rising category keeps its plus against its figures, not floated '
+      'to the far end of the line (INS-6, LANG-5, CUR-5)',
+      (tester) async {
+        await show(tester, 'ar', const InsightsScreen());
+
+        // changeLabel used to paste a bare '+' in front of the formatted
+        // percent, which bidi could carry to the far end of the line.
+        final changeFinder = find.byWidgetPredicate(
+          (widget) => widget is Text && (widget.data?.contains('+') ?? false),
+        );
+        await tester.dragUntilVisible(
+          changeFinder,
+          find.byType(Scrollable).first,
+          const Offset(0, -300),
+        );
+        await tester.pumpAndSettle();
+        expect(changeFinder, findsOneWidget);
+        final change = tester.widget<Text>(changeFinder);
+        expectSignTouchesFigures(change);
+      },
+    );
 
     testWidgets('the trend starts with the newest period on the left, and '
         'amounts sit on the right', (tester) async {
@@ -386,10 +486,9 @@ void main() {
       await show(tester, 'ur', const TransactionDetailScreen(id: 'a'));
 
       final amount = tester.widget<Text>(find.textContaining('1,234.50'));
-      // The sign now travels inside the currency's own isolate, so the row
-      // must not force the line's direction: doing so would carry the symbol
-      // to the wrong side of the figures in Arabic (LANG-5).
-      expect(amount.textDirection, isNull);
+      // Where the sign actually lands, not just whether the widget declares
+      // a direction: that check alone passed either way (pr56+60#7).
+      expectSignTouchesFigures(amount);
     });
   });
 }

@@ -1,7 +1,10 @@
+import 'dart:io' show Platform;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/l10n/app_localizations.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/budget.dart';
 import 'package:monthly_expense_app/models/money.dart';
@@ -14,6 +17,7 @@ import 'package:monthly_expense_app/screens/budgets_screen.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/note_form_screen.dart';
+import 'package:monthly_expense_app/screens/transaction_row_menu.dart';
 
 import 'helpers.dart';
 
@@ -30,6 +34,8 @@ void main() {
     List<Transfer> transfers = const [],
     List<Note> notes = const [],
     Map<String, Object> settingsValues = const {},
+    int startDay = 1,
+    DateTime? clock,
   }) async {
     usePhoneScreen(tester);
     final provider = TransactionProvider(
@@ -40,7 +46,8 @@ void main() {
         notes: notes,
         accounts: [testAccount(Account.cashId), testAccount('bank')],
       ),
-      clock: () => today,
+      clock: () => clock ?? today,
+      startDay: startDay,
     );
     await provider.load();
     settings = await testSettings(settingsValues);
@@ -121,6 +128,38 @@ void main() {
       expect(circles[1].backgroundColor, sections[1].color);
     });
 
+    testWidgets(
+      "a slice's percent uses the language's own digits, like the amounts "
+      'beside it (LANG-3, pr61#10)',
+      (tester) async {
+        await showInsights(
+          tester,
+          [
+            testTx('f', expense, 10, DateTime(2026, 9, 5)),
+            testTx(
+              'r',
+              expense,
+              30,
+              DateTime(2026, 9, 6),
+              categoryId: 'cat-rent',
+            ),
+          ],
+          settingsValues: {'language': 'bn'},
+        );
+
+        final sections = tester
+            .widget<PieChart>(find.byType(PieChart))
+            .data
+            .sections;
+
+        expect(sections, hasLength(2));
+        // Bengali digits (rent 75%, food 25%), not the Latin ones
+        // toStringAsFixed would give.
+        expect(sections.first.title, '৭৫%');
+        expect(sections[1].title, '২৫%');
+      },
+    );
+
     testWidgets('lists spending by category with the total', (tester) async {
       await showInsights(tester, spending);
 
@@ -130,6 +169,26 @@ void main() {
       );
       expect(find.text('Food', skipOffstage: false), findsOneWidget);
       expect(find.text('Rent', skipOffstage: false), findsOneWidget);
+    });
+
+    testWidgets("each row shows its own category's amount, not another's "
+        '(INS-3)', (tester) async {
+      await showInsights(tester, spending);
+
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Food', skipOffstage: false),
+          matching: find.text('\$30', skipOffstage: false),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'Rent', skipOffstage: false),
+          matching: find.text('\$10', skipOffstage: false),
+        ),
+        findsOneWidget,
+      );
     });
 
     testWidgets('income has its own chart', (tester) async {
@@ -218,6 +277,143 @@ void main() {
       expect(find.text('new'), findsOneWidget);
     });
 
+    testWidgets(
+      'a partial current period compares with the same number of days last '
+      'month, not the whole of it (INS-6, pr56+60#4)',
+      (tester) async {
+        // Today is the 15th, 14 days into September, so the comparison is
+        // bounded to August 1–15. An entry on the 20th is past that bound
+        // and must not count, or a partial month would read as a much
+        // bigger drop than it is.
+        await showInsights(tester, [
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 3)),
+          testTx('b', TransactionType.expense, 50, DateTime(2026, 8, 20)),
+          testTx('c', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+        ]);
+
+        // 100 (bounded) against 60, not 150 against 60.
+        expect(find.text('\$40 less than last month'), findsOneWidget);
+        expect(find.text('-40%'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'the only earlier record falling after the bound reads as no earlier '
+      'record at all, not an empty comparison (INS-6, pr56+60#4)',
+      (tester) async {
+        // Today is the 15th, so the bound is August 1–15. The only record
+        // before September is on the 20th, past that bound: hasEarlierRecords
+        // alone would say yes, but the bounded comparison it feeds has
+        // nothing in it, which reads as "you spent nothing last month" --
+        // exactly what an empty comparison must never show.
+        await showInsights(tester, [
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 20)),
+          testTx('b', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+        ]);
+
+        expect(find.textContaining('than last month'), findsNothing);
+        expect(find.text('new'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      "a category row with a change label doesn't overflow at a large "
+      'system text scale (INS-6, pr56+60#5)',
+      (tester) async {
+        tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+        await showInsights(tester, [
+          // August: food 100, transport 50.
+          testTx('a', TransactionType.expense, 100, DateTime(2026, 8, 3)),
+          testTx(
+            'b',
+            TransactionType.expense,
+            50,
+            DateTime(2026, 8, 9),
+            categoryId: 'cat-transport',
+          ),
+          // September: food down to 60, and shopping out of nowhere.
+          testTx('c', TransactionType.expense, 60, DateTime(2026, 9, 4)),
+          testTx(
+            'd',
+            TransactionType.expense,
+            20,
+            DateTime(2026, 9, 5),
+            categoryId: 'cat-shopping',
+          ),
+        ]);
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    testWidgets(
+      'a rising category shows a plus, and a change under half a percent '
+      'shows no label at all (INS-6, pr61#5, pr56+60#2)',
+      (tester) async {
+        await showInsights(tester, [
+          // August: rent 50, transport 1000, shopping 1000.
+          testTx(
+            'a',
+            expense,
+            50,
+            DateTime(2026, 8, 3),
+            categoryId: 'cat-rent',
+          ),
+          testTx(
+            'b',
+            expense,
+            1000,
+            DateTime(2026, 8, 9),
+            categoryId: 'cat-transport',
+          ),
+          testTx(
+            'c',
+            expense,
+            1000,
+            DateTime(2026, 8, 10),
+            categoryId: 'cat-shopping',
+          ),
+          // September: rent doubles (+100%); transport falls just under
+          // half a percent, which intl's own NumberFormat still signs
+          // from the unrounded value, so before the fix it rounded to
+          // "-0%" instead of hiding like the same-sized rise (INS-6);
+          // shopping rises just under half a percent too.
+          testTx(
+            'd',
+            expense,
+            100,
+            DateTime(2026, 9, 4),
+            categoryId: 'cat-rent',
+          ),
+          testTx(
+            'e',
+            expense,
+            999.5,
+            DateTime(2026, 9, 5),
+            categoryId: 'cat-transport',
+          ),
+          testTx(
+            'f',
+            expense,
+            1001,
+            DateTime(2026, 9, 6),
+            categoryId: 'cat-shopping',
+          ),
+        ]);
+
+        // The rise carries a plus, from the language's own negative
+        // pattern with the sign swapped, not a bare '+' pasted in front
+        // (LANG-5, CUR-5).
+        expect(find.text('+100%'), findsOneWidget);
+        // Neither small change rounds away to a fake "-0%" or "0%".
+        expect(find.text('-0%'), findsNothing);
+        expect(find.text('0%'), findsNothing);
+      },
+    );
+
     testWidgets('the earliest period on record compares with nothing (INS-6)', (
       tester,
     ) async {
@@ -253,10 +449,22 @@ void main() {
       final compact = settings.compactCurrencyFormat('en');
 
       expect(find.text('Sep 1'), findsOneWidget);
-      expect(find.text(compact.format(30)), findsOneWidget);
-      expect(find.text(compact.format(100)), findsOneWidget);
+      // Signed, not just coloured, on the calendar cell too (A11Y-4, CUR-5).
+      expect(
+        find.text(compact.signedFormat(30, isIncome: false)),
+        findsOneWidget,
+      );
+      // The calendar cell, and the day list's own signed row for Paycheck
+      // below it, format the same for a whole number (INS-1, DET-1).
+      expect(
+        find.text(compact.signedFormat(100, isIncome: true)),
+        findsNWidgets(2),
+      );
       // Upcoming days show their amounts too, faintly.
-      expect(find.text(compact.format(40)), findsOneWidget);
+      expect(
+        find.text(compact.signedFormat(40, isIncome: false)),
+        findsOneWidget,
+      );
       expect(find.text('Tuesday, September 15, 2026'), findsOneWidget);
       expect(find.text('Paycheck'), findsOneWidget);
     });
@@ -350,6 +558,20 @@ void main() {
       expect(x('Mon'), lessThan(x('Sun')));
     });
 
+    testWidgets("the device's region decides the day, not just its language "
+        '(PER-4, rules-1-5#5)', (tester) async {
+      double x(String text) => tester.getCenter(find.text(text)).dx;
+
+      // A phone set to English (UK) starts the week on Monday, though
+      // the app's own language-only locale ('en') is Sunday-first.
+      tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await showInsights(tester, month);
+      await openTab(tester, 'Calendar');
+      expect(x('Mon'), lessThan(x('Sun')));
+    });
+
     testWidgets('outside today\'s period, a hint replaces the day list', (
       tester,
     ) async {
@@ -361,20 +583,43 @@ void main() {
 
       expect(find.text('Tap a day to see its transactions.'), findsOneWidget);
     });
-    testWidgets('the row leaves the amount its own direction (LANG-5)', (
-      tester,
-    ) async {
-      await showInsights(tester, month);
-      await openTab(tester, 'Calendar');
-      await tester.tap(find.text('15'));
-      await tester.pumpAndSettle();
+    for (final language in ['ar', 'ur']) {
+      testWidgets(
+        'the day\'s row keeps its sign against its figures in $language '
+        '(LANG-5, pr56+60#7)',
+        (tester) async {
+          await showInsights(
+            tester,
+            month,
+            settingsValues: {'language': language},
+          );
+          final l10n = lookupAppLocalizations(Locale(language));
+          await openTab(tester, l10n.calendarTab);
+          // Today (the fixed clock's Sept 15) is selected by default, so
+          // day-of-month digits -- which some languages format with their
+          // own numerals -- don't need tapping at all.
+          await tester.pumpAndSettle();
 
-      // The sign now travels inside the currency's own isolate, so the row
-      // must not force the line's direction: doing so would carry the symbol
-      // to the wrong side of the figures in Arabic (LANG-5).
-      final amount = tester.widget<Text>(find.textContaining('\$').last);
-      expect(amount.textDirection, isNull);
-    });
+          // Where the sign actually lands, not just whether the widget
+          // declares a direction: that check alone passed either way, even
+          // when a hand-pasted sign had drifted to the far end of the row.
+          final row = find.ancestor(
+            of: find.text('Paycheck'),
+            matching: find.byType(ListTile),
+          );
+          final amount = tester.widget<Text>(
+            find.descendant(
+              of: find.descendant(
+                of: row,
+                matching: find.byType(TransactionRowTrailing),
+              ),
+              matching: find.byType(Text),
+            ),
+          );
+          expectSignTouchesFigures(amount);
+        },
+      );
+    }
   });
 
   group('trend (INS-2)', () {
@@ -457,6 +702,31 @@ void main() {
       );
       expect(behind.style?.color, const Color(expenseInkLight));
     });
+
+    testWidgets(
+      'a period under a non-1 start day is still labelled by its midpoint '
+      'month, from calendar days rather than elapsed time (money-time#9); '
+      'a CI-only guard against the labelling regressing unnoticed, since it '
+      'crosses no DST change and so passes either way -- run with '
+      'TZ=America/New_York to exercise it',
+      (tester) async {
+        // startDay 15: the period containing 1 March 2026 runs 15 Feb -- 15
+        // Mar, whose midpoint (14 days in, Feb having 28) is 1 Mar.
+        await showInsights(
+          tester,
+          [
+            testTx('jan', income, 10, DateTime(2026, 1, 20)),
+            testTx('feb', expense, 20, DateTime(2026, 2, 20)),
+          ],
+          startDay: 15,
+          clock: DateTime(2026, 3, 1),
+        );
+        await openTab(tester, 'Trend');
+
+        expect(find.text('Mar'), findsOneWidget);
+      },
+      skip: Platform.environment['TZ'] != 'America/New_York',
+    );
   });
 
   group('other periods', () {

@@ -28,6 +28,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get emptyPeriod => 'Belum ada transaksi di periode ini.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Tidak ada untuk akun ini periode ini.';
+
+  @override
   String get balanceLabel => 'Saldo';
 
   @override
@@ -386,6 +390,54 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Nama itu sudah dipakai';
+
+  @override
+  String get categoryColorPurple => 'Ungu';
+
+  @override
+  String get categoryColorTeal => 'Tosca';
+
+  @override
+  String get categoryColorRust => 'Karat';
+
+  @override
+  String get categoryColorBlue => 'Biru';
+
+  @override
+  String get categoryColorPink => 'Merah muda';
+
+  @override
+  String get categoryColorGreen => 'Hijau';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Sian';
+
+  @override
+  String get categoryColorBrown => 'Cokelat';
+
+  @override
+  String get categoryColorIndigo => 'Nila';
+
+  @override
+  String get categoryColorRed => 'Merah';
+
+  @override
+  String get categoryColorSlate => 'Abu kebiruan';
+
+  @override
+  String get categoryColorOrange => 'Oranye';
+
+  @override
+  String get categoryColorEmerald => 'Zamrud';
+
+  @override
+  String get categoryColorViolet => 'Violet';
+
+  @override
+  String get categoryColorRaspberry => 'Rasberi';
 
   @override
   String get archiveAction => 'Arsipkan';
@@ -1105,6 +1157,13 @@ class AppLocalizationsId extends AppLocalizations {
       'Cadangan gagal dipulihkan. Data Anda tidak berubah.';
 
   @override
+  String get dbTooNewTitle => 'Perlu pembaruan';
+
+  @override
+  String get dbTooNewMessage =>
+      'Data ini disimpan oleh versi aplikasi yang lebih baru. Perbarui aplikasi dari toko untuk melanjutkan.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1133,6 +1192,12 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get appLockReason => 'Buka kunci Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Konfirmasi identitas Anda';
 
   @override
   String get appLockFailed =>
@@ -1292,6 +1357,9 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Ada catatan jatuh tempo';
+
+  @override
+  String get noteReminderChannelName => 'Pengingat catatan';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1757,13 +1825,27 @@ class AppLocalizationsId extends AppLocalizations {
   String get dueEntryReminderTitle => 'Entri jatuh tempo';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title jatuh tempo hari ini dan masih menunggu.';
+  String get dueEntryChannelName => 'Entri yang jatuh tempo';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) jatuh tempo hari ini dan masih menunggu.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Entri berulang jatuh tempo hari ini dan masih menunggu.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) jatuh tempo $date dan masih menunggu.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Entri berulang ($amount) jatuh tempo hari ini dan masih menunggu.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Entri berulang ($amount) jatuh tempo $date dan masih menunggu.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1777,7 +1859,21 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Ada $count entri berulang yang masih menunggu.',
+      one: 'Ada $count entri berulang yang masih menunggu.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Belum ada catatan hari ini';
+
+  @override
+  String get emptyDayChannelName => 'Hari tanpa catatan';
 
   @override
   String get emptyDayReminderBody => 'Catat pengeluaranmu selagi masih ingat.';

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -5,6 +6,7 @@ import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/models/transfer.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 
 import 'helpers.dart';
@@ -99,14 +101,23 @@ void main() {
         testTx('a', expense, 10, DateTime(2026, 9, 1)),
       );
       await provider.deleteTransaction('a');
+      // Its category is archived while it sits in the trash: restore must
+      // still bring the transaction back with that category, not blank it
+      // out or refuse (DEL-4).
+      await provider.archiveCategory('cat-food');
 
       await provider.restoreTransaction('a');
 
       expect(provider.deletedTransactions, isEmpty);
-      expect(provider.transactions.single.deletedAt, isNull);
+      final restored = provider.transactions.single;
+      expect(restored.deletedAt, isNull);
+      expect(restored.id, 'a');
+      expect(restored.categoryId, 'cat-food');
+      expect(restored.date, DateTime(2026, 9, 1));
       final reloaded = reloadable();
       await reloaded.load();
       expect(reloaded.transactions.single.id, 'a');
+      expect(reloaded.transactions.single.categoryId, 'cat-food');
       expect(reloaded.deletedTransactions, isEmpty);
     });
 
@@ -218,6 +229,26 @@ void main() {
         expect(provider.closingBalance, const Money(180000));
       },
     );
+
+    test("carried forward leaves out an account whose opening date hasn't "
+        'arrived yet, even from a later period (BAL-2, BAL-4, ACC-4, '
+        'rules-1-5#10)', () async {
+      final provider = await loaded(
+        FakeDB(
+          accounts: [
+            testAccount(cash, opening: 100, on: DateTime(2026, 1, 1)),
+            // Opens after today (Sep 15): doesn't count anywhere yet.
+            testAccount('savings', opening: 1000, on: DateTime(2026, 9, 20)),
+          ],
+        ),
+      );
+
+      provider.nextPeriod();
+      expect(provider.period.start, DateTime(2026, 10));
+      // October carries forward only Cash: Savings' opening date is
+      // before October but still hasn't arrived as of today.
+      expect(provider.carriedForward, const Money(100000));
+    });
 
     test(
       'a month start day of 25 moves the period boundaries (PER-2)',
@@ -348,6 +379,29 @@ void main() {
       // Every account together matches Home's closing balance.
       expect(provider.closingBalance, const Money(130000));
     });
+
+    test(
+      'a transaction dated before the opening date still counts (ACC-4)',
+      () async {
+        final early = await loaded(
+          FakeDB(
+            accounts: [
+              testAccount('early', opening: 100, on: DateTime(2026, 9, 10)),
+            ],
+            transactions: [
+              testTx(
+                'e',
+                expense,
+                20,
+                DateTime(2026, 9, 5),
+              ).copyWith(accountId: 'early'),
+            ],
+          ),
+        );
+
+        expect(early.accountBalance('early'), const Money(80000));
+      },
+    );
 
     test('transfers are listed in the period but never counted (BAL-1)', () {
       expect(provider.periodIncome, const Money(50000));
@@ -721,6 +775,193 @@ void main() {
     );
   });
 
+  group(
+    'a side effect failing after a successful write (data-integrity#12)',
+    () {
+      test('deleting a note-linked transaction updates totals even when '
+          'reopening the note fails afterward', () async {
+        final fake = FakeDB(
+          transactions: [testTx('a', expense, 30, DateTime(2026, 9, 10))],
+          notes: [
+            testNote('n', 'Coffee').copyWith(
+              transactionId: 'a',
+              doneAt: DateTime(2026, 9, 10).toUtc(),
+            ),
+          ],
+        );
+        final provider = await loaded(fake);
+        expect(provider.periodExpense, const Money(30000));
+
+        fake.failNoteWrites = true;
+        await expectLater(provider.deleteTransaction('a'), throwsStateError);
+
+        // The row is already trashed and the list already reflects it --
+        // the caller sees the failure, but cached totals aren't left stale
+        // behind a DB write that in fact already succeeded.
+        expect(provider.transactions, isEmpty);
+        expect(provider.periodExpense, Money.zero);
+        expect(provider.deletedTransactions.single.id, 'a');
+      });
+
+      test('restoring a note-linked transaction updates totals even when '
+          'relinking the note fails afterward', () async {
+        final fake = FakeDB(
+          transactions: [testTx('a', expense, 30, DateTime(2026, 9, 10))],
+          notes: [
+            testNote('n', 'Coffee').copyWith(
+              transactionId: 'a',
+              doneAt: DateTime(2026, 9, 10).toUtc(),
+            ),
+          ],
+        );
+        final provider = await loaded(fake);
+        await provider.deleteTransaction('a');
+        expect(provider.periodExpense, Money.zero);
+
+        fake.failNoteWrites = true;
+        await expectLater(provider.restoreTransaction('a'), throwsStateError);
+
+        // As with delete, the row is already back and the list already
+        // reflects it -- the caller sees the relink's failure, but cached
+        // totals follow the DB write that in fact already succeeded.
+        expect(provider.transactions.single.id, 'a');
+        expect(provider.periodExpense, const Money(30000));
+        expect(provider.deletedTransactions, isEmpty);
+      });
+
+      test('deleting reopens the note in time for the notice, and restoring '
+          'relinks it, by the last notification of each (NOTE-5)', () async {
+        final fake = FakeDB(
+          transactions: [testTx('a', expense, 30, DateTime(2026, 9, 10))],
+          notes: [
+            testNote(
+              'n',
+              'Pay rent',
+              dueDate: DateTime(2026, 9, 20),
+            ).copyWith(transactionId: 'a', doneAt: DateTime(2026, 9, 10)),
+          ],
+        );
+        final provider = await loaded(fake);
+        var lastDueCount = provider.notesDueInPeriod.length;
+        provider.addListener(() {
+          lastDueCount = provider.notesDueInPeriod.length;
+        });
+        expect(lastDueCount, 0);
+
+        await provider.deleteTransaction('a');
+
+        // The note is reopened and due again by the last notification of
+        // the delete, not just once some later, unrelated change notifies
+        // (data-integrity#12).
+        expect(lastDueCount, 1);
+        expect(provider.notesDueInPeriod.single.id, 'n');
+
+        await provider.restoreTransaction('a');
+
+        // Restoring relinks and marks it done again, gone from the notice
+        // by the last notification of the restore.
+        expect(lastDueCount, 0);
+        expect(provider.notesDueInPeriod, isEmpty);
+      });
+
+      test('updating a transaction updates totals even when attachment cleanup '
+          'fails afterward', () async {
+        final fake = FakeDB(
+          transactions: [
+            testTx(
+              'a',
+              expense,
+              10,
+              DateTime(2026, 9, 10),
+            ).copyWith(photoFile: 'old.jpg'),
+          ],
+        );
+        final attachments = FakeAttachments();
+        final provider = TransactionProvider(
+          db: fake,
+          clock: () => today,
+          attachments: attachments,
+        );
+        await provider.load();
+        expect(provider.periodExpense, const Money(10000));
+
+        // Only now, so [load]'s own trash cleanup isn't what throws.
+        attachments.deleteAllThrows = true;
+        await expectLater(
+          provider.updateTransaction(
+            provider.transactions.single.copyWith(
+              amount: const Money(50000),
+              photoFile: null,
+            ),
+          ),
+          throwsStateError,
+        );
+
+        expect(provider.periodExpense, const Money(50000));
+      });
+    },
+  );
+
+  group('a refused downgrade open (x-downgrade-message)', () {
+    test('load finishes, frees whenLoaded, and records the error instead of '
+        'hanging or throwing', () async {
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      final load = provider.load();
+      await expectLater(provider.whenLoaded, completes);
+      await load;
+
+      expect(provider.loadError, isA<DatabaseDowngradeError>());
+      expect(provider.isLoaded, isFalse);
+      expect(provider.transactions, isEmpty);
+    });
+
+    test('a later, successful load clears the error', () async {
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+      await provider.load();
+      expect(provider.loadError, isNotNull);
+
+      fake.failLoadWith = null;
+      await provider.load();
+
+      expect(provider.loadError, isNull);
+      expect(provider.isLoaded, isTrue);
+    });
+
+    test('does not log the failure: DatabaseTooNewScreen already explains '
+        'it', () async {
+      final logged = <String>[];
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logged.add(message);
+      };
+      addTearDown(() => debugPrint = debugPrintThrottled);
+      final fake = FakeDB()..failLoadWith = DatabaseDowngradeError(11, 10);
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      await provider.load();
+
+      expect(logged, isEmpty);
+    });
+
+    test('any other load failure is logged, since nothing else would show '
+        'it (x-downgrade-message)', () async {
+      final logged = <String>[];
+      debugPrint = (message, {wrapWidth}) {
+        if (message != null) logged.add(message);
+      };
+      addTearDown(() => debugPrint = debugPrintThrottled);
+      final fake = FakeDB()..failLoadWith = StateError('disk full');
+      final provider = TransactionProvider(db: fake, clock: () => today);
+
+      await provider.load();
+
+      expect(provider.loadError, isA<StateError>());
+      expect(logged, contains(contains('TransactionProvider.load failed')));
+    });
+  });
+
   group('the day Home shows (DAY-1, DAY-3, DAY-5, DAY-6, DAY-9)', () {
     test('it opens on today', () async {
       final provider = await loaded(FakeDB());
@@ -858,6 +1099,311 @@ void main() {
 
       await provider.archiveAccount('shoebox');
       expect(provider.accountsTotal, const Money(320000));
+    });
+  });
+
+  group(
+    'balances, trend, and days used stay fast at scale (lifecycle-perf#10)',
+    () {
+      const accountCount = 30;
+      const txCount = 8000;
+      const transferCount = 500;
+
+      List<Account> bigAccounts() => [
+        for (var i = 0; i < accountCount; i++)
+          testAccount('acct-$i', opening: 100),
+      ];
+      List<ExpenseTransaction> bigTransactions() => [
+        for (var i = 0; i < txCount; i++)
+          testTx(
+            'tx-$i',
+            i.isEven ? expense : income,
+            10,
+            DateTime(2020).add(Duration(days: i % 2000)),
+            accountId: 'acct-${i % accountCount}',
+          ),
+      ];
+      List<Transfer> bigTransfers() => [
+        for (var i = 0; i < transferCount; i++)
+          testTransfer(
+            'tr-$i',
+            'acct-${i % accountCount}',
+            'acct-${(i + 1) % accountCount}',
+            5,
+            DateTime(2020).add(Duration(days: i % 2000)),
+          ),
+      ];
+
+      test('accountsTotal computes every balance in one pass and caches it '
+          '(ACC-4, ACC-10, lifecycle-perf#10)', () async {
+        // A wall-clock budget is thin on a loaded machine and proves nothing
+        // about *why* a read was fast. Counting clock reads instead proves
+        // the thing the finding is about directly: a second, unchanged read
+        // must not rescan every transaction and transfer (each of which
+        // used to read the clock once) again, only re-check what day it is.
+        var clockCalls = 0;
+        final provider = TransactionProvider(
+          db: FakeDB(
+            accounts: bigAccounts(),
+            transactions: bigTransactions(),
+            transfers: bigTransfers(),
+          ),
+          clock: () {
+            clockCalls++;
+            return today;
+          },
+        );
+        await provider.load();
+
+        clockCalls = 0;
+        final total1 = provider.accountsTotal;
+        final firstReadCalls = clockCalls;
+
+        clockCalls = 0;
+        final total2 = provider.accountsTotal;
+
+        expect(total2, total1);
+        expect(
+          firstReadCalls,
+          lessThan(txCount),
+          reason:
+              'accountsTotal read the clock $firstReadCalls times for '
+              '$accountCount accounts / $txCount transactions on its first '
+              'read — once per transaction or transfer means the day is '
+              'being rechecked in the hot loop instead of once for the '
+              'whole read.',
+        );
+        expect(
+          clockCalls,
+          lessThanOrEqualTo(1),
+          reason:
+              'a second, unchanged read made $clockCalls clock calls — it '
+              'should reuse the cached balances (bar one check that today '
+              'is still the day they were built for) instead of rescanning '
+              'every transaction and transfer again.',
+        );
+      });
+
+      test('a save invalidates the cached balances, so the new one counts '
+          '(ACC-4, ACC-10)', () async {
+        final provider = await loaded(
+          FakeDB(accounts: [testAccount(cash, opening: 100)]),
+        );
+        expect(provider.accountBalance(cash), const Money(100000));
+
+        await provider.addTransaction(
+          testTx('a', income, 50, DateTime(2026, 9, 10)),
+        );
+        expect(provider.accountBalance(cash), const Money(150000));
+      });
+
+      test('accountBalance matches a plain per-account scan (equivalence, '
+          'ACC-4, ACC-10)', () async {
+        // A small, mixed dataset (past, future, and a transfer either way)
+        // run through the naive, pre-caching algorithm by hand, to prove the
+        // single-pass, cached one gives the same answer.
+        final accounts = [
+          testAccount(cash, opening: 100),
+          testAccount('bank', opening: 50, on: DateTime(2026, 9, 20)),
+        ];
+        final transactions = [
+          testTx('a', income, 20, DateTime(2026, 9, 1), accountId: cash),
+          testTx('b', expense, 5, DateTime(2026, 9, 2), accountId: cash),
+          // Dated ahead: doesn't count yet (BAL-4).
+          testTx('c', income, 999, DateTime(2026, 9, 25), accountId: cash),
+          testTx('d', income, 30, DateTime(2026, 9, 10), accountId: 'bank'),
+        ];
+        final transfers = [
+          testTransfer('t', cash, 'bank', 10, DateTime(2026, 9, 5)),
+          // Dated ahead: doesn't count yet either.
+          testTransfer('u', 'bank', cash, 40, DateTime(2026, 9, 30)),
+        ];
+        final provider = await loaded(
+          FakeDB(
+            accounts: accounts,
+            transactions: transactions,
+            transfers: transfers,
+          ),
+        );
+
+        Money naiveBalance(String id) {
+          final account = accounts.firstWhere((a) => a.id == id);
+          var balance = !account.openingDate.isAfter(today)
+              ? account.openingBalance
+              : Money.zero;
+          for (final tx in transactions) {
+            if (tx.accountId != id || tx.date.isAfter(today)) continue;
+            balance += tx.type == income ? tx.amount : -tx.amount;
+          }
+          for (final transfer in transfers) {
+            if (transfer.date.isAfter(today)) continue;
+            if (transfer.fromAccountId == id) balance -= transfer.amount;
+            if (transfer.toAccountId == id) balance += transfer.amount;
+          }
+          return balance;
+        }
+
+        expect(provider.accountBalance(cash), naiveBalance(cash));
+        expect(provider.accountBalance('bank'), naiveBalance('bank'));
+      });
+
+      test('trend caches its result for a repeated read with the same count '
+          '(INS-2)', () async {
+        final provider = await loaded(
+          FakeDB(transactions: bigTransactions(), accounts: bigAccounts()),
+        );
+
+        final trend1 = provider.trend(12);
+
+        final second = Stopwatch()..start();
+        final trend2 = provider.trend(12);
+        second.stop();
+
+        // Caching means a repeated read is the very same list, not a
+        // rebuilt one that merely looks equal.
+        expect(trend2, same(trend1));
+        expect(
+          second.elapsedMilliseconds,
+          lessThan(50),
+          reason:
+              'a second trend(12) read took ${second.elapsedMilliseconds}ms '
+              '- it should reuse the cached periods instead of rescanning '
+              'every transaction again.',
+        );
+
+        await provider.addTransaction(
+          testTx('new', income, 5, DateTime(2026, 9, 11)),
+        );
+        final trend3 = provider.trend(12);
+        expect(
+          trend3,
+          isNot(same(trend1)),
+          reason: 'a save must invalidate the cache',
+        );
+      });
+
+      test(
+        'daysUsed caches its result until the next change (NUDGE-3)',
+        () async {
+          final provider = await loaded(
+            FakeDB(transactions: bigTransactions()),
+          );
+
+          final first = provider.daysUsed;
+          final second = provider.daysUsed;
+          expect(second, same(first));
+
+          await provider.addTransaction(
+            testTx('new', income, 5, DateTime(2026, 9, 11)),
+          );
+          expect(provider.daysUsed, isNot(same(first)));
+        },
+      );
+
+      test('the day turning over recomputes cached balances and trend with no '
+          'save at all (BAL-4, lifecycle-perf#10)', () async {
+        // A transaction dated tomorrow doesn't count yet (BAL-4). Once the
+        // clock alone crosses into that day — nothing added, changed or
+        // deleted — a cache keyed only on the last save would keep
+        // excluding it until some unrelated write happened to clear it.
+        var now = today;
+        final provider = TransactionProvider(
+          db: FakeDB(
+            accounts: [testAccount(cash, opening: 100)],
+            transactions: [testTx('a', income, 50, DateTime(2026, 9, 16))],
+          ),
+          clock: () => now,
+        );
+        await provider.load();
+
+        expect(provider.accountBalance(cash), const Money(100000));
+        expect(provider.accountsTotal, const Money(100000));
+        expect(provider.trend(1).single.income, Money.zero);
+
+        now = DateTime(2026, 9, 16, 0, 5);
+
+        expect(provider.accountBalance(cash), const Money(150000));
+        expect(provider.accountsTotal, const Money(150000));
+        expect(provider.trend(1).single.income, const Money(50000));
+      });
+
+      test('daysUsed credits an entry to its local calendar day, not the UTC '
+          'one createdAt is stamped in (money-time#8)', () async {
+        // createdAt is always UTC. Late evening UTC rolls into the next
+        // calendar day for anyone east of UTC (this machine's own zone
+        // among them), so a naive read of the UTC year/month/day would
+        // credit the entry to the wrong day and could wrongly mark that
+        // later day as already recorded on (NUDGE-3, NUDGE-5).
+        final utcEvening = DateTime.utc(2026, 9, 25, 22);
+        final localDay = DateTime(
+          utcEvening.toLocal().year,
+          utcEvening.toLocal().month,
+          utcEvening.toLocal().day,
+        );
+        final utcDay = DateTime(
+          utcEvening.year,
+          utcEvening.month,
+          utcEvening.day,
+        );
+
+        final provider = await loaded(
+          FakeDB(
+            transactions: [
+              testTx(
+                'evening',
+                expense,
+                5,
+                DateTime(2026, 9, 25),
+              ).copyWith(createdAt: utcEvening, updatedAt: utcEvening),
+            ],
+          ),
+        );
+
+        expect(provider.daysUsed, contains(localDay));
+        if (localDay != utcDay) {
+          expect(provider.daysUsed, isNot(contains(utcDay)));
+        }
+      });
+    },
+  );
+
+  group('the previous-period comparison bound (INS-6, pr56+60#4)', () {
+    test('is not applied once the selected period is already over', () async {
+      // Today is 1 March: February, the selected period, is over. The
+      // old-code bound (elapsed days into February, applied to January)
+      // would cut January off at the 29th and drop the 30th and 31st.
+      final provider = await loaded(
+        FakeDB(
+          transactions: [
+            testTx('a', expense, 40, DateTime(2026, 1, 30)),
+            testTx('b', expense, 20, DateTime(2026, 1, 31)),
+            testTx('c', expense, 10, DateTime(2026, 2, 5)),
+          ],
+        ),
+        now: DateTime(2026, 3, 1),
+      );
+      provider.previousPeriod();
+
+      expect(
+        provider.previousExpenseByCategory['cat-food'],
+        const Money(60000),
+      );
+    });
+
+    test('is still applied while the selected period is in progress', () async {
+      final provider = await loaded(
+        FakeDB(
+          transactions: [
+            testTx('a', expense, 40, DateTime(2026, 1, 30)),
+            testTx('b', expense, 20, DateTime(2026, 1, 31)),
+          ],
+        ),
+        now: DateTime(2026, 2, 5),
+      );
+
+      // 5 days into February bounds January to the 1st-5th, so the 30th
+      // and 31st stay excluded here.
+      expect(provider.previousExpenseByCategory['cat-food'], isNull);
     });
   });
 }

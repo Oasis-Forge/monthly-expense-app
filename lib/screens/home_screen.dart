@@ -183,6 +183,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ...provider.groupedByDay.keys,
             ...provider.transfersByDay.keys,
           }.toList()..sort((a, b) => b.compareTo(a)));
+    // EMPTY-4: an empty day list because the account filter hides every row
+    // is not the same as an empty period, and says so with a way back.
+    final filterHidesRecords =
+        chosenAccount != null &&
+        days.isEmpty &&
+        (provider.everyAccountPeriodTransactions.isNotEmpty ||
+            provider.everyAccountPeriodTransfers.isNotEmpty);
     final dueCount = provider.dueOccurrences.length;
     final budgetStatuses = provider.budgetStatuses;
     final budgetSummary = BudgetSummary.of(budgetStatuses);
@@ -365,7 +372,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     SliverFillRemaining(
                       // The empty message needs no more than the screen it is on.
                       hasScrollBody: true,
-                      child: Center(child: Text(l10n.emptyPeriod)),
+                      child: Center(
+                        child: _EmptyDayList(
+                          l10n: l10n,
+                          filteredByAccount: filterHidesRecords,
+                          onShowAllAccounts: () {
+                            provider.selectAccountFilter(null);
+                            unawaited(settings.setAccountFilterId(null));
+                          },
+                        ),
+                      ),
                     )
                   else ...[
                     // BUD-7: at the top of the list, so opening it scrolls
@@ -384,7 +400,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       SliverToBoxAdapter(
                         child: Padding(
                           padding: const EdgeInsets.all(32),
-                          child: Center(child: Text(l10n.emptyPeriod)),
+                          child: Center(
+                            child: _EmptyDayList(
+                              l10n: l10n,
+                              filteredByAccount: filterHidesRecords,
+                              onShowAllAccounts: () {
+                                provider.selectAccountFilter(null);
+                                unawaited(settings.setAccountFilterId(null));
+                              },
+                            ),
+                          ),
                         ),
                       ),
                     SliverList(
@@ -615,6 +640,42 @@ class _FirstRun extends StatelessWidget {
   }
 }
 
+/// The day list's empty message: a period with nothing in it (EMPTY-3), or,
+/// while an account filter hides rows the unfiltered period does have
+/// (EMPTY-4, ACC-6), a message that says so and a one-tap way back to every
+/// account rather than reading as an empty period that isn't one.
+class _EmptyDayList extends StatelessWidget {
+  const _EmptyDayList({
+    required this.l10n,
+    required this.filteredByAccount,
+    required this.onShowAllAccounts,
+  });
+
+  final AppLocalizations l10n;
+  final bool filteredByAccount;
+  final VoidCallback onShowAllAccounts;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text(
+        filteredByAccount
+            ? l10n.emptyPeriodFilteredByAccount
+            : l10n.emptyPeriod,
+        textAlign: TextAlign.center,
+      ),
+      if (filteredByAccount) ...[
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: onShowAllAccounts,
+          child: Text(l10n.allAccountsFilter),
+        ),
+      ],
+    ],
+  );
+}
+
 /// The period's budgets in one card: a line until it's opened, then every
 /// budget's bar, as in Insights (BUD-7, BUD-8).
 class _BudgetsCard extends StatelessWidget {
@@ -637,12 +698,7 @@ class _BudgetsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final color = switch (summary.level) {
-      BudgetLevel.ok => theme.colorScheme.primary,
-      BudgetLevel.warning => Colors.orange,
-      BudgetLevel.over => theme.colorScheme.error,
-    };
+    final color = budgetLevelColor(context, summary.level);
     // A future period has only its limits, so there's nothing used yet
     // (BUD-6).
     final line = summary.timing == PeriodTiming.future
@@ -857,6 +913,10 @@ class _SummaryHeader extends SliverPersistentHeaderDelegate {
       // below it have already changed.
       old.currency.currencySymbol != currency.currencySymbol ||
       old.currency.locale != currency.locale ||
+      // A currency switch between two that share a symbol (USD to CLP, JPY
+      // to CNY) changes no symbol or locale but does change the decimals
+      // (CUR-2), which the card must still pick up (CUR-3, pr61#4).
+      old.currency.decimalDigits != currency.decimalDigits ||
       // BAL-8: without these two the lead line would render once and then
       // never move again, with nothing to say so.
       old.heroLine?.kind != heroLine?.kind ||
@@ -1234,6 +1294,19 @@ class _AmountTile extends StatelessWidget {
   }
 }
 
+/// The day header's date and its "nothing recorded" line (DAY-7): a fixed
+/// grey, darker in the light theme and lighter in the dark one, so each
+/// clears 4.5:1 against the card's surface and surfaceContainerLow (A11Y-3).
+/// Colors.grey.shade600 cleared neither.
+const dayHeaderInkLight = 0xFF616161;
+const dayHeaderInkDark = 0xFF9E9E9E;
+
+Color dayHeaderColor(BuildContext context) => Color(
+  Theme.of(context).brightness == Brightness.dark
+      ? dayHeaderInkDark
+      : dayHeaderInkLight,
+);
+
 /// One day's entries under its date, with what the day came to (DAY-7). A
 /// day chosen in the strip is shown even when it holds nothing.
 class _DaySection extends StatelessWidget {
@@ -1270,7 +1343,7 @@ class _DaySection extends StatelessWidget {
                 child: Text(
                   DateFormat.yMMMd(l10n.localeName).format(day),
                   style: theme.textTheme.labelLarge?.copyWith(
-                    color: Colors.grey.shade600,
+                    color: dayHeaderColor(context),
                   ),
                 ),
               ),
@@ -1279,7 +1352,7 @@ class _DaySection extends StatelessWidget {
               if (dayTotals.income.isPositive)
                 _DayTotal(
                   amount: dayTotals.income,
-                  color: incomeColor(context),
+                  isIncome: true,
                   currency: currency,
                 ),
               if (dayTotals.income.isPositive && dayTotals.expense.isPositive)
@@ -1287,7 +1360,7 @@ class _DaySection extends StatelessWidget {
               if (dayTotals.expense.isPositive)
                 _DayTotal(
                   amount: dayTotals.expense,
-                  color: expenseColor(context),
+                  isIncome: false,
                   currency: currency,
                 ),
             ],
@@ -1299,7 +1372,7 @@ class _DaySection extends StatelessWidget {
             child: Text(
               l10n.dayEmpty,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.grey.shade600,
+                color: dayHeaderColor(context),
               ),
             ),
           ),
@@ -1313,23 +1386,28 @@ class _DaySection extends StatelessWidget {
 }
 
 /// One side of a day's total, coloured like the summary card's (DAY-7).
+///
+/// A11Y-4: nothing here carries meaning by colour alone. The sign, not just
+/// the ink, says which side this is (CUR-5).
 class _DayTotal extends StatelessWidget {
   const _DayTotal({
     required this.amount,
-    required this.color,
+    required this.isIncome,
     required this.currency,
   });
 
   final Money amount;
-  final Color color;
+  final bool isIncome;
   final NumberFormat currency;
 
   @override
   Widget build(BuildContext context) {
     return Text(
-      currency.money(amount),
-      style: amountStyle(Theme.of(context).textTheme.labelLarge)
-          .copyWith(color: color, fontWeight: FontWeight.w600),
+      signedAmount(currency, amount, isIncome: isIncome),
+      style: amountStyle(Theme.of(context).textTheme.labelLarge).copyWith(
+        color: signedColor(context, isIncome: isIncome),
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }
@@ -1488,5 +1566,8 @@ Future<void> _acceptNudge(BuildContext context) async {
     appLockOn: settings.appLock,
     locale: effectiveAppLocale(settings.locale),
     nudge: settings.nudgeSettings,
+    currency: settings.currencyFormat(
+      effectiveAppLocale(settings.locale).toLanguageTag(),
+    ),
   );
 }

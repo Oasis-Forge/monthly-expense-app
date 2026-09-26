@@ -28,6 +28,10 @@ class AppLocalizationsBn extends AppLocalizations {
   String get emptyPeriod => 'এই মেয়াদে এখনো কোনো লেনদেন নেই।';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'এই সময়কালে এই অ্যাকাউন্টের জন্য কিছুই নেই।';
+
+  @override
   String get balanceLabel => 'ব্যালেন্স';
 
   @override
@@ -390,6 +394,54 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'এই নামটি আগে থেকেই ব্যবহৃত';
+
+  @override
+  String get categoryColorPurple => 'বেগুনি';
+
+  @override
+  String get categoryColorTeal => 'টিল';
+
+  @override
+  String get categoryColorRust => 'মরিচা রঙ';
+
+  @override
+  String get categoryColorBlue => 'নীল';
+
+  @override
+  String get categoryColorPink => 'গোলাপি';
+
+  @override
+  String get categoryColorGreen => 'সবুজ';
+
+  @override
+  String get categoryColorMagenta => 'ম্যাজেন্টা';
+
+  @override
+  String get categoryColorCyan => 'সায়ান';
+
+  @override
+  String get categoryColorBrown => 'বাদামী';
+
+  @override
+  String get categoryColorIndigo => 'নীলাভ বেগুনি';
+
+  @override
+  String get categoryColorRed => 'লাল';
+
+  @override
+  String get categoryColorSlate => 'স্লেট রঙ';
+
+  @override
+  String get categoryColorOrange => 'কমলা';
+
+  @override
+  String get categoryColorEmerald => 'পান্না সবুজ';
+
+  @override
+  String get categoryColorViolet => 'ভায়োলেট';
+
+  @override
+  String get categoryColorRaspberry => 'রাস্পবেরি';
 
   @override
   String get archiveAction => 'আর্কাইভ করুন';
@@ -1114,6 +1166,13 @@ class AppLocalizationsBn extends AppLocalizations {
       'ব্যাকআপ রিস্টোর করা যায়নি। আপনার ডেটা অপরিবর্তিত আছে।';
 
   @override
+  String get dbTooNewTitle => 'আপডেট প্রয়োজন';
+
+  @override
+  String get dbTooNewMessage =>
+      'এই ডেটা অ্যাপের একটি নতুন সংস্করণ দিয়ে সংরক্ষিত হয়েছে। চালিয়ে যাওয়ার জন্য স্টোর থেকে অ্যাপটি আপডেট করুন।';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1143,6 +1202,12 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expenses আনলক করুন';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'আপনার পরিচয় নিশ্চিত করুন';
 
   @override
   String get appLockFailed =>
@@ -1302,6 +1367,9 @@ class AppLocalizationsBn extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'একটি নোট বাকি আছে';
+
+  @override
+  String get noteReminderChannelName => 'নোট রিমাইন্ডার';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1770,13 +1838,27 @@ class AppLocalizationsBn extends AppLocalizations {
   String get dueEntryReminderTitle => 'এন্ট্রি বকেয়া ছিল';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  String get dueEntryChannelName => 'বকেয়া এন্ট্রি';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'একটি পুনরাবৃত্ত এন্ট্রি আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) $date বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'একটি পুনরাবৃত্ত এন্ট্রি ($amount) আজ বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'একটি পুনরাবৃত্ত এন্ট্রি ($amount) $date বকেয়া ছিল এবং এখনও অপেক্ষা করছে।';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1791,7 +1873,22 @@ class AppLocalizationsBn extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countটি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।',
+      one: '1টি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।',
+      zero: '$countটি পুনরাবৃত্ত এন্ট্রি অপেক্ষমাণ।',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'আজ কিছু রেকর্ড করা হয়নি';
+
+  @override
+  String get emptyDayChannelName => 'রেকর্ড ছাড়া দিন';
 
   @override
   String get emptyDayReminderBody =>

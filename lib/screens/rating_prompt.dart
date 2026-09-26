@@ -24,14 +24,26 @@ Future<void> Function() ratingRequest(BuildContext context) {
     if (!reviews.supported) return;
     final version = await reviews.version();
 
+    final askedOn = settings.updateAskedOn?.toLocal();
+    final today = transactions.today;
+    final updateAskedToday =
+        askedOn != null &&
+        askedOn.year == today.year &&
+        askedOn.month == today.month &&
+        askedOn.day == today.day;
+
     final due = ratingIsDue(
-      entries: transactions.transactions.length,
+      // RATE-1's "recorded at least fifteen entries" means entries typed
+      // in and saved by hand, not a row a recurring rule posted on its own
+      // (RCR-4), a CSV import brought in, or a backup restored (pr57#10).
+      entries: settings.manualEntriesRecorded,
       firstOpened: settings.firstOpenedAt,
-      now: transactions.today,
+      now: today,
       version: version,
       askedVersion: settings.ratingAskedVersion,
       locked: ads.locked,
       adShownThisSession: ads.interstitialShown,
+      updateAskedToday: updateAskedToday,
     );
     if (!due) return;
 

@@ -71,6 +71,24 @@ void main() {
     expect(find.text('EUR · Euro'), findsOneWidget);
   });
 
+  testWidgets('changing the currency reaches the already-scheduled reminders '
+      '(CUR-2, CUR-3, rules-23-26-34#9)', (tester) async {
+    final reminders = FakeReminderService();
+    provider = TransactionProvider(
+      db: FakeDB(),
+      clock: () => DateTime(2026, 9, 15),
+      reminders: reminders,
+    );
+    await provider.load();
+
+    await showSettings(tester);
+    await chooseEuro(tester);
+    await tester.tap(find.text('Change'));
+    await tester.pumpAndSettle();
+
+    expect(reminders.lastCurrency?.currencySymbol, '€');
+  });
+
   testWidgets('cancelling keeps the current currency', (tester) async {
     await showSettings(tester);
 
@@ -132,6 +150,18 @@ void main() {
     expect(settings.weekStartDay, 1);
   });
 
+  testWidgets("the default week start follows the device's region, not just "
+      'its language (PER-4, rules-1-5#5)', (tester) async {
+    // A phone set to English (UK) defaults to Monday, though the app's
+    // own language-only locale ('en') defaults to Sunday.
+    tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+    addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+    await showSettings(tester);
+
+    expect(find.text('Default (Monday)'), findsOneWidget);
+  });
+
   testWidgets('carrying the balance forward can be turned off (BAL-3)', (
     tester,
   ) async {
@@ -166,7 +196,11 @@ void main() {
 
   testWidgets('turning app lock on re-words the reminders already scheduled '
       'for notes (NOTE-6, LOCK-2)', (tester) async {
-    final reminders = FakeReminderService();
+    // Fixed, and before the note's reminder: otherwise, as real
+    // wall-clock time moves past this fixture's date, the reminder looks
+    // like one that already passed (NOTE-6) rather than the future one
+    // this test means to keep scheduled.
+    final reminders = FakeReminderService(now: () => DateTime(2026, 9, 15));
     provider = TransactionProvider(
       db: FakeDB(
         notes: [

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import 'empty_state.dart';
 import '../l10n/labels.dart';
+import '../l10n/languages.dart';
 import '../models/budget.dart';
 import '../models/insights.dart';
 import '../models/money.dart';
@@ -139,7 +140,7 @@ class _CategoriesTabState extends State<_CategoriesTab> {
     final previous = isExpense
         ? provider.previousExpenseByCategory
         : provider.previousIncomeByCategory;
-    final comparable = provider.hasEarlierRecords;
+    final comparable = provider.hasComparablePreviousPeriod;
     final difference =
         total - previous.values.fold(Money.zero, (a, b) => a + b);
     final percent = NumberFormat.percentPattern(l10n.localeName)
@@ -155,9 +156,16 @@ class _CategoriesTabState extends State<_CategoriesTab> {
         now: now,
       );
       if (share == null) return l10n.categoryNewLabel;
-      final rounded = percent.format(share);
-      if (rounded == percent.format(0)) return null;
-      return share > 0 ? '+$rounded' : rounded;
+      // A fall this small formats with intl's own minus, from the unrounded
+      // value, even once "0%" would print for a rise of the same size — so
+      // the magnitude, not the formatted string, decides whether to hide it.
+      if (share.abs() * 100 < 0.5) return null;
+      if (share < 0) return percent.format(share);
+      // A rise: format the negated share so the language's own negative
+      // pattern places the sign against its digits, then swap that minus for
+      // a plus the same way signedMoney does, rather than paste one in front
+      // where bidi could carry it off (LANG-5, CUR-5).
+      return swapMinusForPlus(percent.format(-share), percent.locale);
     }
 
     return ListView(
@@ -209,8 +217,13 @@ class _CategoriesTabState extends State<_CategoriesTab> {
                     PieChartSectionData(
                       value: entries[i].value.toDouble(),
                       color: swatches[i],
-                      title:
-                          '${(entries[i].value.thousandths / total.thousandths * 100).toStringAsFixed(0)}%',
+                      // LANG-3: the language's own digits and percent sign,
+                      // the same formatter the change label beside each
+                      // category already uses, rather than Latin digits and
+                      // a hard-coded '%'.
+                      title: percent.format(
+                        entries[i].value.thousandths / total.thousandths,
+                      ),
                       radius: 70,
                       titleStyle: const TextStyle(
                         fontSize: 12,
@@ -251,23 +264,26 @@ class _CategoriesTabState extends State<_CategoriesTab> {
               title: Text(
                 provider.categoryById(entries[i].key)?.label(l10n) ?? '',
               ),
-              trailing: Column(
+              // INS-6: what it was doing last month, beside what it is doing
+              // now — a Row, not a Column, so the tile stays one line tall
+              // and doesn't overflow ListTile's fixed trailing height at a
+              // large text scale (pr56+60#5). Left in the ordinary colour:
+              // red and green already mean money out and money in (CUR-5),
+              // and a second meaning for them would cost the first.
+              trailing: Row(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(currency.money(entries[i].value), style: amountStyle()),
-                  // INS-6: what it was doing last month, beside what it is
-                  // doing now. Left in the ordinary colour: red and green
-                  // already mean money out and money in (CUR-5), and a
-                  // second meaning for them would cost the first.
                   if (changeLabel(entries[i].key, entries[i].value)
-                      case final change?)
+                      case final change?) ...[
                     Text(
                       change,
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(width: 6),
+                  ],
+                  Text(currency.money(entries[i].value), style: amountStyle()),
                 ],
               ),
             ),
@@ -298,10 +314,15 @@ class _CalendarTabState extends State<_CalendarTab> {
     final compact = settings.compactCurrencyFormat(locale);
     final period = provider.period;
     final today = provider.today;
-    // PER-4: the chosen first day of the week, else the locale's (0 is
-    // Sunday).
+    // PER-4: the chosen first day of the week, else the device's own
+    // region when it matches the app's language, else the language's own
+    // (0 is Sunday).
     final firstWeekday =
         settings.weekStartDay ??
+        deviceWeekStartIndex(
+          WidgetsBinding.instance.platformDispatcher.locales,
+          Localizations.localeOf(context).languageCode,
+        ) ??
         MaterialLocalizations.of(context).firstDayOfWeekIndex;
     final days = [
       for (
@@ -390,7 +411,7 @@ class _DayCell extends StatelessWidget {
 
   final String label;
   final DayTotals? totals;
-  final NumberFormat compact;
+  final CompactCurrencyFormat compact;
   final bool isToday;
   final bool isSelected;
   final bool isUpcoming;
@@ -410,11 +431,15 @@ class _DayCell extends StatelessWidget {
       side: isToday ? BorderSide(color: scheme.primary) : BorderSide.none,
     );
 
-    Widget amount(Money value, Color color) => FittedBox(
+    // A11Y-4: nothing here carries meaning by colour alone. Each side of the
+    // day's total gets its sign in front of it, the same way every other
+    // amount in the app does (CUR-5).
+    Widget amount(Money value, {required bool isIncome}) => FittedBox(
       fit: BoxFit.scaleDown,
       child: Text(
-        compact.format(value.toDouble()),
-        style: amountStyle(small).copyWith(color: color),
+        compact.signedFormat(value.toDouble(), isIncome: isIncome),
+        style: amountStyle(small)
+            .copyWith(color: signedColor(context, isIncome: isIncome)),
       ),
     );
 
@@ -449,10 +474,12 @@ class _DayCell extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (totals != null && totals.expense.isPositive)
-                        amount(totals.expense, expenseColor(context)),
+                      // Income before expense, the same order Home uses for
+                      // a day's total (DAY-7).
                       if (totals != null && totals.income.isPositive)
-                        amount(totals.income, incomeColor(context)),
+                        amount(totals.income, isIncome: true),
+                      if (totals != null && totals.expense.isPositive)
+                        amount(totals.expense, isIncome: false),
                     ],
                   ),
                 ),
@@ -645,11 +672,14 @@ class _TrendTabState extends State<_TrendTab> {
     // A period is named after the month holding its middle day, so
     // "Aug 25 – Sep 24" reads as Sep.
     final monthFormat = DateFormat.MMM(locale);
+    // Calendar days, not elapsed time (money-time#9): a period that spans a
+    // DST change is an hour short or long, and .difference().inDays would
+    // drop the midpoint by a day and mislabel the bar's month.
     String shortLabel(Period period) => monthFormat.format(
       DateTime(
         period.start.year,
         period.start.month,
-        period.start.day + period.end.difference(period.start).inDays ~/ 2,
+        period.start.day + daysBetween(period.start, period.end) ~/ 2,
       ),
     );
     final rodWidth = _count == 6 ? 10.0 : 5.0;
@@ -712,12 +742,12 @@ class _TrendTabState extends State<_TrendTab> {
                     barRods: [
                       BarChartRodData(
                         toY: bars[i].income.toDouble(),
-                        color: Colors.green,
+                        color: incomeColor(context),
                         width: rodWidth,
                       ),
                       BarChartRodData(
                         toY: bars[i].expense.toDouble(),
-                        color: Colors.red,
+                        color: expenseColor(context),
                         width: rodWidth,
                       ),
                     ],
@@ -744,9 +774,16 @@ class _TrendTabState extends State<_TrendTab> {
               ),
               barTouchData: BarTouchData(
                 touchTooltipData: BarTouchTooltipData(
+                  // A11Y-4: the tooltip carries the sign too, not only the
+                  // bar's colour (CUR-5). rodIndex 0 is income, 1 expense,
+                  // matching the order the bars were built in above.
                   getTooltipItem: (group, groupIndex, rod, rodIndex) =>
                       BarTooltipItem(
-                        currency.money(Money((rod.toY * 1000).round())),
+                        signedAmount(
+                          currency,
+                          Money((rod.toY * 1000).round()),
+                          isIncome: rodIndex == 0,
+                        ),
                         amountStyle(
                           const TextStyle(
                             color: Colors.white,

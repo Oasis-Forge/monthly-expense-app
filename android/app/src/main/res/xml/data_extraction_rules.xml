@@ -6,9 +6,12 @@
   leave the phone through an export or a backup the user asked for, and no
   other way (BAK-6).
 
-  Moving to a new phone still carries them: that is the user taking their own
-  data with them, not a copy left somewhere. Device transfer is therefore left
-  as it is, and only cloud backup is refused.
+  On Android 12 and up, moving to a new phone still carries them: that is the
+  user taking their own data with them, not a copy left somewhere, so device
+  transfer is left as it is there and only cloud backup is refused. On
+  Android 11 and below, allowBackup="false" also turns off device transfer,
+  so a phone-to-phone move does not carry them on those phones; a backup file
+  the app makes when asked is the way to bring them along.
 -->
 <data-extraction-rules>
     <cloud-backup>

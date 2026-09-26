@@ -172,6 +172,12 @@ abstract class AppLocalizations {
   /// **'No transactions in this period yet.'**
   String get emptyPeriod;
 
+  /// Home's empty-day-list message when an account filter hides every row this period, offered with a way back to every account (EMPTY-4, ACC-6).
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing for this account this period.'**
+  String get emptyPeriodFilteredByAccount;
+
   /// No description provided for @balanceLabel.
   ///
   /// In en, this message translates to:
@@ -765,6 +771,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That name is already used'**
   String get categoryNameTaken;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get categoryColorPurple;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Teal'**
+  String get categoryColorTeal;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Rust'**
+  String get categoryColorRust;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get categoryColorBlue;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Pink'**
+  String get categoryColorPink;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get categoryColorGreen;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Magenta'**
+  String get categoryColorMagenta;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Cyan'**
+  String get categoryColorCyan;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Brown'**
+  String get categoryColorBrown;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Indigo'**
+  String get categoryColorIndigo;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Red'**
+  String get categoryColorRed;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Slate'**
+  String get categoryColorSlate;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get categoryColorOrange;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Emerald'**
+  String get categoryColorEmerald;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Violet'**
+  String get categoryColorViolet;
+
+  /// The name of a category swatch colour, read by a screen reader (A11Y-2, rules-23-26-34#10).
+  ///
+  /// In en, this message translates to:
+  /// **'Raspberry'**
+  String get categoryColorRaspberry;
 
   /// No description provided for @archiveAction.
   ///
@@ -1942,6 +2044,18 @@ abstract class AppLocalizations {
   /// **'Couldn\'t restore the backup. Your data wasn\'t changed.'**
   String get backupRestoreFailed;
 
+  /// Title shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message).
+  ///
+  /// In en, this message translates to:
+  /// **'Update needed'**
+  String get dbTooNewTitle;
+
+  /// Message shown instead of Home when this build refuses to open a database a newer build already upgraded (x-downgrade-message).
+  ///
+  /// In en, this message translates to:
+  /// **'This data was saved by a newer version of the app. Update it from the store to continue.'**
+  String get dbTooNewMessage;
+
   /// No description provided for @restoredReplace.
   ///
   /// In en, this message translates to:
@@ -1977,6 +2091,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unlock Monthly Expenses'**
   String get appLockReason;
+
+  /// The system unlock prompt's title, kept distinct from appLockReason (its description), so the prompt does not show the same text twice (LOCK-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly Expenses'**
+  String get appLockTitle;
+
+  /// The subtitle under the app-lock prompt's title (LOCK-1).
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm it\'s you'**
+  String get appLockPromptHint;
 
   /// No description provided for @appLockFailed.
   ///
@@ -2271,6 +2397,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'A note is due'**
   String get noteReminderLockedTitle;
+
+  /// The Android notification channel for note reminders, shown in system settings (NUDGE-11).
+  ///
+  /// In en, this message translates to:
+  /// **'Note reminders'**
+  String get noteReminderChannelName;
 
   /// No description provided for @noteReminderPermissionDenied.
   ///
@@ -2980,17 +3112,35 @@ abstract class AppLocalizations {
   /// **'An entry was due'**
   String get dueEntryReminderTitle;
 
+  /// The Android notification channel for due recurring entries, shown in system settings (NUDGE-11).
+  ///
+  /// In en, this message translates to:
+  /// **'Entries that fell due'**
+  String get dueEntryChannelName;
+
   /// No description provided for @dueEntryReminderOne.
   ///
   /// In en, this message translates to:
-  /// **'{title} was due today and is still waiting.'**
-  String dueEntryReminderOne(String title);
+  /// **'{title} ({amount}) was due today and is still waiting.'**
+  String dueEntryReminderOne(String title, String amount);
+
+  /// The due-entry reminder body when the occurrence's day has already passed, so it names the actual day instead of saying 'today' (NUDGE-2, rules-23-26-34#9).
+  ///
+  /// In en, this message translates to:
+  /// **'{title} ({amount}) was due {date} and is still waiting.'**
+  String dueEntryReminderOneOverdue(String title, String amount, String date);
 
   /// No description provided for @dueEntryReminderUntitled.
   ///
   /// In en, this message translates to:
-  /// **'A repeating entry was due today and is still waiting.'**
-  String get dueEntryReminderUntitled;
+  /// **'A repeating entry ({amount}) was due today and is still waiting.'**
+  String dueEntryReminderUntitled(String amount);
+
+  /// Like dueEntryReminderUntitled, but the occurrence's day has already passed (NUDGE-2, rules-23-26-34#9).
+  ///
+  /// In en, this message translates to:
+  /// **'A repeating entry ({amount}) was due {date} and is still waiting.'**
+  String dueEntryReminderUntitledOverdue(String amount, String date);
 
   /// No description provided for @dueEntryReminderMany.
   ///
@@ -2998,11 +3148,23 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 repeating entry was due today.} other{{count} repeating entries were due today.}}'**
   String dueEntryReminderMany(int count);
 
+  /// Like dueEntryReminderMany, but for a group where at least one occurrence was carried over from an earlier, unhandled day, so the notification does not claim they were all due today (rules-23-26-34#9).
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 repeating entry is waiting.} other{{count} repeating entries are waiting.}}'**
+  String dueEntryReminderManyWaiting(int count);
+
   /// No description provided for @emptyDayReminderTitle.
   ///
   /// In en, this message translates to:
   /// **'Nothing recorded today'**
   String get emptyDayReminderTitle;
+
+  /// The Android notification channel for empty-day nudges, shown in system settings (NUDGE-11).
+  ///
+  /// In en, this message translates to:
+  /// **'Days with nothing recorded'**
+  String get emptyDayChannelName;
 
   /// No description provided for @emptyDayReminderBody.
   ///

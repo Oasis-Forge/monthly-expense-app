@@ -28,6 +28,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get emptyPeriod => '이 기간에는 아직 내역이 없어요.';
 
   @override
+  String get emptyPeriodFilteredByAccount => '이 기간 동안 이 계정에는 아무것도 없습니다.';
+
+  @override
   String get balanceLabel => '잔액';
 
   @override
@@ -382,6 +385,54 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get categoryNameTaken => '이미 사용 중인 이름이에요';
+
+  @override
+  String get categoryColorPurple => '보라색';
+
+  @override
+  String get categoryColorTeal => '청록색';
+
+  @override
+  String get categoryColorRust => '녹슨 색';
+
+  @override
+  String get categoryColorBlue => '파란색';
+
+  @override
+  String get categoryColorPink => '분홍색';
+
+  @override
+  String get categoryColorGreen => '초록색';
+
+  @override
+  String get categoryColorMagenta => '마젠타';
+
+  @override
+  String get categoryColorCyan => '시안색';
+
+  @override
+  String get categoryColorBrown => '갈색';
+
+  @override
+  String get categoryColorIndigo => '남색';
+
+  @override
+  String get categoryColorRed => '빨간색';
+
+  @override
+  String get categoryColorSlate => '슬레이트색';
+
+  @override
+  String get categoryColorOrange => '주황색';
+
+  @override
+  String get categoryColorEmerald => '에메랄드색';
+
+  @override
+  String get categoryColorViolet => '진보라색';
+
+  @override
+  String get categoryColorRaspberry => '라즈베리색';
 
   @override
   String get archiveAction => '보관';
@@ -1082,6 +1133,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get backupRestoreFailed => '백업을 복원하지 못했어요. 데이터는 바뀌지 않았어요.';
 
   @override
+  String get dbTooNewTitle => '업데이트 필요';
+
+  @override
+  String get dbTooNewMessage =>
+      '이 데이터는 더 최신 버전의 앱에서 저장되었습니다. 계속하려면 스토어에서 앱을 업데이트하세요.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1108,6 +1166,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get appLockReason => 'Monthly Expenses 잠금 해제';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => '본인 확인';
 
   @override
   String get appLockFailed => '본인 확인에 실패했어요. 앱 잠금이 변경되지 않았어요.';
@@ -1264,6 +1328,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => '메모 기한이 되었어요';
+
+  @override
+  String get noteReminderChannelName => '메모 알림';
 
   @override
   String get noteReminderPermissionDenied => '메모 알림을 받으려면 시스템 설정에서 알림을 켜세요.';
@@ -1715,12 +1782,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get dueEntryReminderTitle => '예정된 입력이 있었습니다';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title이(가) 오늘 예정이었고 아직 대기 중입니다.';
+  String get dueEntryChannelName => '기한이 지난 입력';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title($amount)이(가) 오늘 예정이었고 아직 대기 중입니다.';
   }
 
   @override
-  String get dueEntryReminderUntitled => '반복 항목이 오늘 예정이었고 아직 대기 중입니다.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title($amount)이(가) $date 예정이었고 아직 대기 중입니다.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return '반복 항목($amount)이 오늘 예정이었고 아직 대기 중입니다.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return '반복 항목($amount)이 $date 예정이었고 아직 대기 중입니다.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1734,7 +1816,21 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '대기 중인 반복 항목이 $count개 있습니다.',
+      one: '대기 중인 반복 항목이 $count개 있습니다.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => '오늘 기록된 내용이 없습니다';
+
+  @override
+  String get emptyDayChannelName => '기록이 없는 날';
 
   @override
   String get emptyDayReminderBody => '기억이 남아 있을 때 지출을 추가하세요.';

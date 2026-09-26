@@ -279,13 +279,31 @@ void main() {
       ),
     );
     await provider.load();
+    // A prior test's Image.file for the same fake missing path may still sit
+    // in the global image cache with its failure resolved; start clean so
+    // this test's own wait is what actually proves the error surfaces.
+    imageCache.clear();
+    imageCache.clearLiveImages();
 
     await openDetail(tester, 'kept', attachments: attachments);
+    await waitForMissingPhoto(tester, find.text('This photo is missing.'));
+
+    // The thumbnail already says the photo is missing.
+    expect(find.text('This photo is missing.'), findsOneWidget);
 
     await tester.tap(find.text('Photo'));
     await tester.pumpAndSettle();
+    await waitForMissingPhoto(
+      tester,
+      find.text('This photo is missing.'),
+      atLeast: 2,
+    );
 
     expect(find.byType(InteractiveViewer), findsOneWidget);
+    // ATT-7: "Never a broken image or a silent gap." The full-screen viewer
+    // must say the photo is missing too, not silently show nothing (or a
+    // broken image) where the photo would be.
+    expect(find.text('This photo is missing.'), findsNWidgets(2));
   });
 
   testWidgets('a missing voice note cannot be played (ATT-7)', (tester) async {

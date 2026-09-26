@@ -1,14 +1,23 @@
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
+import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/walkthrough_screen.dart';
+import 'package:monthly_expense_app/services/home_widget_service.dart';
 
 import 'helpers.dart';
 
 void main() {
+  setUpAll(() {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  });
+
   late TransactionProvider provider;
   late FakeReminderService reminders;
 
@@ -112,7 +121,13 @@ void main() {
     'the load() defaults (LOCK-2, NOTE-6, NUDGE-8, NUDGE-9, pr59#6)',
     (tester) async {
       final fake = FakeDB();
-      final theseReminders = FakeReminderService();
+      // Fixed, and before the restored note's reminder: otherwise, as real
+      // wall-clock time moves past this fixture's date, the reminder looks
+      // like one that already passed (NOTE-6) rather than the future one
+      // this test means to restore.
+      final theseReminders = FakeReminderService(
+        now: () => DateTime(2026, 9, 1),
+      );
       final theseProvider = TransactionProvider(
         db: fake,
         reminders: theseReminders,
@@ -196,4 +211,45 @@ void main() {
     expect(reminders.permissionRequests, 0);
     expect(find.text('A nudge on the days you forget?'), findsNothing);
   });
+
+  testWidgets(
+    'the offer survives a reminder plugin that throws, through the real '
+    "app's own wiring, not just testApp's (NOTE-6, NUDGE-1, pr59#9)",
+    (tester) async {
+      final settings = await afterSetup();
+
+      await tester.pumpWidget(
+        MonthlyExpenseApp(
+          db: DBHelper(path: inMemoryDatabasePath),
+          settings: settings,
+          homeWidget: const NoopHomeWidgetService(),
+          reviews: FakeReviews(supported: false),
+          updates: FakeUpdates(supported: false),
+          shortcuts: FakeShortcuts(),
+          // Without these the real ad SDK is built and leaves a timer
+          // running long after the test.
+          ads: FakeAdService(),
+          purchases: FakePurchases(),
+          reminders: ThrowingReminderService(),
+        ),
+      );
+      await tester.pump();
+      await waitForRealLoad(tester);
+
+      await tester.tap(find.text('Skip'));
+      await tester.pumpAndSettle();
+
+      // The app's own question first (NUDGE-3).
+      expect(find.text('A nudge on the days you forget?'), findsOneWidget);
+      await tester.tap(find.text('Yes, remind me'));
+      await tester.pumpAndSettle();
+
+      // A plugin failure is treated like a refusal, never a crash: this only
+      // holds because main.dart wraps `reminders` in SafeReminderService
+      // before handing it to the widget tree -- testApp() does not.
+      expect(tester.takeException(), isNull);
+      expect(settings.emptyDayNudge, isFalse);
+      expect(find.text('Monthly Expenses'), findsOneWidget);
+    },
+  );
 }

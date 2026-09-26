@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/screens/app_lock.dart';
 import 'package:monthly_expense_app/services/authenticator.dart';
@@ -26,7 +27,11 @@ void main() {
     now = DateTime(2026, 9, 15, 10);
   });
 
-  Future<void> showApp(WidgetTester tester, {required bool appLock}) async {
+  Future<void> showApp(
+    WidgetTester tester, {
+    required bool appLock,
+    Locale? locale,
+  }) async {
     settings = await testSettings({'app_lock': appLock});
     await tester.pumpWidget(
       MultiProvider(
@@ -35,6 +40,7 @@ void main() {
           Provider<Authenticator>.value(value: authenticator),
         ],
         child: MaterialApp(
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) => AppLock(clock: () => now, child: child!),
@@ -79,6 +85,29 @@ void main() {
     expect(locked, findsNothing);
     expect(content.hitTestable(), findsOneWidget);
     expect(authenticator.requests, 2);
+  });
+
+  testWidgets('the prompt is built from the app language, not left in English '
+      'local_auth defaults (LANG-2, LOCK-1)', (tester) async {
+    await showApp(tester, appLock: true, locale: const Locale('fr'));
+
+    expect(authenticator.requests, 1);
+    expect(authenticator.lastReason, 'Déverrouiller Monthly Expenses');
+    expect(authenticator.lastHint, 'Confirmez votre identité');
+    expect(authenticator.lastCancelButton, 'Annuler');
+  });
+
+  testWidgets('the system prompt gives its title and its reason different '
+      "text, so the same line doesn't appear twice (LOCK-1)", (tester) async {
+    await showApp(tester, appLock: true);
+
+    expect(authenticator.requests, 1);
+    expect(authenticator.lastTitle, isNotNull);
+    expect(
+      authenticator.lastTitle,
+      isNot(authenticator.lastReason),
+      reason: 'the prompt title and its reason/description must differ',
+    );
   });
 
   testWidgets('it locks again after a minute in the background (LOCK-2)', (
@@ -313,6 +342,72 @@ void main() {
       await leaveFor(tester, const Duration(hours: 1));
 
       expect(appIsLocked.value, isFalse);
+    });
+  });
+
+  group('appIsLocked resets before every test regardless of what an earlier '
+      'one left behind (test-quality#11)', () {
+    testWidgets(
+      'deliberately leaves it locked, with no cleanup of its own: the '
+      'next test must not inherit this',
+      (tester) async {
+        appIsLocked.value = true;
+      },
+    );
+
+    testWidgets(
+      'starts unlocked even though the previous test left it locked',
+      (tester) async {
+        expect(
+          appIsLocked.value,
+          isFalse,
+          reason:
+              "flutter_test_config.dart's global setUp should have reset "
+              'this before this test ran, the same way it resets '
+              "AdsProvider's undo timer, so the ADS-9 group above cannot "
+              'depend on run order',
+        );
+      },
+    );
+  });
+
+  group("AdsProvider's undo timer resets before every test too, the same way "
+      'and for the same reason as appIsLocked above (test-quality#11)', () {
+    test('notes an Undo and does nothing else: no local cleanup of its own, '
+        'unlike ads_interstitial_test.dart which resets this itself in a '
+        "per-file setUp and so would not notice if flutter_test_config.dart's "
+        'own reset were removed', () {
+      AdsProvider.noteUndoShown();
+    });
+
+    test('starts with no Undo on screen even though the previous test left '
+        'one noted a moment ago, so an interstitial due here is not held '
+        'back for it', () async {
+      final settings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'first_opened_at': DateTime(2020).toUtc().toIso8601String(),
+        'ad_activity': SettingsProvider.adActivityThreshold,
+        'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
+      });
+      final ads = FakeAdService(canStart: true, interstitialFills: true);
+      final provider = AdsProvider(settings, ads: ads);
+      addTearDown(provider.dispose);
+      await provider.start();
+
+      await provider.primeInterstitial();
+      await provider.showAtSeam(AdSeam.leftInsights);
+
+      expect(
+        ads.interstitialsShown,
+        1,
+        reason:
+            "flutter_test_config.dart's global setUp should have called "
+            'AdsProvider.forgetUndo() before this test ran, the same '
+            'way it resets appIsLocked.value above; without it this ad '
+            "would be wrongly held back for the previous test's own "
+            'Undo, which that test never cleaned up itself',
+      );
     });
   });
 

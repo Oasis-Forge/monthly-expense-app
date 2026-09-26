@@ -68,8 +68,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), 'Coffee');
     await tester.tap(find.text('☕'));
-    // Not the one the dialog opens on, so saving the default would fail it.
-    final chosen = categoryPalette[3];
+    // Not the one the dialog opens on (the next unused colour), so saving
+    // the default would fail it.
+    final chosen = categoryPalette[5];
     final swatch = find.byWidgetPredicate(
       (w) => w is CircleAvatar && w.backgroundColor == Color(chosen),
     );
@@ -84,6 +85,102 @@ void main() {
 
     final added = provider.categoriesFor(TransactionType.expense).last;
     expect(added.color, chosen);
+  });
+
+  testWidgets(
+    'every colour swatch is labelled and announces its selection to a '
+    'screen reader (A11Y-2, rules-23-26-34#10)',
+    (tester) async {
+      await tester.binding.setSurfaceSize(const Size(800, 1400));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final semantics = tester.ensureSemantics();
+      await showCategories(tester);
+
+      await tester.tap(find.byTooltip('Add category'));
+      await tester.pumpAndSettle();
+
+      // A swatch with only a coloured circle and, sometimes, a bare check
+      // icon is `(no label)` to anything driving the screen without eyes
+      // (A11Y-2); each one needs its colour's name.
+      final purple = find.bySemanticsLabel('Purple');
+      final green = find.bySemanticsLabel('Green');
+      expect(purple, findsOneWidget);
+      expect(green, findsOneWidget);
+
+      bool? selected(Finder finder) =>
+          tester.getSemantics(finder).flagsCollection.isSelected.toBoolOrNull();
+
+      // The dialog opens on the next unused colour (categoryPalette[5],
+      // Green), not Purple (categoryPalette[0]).
+      expect(selected(green), isTrue);
+      expect(selected(purple), isFalse);
+
+      await tester.tap(purple);
+      await tester.pumpAndSettle();
+
+      expect(selected(find.bySemanticsLabel('Purple')), isTrue);
+      expect(selected(find.bySemanticsLabel('Green')), isFalse);
+      semantics.dispose();
+    },
+  );
+
+  testWidgets(
+    'a new category defaults to the next unused colour, not palette[0] '
+    '(CAT-6)',
+    (tester) async {
+      await showCategories(tester);
+
+      await tester.tap(find.byTooltip('Add category'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextFormField), 'Coffee');
+      await tester.tap(find.text('☕'));
+      // Leave the colour swatch untouched: accept whatever the dialog opens
+      // on.
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      final added = provider.categoriesFor(TransactionType.expense).last;
+      final used = {
+        for (final c in [
+          ...provider.categoriesFor(TransactionType.expense),
+          ...provider.categoriesFor(TransactionType.income),
+        ])
+          if (c.id != added.id) c.color,
+      };
+      // cat-food, cat-rent and cat-other hold palette[0..2]; cat-salary and
+      // cat-income-other hold palette[3..4]. The new category must not
+      // collide with any live category of either type.
+      expect(used.contains(added.color), isFalse);
+      expect(added.color, categoryPalette[5]);
+    },
+  );
+
+  testWidgets("a new income category's default colour differs from every live "
+      'category of either type (CAT-6, rules-1-5_4)', (tester) async {
+    await showCategories(tester);
+
+    // cat-food, cat-rent, cat-other hold palette[0..2]; cat-salary and
+    // cat-income-other hold palette[3..4]. Switching to Income and
+    // defaulting to "the next colour among income categories only" would
+    // wrap back to palette[0] -- cat-food's colour.
+    await tester.tap(find.text('Income'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add category'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField), 'Bonus');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final added = provider.categoriesFor(TransactionType.income).last;
+    final used = {
+      for (final c in [
+        ...provider.categoriesFor(TransactionType.expense),
+        ...provider.categoriesFor(TransactionType.income),
+      ])
+        if (c.id != added.id) c.color,
+    };
+    expect(used.contains(added.color), isFalse);
+    expect(added.color, categoryPalette[5]);
   });
 
   testWidgets('a name already in use is rejected', (tester) async {

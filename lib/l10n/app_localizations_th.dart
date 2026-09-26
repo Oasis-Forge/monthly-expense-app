@@ -28,6 +28,10 @@ class AppLocalizationsTh extends AppLocalizations {
   String get emptyPeriod => 'ยังไม่มีรายการในงวดนี้';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'ไม่มีรายการสำหรับบัญชีนี้ในช่วงนี้';
+
+  @override
   String get balanceLabel => 'ยอดคงเหลือ';
 
   @override
@@ -385,6 +389,54 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'ชื่อนี้ถูกใช้ไปแล้ว';
+
+  @override
+  String get categoryColorPurple => 'ม่วง';
+
+  @override
+  String get categoryColorTeal => 'เขียวอมฟ้า';
+
+  @override
+  String get categoryColorRust => 'สนิม';
+
+  @override
+  String get categoryColorBlue => 'น้ำเงิน';
+
+  @override
+  String get categoryColorPink => 'ชมพู';
+
+  @override
+  String get categoryColorGreen => 'เขียว';
+
+  @override
+  String get categoryColorMagenta => 'สีม่วงแดง';
+
+  @override
+  String get categoryColorCyan => 'ฟ้าอมเขียว';
+
+  @override
+  String get categoryColorBrown => 'น้ำตาล';
+
+  @override
+  String get categoryColorIndigo => 'คราม';
+
+  @override
+  String get categoryColorRed => 'แดง';
+
+  @override
+  String get categoryColorSlate => 'เทาอมฟ้า';
+
+  @override
+  String get categoryColorOrange => 'ส้ม';
+
+  @override
+  String get categoryColorEmerald => 'มรกต';
+
+  @override
+  String get categoryColorViolet => 'ม่วงน้ำเงิน';
+
+  @override
+  String get categoryColorRaspberry => 'ราสป์เบอร์รี';
 
   @override
   String get archiveAction => 'เก็บถาวร';
@@ -1100,6 +1152,13 @@ class AppLocalizationsTh extends AppLocalizations {
       'กู้คืนไฟล์สำรองไม่สำเร็จ ข้อมูลของคุณไม่มีการเปลี่ยนแปลง';
 
   @override
+  String get dbTooNewTitle => 'ต้องอัปเดต';
+
+  @override
+  String get dbTooNewMessage =>
+      'ข้อมูลนี้บันทึกโดยแอปเวอร์ชันที่ใหม่กว่า โปรดอัปเดตแอปจากสโตร์เพื่อดำเนินการต่อ';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1128,6 +1187,12 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get appLockReason => 'ปลดล็อก Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'ยืนยันตัวตนของคุณ';
 
   @override
   String get appLockFailed =>
@@ -1287,6 +1352,9 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'มีโน้ตครบกำหนด';
+
+  @override
+  String get noteReminderChannelName => 'การแจ้งเตือนโน้ต';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1747,13 +1815,27 @@ class AppLocalizationsTh extends AppLocalizations {
   String get dueEntryReminderTitle => 'รายการถึงกำหนดแล้ว';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+  String get dueEntryChannelName => 'รายการที่ถึงกำหนด';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'รายการที่เกิดซ้ำถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) ถึงกำหนด$dateและยังคงรอดำเนินการ';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'รายการที่เกิดซ้ำ ($amount) ถึงกำหนดวันนี้และยังคงรอดำเนินการ';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'รายการที่เกิดซ้ำ ($amount) ถึงกำหนด$dateและยังคงรอดำเนินการ';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1767,7 +1849,21 @@ class AppLocalizationsTh extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'มีรายการที่เกิดซ้ำรออยู่ $count รายการ',
+      one: 'มีรายการที่เกิดซ้ำรออยู่ $count รายการ',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'วันนี้ยังไม่มีการบันทึก';
+
+  @override
+  String get emptyDayChannelName => 'วันที่ไม่มีการบันทึก';
 
   @override
   String get emptyDayReminderBody => 'บันทึกค่าใช้จ่ายไว้ตอนที่ยังจำได้';

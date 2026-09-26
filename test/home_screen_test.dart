@@ -125,11 +125,73 @@ void main() {
     expect(find.text('September 2026'), findsOneWidget);
     expect(find.text('Food · Upcoming'), findsOneWidget);
     // The expense total is only lunch; the concert hasn't happened yet. Its
-    // day still carries a total of its own (DAY-7), so 12.50 shows twice: in
-    // the summary and on lunch's day.
-    expect(find.text('\$12.50'), findsNWidgets(2));
-    expect(find.text('\$40'), findsOneWidget);
+    // day still carries a total of its own (DAY-7), signed rather than told
+    // apart by colour alone (A11Y-4, CUR-5): lunch's row, its day total, and
+    // the period's own net (nothing but this expense) all read "-$12.50".
+    expect(find.text('\$12.50'), findsOneWidget);
+    expect(find.text('-\$12.50'), findsNWidgets(3));
+    // The concert's own row and its day total both read "-$40" now; before,
+    // only the row was signed and the day total read the bare "$40" (DAY-7,
+    // A11Y-4).
+    expect(find.text('\$40'), findsNothing);
+    expect(find.text('-\$40'), findsNWidgets(2));
   });
+
+  testWidgets(
+    'income and expense are not interchangeable, in the summary or a row '
+    '(CUR-5, DAY-7, BAL-3)',
+    (tester) async {
+      fake.rows.add(
+        testTx(
+          'c',
+          TransactionType.income,
+          100,
+          DateTime(2026, 9, 15),
+          title: 'Salary',
+        ),
+      );
+      await provider.load();
+
+      await showHome(tester);
+
+      // The summary: income's own tile shows $100, expense's own tile shows
+      // $12.50 (the concert is still upcoming and uncounted).
+      final incomeTile = find
+          .ancestor(of: find.text('Income'), matching: find.byType(Column))
+          .first;
+      final expenseTile = find
+          .ancestor(of: find.text('Expense'), matching: find.byType(Column))
+          .first;
+      expect(
+        find.descendant(of: incomeTile, matching: find.text('\$100')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: expenseTile, matching: find.text('\$12.50')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: incomeTile, matching: find.text('\$12.50')),
+        findsNothing,
+      );
+
+      // The day row: the salary reads as a plus, the lunch as a minus.
+      final salaryRow = find
+          .ancestor(of: find.text('Salary'), matching: find.byType(ListTile))
+          .first;
+      final lunchRow = find
+          .ancestor(of: find.text('Lunch'), matching: find.byType(ListTile))
+          .first;
+      expect(
+        find.descendant(of: salaryRow, matching: find.text('+\$100')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: lunchRow, matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+    },
+  );
 
   testWidgets('the balance carries forward from earlier periods (BAL-2)', (
     tester,
@@ -157,13 +219,44 @@ void main() {
     expect(find.textContaining('Carried forward'), findsNothing);
   });
 
+  testWidgets(
+    'with carrying forward off, the amount is the period net, not the '
+    'closing balance (BAL-3, BAL-2)',
+    (tester) async {
+      // Same earlier-period income as BAL-2, so carried forward ($100) and
+      // period net (-$12.50) are different numbers, unlike the base BAL-3
+      // test above where both happen to be the same because there is no
+      // prior period.
+      fake.rows.add(
+        testTx('pay', TransactionType.income, 100, DateTime(2026, 8, 20)),
+      );
+      await provider.load();
+      settings = await testSettings({'show_carried_forward': false});
+
+      await showHome(tester);
+
+      expect(find.text('This period'), findsOneWidget);
+      // A day row can show the same figure, so look inside the summary card.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('\$87.50')),
+        findsNothing,
+      );
+    },
+  );
+
   testWidgets('amounts use the chosen currency (CUR-2)', (tester) async {
     settings = await testSettings({'currency_code': 'EUR'});
 
     await showHome(tester);
 
-    // The summary's expense and the day's own total (DAY-7).
-    expect(find.text('€12.50'), findsNWidgets(2));
+    // The summary's expense, and the day's own total (DAY-7), the row, and
+    // the period's own net all signed rather than coloured alone (A11Y-4).
+    expect(find.text('€12.50'), findsOneWidget);
+    expect(find.text('-€12.50'), findsNWidgets(3));
   });
 
   testWidgets('the arrows move between periods', (tester) async {
@@ -384,6 +477,55 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(RecurringScreen), findsOneWidget);
+  });
+
+  group("the account filter's empty message (EMPTY-4, ACC-6)", () {
+    testWidgets(
+      'says nothing matched this account, with a way back to every one',
+      (tester) async {
+        // Bank has nothing in August; Cash (the seeded transactions'
+        // account) has an entry there, so the period isn't really empty.
+        fake.accounts.add(testAccount('bank'));
+        fake.rows.add(
+          testTx('aug', TransactionType.expense, 5, DateTime(2026, 8, 10)),
+        );
+        await provider.load();
+        provider.selectAccountFilter('bank');
+
+        await showHome(tester);
+        // A period containing today always has a day selected, so the
+        // empty-period message only ever shows for a different one (DAY-6).
+        await tester.tap(find.byTooltip('Previous period'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('No transactions in this period yet.'), findsNothing);
+        expect(
+          find.text('Nothing for this account this period.'),
+          findsOneWidget,
+        );
+
+        await settings.setAccountFilterId('bank');
+        await tester.tap(find.text('All accounts'));
+        await tester.pumpAndSettle();
+
+        expect(provider.accountFilterId, isNull);
+        expect(find.text('aug'), findsOneWidget);
+        // The saved choice moves with it (EMPTY-4), or a relaunch would
+        // reopen filtered to Bank again.
+        expect(settings.accountFilterId, isNull);
+      },
+    );
+
+    testWidgets('a period empty for every account still says so plainly', (
+      tester,
+    ) async {
+      await showHome(tester);
+      await tester.tap(find.byTooltip('Previous period'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('No transactions in this period yet.'), findsOneWidget);
+      expect(find.text('Nothing for this account this period.'), findsNothing);
+    });
   });
 
   group('the budgets card (BUD-7, BUD-8)', () {
@@ -625,6 +767,25 @@ void main() {
     expect(provider.deletedTransactions, isEmpty);
   });
 
+  testWidgets('the Undo snackbar goes away on its own after about five seconds '
+      '(DEL-2)', (tester) async {
+    await showHome(tester);
+    await swipe(tester, 'Lunch');
+    expect(find.text('Transaction deleted'), findsOneWidget);
+
+    // persist: false is what makes this happen at all: a snack bar with
+    // an action otherwise stays open for good. The timer fires at the 5s
+    // mark, but removal runs its own exit animation across a few more
+    // frames, so a single pump(6s) isn't enough on its own.
+    await tester.pump(const Duration(seconds: 6));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Transaction deleted'), findsNothing);
+    expect(find.text('Undo'), findsNothing);
+    // The delete itself was never undone; it just stopped offering to.
+    expect(provider.deletedTransactions.single.id, 'a');
+  });
+
   testWidgets('a failed undo shows an error', (tester) async {
     await showHome(tester);
     await swipe(tester, 'Lunch');
@@ -664,9 +825,11 @@ void main() {
 
     expect(find.text('acc-cash → bank'), findsOneWidget);
     expect(find.text('\$50'), findsOneWidget);
-    // The summary's expense and lunch's own day total (DAY-7); the transfer
-    // counts in neither.
-    expect(find.text('\$12.50'), findsNWidgets(2));
+    // The summary's expense, and lunch's own day total (DAY-7), the row, and
+    // the period's own net, all signed (A11Y-4); the transfer counts in none
+    // of them.
+    expect(find.text('\$12.50'), findsOneWidget);
+    expect(find.text('-\$12.50'), findsNWidgets(3));
 
     await tester.tap(find.text('acc-cash → bank'));
     await tester.pumpAndSettle();
@@ -713,6 +876,20 @@ void main() {
       expect(find.text('Sep 15, 2026'), findsOneWidget);
       expect(find.text('Lunch'), findsOneWidget);
       expect(find.text('Concert'), findsNothing);
+    });
+
+    testWidgets("the device's region decides the day, not just its "
+        'language (PER-4, rules-1-5#5)', (tester) async {
+      double x(String text) => tester.getCenter(find.text(text)).dx;
+
+      // A phone set to English (UK) starts the week on Monday, though
+      // the app's own language-only locale ('en') is Sunday-first.
+      tester.platformDispatcher.localesTestValue = [const Locale('en', 'GB')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await showHome(tester);
+
+      expect(x('Mon'), lessThan(x('Sun')));
     });
 
     testWidgets('another day in the week shows that day instead', (
@@ -827,9 +1004,13 @@ void main() {
 
       await showHome(tester);
 
-      // Each side twice: once in the summary, once on the day (DAY-7, DAY-8).
-      expect(find.text('\$30'), findsNWidgets(2));
-      expect(find.text('\$12.50'), findsNWidgets(2));
+      // Each side in the summary, unsigned, and again both on its own row
+      // and the day's own total (DAY-7, DAY-8), signed rather than told
+      // apart by colour alone (A11Y-4).
+      expect(find.text('\$30'), findsOneWidget);
+      expect(find.text('+\$30'), findsNWidgets(2));
+      expect(find.text('\$12.50'), findsOneWidget);
+      expect(find.text('-\$12.50'), findsNWidgets(2));
     });
 
     testWidgets('a transfer dated ahead is marked upcoming (BAL-4)', (
@@ -1234,4 +1415,35 @@ void main() {
     expect(find.textContaining('\$'), findsNothing);
     expect(find.textContaining('¥'), findsWidgets);
   });
+
+  testWidgets(
+    'the pinned summary card drops the old decimals on a currency switch '
+    'that keeps the same symbol (CUR-2, CUR-3, pr61#4)',
+    (tester) async {
+      await showHome(tester);
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsOneWidget,
+      );
+
+      // CLP shares USD's '$' symbol but has no decimals (CUR-2).
+      await settings.setCurrencyCode('CLP');
+      await tester.pumpAndSettle();
+
+      // The day rows below the header pick up CLP's rounding at once.
+      expect(find.text('-\$13'), findsWidgets);
+
+      // _SummaryHeader.shouldRebuild compared only currencySymbol and
+      // locale, so a same-symbol currency switch was invisible to it and
+      // the pinned card kept rendering the old currency's cents.
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$12.50')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(of: find.byType(Card), matching: find.text('-\$13')),
+        findsOneWidget,
+      );
+    },
+  );
 }

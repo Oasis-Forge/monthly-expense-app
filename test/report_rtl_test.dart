@@ -2,10 +2,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 
 import 'package:monthly_expense_app/l10n/app_localizations.dart';
+import 'package:monthly_expense_app/models/money.dart';
 import 'package:monthly_expense_app/models/report.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/services/report_fonts.dart';
@@ -17,11 +17,20 @@ import 'pdf_text.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  // The app's own formatter (settings.currencyFormat), exactly as
+  // report_screen.dart calls it — not a hand-rolled NumberFormat — so these
+  // tests exercise the real isolate marks an Arab currency and language
+  // combination produces (LANG-5, CUR-5, PDF-5).
   Future<Uint8List> report(
     String code, {
     List<ExpenseTransaction> transactions = const [],
+    String currencyCode = 'USD',
+    Money? Function(String categoryId)? budgetLimit,
+    bool Function(ExpenseTransaction)? matches,
+    ReportSearchInfo? searchInfo,
   }) async {
     final l10n = await AppLocalizations.delegate.load(Locale(code));
+    final settings = await testSettings({'currency_code': currencyCode});
     final data = buildReport(
       from: DateTime(2026, 9, 1),
       to: DateTime(2026, 9, 30),
@@ -29,6 +38,9 @@ void main() {
       transactions: transactions,
       transfers: const [],
       accounts: [testAccount('cash', opening: 100)],
+      budgetLimit: budgetLimit,
+      matches: matches,
+      searchInfo: searchInfo,
     );
     return buildReportPdf(
       data: data,
@@ -36,11 +48,7 @@ void main() {
       labels: ReportLabels(
         l10n: l10n,
         locale: Locale(code),
-        currency: NumberFormat.currency(
-          locale: l10n.localeName,
-          symbol: r'$',
-          name: 'USD',
-        ),
+        currency: settings.currencyFormat(code),
         categoryName: (id) => 'Groceries',
         accountName: (id) => 'Cash',
       ),
@@ -99,6 +107,50 @@ void main() {
       expect(arabic, isNotEmpty);
     });
 
+    test('a narrowed-search header keeps a Latin query forwards in Arabic and '
+        'Urdu, spliced into the sentence or not (PDF-1, LANG-5, '
+        'review-pdf-bidi)', () async {
+      for (final code in ['ar', 'ur']) {
+        final text = squashed(
+          pdfText(
+            await report(
+              code,
+              transactions: spend,
+              matches: (tx) => true,
+              searchInfo: const ReportSearchInfo(query: 'Weekly shop'),
+            ),
+          ),
+        );
+
+        expect(text, contains('"Weeklyshop"'), reason: code);
+        expect(text, isNot(contains('pohsylkeeW')), reason: '$code: $text');
+      }
+    });
+
+    test('a narrowed-search header keeps its parts apart with a '
+        'direction-neutral separator run, in Arabic and Urdu too '
+        '(review-pdf-bidi)', () async {
+      for (final code in ['ar', 'ur']) {
+        final lines = pdfLines(
+          await report(
+            code,
+            transactions: spend,
+            matches: (tx) => true,
+            searchInfo: const ReportSearchInfo(
+              query: 'Weekly shop',
+              type: TransactionType.expense,
+            ),
+          ),
+        );
+
+        // Without a separator run, the query and the type read as one
+        // run-on phrase either way round. '·' is direction-neutral, so it
+        // sits between them regardless of the report's own direction.
+        final separators = lines.where((l) => l == '·');
+        expect(separators, isNotEmpty, reason: '$code: $lines');
+      }
+    });
+
     test('an amount is drawn whole, with its sign leading', () async {
       final signed = [
         ...spend,
@@ -125,6 +177,130 @@ void main() {
           reason: '$code: $text',
         );
       }
+    });
+
+    test(
+      'an Arab-currency (SAR) amount signs the same way in the PDF as on '
+      'screen: sign right next to its digits (LANG-5, CUR-5, Decision 54)',
+      () async {
+        final text = squashed(
+          pdfText(await report('ar', transactions: spend, currencyCode: 'SAR')),
+        );
+
+        expect(
+          RegExp(r'[-−][^\d]{0,3}25').hasMatch(text),
+          isTrue,
+          reason: 'sign should sit right next to its digits, got: $text',
+        );
+      },
+    );
+
+    test('a Latin-symbol currency (USD) keeps its symbol on the left in the '
+        'PDF, as it does on screen, even in an Arabic report (LANG-5, '
+        'Decision 54)', () async {
+      final text = squashed(
+        pdfText(await report('ar', transactions: spend, currencyCode: 'USD')),
+      );
+
+      expect(
+        RegExp(r'\$[^\d]{0,3}[-−][^\d]{0,3}25').hasMatch(text),
+        isTrue,
+        reason: 'symbol should lead the sign and digits, got: $text',
+      );
+    });
+
+    test(
+      'a budgeted category in an Arabic (SAR) report keeps the used '
+      'percentage and the limit apart, in the right x-order (pr61#2)',
+      () async {
+        final bytes = await report(
+          'ar',
+          transactions: spend,
+          currencyCode: 'SAR',
+          budgetLimit: (_) => const Money(500000),
+        );
+        final lines = pdfLines(bytes);
+
+        // The limit's figures ("500") are unique on the page, and unlike
+        // the old bug they are their own run rather than glued to the
+        // percentage's digits.
+        final limitIndex = lines.indexWhere((l) => l == '500');
+        expect(limitIndex, isNot(-1), reason: 'no isolated 500 run in $lines');
+        expect(limitIndex, greaterThan(0));
+        expect(lines[limitIndex - 1], isNot(contains('500')));
+        expect(lines[limitIndex + 1], isNot(contains('500')));
+
+        // after | isolate | before, visually left to right: the symbol
+        // (shaped and reordered, unlike the plain letters the old bug
+        // drew) leads the limit's figures, which lead the used
+        // percentage-and-"of" run.
+        final symbolRun = lines[limitIndex - 1];
+        expect(RegExp('[0-9]').hasMatch(symbolRun), isFalse);
+        expect(symbolRun.runes, isNot(contains('ر'.runes.single)));
+
+        final usedRun = lines[limitIndex + 1];
+        expect(usedRun, contains('%'));
+        expect(usedRun, contains('5'));
+      },
+    );
+
+    test('a budgeted category in an Urdu report keeps the limit and the used '
+        'percentage apart, in the right x-order (pr61#2)', () async {
+      final bytes = await report(
+        'ur',
+        transactions: spend,
+        currencyCode: 'SAR',
+        budgetLimit: (_) => const Money(500000),
+      );
+      final lines = pdfLines(bytes);
+
+      // {limit} میں سے {used}: ur's SAR pattern leads with the symbol, so
+      // the whole limit (symbol and figures) is one isolated run; the used
+      // percentage and "میں سے" sit in the run right before it, not glued
+      // onto its figures.
+      final limitIndex = lines.indexWhere(
+        (l) => l.contains('500') && !l.contains('%'),
+      );
+      expect(limitIndex, isNot(-1), reason: 'no limit run in $lines');
+      expect(limitIndex, greaterThan(0));
+
+      final usedRun = lines[limitIndex - 1];
+      expect(usedRun, isNot(contains('500')));
+      expect(usedRun, contains('%'));
+      expect(usedRun, contains('5'));
+    });
+
+    test('an Arab-currency symbol keeps a gap from the signed figures, '
+        'shaped and reordered, instead of running into them as plain '
+        'letters (pr61#2)', () async {
+      final bytes = await report(
+        'ar',
+        transactions: spend,
+        currencyCode: 'SAR',
+      );
+      final lines = pdfLines(bytes);
+
+      // The balance line is negative in this report (100 opening, -25
+      // spent): its figures are a run of exactly '-25', on their own.
+      final figuresIndex = lines.indexWhere((l) => l == '-25');
+      expect(figuresIndex, isNot(-1), reason: 'no isolated -25 run in $lines');
+      expect(figuresIndex, greaterThan(0));
+
+      // The symbol sits in the run right before it — never merged into the
+      // same run as the figures, which is what the old forced-left-to-right
+      // concatenation produced (one run, 'ر.س.-25.00', with the letters
+      // drawn in their plain, unshaped, unreordered form since the bidi
+      // pass never ran on it).
+      final symbolRun = lines[figuresIndex - 1];
+      expect(symbolRun, isNot(contains('-25')));
+      expect(RegExp('[0-9]').hasMatch(symbolRun), isFalse);
+      // A shaped, reordered Arabic run draws presentation-form glyphs
+      // (U+FB50–U+FEFF), not the plain letters the old bug left behind.
+      expect(
+        symbolRun.runes.any((r) => r >= 0xFB50 && r <= 0xFEFF),
+        isTrue,
+        reason: 'expected shaped presentation forms, got: $symbolRun',
+      );
     });
 
     test('no amount carries a stray bidi mark (LANG-3)', () async {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
@@ -7,6 +8,7 @@ import 'package:monthly_expense_app/models/recurring_rule.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/amount_style.dart';
 import 'package:monthly_expense_app/screens/recurring_rule_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
 
@@ -28,6 +30,11 @@ void main() {
   late TransactionProvider provider;
   late SettingsProvider settings;
 
+  // Fixed rather than DateTime.now(): a run that happens to cross midnight
+  // between opening the form and reading a date back must not flip a
+  // comparison against the real clock (RCR-1, test-quality#10).
+  final today = DateTime(2026, 9, 15);
+
   setUp(() async {
     // Rent came due on Sep 1; Gym starts on Sep 20.
     fake = FakeDB(
@@ -36,10 +43,7 @@ void main() {
         testRule('Gym', 30, DateTime(2026, 9, 20)),
       ],
     );
-    provider = TransactionProvider(
-      db: fake,
-      clock: () => DateTime(2026, 9, 15),
-    );
+    provider = TransactionProvider(db: fake, clock: () => today);
     await provider.load();
     settings = await testSettings();
   });
@@ -63,7 +67,8 @@ void main() {
             body: TextButton(
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => RecurringRuleScreen(editing: editing),
+                  builder: (_) =>
+                      RecurringRuleScreen(editing: editing, clock: () => today),
                 ),
               ),
               child: const Text('open'),
@@ -150,6 +155,28 @@ void main() {
 
       expect(provider.transactions.single.amount, const Money(950000));
     });
+
+    testWidgets(
+      "the post dialog's amount field symbol side matches the locale's "
+      'display side, in German (CUR-5, LANG-5, pr61#11)',
+      (tester) async {
+        // German writes the symbol after the figures, unlike English.
+        settings = await testSettings({'language': 'de'});
+        await showRecurring(tester);
+
+        await tester.tap(find.text('Rent').first);
+        await tester.pumpAndSettle();
+
+        final field = tester.widget<TextField>(
+          find.descendant(
+            of: find.byType(TextFormField),
+            matching: find.byType(TextField),
+          ),
+        );
+        expect(field.decoration?.prefixText, isNull);
+        expect(field.decoration?.suffixText, contains('\$'));
+      },
+    );
 
     testWidgets('cancelling the amount dialog posts nothing', (tester) async {
       await showRecurring(tester);
@@ -257,12 +284,111 @@ void main() {
       expect(find.byType(RecurringRuleScreen), findsNothing);
     });
 
+    testWidgets('Back asks before dropping a typed rule (ADD-9)', (
+      tester,
+    ) async {
+      await openForm(tester);
+
+      await enter(tester, 'Amount', '15');
+      await enter(tester, 'Title (optional)', 'Streaming');
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Keep editing'));
+      await tester.pumpAndSettle();
+      expect(find.byType(RecurringRuleScreen), findsOneWidget);
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      expect(find.text('Discard changes?'), findsOneWidget);
+      await tester.tap(find.text('Discard'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+      expect(provider.recurringRules, hasLength(2));
+    });
+
+    testWidgets('Back leaves an untouched new rule form without asking '
+        '(ADD-9)', (tester) async {
+      await openForm(tester);
+
+      // The amount field autofocuses, so the first Back only closes the
+      // keypad it opened with.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+    });
+
+    testWidgets('Back leaves without asking after switching Ends to "On '
+        'date" and back to "Never" (review follow-up)', (tester) async {
+      await openForm(tester);
+
+      await tapInForm(tester, find.text('On date'));
+      await tapInForm(tester, find.text('Never'));
+
+      // The amount field autofocuses, so the first Back only closes the
+      // keypad it opened with, as in the untouched-form case above.
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+    });
+
+    testWidgets('Back leaves without asking after switching Ends to '
+        '"After" and back to "Never" (review follow-up)', (tester) async {
+      await openForm(tester);
+
+      await tapInForm(tester, find.text('After'));
+      await tapInForm(tester, find.text('Never'));
+
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+      await tester.pageBack();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Discard changes?'), findsNothing);
+      expect(find.byType(RecurringRuleScreen), findsNothing);
+    });
+
+    testWidgets('two new rules get distinct UUID v4 IDs (REC-2)', (
+      tester,
+    ) async {
+      await openForm(tester);
+      await enter(tester, 'Amount', '15');
+      await enter(tester, 'Title (optional)', 'Streaming');
+      await save(tester);
+
+      await openForm(tester);
+      await enter(tester, 'Amount', '25');
+      await enter(tester, 'Title (optional)', 'Coffee');
+      await save(tester);
+
+      final ids = [savedRule('Streaming').id, savedRule('Coffee').id];
+      expect(
+        ids.toSet(),
+        hasLength(2),
+        reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
+      );
+      for (final id in ids) {
+        expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+      }
+    });
+
     testWidgets('double-tapping Save on a new rule creates only one '
         '(audit data-integrity#5)', (tester) async {
       final slowFake = _SlowRuleDB();
       final slowProvider = TransactionProvider(
         db: slowFake,
-        clock: () => DateTime(2026, 9, 15),
+        clock: () => today,
       );
       await slowProvider.load();
       final slowSettings = await testSettings();
@@ -279,7 +405,7 @@ void main() {
               body: TextButton(
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const RecurringRuleScreen(),
+                    builder: (_) => RecurringRuleScreen(clock: () => today),
                   ),
                 ),
                 child: const Text('open'),
@@ -313,7 +439,6 @@ void main() {
       tester,
     ) async {
       await openForm(tester);
-      final start = DateTime.now();
 
       await enter(tester, 'Amount', '20');
       await enter(tester, 'Title (optional)', 'Lessons');
@@ -338,7 +463,7 @@ void main() {
         ),
         (RecurrenceFrequency.week, 2, RecurrenceEnd.afterCount, 3, true),
       );
-      expect(rule.startDate, DateTime(start.year, start.month, start.day + 1));
+      expect(rule.startDate, DateTime(today.year, today.month, today.day + 1));
     });
 
     testWidgets('whole numbers from 1 are required', (tester) async {
@@ -370,6 +495,62 @@ void main() {
       expect(find.text('Enter a whole number from 1 to 999'), findsOneWidget);
       expect(provider.recurringRules, hasLength(2));
     });
+
+    /// Types an invalid interval at 1.3x text size in [code] and checks the
+    /// error names its maximum without clipping it (LANG-6, review
+    /// follow-up). The message used to live inside the 96px Every field,
+    /// which clipped it with an ellipsis at this size regardless of
+    /// errorMaxLines; it is now a full-width Text below the row, so its
+    /// RenderParagraph must never report exceeding its lines.
+    Future<void> expectUnclippedIntervalError(
+      WidgetTester tester,
+      String code,
+      String amountLabel,
+      String everyLabel,
+      String saveLabel,
+      String message,
+    ) async {
+      settings = await testSettings({'language': code});
+      tester.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      await openForm(tester);
+
+      await enter(tester, amountLabel, '20');
+      await enter(tester, everyLabel, '1000');
+      await tapInForm(tester, find.widgetWithText(FilledButton, saveLabel));
+
+      final errorFinder = find.text(message);
+      await revealInForm(tester, errorFinder);
+      expect(errorFinder, findsOneWidget);
+      final paragraph = tester.renderObject<RenderParagraph>(errorFinder);
+      expect(paragraph.didExceedMaxLines, isFalse);
+    }
+
+    testWidgets(
+      'the interval error never clips its maximum at 1.3x text size '
+      '(LANG-6, review follow-up)',
+      (tester) => expectUnclippedIntervalError(
+        tester,
+        'en',
+        'Amount',
+        'Every',
+        'Save',
+        'Enter a whole number from 1 to 999',
+      ),
+    );
+
+    testWidgets(
+      'nor does it in German, longer than English (LANG-6, review '
+      'follow-up)',
+      (tester) => expectUnclippedIntervalError(
+        tester,
+        'de',
+        'Betrag',
+        'Alle',
+        'Speichern',
+        'Gib eine ganze Zahl von 1 bis 999 ein',
+      ),
+    );
 
     testWidgets('the repeat count has no cap, so a rule with a long count '
         'still saves (RCR-1, review-state-3)', (tester) async {
@@ -478,7 +659,18 @@ void main() {
         findsOneWidget,
       );
 
+      // The pause's snack bar sits over the Save button; clear it first so
+      // the tap actually reaches Save instead of silently landing on the
+      // snack bar (test-quality#5).
+      ScaffoldMessenger.of(tester.element(find.byType(RecurringRuleScreen)))
+          .removeCurrentSnackBar();
+      await tester.pumpAndSettle();
+
       await save(tester);
+      expect(
+        find.text("Couldn't save the recurring transaction. Try again."),
+        findsOneWidget,
+      );
       expect(find.byType(RecurringRuleScreen), findsOneWidget);
       expect(provider.recurringRuleById('Gym')!.isPaused, isFalse);
     });
@@ -502,29 +694,91 @@ void main() {
     expect(find.text('Next: Gym, in 5 days'), findsOneWidget);
   });
 
-  testWidgets('every row on the screen starts at the same left edge (CAT-6)', (
-    tester,
-  ) async {
-    // Due, upcoming and rules are three lists on one screen. A bare icon in
-    // any of them sits narrower than a CircleAvatar, and ListTile insets its
-    // title from the leading widget, so one odd row pulls a whole list out
-    // of line with the others.
-    await showRecurring(tester);
+  testWidgets(
+    'every row on the screen starts at the same left edge and the due row '
+    'is no taller than an upcoming one (CAT-6, RCR-2, pr56+60#9)',
+    (tester) async {
+      // Due, upcoming and rules are three lists on one screen. A bare icon in
+      // any of them sits narrower than a CircleAvatar, and ListTile insets
+      // its title from the leading widget, so one odd row pulls a whole list
+      // out of line with the others. Measuring the shape alone (leading is a
+      // CircleAvatar) would still pass if the due row's Skip and Post
+      // buttons moved back inside its subtitle: they'd still be circles, just
+      // ones a staircase of extra subtitle lines had pushed out of line
+      // (pr56+60#9).
+      await showRecurring(tester);
 
-    final avatars = find.descendant(
-      of: find.byType(ListTile),
-      matching: find.byType(CircleAvatar),
-    );
-    expect(avatars, findsWidgets);
+      final tiles = find.byType(ListTile);
+      final widgets = tester.widgetList<ListTile>(tiles).toList();
+      expect(widgets, isNotEmpty);
+      expect(widgets.map((tile) => tile.leading.runtimeType).toSet(), {
+        CircleAvatar,
+      }, reason: 'every row leads with the same shape, or the titles stagger');
 
-    final lefts = tester
-        .widgetList<ListTile>(find.byType(ListTile))
-        .map((tile) => tile.leading.runtimeType)
-        .toSet();
-    expect(lefts, {
-      CircleAvatar,
-    }, reason: 'every row leads with the same shape, or the titles stagger');
-  });
+      final lefts = <double>[];
+      final heights = <double>[];
+      for (var i = 0; i < widgets.length; i++) {
+        final tileFinder = tiles.at(i);
+        final titleText = (widgets[i].title! as Text).data!;
+        final titleFinder = find
+            .descendant(of: tileFinder, matching: find.text(titleText))
+            .first;
+        lefts.add(tester.getTopLeft(titleFinder).dx);
+        heights.add(tester.getSize(tileFinder).height);
+      }
+      expect(
+        lefts.toSet(),
+        hasLength(1),
+        reason: 'every title should start at the same x, got $lefts',
+      );
+
+      // Rent (due, index 0) must be no taller than Gym (upcoming, index 1):
+      // a staircase would show up here as extra height on the due row alone.
+      expect(heights[0], lessThanOrEqualTo(heights[1]));
+    },
+  );
+
+  testWidgets(
+    'the amount is coloured and signed like everywhere else on the app '
+    '(CUR-4, CUR-5, CAT-6, pr56+60#8)',
+    (tester) async {
+      // Salary shows up in both the upcoming list (_OccurrenceTile) and the
+      // rules list (_RuleTile); Rent in both the due list (_DueTile, which
+      // has no trailing of its own -- its amount sits inside the subtitle
+      // text instead) and the rules list. Matching on a non-null trailing
+      // picks the standalone amount widgets those first two tiles style,
+      // never the due tile's unstyled subtitle.
+      fake.rules
+        ..clear()
+        ..addAll([
+          testRule('Rent', 900, DateTime(2026, 9)),
+          testRule(
+            'Salary',
+            3000,
+            DateTime(2026, 9, 20),
+          ).copyWith(type: TransactionType.income, categoryId: 'cat-salary'),
+        ]);
+      await provider.load();
+      await showRecurring(tester);
+
+      Finder trailingAmountOf(String title) => find.byWidgetPredicate((widget) {
+        if (widget is! ListTile || widget.trailing is! Text) return false;
+        final label = widget.title;
+        return label is Text && label.data == title;
+      });
+
+      Color? colorOf(String title) {
+        final trailing = tester
+            .widget<ListTile>(trailingAmountOf(title).first)
+            .trailing;
+        return (trailing as Text).style?.color;
+      }
+
+      final context = tester.element(trailingAmountOf('Salary').first);
+      expect(colorOf('Salary'), incomeColor(context));
+      expect(colorOf('Rent'), expenseColor(context));
+    },
+  );
 
   testWidgets('nothing is named next while something is overdue (RCR-8)', (
     tester,

@@ -220,6 +220,12 @@ enum ReportTrendGrain { day, period }
 /// first day of a period (PER-2), used to group a long range's trend and to
 /// tell whether it is exactly one.
 ///
+/// [isCategoryArchived] answers whether a category has been archived
+/// (CAT-4). An archived category's budget stops counting from the current
+/// period on (BUD-5), the same as [TransactionProvider.budgetStatuses], so
+/// its limit is left off a current or future one-period report and kept only
+/// on a past one (BUD-6).
+///
 /// [searchInfo], when given, is carried onto [ReportData.searchInfo] purely
 /// for the header and summary to describe; it plays no part in what counts.
 ReportData buildReport({
@@ -232,6 +238,7 @@ ReportData buildReport({
   String? accountId,
   bool Function(ExpenseTransaction transaction)? matches,
   Money? Function(String categoryId)? budgetLimit,
+  bool Function(String categoryId)? isCategoryArchived,
   int startDay = 1,
   ReportOptions options = const ReportOptions(),
   ReportSearchInfo? searchInfo,
@@ -381,6 +388,19 @@ ReportData buildReport({
       accountId == null &&
       onePeriod.start == first &&
       onePeriod.lastDay == last;
+  // An archived category's budget stops counting from the current period on
+  // (BUD-5), same as budgetStatuses; a past period still shows the result it
+  // had (BUD-6, review-pdf-archived-budget).
+  final onePeriodIsPast = onePeriod.timingOn(now) == PeriodTiming.past;
+  Money? Function(String categoryId)? gatedBudgetLimit;
+  if (showBudget && budgetLimit != null) {
+    gatedBudgetLimit = (id) {
+      if (!onePeriodIsPast && (isCategoryArchived?.call(id) ?? false)) {
+        return null;
+      }
+      return budgetLimit(id);
+    };
+  }
 
   return ReportData(
     from: first,
@@ -390,11 +410,7 @@ ReportData buildReport({
     openingBalance: opening,
     closingBalance:
         opening + openingDuring + trueIncome - trueExpense + transferNet,
-    expenseCategories: _lines(
-      expenseByCategory,
-      expense,
-      showBudget ? budgetLimit : null,
-    ),
+    expenseCategories: _lines(expenseByCategory, expense, gatedBudgetLimit),
     incomeCategories: _lines(incomeByCategory, income, null),
     trend: _trend(first, last, now, dayTotals, startDay),
     byDay: {for (final day in orderedDays) day: byDay[day]!},

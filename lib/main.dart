@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'db/db_helper.dart';
 import 'l10n/app_localizations.dart';
 import 'l10n/languages.dart';
 import 'models/reminders.dart';
@@ -55,7 +56,7 @@ Future<void> main() async {
 
 class MonthlyExpenseApp extends StatelessWidget {
   /// [backup], [authenticator], [reminders], [homeWidget], [ads],
-  /// [purchases], [reviews] and [updates] default to the device
+  /// [purchases], [reviews], [updates] and [db] default to the device
   /// implementations; tests
   /// pass their own.
   const MonthlyExpenseApp({
@@ -70,6 +71,7 @@ class MonthlyExpenseApp extends StatelessWidget {
     this.reviews,
     this.updates,
     this.shortcuts,
+    this.db,
   });
 
   final SettingsProvider settings;
@@ -82,6 +84,11 @@ class MonthlyExpenseApp extends StatelessWidget {
   final ReviewService? reviews;
   final UpdateService? updates;
   final ShortcutService? shortcuts;
+
+  /// Overrides where [TransactionProvider] stores its data. Null means the
+  /// app's own on-disk database; tests pass an isolated [DBHelper] so a full
+  /// widget test never touches the real, shared production file.
+  final DBHelper? db;
 
   /// So a tapped reminder notification can open its note (NOTE-6, LOCK-2),
   /// from outside the widget tree that the notification callback runs in.
@@ -103,6 +110,7 @@ class MonthlyExpenseApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) =>
               TransactionProvider(
+                  db: db,
                   startDay: settings.startDay,
                   reminders: reminderService,
                   attachments: attachmentService,
@@ -113,6 +121,9 @@ class MonthlyExpenseApp extends StatelessWidget {
                   appLockOn: settings.appLock,
                   locale: effectiveAppLocale(settings.locale),
                   nudge: settings.nudgeSettings,
+                  currency: settings.currencyFormat(
+                    effectiveAppLocale(settings.locale).toLanguageTag(),
+                  ),
                 ),
         ),
         Provider<BackupService>(create: (_) => backup ?? BackupService()),
@@ -305,6 +316,10 @@ class _ShortcutTapsState extends State<_ShortcutTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
+    // A refused downgrade open never read any data (x-downgrade-message):
+    // opening the form here would land it over DatabaseTooNewScreen with
+    // nothing to fill it and nowhere to save.
+    if (provider.openRefused) return;
     // Whatever was open before is not what was asked for, but a form with
     // something typed into it asks the same ADD-9 question the back button
     // would, rather than being silently dropped (pr57#3).
@@ -388,6 +403,10 @@ class _WidgetTapsState extends State<_WidgetTaps> {
   ) async {
     await provider.whenLoaded;
     if (!navigator.mounted) return;
+    // A refused downgrade open never read any data (x-downgrade-message):
+    // opening the form here would land it over DatabaseTooNewScreen with
+    // nothing to fill it and nowhere to save.
+    if (provider.openRefused) return;
     // Whatever was open before the tap is not what was asked for, but a
     // form with something typed into it asks the same ADD-9 question the
     // back button would, rather than being silently dropped (pr57#3).
@@ -502,6 +521,10 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     final provider = navigator.context.read<TransactionProvider>();
     await provider.whenLoaded;
     if (!navigator.mounted) return;
+    // A refused downgrade open never read any notes (x-downgrade-message):
+    // opening NotesScreen here would show an empty list over
+    // DatabaseTooNewScreen instead of the update message.
+    if (provider.openRefused) return;
     navigator.push(
       MaterialPageRoute(
         builder: (context) {
@@ -547,6 +570,11 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
     // Days with entries are the answer to a nudge; counted before they are
     // read, every day looks ignored and the nudge stops itself (NUDGE-5).
     await transactions.whenLoaded;
+    // A refused downgrade open never read the transactions
+    // (x-downgrade-message): daysUsed would be empty, so every scheduled
+    // nudge since the last check would count as ignored and could reach the
+    // NUDGE-5 give-up, which would persist after the user updates.
+    if (transactions.openRefused) return;
     // A phone that is blocking notifications never had a chance to see one,
     // so nothing here counts as ignored while it does (NUDGE-5, NUDGE-7).
     // The day is still marked checked, so this stretch is never counted
@@ -576,6 +604,9 @@ class _NoteReminderTapsState extends State<_NoteReminderTaps>
         appLockOn: settings.appLock,
         locale: effectiveAppLocale(settings.locale),
         nudge: settings.nudgeSettings,
+        currency: settings.currencyFormat(
+          effectiveAppLocale(settings.locale).toLanguageTag(),
+        ),
       );
     }
   }

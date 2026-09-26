@@ -28,6 +28,10 @@ class AppLocalizationsVi extends AppLocalizations {
   String get emptyPeriod => 'Chưa có giao dịch nào trong kỳ này.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Không có gì cho tài khoản này trong kỳ này.';
+
+  @override
   String get balanceLabel => 'Số dư';
 
   @override
@@ -386,6 +390,54 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Tên này đã được dùng';
+
+  @override
+  String get categoryColorPurple => 'Tím';
+
+  @override
+  String get categoryColorTeal => 'Xanh mòng két';
+
+  @override
+  String get categoryColorRust => 'Màu gỉ sắt';
+
+  @override
+  String get categoryColorBlue => 'Xanh dương';
+
+  @override
+  String get categoryColorPink => 'Hồng';
+
+  @override
+  String get categoryColorGreen => 'Xanh lá';
+
+  @override
+  String get categoryColorMagenta => 'Đỏ tươi';
+
+  @override
+  String get categoryColorCyan => 'Xanh lơ';
+
+  @override
+  String get categoryColorBrown => 'Nâu';
+
+  @override
+  String get categoryColorIndigo => 'Chàm';
+
+  @override
+  String get categoryColorRed => 'Đỏ';
+
+  @override
+  String get categoryColorSlate => 'Xám xanh';
+
+  @override
+  String get categoryColorOrange => 'Cam';
+
+  @override
+  String get categoryColorEmerald => 'Xanh ngọc lục bảo';
+
+  @override
+  String get categoryColorViolet => 'Tím than';
+
+  @override
+  String get categoryColorRaspberry => 'Mâm xôi';
 
   @override
   String get archiveAction => 'Lưu trữ';
@@ -1107,6 +1159,13 @@ class AppLocalizationsVi extends AppLocalizations {
       'Không thể khôi phục bản sao lưu. Dữ liệu của bạn không thay đổi.';
 
   @override
+  String get dbTooNewTitle => 'Cần cập nhật';
+
+  @override
+  String get dbTooNewMessage =>
+      'Dữ liệu này được lưu bởi một phiên bản mới hơn của ứng dụng. Hãy cập nhật ứng dụng từ cửa hàng để tiếp tục.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1135,6 +1194,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get appLockReason => 'Mở khóa Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Xác nhận danh tính của bạn';
 
   @override
   String get appLockFailed =>
@@ -1295,6 +1360,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Có một ghi chú đến hạn';
+
+  @override
+  String get noteReminderChannelName => 'Nhắc nhở ghi chú';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1758,13 +1826,27 @@ class AppLocalizationsVi extends AppLocalizations {
   String get dueEntryReminderTitle => 'Một mục đã đến hạn';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title đã đến hạn hôm nay và vẫn đang chờ.';
+  String get dueEntryChannelName => 'Các mục đã đến hạn';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) đã đến hạn hôm nay và vẫn đang chờ.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Một mục lặp lại đã đến hạn hôm nay và vẫn đang chờ.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) đã đến hạn vào $date và vẫn đang chờ.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Một mục lặp lại ($amount) đã đến hạn hôm nay và vẫn đang chờ.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Một mục lặp lại ($amount) đã đến hạn vào $date và vẫn đang chờ.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1778,7 +1860,21 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Có $count mục lặp lại đang chờ xử lý.',
+      one: 'Có $count mục lặp lại đang chờ xử lý.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Hôm nay chưa ghi gì';
+
+  @override
+  String get emptyDayChannelName => 'Những ngày chưa ghi gì';
 
   @override
   String get emptyDayReminderBody =>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The only strings the widget doesn't get from the app: what Android shows
+     in the widget picker, the line before the app has ever run, and the
+     placeholders the picker's preview draws. Translated per LANG-6. -->
+<resources>
+    <string name="widget_small_description">اس مدت کا خرچ، یا آپ کے بجٹ کا بقیہ حصہ</string>
+    <string name="widget_medium_description">اس مدت کی آمدنی، خرچ اور بیلنس</string>
+    <string name="widget_open_the_app">یہ مدت دیکھنے کے لیے Monthly Expenses کھولیں</string>
+    <string name="widget_preview_period">اس مدت</string>
+    <string name="widget_preview_income">آمدنی</string>
+    <string name="widget_preview_expense">خرچ</string>
+    <string name="widget_preview_balance">بیلنس</string>
+    <string name="widget_preview_left">بقیہ</string>
+    <string name="widget_preview_add_expense">خرچ شامل کریں</string>
+    <string name="widget_preview_add_income">آمدنی شامل کریں</string>
+    <string name="widget_preview_amount">—</string>
+</resources>

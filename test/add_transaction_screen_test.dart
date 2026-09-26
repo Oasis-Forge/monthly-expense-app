@@ -19,9 +19,14 @@ void main() {
 
   final amountField = find.widgetWithText(TextFormField, 'Amount');
 
+  // Fixed rather than DateTime.now(): a run that happens to cross midnight
+  // between opening the form and reading this back must not flip a
+  // day-of comparison against the real clock (test-quality#10).
+  final today = DateTime(2026, 9, 15, 10);
+
   setUp(() async {
     fake = FakeDB();
-    provider = TransactionProvider(db: fake);
+    provider = TransactionProvider(db: fake, clock: () => today);
     await provider.load();
     settings = await testSettings();
   });
@@ -47,6 +52,7 @@ void main() {
                     editing: editing,
                     recordingNote: recordingNote,
                     startAs: startAs,
+                    clock: () => today,
                   ),
                 ),
               ),
@@ -112,6 +118,77 @@ void main() {
     expect(find.byType(AddTransactionScreen), findsNothing);
   });
 
+  testWidgets(
+    "the amount field's symbol side matches the locale's display side "
+    '(CUR-5, LANG-5, pr61#11)',
+    (tester) async {
+      // English (USD): intl leads with the symbol.
+      await open(tester);
+      final enField = tester.widget<TextField>(
+        find.descendant(of: amountField, matching: find.byType(TextField)),
+      );
+      expect(enField.decoration?.prefixText, contains('\$'));
+      expect(enField.decoration?.suffixText, isNull);
+    },
+  );
+
+  testWidgets(
+    "the amount field's symbol side matches the locale's display side, "
+    'in German (CUR-5, LANG-5, pr61#11)',
+    (tester) async {
+      // German writes the symbol after the figures ('12,50 €'), unlike
+      // English; the field used to lead with it regardless. The label is
+      // German too ('Betrag'), so find the field by its currency affix
+      // rather than by the English label text.
+      settings = await testSettings({'language': 'de'});
+      await open(tester);
+      final deField = tester
+          .widgetList<TextField>(find.byType(TextField))
+          .firstWhere(
+            (f) =>
+                f.decoration?.prefixText != null ||
+                f.decoration?.suffixText != null,
+          );
+      expect(deField.decoration?.prefixText, isNull);
+      expect(deField.decoration?.suffixText, contains('\$'));
+    },
+  );
+
+  /// The amount field, whichever affix carries the currency symbol — the
+  /// built [TextField], not the [TextFormField] wrapping it, which carries
+  /// no `decoration` of its own.
+  Finder rtlAmountField() => find.byWidgetPredicate(
+    (widget) =>
+        widget is TextField &&
+        (widget.decoration?.prefixText != null ||
+            widget.decoration?.suffixText != null),
+  );
+
+  for (final language in ['ar', 'ur']) {
+    testWidgets(
+      "the amount field's symbol renders on the left in $language, not "
+      "wherever InputDecorator's start/end happens to fall in a "
+      'right-to-left layout (CUR-5, LANG-5, pr61#11)',
+      (tester) async {
+        settings = await testSettings({'language': language});
+        await open(tester);
+
+        final field = tester.widget<TextField>(rtlAmountField());
+        final symbol =
+            field.decoration!.prefixText ?? field.decoration!.suffixText!;
+        // Urdu's own pattern leads with the symbol, so before the fix this
+        // became prefixText — which InputDecorator places at the field's
+        // *start*, the right edge in this right-to-left layout.
+        await tester.enterText(rtlAmountField(), '12.5');
+        await tester.pump();
+
+        final symbolX = tester.getCenter(find.text(symbol)).dx;
+        final inputX = tester.getCenter(find.text('12.5')).dx;
+        expect(symbolX, lessThan(inputX));
+      },
+    );
+  }
+
   testWidgets('the keypad adds up amounts and saves the result (ADD-2)', (
     tester,
   ) async {
@@ -168,32 +245,106 @@ void main() {
     expect(provider.transactions.single.type, TransactionType.income);
   });
 
-  testWidgets('save & add another keeps the choices and clears the amount', (
+  testWidgets(
+    'save & add another keeps the choices, date, and account; clears the '
+    'amount, title, and note; and focuses the amount (ADD-4)',
+    (tester) async {
+      fake = FakeDB(
+        accounts: [testAccount(Account.cashId), testAccount('bank')],
+      );
+      provider = TransactionProvider(db: fake);
+      await provider.load();
+
+      await open(tester);
+      await tester.tap(find.text('Income'));
+      await tester.pumpAndSettle();
+      await tapInForm(tester, find.byTooltip('Previous day'));
+
+      final accountDropdown = find.byType(DropdownButtonFormField<String>).last;
+      await tapInForm(tester, accountDropdown);
+      await tester.tap(find.text('bank').last);
+      await tester.pumpAndSettle();
+
+      final titleField = find.widgetWithText(TextFormField, 'Title (optional)');
+      await revealInForm(tester, titleField);
+      await tester.enterText(titleField, 'Groceries');
+      final noteField = find.widgetWithText(TextFormField, 'Note (optional)');
+      await revealInForm(tester, noteField);
+      await tester.enterText(noteField, 'weekly run');
+      await enterAmount(tester, '100');
+
+      await tapInForm(
+        tester,
+        find.widgetWithText(OutlinedButton, 'Save & add another'),
+      );
+
+      expect(find.byType(AddTransactionScreen), findsOneWidget);
+      expect(find.text('Transaction added'), findsOneWidget);
+      // ADD-4: the amount is refocused, which docks the keypad back in.
+      expect(find.byType(AmountKeypad), findsOneWidget);
+      await revealInForm(tester, amountField);
+      expect(
+        tester.widget<TextFormField>(amountField).controller!.text,
+        isEmpty,
+      );
+      await revealInForm(tester, titleField);
+      expect(
+        tester.widget<TextFormField>(titleField).controller!.text,
+        isEmpty,
+      );
+      await revealInForm(tester, noteField);
+      expect(tester.widget<TextFormField>(noteField).controller!.text, isEmpty);
+      await expectInForm(tester, 'bank');
+
+      await enterAmount(tester, '50');
+      await tapButton(tester, 'Add Transaction');
+
+      expect(provider.transactions, hasLength(2));
+      final yesterday = dayOf(DateTime.now().subtract(const Duration(days: 1)));
+      expect(
+        {for (final t in provider.transactions) dayOf(t.date)},
+        {yesterday},
+      );
+      expect({for (final t in provider.transactions) t.accountId}, {'bank'});
+      expect(
+        {for (final t in provider.transactions) (t.type, t.categoryId)},
+        {(TransactionType.income, 'cat-salary')},
+      );
+      final first = provider.transactions.firstWhere(
+        (t) => t.amount == const Money(100000),
+      );
+      expect(first.title, 'Groceries');
+      expect(first.note, 'weekly run');
+      final second = provider.transactions.firstWhere(
+        (t) => t.amount == const Money(50000),
+      );
+      expect(second.title, isNull);
+      expect(second.note, isNull);
+    },
+  );
+
+  testWidgets('two saves through the form get distinct UUID v4 IDs (REC-2)', (
     tester,
   ) async {
     await open(tester);
-    await tester.tap(find.text('Income'));
-    await tester.pumpAndSettle();
-    await enterAmount(tester, '100');
-
+    await enterAmount(tester, '10');
     await tapInForm(
       tester,
       find.widgetWithText(OutlinedButton, 'Save & add another'),
     );
-
-    expect(find.byType(AddTransactionScreen), findsOneWidget);
-    expect(find.text('Transaction added'), findsOneWidget);
-    await revealInForm(tester, amountField);
-    expect(tester.widget<TextFormField>(amountField).controller!.text, isEmpty);
-
-    await enterAmount(tester, '50');
+    await enterAmount(tester, '20');
     await tapButton(tester, 'Add Transaction');
 
     expect(provider.transactions, hasLength(2));
+    final ids = provider.transactions.map((t) => t.id).toList();
     expect(
-      {for (final t in provider.transactions) (t.type, t.categoryId)},
-      {(TransactionType.income, 'cat-salary')},
+      ids.toSet(),
+      hasLength(2),
+      reason: 'record IDs must not collide across saves (REC-2, BAK-3)',
     );
+    for (final id in ids) {
+      expect(uuidV4.hasMatch(id), isTrue, reason: '$id is not a UUID v4');
+    }
   });
 
   testWidgets('recent categories are one tap away (ADD-5)', (tester) async {
@@ -240,10 +391,9 @@ void main() {
     await enterAmount(tester, '5');
     await tapButton(tester, 'Add Transaction');
 
-    final now = DateTime.now();
     expect(
       dayOf(provider.transactions.single.date),
-      DateTime(now.year, now.month, now.day - 1),
+      DateTime(today.year, today.month, today.day - 1),
     );
   });
 
@@ -264,6 +414,25 @@ void main() {
     await tapButton(tester, 'Add Transaction');
 
     expect(provider.transactions.single.date.day, 10);
+  });
+
+  testWidgets('a transaction from before 2015 can still open the date picker '
+      '(rules-1-5#12)', (tester) async {
+    final old = testTx('old', TransactionType.expense, 5, DateTime(2012, 3, 4));
+    await open(tester, editing: old);
+
+    await tapInForm(
+      tester,
+      find.descendant(
+        of: find.byType(DateField),
+        matching: find.byType(TextButton),
+      ),
+    );
+
+    // showDatePicker asserts initialDate is within firstDate/lastDate; a
+    // fixed firstDate of 2015 would fail that assertion here and this tap
+    // would throw instead of opening the calendar.
+    expect(find.byType(DatePickerDialog), findsOneWidget);
   });
 
   testWidgets('with two accounts the last used one is preselected (ADD-3)', (
@@ -389,6 +558,41 @@ void main() {
     expect(find.byType(AddTransactionScreen), findsNothing);
   });
 
+  testWidgets('a new entry counts towards RATE-1, but editing one does not '
+      '(pr57#10)', (tester) async {
+    final lunch = await addLunch();
+    expect(settings.manualEntriesRecorded, 0);
+
+    await open(tester, editing: lunch);
+    await tapButton(tester, 'Save Changes');
+    expect(
+      settings.manualEntriesRecorded,
+      0,
+      reason: "editing an entry already recorded isn't a new one",
+    );
+
+    await open(tester);
+    await enterAmount(tester, '12.50');
+    await tapButton(tester, 'Add Transaction');
+    expect(settings.manualEntriesRecorded, 1);
+  });
+
+  testWidgets(
+    'tapping Amount on the edit form opens the keypad, since autofocus is '
+    'off there (ADD-2, LANG-5, test-quality#12)',
+    (tester) async {
+      final lunch = await addLunch();
+
+      await open(tester, editing: lunch);
+      expect(find.byType(AmountKeypad), findsNothing);
+
+      await tester.tap(amountField);
+      await tester.pump();
+
+      expect(find.byType(AmountKeypad), findsOneWidget);
+    },
+  );
+
   testWidgets('duplicate opens an unsaved copy dated today (ADD-7)', (
     tester,
   ) async {
@@ -406,7 +610,40 @@ void main() {
       (copy.amount, copy.note, copy.categoryId),
       (lunch.amount, lunch.note, lunch.categoryId),
     );
-    expect(dayOf(copy.date), dayOf(DateTime.now()));
+    expect(dayOf(copy.date), dayOf(today));
+  });
+
+  testWidgets('duplicate also carries the title, type, and account (ADD-7)', (
+    tester,
+  ) async {
+    fake = FakeDB(
+      accounts: [testAccount(Account.cashId), testAccount('bank')],
+      transactions: [
+        testTx(
+          'p',
+          TransactionType.income,
+          900,
+          DateTime(2026, 9, 1),
+          title: 'Paycheck',
+          accountId: 'bank',
+        ),
+      ],
+    );
+    provider = TransactionProvider(db: fake);
+    await provider.load();
+    final pay = provider.transactions.single;
+
+    await open(tester, editing: pay);
+    await tester.tap(find.byTooltip('Duplicate'));
+    await tester.pumpAndSettle();
+
+    await tapButton(tester, 'Add Transaction');
+
+    final copy = provider.transactions.firstWhere((t) => t.id != 'p');
+    expect(
+      (copy.title, copy.type, copy.accountId),
+      ('Paycheck', TransactionType.income, 'bank'),
+    );
   });
 
   testWidgets('a transaction in an archived category keeps that category', (
@@ -476,15 +713,13 @@ void main() {
       final saved = provider.transactions.single;
       expect(saved.title, 'Buy milk');
       expect(saved.amount, const Money(5000));
-      expect(dayOf(saved.date), dayOf(DateTime.now()));
+      expect(dayOf(saved.date), dayOf(today));
       expect(provider.noteById('n')!.isDone, isTrue);
       expect(provider.noteById('n')!.transactionId, saved.id);
     },
   );
 
   group('the day a new entry starts on (ADD-3, DAY-9)', () {
-    final today = DateTime(2026, 9, 15, 10);
-
     /// A provider whose today is fixed, so the day Home shows is known.
     Future<void> onDay(DateTime? day) async {
       provider = TransactionProvider(db: fake, clock: () => today);

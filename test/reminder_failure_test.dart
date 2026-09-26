@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:monthly_expense_app/models/note.dart';
 import 'package:monthly_expense_app/models/reminders.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
@@ -44,6 +45,7 @@ class _BrokenReminders implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async => _fail();
 }
 

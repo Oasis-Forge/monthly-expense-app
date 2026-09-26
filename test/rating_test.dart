@@ -13,6 +13,7 @@ void main() {
     String? askedVersion,
     bool locked = false,
     bool adShownThisSession = false,
+    bool updateAskedToday = false,
   }) => ratingIsDue(
     entries: entries,
     firstOpened: firstOpened,
@@ -21,6 +22,7 @@ void main() {
     askedVersion: askedVersion,
     locked: locked,
     adShownThisSession: adShownThisSession,
+    updateAskedToday: updateAskedToday,
   );
 
   group('when the app may ask for a rating (RATE-1, RATE-3, RATE-4)', () {
@@ -56,6 +58,13 @@ void main() {
     test('never over a lock screen, and never after an ad', () {
       expect(due(locked: true), isFalse);
       expect(due(adShownThisSession: true), isFalse);
+    });
+
+    test('never on the same day the update was offered, even once that '
+        'save is done (UPD-3)', () {
+      expect(due(updateAskedToday: true), isFalse);
+      // Another day, and it is owed again.
+      expect(due(updateAskedToday: false), isTrue);
     });
   });
 }

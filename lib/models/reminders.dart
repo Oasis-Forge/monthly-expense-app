@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, immutable;
 
+import 'money.dart';
 import 'recurring_rule.dart';
+import 'transaction.dart';
 
 /// Whether this build can schedule the app's own reminders at all: phones
 /// only, so the desktop builds offer nothing they cannot do (NUDGE-10).
@@ -43,6 +45,10 @@ class PlannedReminder {
     required this.at,
     this.title,
     this.count = 1,
+    this.dueDate,
+    this.amount,
+    this.isIncome = false,
+    this.anyOverdue = false,
   });
 
   final ReminderKind kind;
@@ -58,16 +64,49 @@ class PlannedReminder {
   /// count rather than a list, so the notification stays one line (NUDGE-2).
   final int count;
 
+  /// The single named entry's own due date, for saying "was due {date}"
+  /// instead of "was due today" once it is no longer today (NUDGE-2,
+  /// rules-23-26-34#9). Null when [count] is more than one -- several due
+  /// the same day are announced together and carry no date of their own.
+  final DateTime? dueDate;
+
+  /// The single named entry's amount, so the reminder says "for how much"
+  /// (NUDGE-2, rules-23-26-34#9). Null when [count] is more than one.
+  final Money? amount;
+
+  /// Whether [amount] is income rather than an expense, for the sign it is
+  /// shown with (CUR-5). Meaningless when [amount] is null.
+  final bool isIncome;
+
+  /// Whether, among the several occurrences [count] counts, at least one
+  /// fell due on an earlier day than the one this reminder fires on --
+  /// carried over, unhandled (rules-23-26-34#9). Meaningless when [count] is
+  /// 1: a single entry's own overdue-ness is told from [dueDate] instead.
+  final bool anyOverdue;
+
   @override
   bool operator ==(Object other) =>
       other is PlannedReminder &&
       other.kind == kind &&
       other.at == at &&
       other.title == title &&
-      other.count == count;
+      other.count == count &&
+      other.dueDate == dueDate &&
+      other.amount == amount &&
+      other.isIncome == isIncome &&
+      other.anyOverdue == anyOverdue;
 
   @override
-  int get hashCode => Object.hash(kind, at, title, count);
+  int get hashCode => Object.hash(
+    kind,
+    at,
+    title,
+    count,
+    dueDate,
+    amount,
+    isIncome,
+    anyOverdue,
+  );
 
   @override
   String toString() => 'PlannedReminder($kind, $at, $title, x$count)';
@@ -143,12 +182,19 @@ List<PlannedReminder> planReminders({
     overdueAnnounced = true;
 
     spokenFor.add(day);
+    final single = announcing.length == 1 ? announcing.single : null;
     plan.add(
       PlannedReminder(
         kind: ReminderKind.dueEntry,
         at: at,
-        title: announcing.length == 1 ? announcing.single.rule.title : null,
+        title: single?.rule.title,
         count: announcing.length,
+        dueDate: single?.date,
+        amount: single?.rule.amount,
+        isIncome: single?.rule.type == TransactionType.income,
+        anyOverdue: single == null
+            ? announcing.any((occurrence) => !_sameDay(occurrence.date, day))
+            : false,
       ),
     );
   }
@@ -188,12 +234,17 @@ int countIgnoredNudges({
   required Set<DateTime> daysWithEntries,
   int ignoredSoFar = 0,
 }) {
+  // `since` is read back from storage as UTC (money-time#8); the calendar
+  // day it names, and every nudge time built from it below, must be in
+  // local time to line up with `now`, `hour`/`minute` (the device's own
+  // clock, NUDGE-6) and [daysWithEntries] (local dates).
+  final localSince = since.toLocal();
   var ignored = ignoredSoFar;
-  var day = DateTime(since.year, since.month, since.day);
+  var day = DateTime(localSince.year, localSince.month, localSince.day);
   final today = DateTime(now.year, now.month, now.day);
   while (!day.isAfter(today)) {
     final at = DateTime(day.year, day.month, day.day, hour, minute);
-    if (at.isAfter(since) && !at.isAfter(now)) {
+    if (at.isAfter(localSince) && !at.isAfter(now)) {
       ignored = daysWithEntries.contains(day) ? 0 : ignored + 1;
     }
     day = DateTime(day.year, day.month, day.day + 1);

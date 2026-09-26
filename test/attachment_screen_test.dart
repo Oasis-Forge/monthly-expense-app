@@ -654,6 +654,45 @@ void main() {
       expect(find.byType(InteractiveViewer), findsOneWidget);
     });
 
+    testWidgets(
+      'a missing photo says so behind the tap too, not a broken image '
+      '(ATT-7)',
+      (tester) async {
+        // A prior test's Image.file for the same fake missing path may
+        // still sit in the global image cache with its failure resolved;
+        // start clean so this test's own wait proves the error surfaces.
+        imageCache.clear();
+        imageCache.clearLiveImages();
+        attachments = FakeAttachments();
+        final editing = testTx(
+          'a',
+          expense,
+          10,
+          today,
+        ).copyWith(photoFile: 'gone.jpg');
+
+        await open(tester, editing: editing);
+        await waitForMissingPhoto(tester, find.text('This photo is missing.'));
+
+        // The thumbnail already says the photo is missing.
+        expect(find.text('This photo is missing.'), findsOneWidget);
+
+        await tapInForm(tester, find.byType(Image));
+        await waitForMissingPhoto(
+          tester,
+          find.text('This photo is missing.'),
+          atLeast: 2,
+        );
+
+        expect(find.byType(Dialog), findsOneWidget);
+        expect(find.byType(InteractiveViewer), findsOneWidget);
+        // ATT-7: "Never a broken image or a silent gap." The full-screen
+        // viewer must say the photo is missing too, not silently show
+        // nothing (or a broken image) where the photo would be.
+        expect(find.text('This photo is missing.'), findsNWidgets(2));
+      },
+    );
+
     testWidgets('a voice note can be taken off again (ATT-5)', (tester) async {
       await open(tester);
       await record(tester);

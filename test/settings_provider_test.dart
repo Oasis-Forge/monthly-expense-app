@@ -30,6 +30,19 @@ void main() {
     },
   );
 
+  test('manual entries saved by hand persist and only ever grow (RATE-1, '
+      'pr57#10)', () async {
+    final prefs = await prefsWith({'manual_entries_recorded': 3});
+    final settings = SettingsProvider(prefs);
+    expect(settings.manualEntriesRecorded, 3);
+
+    await settings.noteManualEntrySaved();
+    expect(settings.manualEntriesRecorded, 4);
+
+    final reread = SettingsProvider(prefs);
+    expect(reread.manualEntriesRecorded, 4);
+  });
+
   test('saved settings are read back, and changes persist', () async {
     final prefs = await prefsWith({
       'currency_code': 'JPY',
@@ -179,14 +192,101 @@ void main() {
       },
     );
 
-    test('the PDF report gets the symbol without the marks', () async {
+    test('compact amounts never carry a doubled space next to the symbol '
+        '(LANG-5, CUR-2, pr61#3)', () async {
+      // intl's own compact suffix (ألف, tys., din…) already touches the
+      // symbol with a separator in these locales; CLDR's own spacing
+      // (above) would double it up if left unchecked.
       final settings = SettingsProvider(
         await prefsWith({'currency_code': 'SAR'}),
       );
+      expect(
+        settings.compactCurrencyFormat('ar').format(1234.5),
+        isNot(contains('  ')),
+      );
+      expect(
+        settings.compactCurrencyFormat('ar').format(1234.5),
+        isNot(contains('  ')),
+      );
 
-      final report = settings.currencyFormat('ar', isolated: false);
-      expect(report.format(5), contains('ر.س.'));
-      expect(report.format(5), isNot(contains('\u2066')));
+      await settings.setCurrencyCode('PLN');
+      expect(
+        settings.compactCurrencyFormat('pl').format(1234.5),
+        isNot(contains('  ')),
+      );
+
+      await settings.setCurrencyCode('CHF');
+      expect(
+        settings.compactCurrencyFormat('de').format(1234.5),
+        isNot(contains('  ')),
+      );
+
+      // A locale that needs one space still keeps exactly one.
+      await settings.setCurrencyCode('IDR');
+      expect(
+        settings.compactCurrencyFormat('id').format(1234.5),
+        contains('Rp '),
+      );
+    });
+
+    test('symbolLeadsFigures agrees with the pattern currencyFormat itself '
+        'uses to place the symbol (CUR-5, pr61#11)', () {
+      // English and Urdu lead with the symbol; German and Arabic follow
+      // it with the figures first.
+      expect(SettingsProvider.symbolLeadsFigures('en'), isTrue);
+      expect(SettingsProvider.symbolLeadsFigures('ur'), isTrue);
+      expect(SettingsProvider.symbolLeadsFigures('de'), isFalse);
+      expect(SettingsProvider.symbolLeadsFigures('ar'), isFalse);
+    });
+
+    test('a signed compact amount keeps its sign against its own figures in '
+        'Arabic, at any size (LANG-5, CUR-5, pr58#5)', () async {
+      final settings = SettingsProvider(
+        await prefsWith({'currency_code': 'SAR'}),
+      );
+      final compact = settings.compactCurrencyFormat('ar');
+
+      // Under 1,000: intl's own fallback prefix already happens to keep
+      // the sign left of the digits, but this still isolates it rather
+      // than depend on that.
+      expect(
+        compact.signedFormat(30, isIncome: false),
+        contains('\u2066-30.00\u2069'),
+      );
+      // 1,000 and up: intl's compact prefix is '\u200e-\u200f', which
+      // left the sign to bidi with nothing holding it to its figures --
+      // the same bug class pr61#5 fixed for the category change label.
+      expect(
+        compact.signedFormat(1200, isIncome: false),
+        contains('\u2066-1.2\u2069'),
+      );
+      expect(
+        compact.signedFormat(1200, isIncome: false),
+        isNot(contains('\u200e')),
+      );
+      expect(
+        compact.signedFormat(1200, isIncome: false),
+        isNot(contains('\u200f')),
+      );
+      // Income takes a plus, isolated the same way.
+      expect(
+        compact.signedFormat(1200, isIncome: true),
+        contains('\u2066+1.2\u2069'),
+      );
+      // The compact suffix and the symbol stay outside the isolate.
+      expect(
+        compact.signedFormat(1200, isIncome: false),
+        matches(RegExp('\u2069\\s+\u0623\u0644\u0641\\s+\u0631.\u0633.')),
+      );
+
+      // Left-to-right languages need no isolate at all.
+      await settings.setCurrencyCode('USD');
+      expect(
+        settings
+            .compactCurrencyFormat('en')
+            .signedFormat(1200, isIncome: false),
+        isNot(contains('\u2066')),
+      );
     });
 
     testWidgets('Arabic reads the figures first and the symbol after, so the '

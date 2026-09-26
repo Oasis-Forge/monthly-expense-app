@@ -28,6 +28,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get emptyPeriod => 'Brak transakcji w tym okresie.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Nic dla tego konta w tym okresie.';
+
+  @override
   String get balanceLabel => 'Saldo';
 
   @override
@@ -396,6 +400,54 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Ta nazwa jest już używana';
+
+  @override
+  String get categoryColorPurple => 'Fioletowy';
+
+  @override
+  String get categoryColorTeal => 'Morski';
+
+  @override
+  String get categoryColorRust => 'Rdzawy';
+
+  @override
+  String get categoryColorBlue => 'Niebieski';
+
+  @override
+  String get categoryColorPink => 'Różowy';
+
+  @override
+  String get categoryColorGreen => 'Zielony';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Cyjan';
+
+  @override
+  String get categoryColorBrown => 'Brązowy';
+
+  @override
+  String get categoryColorIndigo => 'Indygo';
+
+  @override
+  String get categoryColorRed => 'Czerwony';
+
+  @override
+  String get categoryColorSlate => 'Łupkowy';
+
+  @override
+  String get categoryColorOrange => 'Pomarańczowy';
+
+  @override
+  String get categoryColorEmerald => 'Szmaragdowy';
+
+  @override
+  String get categoryColorViolet => 'Fiolet';
+
+  @override
+  String get categoryColorRaspberry => 'Malinowy';
 
   @override
   String get archiveAction => 'Archiwizuj';
@@ -1147,6 +1199,13 @@ class AppLocalizationsPl extends AppLocalizations {
       'Nie udało się przywrócić kopii zapasowej. Twoje dane nie zostały zmienione.';
 
   @override
+  String get dbTooNewTitle => 'Wymagana aktualizacja';
+
+  @override
+  String get dbTooNewMessage =>
+      'Te dane zostały zapisane przez nowszą wersję aplikacji. Zaktualizuj aplikację ze sklepu, aby kontynuować.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1177,6 +1236,12 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get appLockReason => 'Odblokuj Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Potwierdź, że to Ty';
 
   @override
   String get appLockFailed =>
@@ -1341,6 +1406,9 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Notatka wymaga uwagi';
+
+  @override
+  String get noteReminderChannelName => 'Przypomnienia o notatkach';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1825,13 +1893,27 @@ class AppLocalizationsPl extends AppLocalizations {
   String get dueEntryReminderTitle => 'Wpis był zaplanowany';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title miał termin dzisiaj i wciąż czeka.';
+  String get dueEntryChannelName => 'Zaległe wpisy';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) miał termin dzisiaj i wciąż czeka.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Wpis cykliczny miał termin dzisiaj i wciąż czeka.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) miał termin $date i wciąż czeka.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Wpis cykliczny ($amount) miał termin dzisiaj i wciąż czeka.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Wpis cykliczny ($amount) miał termin $date i wciąż czeka.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1847,7 +1929,23 @@ class AppLocalizationsPl extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wpisów cyklicznych czeka.',
+      many: '$count wpisów cyklicznych czeka.',
+      few: '$count wpisy cykliczne czekają.',
+      one: '1 wpis cykliczny czeka.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Dziś nic nie zapisano';
+
+  @override
+  String get emptyDayChannelName => 'Dni bez zapisu';
 
   @override
   String get emptyDayReminderBody =>

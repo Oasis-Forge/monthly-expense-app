@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
@@ -237,6 +239,173 @@ void main() {
       expect(text, isNot(contains('Budget')));
     });
 
+    test('leaves the typed query out of the header when titles and notes are '
+        'off, since it may be private text of its own (PDF-3, '
+        'review-pdf-query-titles-off)', () async {
+      final data = buildReport(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        today: today,
+        transactions: [
+          testTx(
+            'rent',
+            TransactionType.expense,
+            800,
+            DateTime(2026, 9, 1),
+            categoryId: 'cat-rent',
+          ),
+        ],
+        transfers: const [],
+        accounts: [testAccount('cash', opening: 100)],
+        matches: (tx) => tx.id == 'rent',
+        searchInfo: const ReportSearchInfo(query: 'SecretQuery'),
+      );
+
+      const options = ReportOptions(titlesAndNotes: false);
+      final bytes = await buildReportPdf(
+        data: data,
+        options: options,
+        labels: await labelsFor('en'),
+        fonts: await ReportFonts.forLocale(const Locale('en')),
+        createdAt: createdAt,
+        compress: false,
+      );
+      final text = pdfText(bytes);
+
+      expect(text, isNot(contains('SecretQuery')));
+      expect(text, contains(squashed('Narrowed to')));
+    });
+
+    test('leaves the typed query out of the header when the transaction '
+        'list is off, even though titles and notes default on and take no '
+        'effect without it (PDF-3, review-pdf-query-titles-off)', () async {
+      final data = buildReport(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        today: today,
+        transactions: [
+          testTx(
+            'rent',
+            TransactionType.expense,
+            800,
+            DateTime(2026, 9, 1),
+            categoryId: 'cat-rent',
+          ),
+        ],
+        transfers: const [],
+        accounts: [testAccount('cash', opening: 100)],
+        matches: (tx) => tx.id == 'rent',
+        searchInfo: const ReportSearchInfo(query: 'SecretQuery'),
+      );
+
+      // The list switch off, titles and notes left on: report_screen.dart
+      // disables that switch but never flips it, so titlesAndNotes is still
+      // true here even though the list — the only place titles or notes
+      // could show — is off.
+      const options = ReportOptions(transactions: false);
+      final bytes = await buildReportPdf(
+        data: data,
+        options: options,
+        labels: await labelsFor('en'),
+        fonts: await ReportFonts.forLocale(const Locale('en')),
+        createdAt: createdAt,
+        compress: false,
+      );
+      final text = pdfText(bytes);
+
+      expect(text, isNot(contains('SecretQuery')));
+      expect(text, contains(squashed('Narrowed to')));
+    });
+
+    test('keeps the type and category in the header when titles and notes are '
+        'off, since neither is titles-and-notes text (PDF-3, '
+        'review-pdf-query-titles-off)', () async {
+      final data = buildReport(
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        today: today,
+        transactions: [
+          testTx(
+            'rent',
+            TransactionType.expense,
+            800,
+            DateTime(2026, 9, 1),
+            categoryId: 'cat-rent',
+          ),
+        ],
+        transfers: const [],
+        accounts: [testAccount('cash', opening: 100)],
+        matches: (tx) => tx.id == 'rent',
+        searchInfo: const ReportSearchInfo(
+          query: 'SecretQuery',
+          type: TransactionType.expense,
+        ),
+      );
+
+      const options = ReportOptions(titlesAndNotes: false);
+      final bytes = await buildReportPdf(
+        data: data,
+        options: options,
+        labels: await labelsFor('en'),
+        fonts: await ReportFonts.forLocale(const Locale('en')),
+        createdAt: createdAt,
+        compress: false,
+      );
+      final text = pdfText(bytes);
+
+      expect(text, isNot(contains('SecretQuery')));
+      expect(text, contains(squashed('Expense')));
+    });
+
+    test(
+      'separates the header parts with their own run, so a category '
+      'name does not run into the type before it (review-pdf-bidi)',
+      () async {
+        final data = buildReport(
+          from: DateTime(2026, 9, 1),
+          to: DateTime(2026, 9, 30),
+          today: today,
+          transactions: [
+            testTx(
+              'rent',
+              TransactionType.expense,
+              800,
+              DateTime(2026, 9, 1),
+              categoryId: 'cat-tax',
+            ),
+          ],
+          transfers: const [],
+          accounts: [testAccount('cash', opening: 100)],
+          matches: (tx) => tx.id == 'rent',
+          searchInfo: const ReportSearchInfo(
+            query: '',
+            type: TransactionType.expense,
+            categoryName: 'Income tax',
+          ),
+        );
+
+        final bytes = await buildReportPdf(
+          data: data,
+          options: const ReportOptions(),
+          labels: await labelsFor('en'),
+          fonts: await ReportFonts.forLocale(const Locale('en')),
+          createdAt: createdAt,
+          compress: false,
+        );
+        final lines = pdfLines(bytes);
+
+        // "Expense" and "Income tax" are two separate parts (type, category);
+        // without a visible separator between them they'd read as one run-on
+        // phrase. Each sits with its own '·' run right before it.
+        final expenseIndex = lines.indexWhere((l) => l == 'Expense');
+        final categoryIndex = lines.indexWhere((l) => l == 'Incometax');
+        expect(expenseIndex, isNot(-1), reason: '$lines');
+        expect(categoryIndex, isNot(-1), reason: '$lines');
+        expect(categoryIndex, greaterThan(expenseIndex));
+        expect(lines[categoryIndex - 1], '·');
+      },
+    );
+
     test('an unnarrowed report still shows both balances (BAL-3)', () async {
       final bytes = await buildReportPdf(
         data: dataWith(manyEntries(4)),
@@ -305,6 +474,81 @@ void main() {
         took.inSeconds,
         lessThan(60),
         reason: 'a year took ${took.inSeconds}s to lay out',
+      );
+    });
+
+    test('a cancel asked for right as progress reaches 100% is still honoured '
+        '(PDF-6)', () async {
+      // The window between the last progress tick and the page layout that
+      // follows it is checked once more right there: onProgress marks the
+      // moment progress reaches 1.0, and isCancelled starts answering true
+      // from then on, so this can only pass if a check runs after that tick
+      // and before the layout call that follows (which itself now moves to
+      // another isolate, so this check is the last chance to catch a cancel
+      // before that work is ever started).
+      var reachedFull = false;
+      await expectLater(
+        build(
+          dataWith(manyEntries(20)),
+          onProgress: (progress) {
+            if (progress >= 1.0) reachedFull = true;
+          },
+          isCancelled: () => reachedFull,
+        ),
+        throwsA(isA<ReportCancelled>()),
+      );
+    });
+
+    test('the calling isolate stays responsive while a big report lays out '
+        '(PDF-6)', () async {
+      // A whole year with thousands of entries is squarely the case the
+      // finding names: enough day tables and rows that laying them out
+      // takes real, measurable time. A periodic timer on this (calling)
+      // isolate is a direct probe for the freeze itself, not a proxy for
+      // it: if addPage's layout ran synchronously here, as it used to,
+      // this isolate's own event loop would be blocked for the whole
+      // stretch and the timer could not tick during it. Moving the layout
+      // and the write after it to another isolate (report_pdf.dart) keeps
+      // this isolate free to keep ticking throughout.
+      final data = buildReport(
+        from: DateTime(2026, 1, 1),
+        to: DateTime(2026, 12, 31),
+        today: DateTime(2026, 12, 31),
+        transactions: [
+          for (var i = 0; i < 4000; i++)
+            testTx(
+              'tx-$i',
+              i.isEven ? TransactionType.expense : TransactionType.income,
+              (i % 90) + 1,
+              DateTime(2026, 1, 1 + (i % 360)),
+              title: 'Entry $i',
+              note: 'A note on entry $i',
+            ),
+        ],
+        transfers: const [],
+        accounts: [testAccount('cash', opening: 100)],
+      );
+      expect(data.entryCount, 4000);
+
+      var lastTick = DateTime.now();
+      var maxGap = Duration.zero;
+      final timer = Timer.periodic(const Duration(milliseconds: 10), (_) {
+        final now = DateTime.now();
+        final gap = now.difference(lastTick);
+        if (gap > maxGap) maxGap = gap;
+        lastTick = now;
+      });
+
+      final bytes = await build(data);
+      timer.cancel();
+
+      expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+      expect(
+        maxGap.inMilliseconds,
+        lessThan(300),
+        reason:
+            'the calling isolate went unresponsive for '
+            '${maxGap.inMilliseconds}ms while the report laid out',
       );
     });
   });

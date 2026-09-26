@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,6 +38,14 @@ import 'package:monthly_expense_app/services/update_service.dart';
 import 'package:monthly_expense_app/services/shortcut_service.dart';
 
 final _created = DateTime.utc(2026);
+
+/// Matches a UUID v4, case-insensitively (REC-2): every new record's ID
+/// must look like this, so a backup from any device never collides with one
+/// already on this one.
+final uuidV4 = RegExp(
+  r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+  caseSensitive: false,
+);
 
 Money _money(num amount) => Money((amount * 1000).round());
 
@@ -225,6 +234,11 @@ class FakeDB extends DBHelper {
   final Map<String, String> purgedIds = {};
   bool failWrites = false;
 
+  /// Makes the very first read in [TransactionProvider.load] throw this,
+  /// the way an [DatabaseDowngradeError] would if this build opened a
+  /// database a newer build had already upgraded (x-downgrade-message).
+  Object? failLoadWith;
+
   void _checkWrite() {
     if (failWrites) throw StateError('write failed');
   }
@@ -254,6 +268,7 @@ class FakeDB extends DBHelper {
 
   @override
   Future<List<String>> purgeDeletedBefore(DateTime cutoff) async {
+    if (failLoadWith != null) throw failLoadWith!;
     bool old(DateTime? deletedAt) => deletedAt?.isBefore(cutoff) ?? false;
     final going = [
       for (final row in rows)
@@ -425,8 +440,14 @@ class FakeDB extends DBHelper {
     notes.add(note);
   }
 
+  /// Makes only [updateNote] throw, independently of [failWrites], so a
+  /// test can fail the note-reopen/relink side effect after the
+  /// transaction's own write has already succeeded (data-integrity#12).
+  bool failNoteWrites = false;
+
   @override
   Future<void> updateNote(Note note) async {
+    if (failNoteWrites) throw StateError('note write failed');
     _checkWrite();
     notes[notes.indexWhere((n) => n.id == note.id)] = note;
   }
@@ -590,12 +611,29 @@ class FakeAuthenticator implements Authenticator {
   /// How many times the user was asked to authenticate.
   int requests = 0;
 
+  /// What the last call passed, so a test can check the prompt is built
+  /// from the caller's own translations rather than left in English
+  /// (LANG-2, LOCK-1).
+  String? lastReason;
+  String? lastTitle;
+  String? lastHint;
+  String? lastCancelButton;
+
   @override
   Future<bool> isAvailable() async => available;
 
   @override
-  Future<AuthResult> authenticate(String reason) async {
+  Future<AuthResult> authenticate(
+    String reason, {
+    String? title,
+    String? hint,
+    String? cancelButton,
+  }) async {
     requests++;
+    lastReason = reason;
+    lastTitle = title;
+    lastHint = hint;
+    lastCancelButton = cancelButton;
     return available ? result : AuthResult.unavailable;
   }
 }
@@ -603,13 +641,21 @@ class FakeAuthenticator implements Authenticator {
 /// A [ReminderService] that records calls instead of touching the device.
 /// [permissionGranted] answers [requestPermission].
 class FakeReminderService implements ReminderService {
-  FakeReminderService({this.permissionGranted = true});
+  FakeReminderService({this.permissionGranted = true, DateTime Function()? now})
+    : _now = now ?? DateTime.now;
 
   bool permissionGranted;
+
+  final DateTime Function() _now;
 
   /// Notes currently scheduled, by ID, with the [appLockOn] they were
   /// scheduled with.
   final Map<String, bool> scheduled = {};
+
+  /// The time each scheduled note's reminder was last scheduled for
+  /// (mirrors [DeviceReminderService]'s own record; see
+  /// [shouldCancelPassedReminder]).
+  final Map<String, DateTime> _lastScheduledAt = {};
 
   /// How many times [requestPermission] was called.
   int permissionRequests = 0;
@@ -618,6 +664,10 @@ class FakeReminderService implements ReminderService {
   /// the [appLockOn] they were scheduled with (NUDGE-1).
   List<PlannedReminder> nudges = const [];
   bool nudgesLocked = false;
+
+  /// The currency [scheduleNudges] was last given, so a test can tell a
+  /// currency change actually reached the reminder service (CUR-2, CUR-3).
+  NumberFormat? lastCurrency;
 
   /// How many times a plan replaced the one before it, so a test can tell a
   /// reschedule from a plan that simply stayed the same.
@@ -628,9 +678,11 @@ class FakeReminderService implements ReminderService {
     List<PlannedReminder> plan, {
     required bool appLockOn,
     required Locale locale,
+    required NumberFormat currency,
   }) async {
     nudges = plan;
     nudgesLocked = appLockOn;
+    lastCurrency = currency;
     nudgePlans++;
   }
 
@@ -652,17 +704,94 @@ class FakeReminderService implements ReminderService {
     required bool appLockOn,
     required Locale locale,
   }) async {
-    if (note.reminderAt == null || note.isDone || note.deletedAt != null) {
-      scheduled.remove(note.id);
-    } else {
-      scheduled[note.id] = appLockOn;
+    final at = note.reminderAt;
+    final last = _lastScheduledAt[note.id];
+    switch (reminderActionFor(note, lastScheduledAt: last, now: _now())) {
+      case ReminderAction.cancel:
+        scheduled.remove(note.id);
+        _lastScheduledAt.remove(note.id);
+        return;
+      case ReminderAction.keep:
+        // Mirrors DeviceReminderService: a recently passed, unchanged time
+        // leaves whatever is already scheduled alone (NOTE-6), unless app
+        // lock is on, in which case whatever the device has for it is
+        // reworded to the locked wording (LOCK-2) -- decided the same way
+        // real device state would decide it (lockKeepActionFor), not from
+        // memory of what app lock used to be. The fake never actually
+        // "delivers" anything, so it always looks like something still
+        // pending, never something already shown.
+        if (last == null) {
+          // Nothing was ever actually scheduled for this passed time, so
+          // the device would have nothing to reword either -- this must
+          // not invent an entry. DeviceReminderService still records the
+          // time after a cold start (x-reminder-lock-keep), so a later
+          // edit is told apart from an unchanged one the same way there.
+          _lastScheduledAt[note.id] = at!;
+          return;
+        }
+        if (lockKeepActionFor(
+              appLockOn: appLockOn,
+              isActive: false,
+              isPending: true,
+            ) !=
+            LockKeepAction.none) {
+          scheduled[note.id] = true;
+        }
+        _lastScheduledAt[note.id] = at!;
+        return;
+      case ReminderAction.schedule:
+        scheduled[note.id] = appLockOn;
+        _lastScheduledAt[note.id] = at!;
     }
   }
 
   @override
   Future<void> cancel(Note note) async {
     scheduled.remove(note.id);
+    _lastScheduledAt.remove(note.id);
   }
+}
+
+/// Throws on every call, as the real plugin did when a release build's
+/// shrinker had dropped the notification icon (pr59#9). Screens read
+/// `context.read<ReminderService>()` directly, trusting `main.dart` to have
+/// wrapped it in [SafeReminderService]; pumping the real [MonthlyExpenseApp]
+/// with this is how a test proves that wrapping actually holds, not just
+/// that [TransactionProvider]'s own guarded calls do (NOTE-6, NUDGE-1).
+class ThrowingReminderService implements ReminderService {
+  int calls = 0;
+
+  Never _fail() {
+    calls++;
+    throw PlatformException(
+      code: 'invalid_icon',
+      message: 'The resource @drawable/ic_notification could not be found.',
+    );
+  }
+
+  @override
+  Future<bool> requestPermission() async => _fail();
+
+  @override
+  Future<bool> areNotificationsEnabled() async => _fail();
+
+  @override
+  Future<void> schedule(
+    Note note, {
+    required bool appLockOn,
+    required Locale locale,
+  }) async => _fail();
+
+  @override
+  Future<void> cancel(Note note) async => _fail();
+
+  @override
+  Future<void> scheduleNudges(
+    List<PlannedReminder> plan, {
+    required bool appLockOn,
+    required Locale locale,
+    required NumberFormat currency,
+  }) async => _fail();
 }
 
 /// A [BackupService] over [db] with fake files and a fixed app version.
@@ -735,6 +864,12 @@ class FakeAdService implements AdService {
   /// Whether a full-screen request comes back with one (ADS-13).
   bool interstitialFills;
 
+  /// Whether a fetched interstitial's `show()` reports the ad was actually
+  /// displayed, or reports a failed show (ADS-13). A test sets this false to
+  /// simulate an ad that expired, or lost a race with another full-screen
+  /// surface, between being fetched and reaching its seam.
+  bool interstitialShowSucceeds = true;
+
   /// How many full-screen ads were asked for, shown, and let go unshown.
   int interstitialsRequested = 0;
   int interstitialsShown = 0;
@@ -745,7 +880,11 @@ class FakeAdService implements AdService {
     interstitialsRequested++;
     if (!canStart || !interstitialFills) return null;
     return LoadedInterstitial(
-      show: () async => interstitialsShown++,
+      show: () async {
+        final wasShown = interstitialShowSucceeds;
+        if (wasShown) interstitialsShown++;
+        return wasShown;
+      },
       dispose: () async => interstitialsDropped++,
     );
   }
@@ -913,6 +1052,84 @@ void usePhoneScreen(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
+/// Waits for the real [MonthlyExpenseApp]'s own [TransactionProvider] (built
+/// internally, over the real database, not a [FakeDB]) to finish loading.
+/// Awaiting a real-zone future inside a `FakeAsync` widget test hangs, and a
+/// fixed pump count flakes under a loaded full-suite run, so this pumps in
+/// bounded real-time steps until the load actually finishes (pr59#9).
+Future<void> waitForRealLoad(WidgetTester tester) async {
+  final transactions = tester
+      .element(find.byType(MaterialApp))
+      .read<TransactionProvider>();
+  for (var i = 0; i < 200 && !transactions.isLoaded; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 20)),
+    );
+    await tester.pump();
+  }
+}
+
+/// Waits for a real dart:io file-read error (a missing photo, ATT-7) to
+/// surface through an [Image]'s error listener: it needs a real event-loop
+/// turn, not just [WidgetTester.pumpAndSettle], and a fixed pump count
+/// flakes under a loaded full-suite run, so this polls in a bounded loop
+/// instead. Clear [imageCache] first when a prior test's [Image] may have
+/// resolved the same fake missing path, so this wait proves the error
+/// surfaces again rather than reusing a stale cache entry.
+Future<void> waitForMissingPhoto(
+  WidgetTester tester,
+  Finder finder, {
+  int atLeast = 1,
+}) async {
+  for (var i = 0; i < 20 && finder.evaluate().length < atLeast; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pump();
+  }
+}
+
+/// Asserts that [amount]'s sign stays with its figures as one piece, rather
+/// than measuring where the widget merely declares its direction to be
+/// (LANG-5, CUR-5). A row that forces a text direction, or hand-pastes a
+/// bare sign in front of a formatted amount, can pass a check that only
+/// looks at `textDirection` while bidi visibly carries the sign (or a
+/// currency symbol between it and the figures) off to the far end of the
+/// line in Arabic or Urdu -- this measures where the glyphs actually land
+/// instead, character by character from the sign through the last digit,
+/// so any character bidi displaced out of string order opens a gap this
+/// catches, wherever in that run it falls.
+void expectSignTouchesFigures(Text amount) {
+  final text = amount.data!;
+  final painter = TextPainter(
+    text: TextSpan(text: text),
+    textDirection: amount.textDirection ?? TextDirection.rtl,
+  )..layout();
+  Rect boxOf(int at) => painter
+      .getBoxesForSelection(TextSelection(baseOffset: at, extentOffset: at + 1))
+      .first
+      .toRect();
+  final signMatch = RegExp('[-+−]').firstMatch(text);
+  expect(signMatch, isNotNull, reason: 'no +, -, or − sign found in "$text"');
+  final digitMatches = RegExp('[0-9]').allMatches(text).toList();
+  expect(digitMatches, isNotEmpty, reason: 'no digit found in "$text"');
+  final start = signMatch!.start;
+  final end = digitMatches.last.start;
+  var previous = boxOf(start);
+  for (var i = start + 1; i <= end; i++) {
+    final box = boxOf(i);
+    expect(
+      box.left,
+      closeTo(previous.right, 2),
+      reason:
+          'the run from the sign to the figures should stay together, '
+          'not reorder or drift apart: $text',
+    );
+    previous = box;
+  }
+  painter.dispose();
+}
+
 /// Scrolls the open form from the top until [finder] is built and visible.
 /// Forms are lazy lists, so fields off screen may not exist yet.
 Future<void> revealInForm(WidgetTester tester, Finder finder) async {
@@ -944,6 +1161,11 @@ class FakeAttachmentFiles implements AttachmentFiles {
   String? recordingTo;
   bool cancelled = false;
 
+  /// Makes [stopRecording] throw once, the way a `PlatformException` from
+  /// the recorder plugin would after an audio-focus loss or a phone call
+  /// (x-recorder-release).
+  bool stopThrows = false;
+
   @override
   Future<String?> pickPhoto(PhotoSource source) async {
     picked.add(source);
@@ -959,7 +1181,13 @@ class FakeAttachmentFiles implements AttachmentFiles {
   }
 
   @override
-  Future<String?> stopRecording() async => recordingTo;
+  Future<String?> stopRecording() async {
+    if (stopThrows) {
+      stopThrows = false;
+      throw StateError('stop failed');
+    }
+    return recordingTo;
+  }
 
   @override
   Future<void> play(String path) async {
@@ -1029,6 +1257,10 @@ class FakeAttachments implements AttachmentService {
   /// (review-money-5).
   bool stopThrows = false;
 
+  /// Makes [deleteAll] throw once, the way a locked or already-missing file
+  /// might on some platforms (data-integrity#12).
+  bool deleteAllThrows = false;
+
   String _name(String extension) => 'file${++_next}.$extension';
 
   @override
@@ -1097,6 +1329,10 @@ class FakeAttachments implements AttachmentService {
 
   @override
   Future<void> deleteAll(Iterable<String?> names) async {
+    if (deleteAllThrows) {
+      deleteAllThrows = false;
+      throw StateError('delete failed');
+    }
     names.forEach(stored.remove);
   }
 
@@ -1155,7 +1391,13 @@ class FakeUpdates implements UpdateService {
     this.offered = false,
     this.downloads = true,
     bool downloaded = false,
-  }) : alreadyDownloaded = downloaded;
+    this.duringAvailable,
+    this.duringDownload,
+    // Can't initialize the field directly with `this.downloaded`:
+    // `UpdateService.downloaded()` is a method of that same name, so the
+    // mutable field needs one of its own.
+    // ignore: prefer_initializing_formals
+  }) : _downloaded = downloaded;
 
   @override
   final bool supported;
@@ -1167,9 +1409,21 @@ class FakeUpdates implements UpdateService {
   /// or failing.
   final bool downloads;
 
-  /// Whether Play already has a finished download waiting from an earlier
-  /// run (UPD-1), so [download] should never be called.
-  final bool alreadyDownloaded;
+  /// Awaited inside [available], so a test can act -- typically opening a
+  /// form -- while the real check would still be waiting on Play (UPD-2,
+  /// pr58#7).
+  final Future<void> Function()? duringAvailable;
+
+  /// Same for [download], whose real download can run 30 to 60 seconds
+  /// (UPD-1, pr58#7).
+  final Future<void> Function()? duringDownload;
+
+  /// Whether Play currently has a finished download waiting, so [download]
+  /// should never be called (UPD-1). Starts as the constructor's
+  /// `downloaded`, and turns true on its own once [download] succeeds, the
+  /// way `DeviceUpdates.downloaded()` queries Play's live status rather
+  /// than remembering what this app last did.
+  bool _downloaded;
 
   /// How many times Play was asked whether anything is waiting.
   int checked = 0;
@@ -1183,17 +1437,20 @@ class FakeUpdates implements UpdateService {
   @override
   Future<bool> available() async {
     checked++;
+    if (duringAvailable != null) await duringAvailable!();
     return offered;
   }
 
   @override
   Future<bool> download() async {
     started++;
+    if (duringDownload != null) await duringDownload!();
+    if (downloads) _downloaded = true;
     return downloads;
   }
 
   @override
-  Future<bool> downloaded() async => alreadyDownloaded;
+  Future<bool> downloaded() async => _downloaded;
 
   @override
   Future<void> install() async => installed++;

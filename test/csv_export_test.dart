@@ -1,9 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/csv_export.dart';
 import 'package:monthly_expense_app/models/csv_import.dart';
 import 'package:monthly_expense_app/models/transaction.dart';
+import 'package:monthly_expense_app/providers/ads_provider.dart';
+import 'package:monthly_expense_app/providers/settings_provider.dart';
+import 'package:monthly_expense_app/providers/transaction_provider.dart';
+import 'package:monthly_expense_app/screens/csv_export_action.dart';
 
 import 'helpers.dart';
 
@@ -152,5 +158,87 @@ void main() {
     final table = parseCsv(csv);
     expect(table.rows, hasLength(1));
     expect(table.rows.single.last, 'one\rtwo');
+  });
+
+  group('the full-screen ad seam (ADS-11, rules-22-25-31-35#11)', () {
+    /// A device past setup, the walkthrough and the first run, that has
+    /// earned today's full-screen ad (ADS-12), exporting through
+    /// [exportCsv] the way search_screen.dart and home_screen.dart do.
+    Future<void> runExport(
+      WidgetTester tester, {
+      required FakeAdService ads,
+      required FakeBackupFiles files,
+    }) async {
+      final fake = FakeDB();
+      final provider = TransactionProvider(
+        db: fake,
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await provider.load();
+      final settings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+        'ad_activity': SettingsProvider.adActivityThreshold,
+        'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
+      });
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(
+          provider,
+          settings,
+          Builder(
+            builder: (context) => Scaffold(
+              body: TextButton(
+                onPressed: () => exportCsv(
+                  context,
+                  name: 'export',
+                  transactions: provider.transactions,
+                ),
+                child: const Text('export'),
+              ),
+            ),
+          ),
+          ads: ads,
+          backup: testBackupService(fake, files: files),
+        ),
+      );
+      await tester.pump();
+      // In the app the SDK started long ago; here the provider is built on
+      // its first read, so this is what a running app already has (ADS-4).
+      Provider.of<AdsProvider>(
+        tester.element(find.text('export')),
+        listen: false,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('export'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets(
+      'a saved export shows the ad, with the confirmation still up after '
+      'it (ADS-14)',
+      (tester) async {
+        final ads = FakeAdService(canStart: true, interstitialFills: true);
+        final files = FakeBackupFiles();
+
+        await runExport(tester, ads: ads, files: files);
+
+        expect(ads.interstitialsShown, 1);
+        expect(files.saved.keys, ['monthly-expenses-export.csv']);
+        expect(find.text('CSV saved'), findsOneWidget);
+      },
+    );
+
+    testWidgets('a cancelled export shows no ad', (tester) async {
+      final ads = FakeAdService(canStart: true, interstitialFills: true);
+      final files = FakeBackupFiles()..cancelSave = true;
+
+      await runExport(tester, ads: ads, files: files);
+
+      expect(ads.interstitialsShown, 0);
+      expect(files.saved, isEmpty);
+    });
   });
 }

@@ -28,6 +28,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get emptyPeriod => 'Nog geen transacties in deze periode.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Niets voor dit account deze periode.';
+
+  @override
   String get balanceLabel => 'Saldo';
 
   @override
@@ -390,6 +394,54 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Die naam is al in gebruik';
+
+  @override
+  String get categoryColorPurple => 'Paars';
+
+  @override
+  String get categoryColorTeal => 'Blauwgroen';
+
+  @override
+  String get categoryColorRust => 'Roestbruin';
+
+  @override
+  String get categoryColorBlue => 'Blauw';
+
+  @override
+  String get categoryColorPink => 'Roze';
+
+  @override
+  String get categoryColorGreen => 'Groen';
+
+  @override
+  String get categoryColorMagenta => 'Magenta';
+
+  @override
+  String get categoryColorCyan => 'Cyaan';
+
+  @override
+  String get categoryColorBrown => 'Bruin';
+
+  @override
+  String get categoryColorIndigo => 'Indigo';
+
+  @override
+  String get categoryColorRed => 'Rood';
+
+  @override
+  String get categoryColorSlate => 'Leigrijs';
+
+  @override
+  String get categoryColorOrange => 'Oranje';
+
+  @override
+  String get categoryColorEmerald => 'Smaragdgroen';
+
+  @override
+  String get categoryColorViolet => 'Violet';
+
+  @override
+  String get categoryColorRaspberry => 'Framboos';
 
   @override
   String get archiveAction => 'Archiveren';
@@ -1118,6 +1170,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Kan de back-up niet herstellen. Je gegevens zijn niet gewijzigd.';
 
   @override
+  String get dbTooNewTitle => 'Update nodig';
+
+  @override
+  String get dbTooNewMessage =>
+      'Deze gegevens zijn opgeslagen door een nieuwere versie van de app. Update de app via de store om door te gaan.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1146,6 +1205,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get appLockReason => 'Ontgrendel Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Identiteit bevestigen';
 
   @override
   String get appLockFailed =>
@@ -1309,6 +1374,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Een notitie vervalt';
+
+  @override
+  String get noteReminderChannelName => 'Notitieherinneringen';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1775,13 +1843,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dueEntryReminderTitle => 'Invoer vervallen';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title was vandaag verschuldigd en wacht nog steeds.';
+  String get dueEntryChannelName => 'Vervallen invoeren';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title ($amount) was vandaag verschuldigd en wacht nog steeds.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Een terugkerende invoer was vandaag verschuldigd en wacht nog.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title ($amount) was verschuldigd op $date en wacht nog steeds.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Een terugkerende invoer ($amount) was vandaag verschuldigd en wacht nog.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Een terugkerende invoer ($amount) was verschuldigd op $date en wacht nog.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1795,7 +1877,21 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vaste posten staan nog open.',
+      one: '1 vaste post staat nog open.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Vandaag niets geregistreerd';
+
+  @override
+  String get emptyDayChannelName => 'Dagen zonder registratie';
 
   @override
   String get emptyDayReminderBody =>

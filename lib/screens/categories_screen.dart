@@ -161,7 +161,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     final taken = _namesInUse(provider, type);
     final result = await showDialog<(String, String, int)>(
       context: context,
-      builder: (_) => CategoryDialog(takenNames: taken),
+      builder: (_) => CategoryDialog(
+        takenNames: taken,
+        initialColor: nextCategoryColor([
+          ...provider.categoriesFor(TransactionType.expense),
+          ...provider.categoriesFor(TransactionType.income),
+        ]),
+      ),
     );
     if (result == null || !mounted) return;
     final (name, icon, color) = result;
@@ -225,11 +231,16 @@ class CategoryDialog extends StatefulWidget {
     super.key,
     this.category,
     this.initialName = '',
+    this.initialColor,
     required this.takenNames,
   });
 
   final Category? category;
   final String initialName;
+
+  /// The colour a new category opens on, ignored when editing an existing
+  /// one (CAT-6).
+  final int? initialColor;
 
   /// Lowercase names already used by other categories of the same type.
   final Set<String> takenNames;
@@ -249,7 +260,8 @@ class _CategoryDialogState extends State<CategoryDialog> {
   final _formKey = GlobalKey<FormState>();
   late final _name = TextEditingController(text: widget.initialName);
   late String _icon = widget.category?.icon ?? _icons.first;
-  late int _color = widget.category?.color ?? categoryPalette.first;
+  late int _color =
+      widget.category?.color ?? widget.initialColor ?? categoryPalette.first;
 
   @override
   void dispose() {
@@ -318,19 +330,29 @@ class _CategoryDialogState extends State<CategoryDialog> {
                   runSpacing: 8,
                   children: [
                     for (final color in categoryPalette)
-                      InkWell(
-                        onTap: () => setState(() => _color = color),
-                        customBorder: const CircleBorder(),
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: Color(color),
-                          child: color == _color
-                              ? const Icon(
-                                  Icons.check,
-                                  size: 18,
-                                  color: Colors.white,
-                                )
-                              : null,
+                      Semantics(
+                        // A bare coloured circle, with only a check icon to
+                        // show which one is picked, is `(no label)` and
+                        // silent about its own selection to anything
+                        // driving the screen without eyes (A11Y-2,
+                        // rules-23-26-34#10).
+                        label: categoryColorName(l10n, color),
+                        button: true,
+                        selected: color == _color,
+                        child: InkWell(
+                          onTap: () => setState(() => _color = color),
+                          customBorder: const CircleBorder(),
+                          child: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: Color(color),
+                            child: color == _color
+                                ? const Icon(
+                                    Icons.check,
+                                    size: 18,
+                                    color: Colors.white,
+                                  )
+                                : null,
+                          ),
                         ),
                       ),
                   ],

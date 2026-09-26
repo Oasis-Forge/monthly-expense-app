@@ -27,6 +27,7 @@ import 'package:monthly_expense_app/providers/settings_provider.dart';
 import 'package:monthly_expense_app/providers/transaction_provider.dart';
 import 'package:monthly_expense_app/screens/add_transaction_screen.dart';
 import 'package:monthly_expense_app/screens/budgets_screen.dart';
+import 'package:monthly_expense_app/screens/form_fields.dart';
 import 'package:monthly_expense_app/screens/home_screen.dart';
 import 'package:monthly_expense_app/screens/insights_screen.dart';
 import 'package:monthly_expense_app/screens/recurring_screen.dart';
@@ -976,12 +977,15 @@ Future<void> _typeAmount(WidgetTester tester) async {
     await tester.tap(groceries.first);
   }
   // Put the keypad away before the picture is taken: half the form is
-  // behind it, and the shot is meant to show the form, not the keys.
+  // behind it, and the shot is meant to show the form, not the keys. A
+  // silent no-op here (the icon renamed, or the keypad never having come
+  // up) used to let a half-keypad screenshot through with no failure
+  // (SHOT-1, pr56+60#10), so this asserts both steps instead.
   final hide = find.byIcon(Icons.keyboard_hide_outlined);
-  if (hide.evaluate().isNotEmpty) {
-    await tester.tap(hide.first);
-  }
+  expect(hide, findsOneWidget);
+  await tester.tap(hide.first);
   for (var f = 0; f < 6; f++) {
     await tester.pump(const Duration(milliseconds: 300));
   }
+  expect(find.byType(AmountKeypad), findsNothing);
 }

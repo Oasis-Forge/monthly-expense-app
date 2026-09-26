@@ -12,6 +12,7 @@ import '../models/reminders.dart';
 
 import '../l10n/languages.dart';
 import '../models/currencies.dart' show arabicCurrencySymbols;
+import '../models/money.dart' show swapMinusForPlus;
 import '../models/period.dart';
 
 /// App settings kept in shared_preferences: language (LANG-1), currency
@@ -46,6 +47,7 @@ class SettingsProvider extends ChangeNotifier {
        _nudgeIgnored = _prefs.getInt(_nudgeIgnoredKey) ?? 0,
        _nudgeStopped = _prefs.getBool(_nudgeStoppedKey) ?? false,
        _nudgeCheckedAt = _dateOrNull(_prefs.getString(_nudgeCheckedKey)),
+       _manualEntries = _prefs.getInt(_manualEntriesKey) ?? 0,
        _adActivity = _prefs.getInt(_adActivityKey) ?? 0,
        _adActivityDay = _dateOrNull(_prefs.getString(_adActivityDayKey)),
        _appLock = _prefs.getBool(_appLockKey) ?? false,
@@ -97,6 +99,7 @@ class SettingsProvider extends ChangeNotifier {
   static const _nudgeMinuteKey = 'empty_day_nudge_minute';
   static const _nudgeOfferedKey = 'empty_day_nudge_offered';
   static const _ratingAskedKey = 'rating_asked_version';
+  static const _manualEntriesKey = 'manual_entries_recorded';
   static const _updateAskedKey = 'update_asked_on';
   static const _nudgeIgnoredKey = 'empty_day_nudge_ignored';
   static const _nudgeStoppedKey = 'empty_day_nudge_stopped';
@@ -153,6 +156,7 @@ class SettingsProvider extends ChangeNotifier {
   DateTime? _nudgeCheckedAt;
   int _adActivity;
   DateTime? _adActivityDay;
+  int _manualEntries;
 
   /// Whether this run is the one that installed the app: the only
   /// launch with no `first_opened_at` behind it (ADS-12, RUN-5).
@@ -258,15 +262,17 @@ class SettingsProvider extends ChangeNotifier {
   ///
   /// The figures, and the sign in front of them, are isolated left to right
   /// so bidi cannot part them; the symbol is left where the language puts it,
-  /// which in Arabic is before the figures (LANG-5). [isolated] false leaves
-  /// the isolate out, for the PDF report, which lays out its own text.
-  NumberFormat currencyFormat(String locale, {bool isolated = true}) {
+  /// which in Arabic is before the figures (LANG-5). Every caller wants the
+  /// isolate, including the PDF report, which now draws its own left- and
+  /// right-hand text as separate widgets around it rather than stripping it
+  /// out (see [report_pdf.dart]'s `_run`).
+  NumberFormat currencyFormat(String locale) {
     final simple = NumberFormat.simpleCurrency(
       locale: locale,
       name: _currencyCode,
     );
     final symbol = _localSymbol(locale) ?? simple.currencySymbol;
-    final pattern = _amountPattern(locale, symbol, isolated: isolated);
+    final pattern = _amountPattern(locale, symbol);
     if (_localSymbol(locale) == null && pattern == null) return simple;
     return NumberFormat.currency(
       locale: locale,
@@ -281,17 +287,24 @@ class SettingsProvider extends ChangeNotifier {
   /// takes a symbol rather than a pattern, so CLDR's spacing goes on the
   /// symbol itself; without it the calendar would read `Rp1,2 rb` beside a
   /// total of `Rp 1.235` on the same screen (LANG-5).
-  NumberFormat compactCurrencyFormat(String locale) {
+  ///
+  /// Some locales' own compact suffix (`ألف`, `tys.`, `din`…) already touches
+  /// the symbol with a separator of its own, which intl gives no way to see
+  /// ahead of formatting; [CompactCurrencyFormat] collapses the resulting
+  /// double space rather than risk leaving none at all (LANG-5, CUR-2).
+  CompactCurrencyFormat compactCurrencyFormat(String locale) {
     final plain =
         _localSymbol(locale) ??
         NumberFormat.simpleCurrency(
           locale: locale,
           name: _currencyCode,
         ).currencySymbol;
-    return NumberFormat.compactCurrency(
-      locale: locale,
-      name: _currencyCode,
-      symbol: _spacedSymbol(locale, plain),
+    return CompactCurrencyFormat(
+      NumberFormat.compactCurrency(
+        locale: locale,
+        name: _currencyCode,
+        symbol: _spacedSymbol(locale, plain),
+      ),
     );
   }
 
@@ -329,6 +342,14 @@ class SettingsProvider extends ChangeNotifier {
     return symbol >= 0 && figure >= 0 && symbol < figure;
   }
 
+  /// Whether [locale]'s own currency pattern puts the symbol in front of
+  /// the figures, from intl's CLDR data, the same test [currencyFormat]
+  /// uses to place the symbol on display. Amount-entry fields use this to
+  /// choose `prefixText` or `suffixText` so a typed amount agrees with how
+  /// it is shown once saved (CUR-5, LANG-5, pr61#11).
+  static bool symbolLeadsFigures(String locale) =>
+      _symbolLeads(_cldrPattern(locale));
+
   static String _cldrPattern(String locale) =>
       numberFormatSymbols[Intl.verifiedLocale(
             locale,
@@ -351,11 +372,7 @@ class SettingsProvider extends ChangeNotifier {
   /// so that bidi cannot part them, but the symbol is left outside, where the
   /// language puts it: CLDR writes Arabic as figures first, symbol after, and
   /// in right-to-left text that reads with the symbol on the left (LANG-5).
-  static String? _amountPattern(
-    String locale,
-    String symbol, {
-    required bool isolated,
-  }) {
+  static String? _amountPattern(String locale, String symbol) {
     final cldr = _cldrPattern(locale);
     // A pattern we cannot read is left exactly as it is rather than guessed at.
     if (!cldr.contains('\u00A4') || !cldr.contains(RegExp('[#0]'))) {
@@ -367,8 +384,7 @@ class SettingsProvider extends ChangeNotifier {
               ? cldr.replaceAll(RegExp('\u00A4(?=[#0])'), '\u00A4\u00A0')
               : cldr.replaceAll(RegExp('(?<=[#0])\u00A4'), '\u00A0\u00A4'))
         : cldr;
-    final isolate =
-        isolated && rightToLeftLanguages.contains(_language(locale));
+    final isolate = rightToLeftLanguages.contains(_language(locale));
     if (!isolate) return spaced == cldr ? null : spaced;
     final halves = spaced.split(';');
     // Where the symbol already stands in front of the figures, the whole
@@ -685,6 +701,20 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs.setString(_adActivityDayKey, _stamp(_adActivityDay!));
   }
 
+  /// How many entries the user has typed into the add form and saved by
+  /// hand, for RATE-1's "recorded at least fifteen entries" -- never a row
+  /// posted automatically by a recurring rule (RCR-4), a CSV import, or a
+  /// restored backup, none of which are an opinion about the app (RATE-1,
+  /// pr57#10). Counted here rather than from the transaction list's length
+  /// so those never inflate it, and never spent back down: it only grows.
+  int get manualEntriesRecorded => _manualEntries;
+
+  /// Counts one entry saved by hand through the add form (RATE-1, pr57#10).
+  Future<void> noteManualEntrySaved() async {
+    _manualEntries++;
+    await _prefs.setInt(_manualEntriesKey, _manualEntries);
+  }
+
   Future<void> setAppLock(bool on) async {
     if (on == _appLock) return;
     await _prefs.setBool(_appLockKey, on);
@@ -777,4 +807,62 @@ class SettingsProvider extends ChangeNotifier {
       value == null ? null : DateTime.tryParse(value);
 
   static String _stamp(DateTime moment) => moment.toUtc().toIso8601String();
+}
+
+/// A compact currency formatter that never leaves a doubled space next to
+/// its symbol.
+///
+/// intl's own compact suffix (`ألف`, `tys.`, `din`…) sometimes already
+/// touches the symbol with a separator, and there is no way to see that
+/// ahead of formatting — [SettingsProvider.compactCurrencyFormat] adds its
+/// own CLDR spacing regardless, so the two can double up (LANG-5, CUR-2).
+/// This collapses any doubled space or no-break space back to one rather
+/// than risk removing the only one some locales actually need.
+class CompactCurrencyFormat {
+  const CompactCurrencyFormat(this._inner);
+
+  final NumberFormat _inner;
+
+  static final _doubledSpace = RegExp('[  ]{2,}');
+
+  String format(num amount) =>
+      _inner.format(amount).replaceAll(_doubledSpace, ' ');
+
+  /// U+200E/U+200F: the direction marks intl's compact format tucks
+  /// between the sign and the digits for some magnitudes -- ar's
+  /// thousand-and-up negative prefix is `\u200e-\u200f` -- which
+  /// land the sign on the wrong side of a right-to-left line since
+  /// nothing then holds it against its own figures (unlike
+  /// [SettingsProvider.currencyFormat]'s pattern, which isolates the two
+  /// together) (LANG-5, CUR-5).
+  static final _directionMarks = RegExp('[\u200e\u200f]');
+
+  /// A leading sign and the figures right after it, once
+  /// [_directionMarks] are gone.
+  static final _signedFigures = RegExp(r'^([-+])([\d.,]+)');
+
+  /// [amount] with a plus on money coming in and a minus on money going
+  /// out, the same way [MoneyFormat.signedMoney] signs the full-size
+  /// format (CUR-5, A11Y-4).
+  ///
+  /// In a right-to-left language the sign and the figures are isolated
+  /// left to right together (U+2066 ... U+2069), exactly as
+  /// [SettingsProvider.currencyFormat]'s own pattern does, so bidi cannot
+  /// part them; the compact suffix and the symbol are left outside,
+  /// where the language puts them (LANG-5).
+  String signedFormat(num amount, {required bool isIncome}) {
+    final raw = format(-amount);
+    final text = isIncome ? swapMinusForPlus(raw, _inner.locale) : raw;
+    if (!rightToLeftLanguages.contains(
+      SettingsProvider._language(_inner.locale),
+    )) {
+      return text;
+    }
+    return text
+        .replaceAll(_directionMarks, '')
+        .replaceFirstMapped(
+          _signedFigures,
+          (m) => '\u2066${m[1]}${m[2]}\u2069',
+        );
+  }
 }

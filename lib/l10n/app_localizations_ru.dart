@@ -28,6 +28,10 @@ class AppLocalizationsRu extends AppLocalizations {
   String get emptyPeriod => 'В этом периоде пока нет операций.';
 
   @override
+  String get emptyPeriodFilteredByAccount =>
+      'Ничего по этому счёту за этот период.';
+
+  @override
   String get balanceLabel => 'Баланс';
 
   @override
@@ -397,6 +401,54 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get categoryNameTaken => 'Это название уже используется';
+
+  @override
+  String get categoryColorPurple => 'Фиолетовый';
+
+  @override
+  String get categoryColorTeal => 'Бирюзовый';
+
+  @override
+  String get categoryColorRust => 'Ржавый';
+
+  @override
+  String get categoryColorBlue => 'Синий';
+
+  @override
+  String get categoryColorPink => 'Розовый';
+
+  @override
+  String get categoryColorGreen => 'Зелёный';
+
+  @override
+  String get categoryColorMagenta => 'Маджента';
+
+  @override
+  String get categoryColorCyan => 'Голубой';
+
+  @override
+  String get categoryColorBrown => 'Коричневый';
+
+  @override
+  String get categoryColorIndigo => 'Индиго';
+
+  @override
+  String get categoryColorRed => 'Красный';
+
+  @override
+  String get categoryColorSlate => 'Сланцевый';
+
+  @override
+  String get categoryColorOrange => 'Оранжевый';
+
+  @override
+  String get categoryColorEmerald => 'Изумрудный';
+
+  @override
+  String get categoryColorViolet => 'Тёмно-фиолетовый';
+
+  @override
+  String get categoryColorRaspberry => 'Малиновый';
 
   @override
   String get archiveAction => 'Архивировать';
@@ -1143,6 +1195,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось восстановить копию. Ваши данные не изменились.';
 
   @override
+  String get dbTooNewTitle => 'Требуется обновление';
+
+  @override
+  String get dbTooNewMessage =>
+      'Эти данные были сохранены более новой версией приложения. Обновите приложение через магазин, чтобы продолжить.';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1173,6 +1232,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appLockReason => 'Разблокировать Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => 'Подтвердите, что это вы';
 
   @override
   String get appLockFailed =>
@@ -1337,6 +1402,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => 'Наступил срок заметки';
+
+  @override
+  String get noteReminderChannelName => 'Напоминания о заметках';
 
   @override
   String get noteReminderPermissionDenied =>
@@ -1820,13 +1888,27 @@ class AppLocalizationsRu extends AppLocalizations {
   String get dueEntryReminderTitle => 'Наступил срок записи';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return 'Срок $title наступил сегодня, и запись всё ещё ждёт.';
+  String get dueEntryChannelName => 'Просроченные записи';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return 'Срок $title ($amount) наступил сегодня, и запись всё ещё ждёт.';
   }
 
   @override
-  String get dueEntryReminderUntitled =>
-      'Срок повторяющейся записи наступил сегодня, и она всё ещё ждёт.';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return 'Срок $title ($amount) наступил $date, и запись всё ещё ждёт.';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return 'Срок повторяющейся записи ($amount) наступил сегодня, и она всё ещё ждёт.';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return 'Срок повторяющейся записи ($amount) наступил $date, и она всё ещё ждёт.';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1842,7 +1924,23 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count повторяющихся записей ожидают.',
+      many: '$count повторяющихся записей ожидают.',
+      few: '$count повторяющиеся записи ожидают.',
+      one: '$count повторяющаяся запись ожидает.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => 'Сегодня ничего не записано';
+
+  @override
+  String get emptyDayChannelName => 'Дни без записей';
 
   @override
   String get emptyDayReminderBody =>

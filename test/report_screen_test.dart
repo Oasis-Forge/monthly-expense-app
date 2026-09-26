@@ -46,7 +46,19 @@ void main() {
     Finder finder, {
     int frames = 100,
   }) async {
+    // buildReportPdf's page layout now runs on a real background isolate
+    // (report_pdf.dart, PDF-6): that future only settles on the real event
+    // loop, not the fake one this test's pump runs on. So each round gives
+    // the isolate some real time via runAsync, then pumps the fake zone so
+    // the continuation that woke up when it finished actually runs.
     for (var i = 0; i < frames; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 50)),
+      );
+      // A duration has to be passed here, not pump(): with none, the fake
+      // clock doesn't advance and a chain of zero-delay timers (step() in
+      // buildReportPdf) never drains, so this would just spin for [frames]
+      // rounds and time out instead of ever finding [finder].
       await tester.pump(const Duration(milliseconds: 50));
       if (finder.evaluate().isNotEmpty) return;
     }
@@ -457,6 +469,46 @@ void main() {
     });
   });
 
+  group('reportDataFor and an archived category\'s budget (BUD-5, BUD-6, '
+      'review-pdf-archived-budget)', () {
+    test('the current period leaves out the budget for a category archived '
+        'since, the same as budgetStatuses', () async {
+      final fake = FakeDB(
+        transactions: [
+          testTx('g', TransactionType.expense, 250, DateTime(2026, 9, 10)),
+        ],
+        budgets: [
+          Budget(
+            id: 'b1',
+            categoryId: 'cat-food',
+            limit: const Money(300000),
+            effectiveFrom: DateTime(2026, 9),
+            createdAt: DateTime.utc(2026),
+            updatedAt: DateTime.utc(2026),
+          ),
+        ],
+      );
+      final provider = TransactionProvider(
+        db: fake,
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await provider.load();
+      await provider.archiveCategory('cat-food');
+
+      final data = reportDataFor(
+        provider: provider,
+        filter: null,
+        from: DateTime(2026, 9, 1),
+        to: DateTime(2026, 9, 30),
+        categoryName: (category) => category.id,
+        accountName: (account) => account.id,
+        decimalMark: '.',
+      );
+
+      expect(data.expenseCategories.single.budget, isNull);
+    });
+  });
+
   testWidgets('every account is offered, plus all of them together '
       '(PDF-1)', (tester) async {
     await showReport(tester);
@@ -524,6 +576,10 @@ void main() {
     expect(find.byIcon(Icons.share), findsNothing);
 
     await pumpUntil(tester, find.text('Report'));
+    // The progress dialog's own pop animation can still be mid-flight the
+    // instant the preview's title first appears; give it a few more frames
+    // to finish closing before checking it's gone.
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Building the report'), findsNothing);
     expect(find.text('Report'), findsOneWidget);
@@ -548,8 +604,11 @@ void main() {
       'walkthrough_seen': true,
       'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
       'ad_activity': SettingsProvider.adActivityThreshold,
-      'ad_activity_day': DateTime.now().toUtc().toIso8601String(),
-    });
+      // Fixed, and matched by settings' own clock below: comparing this
+      // against the real clock would flip "is this still today" if a run
+      // happened to cross midnight (test-quality#10).
+      'ad_activity_day': DateTime(2026, 9, 15).toUtc().toIso8601String(),
+    }, () => DateTime(2026, 9, 15));
     final ads = FakeAdService(canStart: true, interstitialFills: true);
     usePhoneScreen(tester);
     await tester.pumpWidget(
@@ -603,4 +662,84 @@ void main() {
 
     expect(find.text('Report'), findsOneWidget);
   });
+
+  testWidgets(
+    'a cancel that lands while the report is still laying out leaves you on '
+    'the report screen, with no preview and no ad (PDF-6)',
+    (tester) async {
+      // Nearly all of it on one day, so content-building only yields a
+      // couple of times: the page layout that follows (moved off the UI
+      // isolate in report_pdf.dart) then dominates the time between the tap
+      // on Create and the bytes coming back, giving Cancel a real window to
+      // land after buildReportPdf's last isCancelled check, same as the
+      // race the finding describes.
+      fake = FakeDB(
+        transactions: [
+          for (var i = 0; i < 4000; i++)
+            testTx('big-$i', TransactionType.expense, 5, DateTime(2026, 9, 4)),
+        ],
+      );
+      provider = TransactionProvider(
+        db: fake,
+        clock: () => DateTime(2026, 9, 15),
+      );
+      await provider.load();
+      settings = await testSettings({
+        'setup_done': true,
+        'walkthrough_seen': true,
+        'first_opened_at': DateTime(2026, 1, 1).toUtc().toIso8601String(),
+        'ad_activity': SettingsProvider.adActivityThreshold,
+        // Fixed, and matched by settings' own clock below: comparing this
+        // against the real clock would flip "is this still today" if a run
+        // happened to cross midnight (test-quality#10).
+        'ad_activity_day': DateTime(2026, 9, 15).toUtc().toIso8601String(),
+      }, () => DateTime(2026, 9, 15));
+      final ads = FakeAdService(canStart: true, interstitialFills: true);
+      usePhoneScreen(tester);
+      await tester.pumpWidget(
+        testApp(provider, settings, const ReportScreen(), ads: ads),
+      );
+      await tester.pumpAndSettle();
+      // In the app the SDK started long ago; here the provider is built on
+      // its first read, so this is what a running app already has (ADS-4).
+      Provider.of<AdsProvider>(
+        tester.element(find.byType(ReportScreen)),
+        listen: false,
+      );
+      await tester.pumpAndSettle();
+
+      await tester.runAsync(() async {
+        await tester.tap(
+          find.widgetWithText(FilledButton, 'Create the report'),
+        );
+        await tester.pump();
+        await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+        await tester.pump();
+
+        // Wait for _busy to clear (the button re-enables) rather than for a
+        // fixed number of pumps: the isolate hop's real duration varies with
+        // machine load, and a real-zone future inside a fake-async pump
+        // loop would otherwise just hang.
+        for (var i = 0; i < 300; i++) {
+          await tester.pump(const Duration(milliseconds: 20));
+          final button = tester.widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Create the report'),
+          );
+          if (button.onPressed != null) break;
+        }
+      });
+
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Create the report'),
+      );
+      expect(
+        button.onPressed,
+        isNotNull,
+        reason: 'the build never finished within the wait budget',
+      );
+      expect(find.text('Report'), findsNothing);
+      expect(find.byType(ReportScreen), findsOneWidget);
+      expect(ads.interstitialsShown, 0);
+    },
+  );
 }

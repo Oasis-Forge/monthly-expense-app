@@ -1,3 +1,4 @@
+import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart' show Locale;
@@ -139,29 +140,88 @@ Future<Uint8List> buildReportPdf({
     content.add(_run(l10n.reportEmpty, style: _muted));
   }
 
-  document.addPage(
-    pw.MultiPage(
-      pageFormat: pageFormat,
-      textDirection: rtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
-      margin: const pw.EdgeInsets.all(32),
-      header: (context) => context.pageNumber == 1
-          ? _header(data, labels, createdAt)
-          : pw.SizedBox(),
-      footer: (context) => pw.Container(
-        alignment: pw.Alignment.centerRight,
-        margin: const pw.EdgeInsets.only(top: 8),
-        child: _run(
-          l10n.reportPageOf(context.pageNumber, context.pagesCount),
-          style: _muted,
-        ),
-      ),
-      build: (context) => content,
-    ),
+  // The page-by-page layout below (MultiPage.generate, measuring and
+  // positioning every table row) runs synchronously once addPage starts it,
+  // and [step] can't check in during it: a cancel asked for right at the end
+  // still has to land somewhere before it, and this is the last chance
+  // before the layout itself starts (PDF-6). To keep the UI isolate free to
+  // handle that cancel tap (and redraw at all) while a big report lays out,
+  // the layout and the write that follows both run on a fresh isolate; only
+  // the finished bytes cross back. Document.write (unlike Document.save)
+  // does no isolate hop of its own, which is what the pdf package's own docs
+  // ask of a caller that is already isolating itself.
+  if (isCancelled?.call() ?? false) throw const ReportCancelled();
+
+  // [labels] itself carries the category and account name lookups
+  // (ReportLabels.categoryName/accountName), which in the app close over
+  // the live TransactionProvider (report_screen.dart) to look names up by
+  // id, and [onProgress]/[isCancelled] close over the caller's own
+  // ValueNotifier and local state. Content above already called through
+  // the name lookups to plain strings, but none of this can be allowed
+  // anywhere near the isolate boundary below: closures declared in the
+  // same function body as an Isolate.run call can end up sharing one
+  // compiler-generated context, so even a closure that only reads
+  // [headerWidget] can drag every other local in [buildReportPdf] —
+  // [onProgress] included — along with it. _layoutAndWrite is a top-level
+  // function for exactly this reason: its own body is the only scope the
+  // isolate closure it creates can reach into, and that scope holds
+  // nothing but its own plain parameters.
+  final headerWidget = _header(data, labels, createdAt, options);
+  final pageOfText = l10n.reportPageOf;
+  final bytes = await _layoutAndWrite(
+    document: document,
+    content: content,
+    pageFormat: pageFormat,
+    rtl: rtl,
+    headerWidget: headerWidget,
+    pageOfText: pageOfText,
   );
 
   if (isCancelled?.call() ?? false) throw const ReportCancelled();
-  return document.save();
+  return bytes;
 }
+
+/// Lays [content] out as pages of [document] and writes it out, on a fresh
+/// isolate (PDF-6). Top-level, and taking only plain values and already-built
+/// widgets: see the note above this function's one call site.
+Future<Uint8List> _layoutAndWrite({
+  required pw.Document document,
+  required List<pw.Widget> content,
+  required PdfPageFormat pageFormat,
+  required bool rtl,
+  required pw.Widget headerWidget,
+  required String Function(int pageNumber, int pagesCount) pageOfText,
+}) {
+  return Isolate.run(() async {
+    document.addPage(
+      pw.MultiPage(
+        pageFormat: pageFormat,
+        textDirection: rtl ? pw.TextDirection.rtl : pw.TextDirection.ltr,
+        margin: const pw.EdgeInsets.all(32),
+        header: (context) =>
+            context.pageNumber == 1 ? headerWidget : pw.SizedBox(),
+        footer: (context) => pw.Container(
+          alignment: pw.Alignment.centerRight,
+          margin: const pw.EdgeInsets.only(top: 8),
+          child: _run(
+            pageOfText(context.pageNumber, context.pagesCount),
+            style: _muted,
+          ),
+        ),
+        build: (context) => content,
+      ),
+    );
+    final stream = PdfStream();
+    await document.write(stream, enableEventLoopBalancing: true);
+    return stream.output();
+  });
+}
+
+/// Left-to-right isolate and its matching pop (U+2066, U+2069): the marks
+/// [SettingsProvider.currencyFormat]'s pattern wraps round a signed figure
+/// so bidi cannot part it from its sign (LANG-5).
+const _lri = '\u2066';
+const _pdi = '\u2069';
 
 /// A run of text laid out in the direction its own content calls for.
 ///
@@ -171,11 +231,68 @@ Future<Uint8List> buildReportPdf({
 /// right-to-left letter in it is drawn left to right instead, which skips
 /// that pass: the app name, the currency, an amount, and any category,
 /// account or title the user typed in Latin (PDF-5, LANG-5).
+///
+/// A formatted amount is different: it can carry both a right-to-left symbol
+/// and a signed figure that must stay a single left-to-right piece, and this
+/// package's bidi pass has no notion of the isolate marks that keep the two
+/// apart (unlike the screens' real bidi engine) — worse, it still tries to
+/// draw the marks themselves as glyphs. Only a right-to-left currency
+/// pattern ever adds them, so their presence alone says this run needs
+/// reordering rather than the single-direction guess below: whatever sits
+/// outside the isolate (almost always just the symbol) moves in front of it,
+/// since that is where a real right-to-left line would carry it, and the
+/// whole amount is then drawn as one forced-left-to-right piece so this
+/// package's own bidi pass never touches it again (LANG-5, CUR-5, PDF-5,
+/// Decision 54).
 pw.Widget _run(String text, {pw.TextStyle? style}) {
-  final plain = stripBidiMarks(text);
+  final lriAt = text.indexOf(_lri);
+  final pdiAt = text.indexOf(_pdi, lriAt + 1);
+  if (lriAt == -1 || pdiAt == -1) {
+    final plain = stripBidiMarks(text);
+    return pw.Directionality(
+      textDirection: _directionOf(plain),
+      child: pw.Text(plain, style: style),
+    );
+  }
+
+  final before = stripBidiMarks(text.substring(0, lriAt));
+  final isolate = stripBidiMarks(text.substring(lriAt + 1, pdiAt));
+  final after = stripBidiMarks(text.substring(pdiAt + 1));
+  // Everything outside the isolate keeps its own direction rather than
+  // being flattened into one forced-left-to-right string: that skipped this
+  // package's arabic.convert pass (it only shapes and reorders a run whose
+  // own textDirection is rtl), and glued unrelated text straight onto the
+  // isolated figures with no boundary between them — a currency symbol
+  // read as mirrored letters, or a percentage's digits run into a
+  // budget's. Visual left-to-right order is after, isolate, before (the
+  // isolate's own figures stay forced left-to-right); a gap replaces
+  // whatever whitespace the source had between two pieces (LANG-5, CUR-5,
+  // PDF-5, Decision 54).
+  final gap = pw.SizedBox(width: (style?.fontSize ?? 10) * 0.3);
+  final afterTrimmed = after.trim();
+  final beforeTrimmed = before.trim();
   return pw.Directionality(
-    textDirection: _directionOf(plain),
-    child: pw.Text(plain, style: style),
+    textDirection: pw.TextDirection.ltr,
+    child: pw.Row(
+      mainAxisSize: pw.MainAxisSize.min,
+      children: [
+        if (afterTrimmed.isNotEmpty) ...[
+          pw.Directionality(
+            textDirection: _directionOf(afterTrimmed),
+            child: pw.Text(afterTrimmed, style: style),
+          ),
+          if (after != afterTrimmed) gap,
+        ],
+        pw.Text(isolate, style: style, textDirection: pw.TextDirection.ltr),
+        if (beforeTrimmed.isNotEmpty) ...[
+          if (before != beforeTrimmed) gap,
+          pw.Directionality(
+            textDirection: _directionOf(beforeTrimmed),
+            child: pw.Text(beforeTrimmed, style: style),
+          ),
+        ],
+      ],
+    ),
   );
 }
 
@@ -230,7 +347,12 @@ pw.Widget _heading(String text) => pw.Container(
 
 /// The app's name, what the report covers, the currency, and when it was
 /// made. No watermark and nothing promotional (PDF-3).
-pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
+pw.Widget _header(
+  ReportData data,
+  ReportLabels labels,
+  DateTime createdAt,
+  ReportOptions options,
+) {
   final l10n = labels.l10n;
   final range = data.from == data.to
       ? labels.fullDay(data.from)
@@ -273,11 +395,21 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
         // like the whole of the money is worse than no filter at all.
         if (searchInfo != null) ...[
           pw.SizedBox(height: 4),
-          _run(
-            l10n.reportNarrowedTo(_searchDescription(searchInfo, l10n)),
-            style: const pw.TextStyle(
-              fontSize: 10,
-              fontWeight: pw.FontWeight.bold,
+          // Each part its own run rather than one string interpolated into
+          // the label (as above, for the currency name and the created
+          // date): a query the user typed in Latin, spliced into an Arabic
+          // or Urdu sentence and left to this package's own bidi pass,
+          // comes out backwards the same way the app name once did
+          // (LANG-5, PDF-5, review-pdf-bidi).
+          pw.Wrap(
+            spacing: 4,
+            crossAxisAlignment: pw.WrapCrossAlignment.center,
+            children: _joinedRuns(
+              [
+                l10n.reportNarrowedTo('').trim(),
+                ..._searchParts(searchInfo, l10n, options),
+              ],
+              const pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
             ),
           ),
         ],
@@ -286,19 +418,54 @@ pw.Widget _header(ReportData data, ReportLabels labels, DateTime createdAt) {
   );
 }
 
-/// The query, type, and category a report was narrowed to, joined for the
-/// header line (PDF-1). At least one part is always present, since
-/// [ReportSearchInfo] is only attached when something narrowed the report.
-String _searchDescription(ReportSearchInfo info, AppLocalizations l10n) {
+/// Draws [parts] as separate runs (as [_run] already keeps each one's own
+/// bidi direction) with a direction-neutral "·" run of its own between them
+/// (review follow-up): a [pw.Wrap] with only a few points of spacing and no
+/// visible separator reads as one run-on phrase — "Expense Income tax" for
+/// a category named "Income tax" under the type Expense — in either a
+/// left-to-right or a right-to-left report.
+List<pw.Widget> _joinedRuns(List<String> parts, pw.TextStyle style) {
+  final children = <pw.Widget>[];
+  for (var i = 0; i < parts.length; i++) {
+    if (i > 0) {
+      children.add(_run('·', style: style.copyWith(color: PdfColors.grey600)));
+    }
+    children.add(_run(parts[i], style: style));
+  }
+  return children;
+}
+
+/// The query, type, and category a report was narrowed to, each its own
+/// piece for the header line to draw as a separate run (PDF-1, LANG-5): a
+/// query in one script joined into one string with a label in another, then
+/// handed whole to this package's bidi pass, is exactly what came out
+/// backwards before (review-pdf-bidi).
+///
+/// The query itself is left out when titles and notes are off, or when the
+/// transaction list itself is off (PDF-3): it may be private text of the
+/// user's own, and titles and notes only print at all when the list is on
+/// (report_screen.dart disables that switch, but leaves it *on*, whenever
+/// the list is off), so a report missing the list must not print the query
+/// back in the header either (review-pdf-query-titles-off). At least one
+/// part is always present, since [ReportSearchInfo] is only attached when
+/// something narrowed the report: the type and category still show (neither
+/// is titles-and-notes text), and a query-only search falls back to naming
+/// the search itself.
+List<String> _searchParts(
+  ReportSearchInfo info,
+  AppLocalizations l10n,
+  ReportOptions options,
+) {
   final parts = [
-    if (info.query.isNotEmpty) '"${info.query}"',
+    if (info.query.isNotEmpty && options.transactions && options.titlesAndNotes)
+      '"${info.query}"',
     if (info.type != null)
       info.type == TransactionType.income
           ? l10n.incomeLabel
           : l10n.expenseLabel,
     if (info.categoryName != null) info.categoryName!,
   ];
-  return parts.join(' · ');
+  return parts.isEmpty ? [l10n.searchTooltip] : parts;
 }
 
 /// Income, expense, net, and the balances either side of the range — or, for
@@ -315,8 +482,10 @@ pw.Widget _summary(ReportData data, ReportLabels labels) {
           children: [
             _run(label, style: _muted),
             pw.SizedBox(height: 2),
-            // Amounts read left to right in every language (LANG-3), which
-            // _run already gives them: they carry no right-to-left letter.
+            // The sign and figures read left to right in every language
+            // (LANG-3, LANG-5); the currency symbol goes where the
+            // language puts it. _run gives amounts both, splitting on the
+            // isolate marks currencyFormat leaves in them.
             _run(
               labels.money(amount),
               style: pw.TextStyle(

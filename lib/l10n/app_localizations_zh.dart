@@ -28,6 +28,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get emptyPeriod => '本期暂无交易记录。';
 
   @override
+  String get emptyPeriodFilteredByAccount => '本期该账户没有任何记录。';
+
+  @override
   String get balanceLabel => '结余';
 
   @override
@@ -382,6 +385,54 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get categoryNameTaken => '该名称已被使用';
+
+  @override
+  String get categoryColorPurple => '紫色';
+
+  @override
+  String get categoryColorTeal => '青色';
+
+  @override
+  String get categoryColorRust => '铁锈色';
+
+  @override
+  String get categoryColorBlue => '蓝色';
+
+  @override
+  String get categoryColorPink => '粉色';
+
+  @override
+  String get categoryColorGreen => '绿色';
+
+  @override
+  String get categoryColorMagenta => '品红色';
+
+  @override
+  String get categoryColorCyan => '青蓝色';
+
+  @override
+  String get categoryColorBrown => '棕色';
+
+  @override
+  String get categoryColorIndigo => '靛蓝色';
+
+  @override
+  String get categoryColorRed => '红色';
+
+  @override
+  String get categoryColorSlate => '灰蓝色';
+
+  @override
+  String get categoryColorOrange => '橙色';
+
+  @override
+  String get categoryColorEmerald => '翠绿色';
+
+  @override
+  String get categoryColorViolet => '紫罗兰色';
+
+  @override
+  String get categoryColorRaspberry => '树莓色';
 
   @override
   String get archiveAction => '归档';
@@ -1078,6 +1129,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get backupRestoreFailed => '无法恢复备份，你的数据未受影响。';
 
   @override
+  String get dbTooNewTitle => '需要更新';
+
+  @override
+  String get dbTooNewMessage => '此数据是由更新版本的应用保存的。请从商店更新应用以继续使用。';
+
+  @override
   String restoredReplace(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -1104,6 +1161,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appLockReason => '解锁 Monthly Expenses';
+
+  @override
+  String get appLockTitle => 'Monthly Expenses';
+
+  @override
+  String get appLockPromptHint => '确认是你';
 
   @override
   String get appLockFailed => '无法确认身份，应用锁设置未更改。';
@@ -1259,6 +1322,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get noteReminderLockedTitle => '有一条备忘到期';
+
+  @override
+  String get noteReminderChannelName => '备忘提醒';
 
   @override
   String get noteReminderPermissionDenied => '请在系统设置中开启通知权限，才能收到备忘提醒。';
@@ -1706,12 +1772,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dueEntryReminderTitle => '有一笔记录到期';
 
   @override
-  String dueEntryReminderOne(String title) {
-    return '$title今天到期，仍在等待处理。';
+  String get dueEntryChannelName => '到期的记录';
+
+  @override
+  String dueEntryReminderOne(String title, String amount) {
+    return '$title（$amount）今天到期，仍在等待处理。';
   }
 
   @override
-  String get dueEntryReminderUntitled => '一笔重复记录今天到期，仍在等待处理。';
+  String dueEntryReminderOneOverdue(String title, String amount, String date) {
+    return '$title（$amount）$date到期，仍在等待处理。';
+  }
+
+  @override
+  String dueEntryReminderUntitled(String amount) {
+    return '一笔重复记录（$amount）今天到期，仍在等待处理。';
+  }
+
+  @override
+  String dueEntryReminderUntitledOverdue(String amount, String date) {
+    return '一笔重复记录（$amount）$date到期，仍在等待处理。';
+  }
 
   @override
   String dueEntryReminderMany(int count) {
@@ -1725,7 +1806,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dueEntryReminderManyWaiting(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '有 $count 笔重复记录仍在等待处理。',
+      one: '有 $count 笔重复记录仍在等待处理。',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get emptyDayReminderTitle => '今天没有记录';
+
+  @override
+  String get emptyDayChannelName => '没有记录的日子';
 
   @override
   String get emptyDayReminderBody => '趁还记得，把花费记下来吧。';

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:monthly_expense_app/models/account.dart';
 import 'package:monthly_expense_app/models/amount_expression.dart';
@@ -77,6 +78,39 @@ void main() {
       // thousandths, not as hundredths or tenths.
       expect(const Money(12005).toInputString(), '12.005');
       expect(const Money(5).toInputString(), '0.005');
+    });
+  });
+
+  group('signedMoney on a zero amount (CUR-5, x-money-format-leftovers)', () {
+    test('en: zero income and zero expense are both unsigned', () {
+      final usd = NumberFormat.currency(
+        locale: 'en_US',
+        symbol: r'$',
+        decimalDigits: 2,
+      );
+      // Zero is neither coming in nor going out (a trend bar with nothing
+      // in it, a CSV row skipped before it had an amount), so it carries no
+      // sign at all rather than "+$0" or "-$0" depending on which side asked.
+      expect(usd.signedMoney(Money.zero, isIncome: true), r'$0');
+      expect(usd.signedMoney(Money.zero, isIncome: false), r'$0');
+    });
+
+    test('ar: zero income and zero expense are both unsigned', () {
+      final ar = NumberFormat.currency(locale: 'ar', name: 'USD');
+      final zeroIncome = ar.signedMoney(Money.zero, isIncome: true);
+      final zeroExpense = ar.signedMoney(Money.zero, isIncome: false);
+      expect(zeroIncome, isNot(contains('+')));
+      expect(zeroIncome, isNot(contains('-')));
+      expect(zeroIncome, zeroExpense);
+    });
+
+    test('ur: zero income and zero expense are both unsigned', () {
+      final ur = NumberFormat.currency(locale: 'ur', name: 'USD');
+      final zeroIncome = ur.signedMoney(Money.zero, isIncome: true);
+      final zeroExpense = ur.signedMoney(Money.zero, isIncome: false);
+      expect(zeroIncome, isNot(contains('+')));
+      expect(zeroIncome, isNot(contains('-')));
+      expect(zeroIncome, zeroExpense);
     });
   });
 
@@ -236,6 +270,33 @@ void main() {
       final cleared = category.copyWith(name: null, archivedAt: null);
       expect((cleared.name, cleared.archivedAt), (null, null));
       expect(cleared.id, category.id);
+    });
+
+    Category withColor(int? color) => category.copyWith(color: color);
+
+    test('nextCategoryColor skips colours already worn by a live category '
+        '(CAT-6)', () {
+      expect(
+        nextCategoryColor([withColor(categoryPalette[0])]),
+        categoryPalette[1],
+      );
+      // Order of use doesn't matter, only which colours are taken.
+      expect(
+        nextCategoryColor([
+          withColor(categoryPalette[1]),
+          withColor(categoryPalette[0]),
+        ]),
+        categoryPalette[2],
+      );
+      // A category that predates colours (null) doesn't block any colour.
+      expect(nextCategoryColor([withColor(null)]), categoryPalette[0]);
+      // No categories: the first colour.
+      expect(nextCategoryColor(const []), categoryPalette[0]);
+    });
+
+    test('nextCategoryColor wraps once every colour is taken (CAT-6)', () {
+      final allTaken = [for (final c in categoryPalette) withColor(c)];
+      expect(nextCategoryColor(allTaken), categoryPalette[0]);
     });
   });
 

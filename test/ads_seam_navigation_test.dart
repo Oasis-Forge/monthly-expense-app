@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'package:monthly_expense_app/db/db_helper.dart';
 import 'package:monthly_expense_app/main.dart';
 import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/providers/settings_provider.dart';
@@ -29,6 +30,7 @@ void main() {
     final ads = FakeAdService(canStart: true, interstitialFills: true);
     await tester.pumpWidget(
       MonthlyExpenseApp(
+        db: DBHelper(path: inMemoryDatabasePath),
         settings: await testSettings({
           'setup_done': true,
           'walkthrough_seen': true,
@@ -88,10 +90,12 @@ void main() {
       final adsProvider = tester
           .element(find.byType(MaterialApp))
           .read<AdsProvider>();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
+      for (var i = 0; i < 100 && !adsProvider.interstitialReady; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
       expect(
         adsProvider.interstitialReady,
         isTrue,
@@ -151,10 +155,12 @@ void main() {
       final adsProvider = tester
           .element(find.byType(MaterialApp))
           .read<AdsProvider>();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
+      for (var i = 0; i < 100 && !adsProvider.interstitialReady; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
       expect(
         adsProvider.interstitialReady,
         isTrue,
@@ -213,10 +219,12 @@ void main() {
       final adsProvider = tester
           .element(find.byType(MaterialApp))
           .read<AdsProvider>();
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
+      for (var i = 0; i < 100 && !adsProvider.interstitialReady; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
       expect(
         adsProvider.interstitialReady,
         isTrue,

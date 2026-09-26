@@ -18,10 +18,15 @@ bool ratingIsDue({
   required String? askedVersion,
   required bool locked,
   required bool adShownThisSession,
+  required bool updateAskedToday,
 }) {
   // RATE-3: not over a lock screen, and not in a visit that has already been
   // interrupted once.
   if (locked || adShownThisSession) return false;
+  // UPD-3: where the update ask and the rating ask both come due in the
+  // same moment, the update goes first and the rating waits for another
+  // day -- not just for the save the update was offered on.
+  if (updateAskedToday) return false;
   // RATE-4: asked is spent, whatever the store did with it.
   if (askedVersion == version) return false;
   // RATE-1: three entries is not an opinion, and a day is not a trial.
