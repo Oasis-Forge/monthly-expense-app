@@ -591,6 +591,40 @@ void main() {
         reason: 'an empty line where Android asks for the app to be opened',
       );
     });
+
+    test('with no payload the widget keeps the device\'s direction, which the '
+        'catalog\'s line is written in (WID-6, LANG-2)', () {
+      final swift = _swiftOf(_widget);
+      // Before the app has run, the only line is the catalog's, in the
+      // device's language; pinning it left to right would put an Arabic or
+      // Urdu line on the wrong edge. The app's own direction (rtl) applies
+      // only to the app's own words.
+      final system = RegExp(
+        r'@Environment\(\s*\\\.layoutDirection\s*\)\s*private\s+var\s+(\w+)',
+      ).firstMatch(swift);
+      expect(system, isNotNull, reason: 'the device\'s direction is read');
+      final name = system!.group(1)!;
+      expect(
+        swift,
+        contains(
+          RegExp(
+            r'guard\s+let\s+payload\s+else\s*\{\s*return\s+' +
+                name +
+                r'\s*\}' +
+                r'|\?\?\s*' +
+                name +
+                r'\b',
+          ),
+        ),
+        reason: 'no payload falls back to the device\'s direction',
+      );
+      expect(swift, contains(RegExp(r'\.environment\(\s*\\\.layoutDirection')));
+      expect(
+        swift,
+        isNot(contains(RegExp(r'rtl\s*==\s*true|\?\?\s*\.leftToRight'))),
+        reason: 'a missing payload must not read as left to right',
+      );
+    });
   });
 }
 

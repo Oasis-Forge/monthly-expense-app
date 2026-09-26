@@ -106,9 +106,19 @@ struct Provider: TimelineProvider {
 
 struct MonthlyExpensesWidgetView: View {
   @Environment(\.widgetFamily) private var family
+  /// The device's direction, as the system hands it to the widget.
+  @Environment(\.layoutDirection) private var systemDirection
   let entry: WidgetTimelineEntry
 
   private var payload: WidgetPayload? { entry.payload }
+
+  /// The app's words come in the app's language, so the app says which way
+  /// they run. Before it has sent any, the only line is the catalog's, in the
+  /// device's language, so the device's direction stays (WID-6).
+  private var direction: LayoutDirection {
+    guard let payload else { return systemDirection }
+    return payload.rtl ? .rightToLeft : .leftToRight
+  }
 
   /// Nothing to show before the app has ever run, and nothing to show while
   /// app lock hides the amounts — which the app enforces by not sending them
@@ -152,7 +162,7 @@ struct MonthlyExpensesWidgetView: View {
       buttons
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .environment(\.layoutDirection, payload?.rtl == true ? .rightToLeft : .leftToRight)
+    .environment(\.layoutDirection, direction)
     .widgetBackground()
     // The whole widget is one tap target. On the medium one the Links above
     // take their own taps and this is what is left — the numbers, which open
