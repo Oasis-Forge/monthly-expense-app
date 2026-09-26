@@ -389,12 +389,22 @@ void main() {
       );
       for (final key in prompts) {
         expect(_entries(catalog), contains(key));
-        // The catalog's English is what English devices read, so it must
-        // not drift from Info.plist's.
-        expect(_values(catalog, key)['en'], infoPlist[key], reason: key);
       }
+    });
+
+    test('the catalog\'s English is Info.plist\'s for every key in it, the '
+        'app name too', () {
+      // Each language's compiled InfoPlist.strings overrides Info.plist on
+      // the phone, English included, so a change made only in Info.plist
+      // (a new app name, a reworded prompt) would never show.
+      final catalog = _catalog('ios/Runner/InfoPlist.xcstrings');
+      expect(
+        _entries(catalog).keys,
+        containsAll(['CFBundleDisplayName', 'CFBundleName']),
+      );
       for (final key in _entries(catalog).keys) {
         expect(infoPlist, contains(key), reason: 'not in Info.plist: $key');
+        expect(_values(catalog, key)['en'], infoPlist[key], reason: key);
       }
     });
 
