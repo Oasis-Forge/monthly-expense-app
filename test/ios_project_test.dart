@@ -82,8 +82,12 @@ const _bundledNativeApis = {
   },
 };
 
-/// The target's own Swift, without its comments, which may name an API
-/// without calling it.
+/// Swift without its comments, which may name an API without calling it.
+String _uncommented(String swift) => swift
+    .replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '')
+    .replaceAll(RegExp(r'//[^\n]*'), '');
+
+/// The target's own Swift, without its comments.
 String _swiftOf(String target) {
   final files =
       Directory('ios/${_folders[target]}')
@@ -93,11 +97,31 @@ String _swiftOf(String target) {
           .toList()
         ..sort((a, b) => a.path.compareTo(b.path));
   expect(files, isNotEmpty);
-  return files
-      .map((file) => file.readAsStringSync())
-      .join('\n')
-      .replaceAll(RegExp(r'/\*[\s\S]*?\*/'), '')
-      .replaceAll(RegExp(r'//[^\n]*'), '');
+  return _uncommented(files.map((file) => file.readAsStringSync()).join('\n'));
+}
+
+/// One Swift file under ios/, without its comments.
+String _swiftFile(String path) =>
+    _uncommented(File('ios/$path').readAsStringSync());
+
+/// The value of a string constant such as `let name = "value"` in [swift].
+String _constant(String swift, String name) {
+  final match = RegExp('\\b$name\\s*=\\s*"([^"]+)"').firstMatch(swift);
+  expect(match, isNotNull, reason: 'no string constant $name');
+  return match!.group(1)!;
+}
+
+/// The Android widget's string [name] in the language [code], unescaped.
+String _androidWidgetString(String code, String name) {
+  final folder = code == 'en'
+      ? 'values'
+      : 'values-${_androidQualifier[code] ?? code}';
+  final match = RegExp('<string name="$name">([^<]*)</string>').firstMatch(
+    File('android/app/src/main/res/$folder/widget_strings.xml')
+        .readAsStringSync(),
+  );
+  expect(match, isNotNull, reason: '$name in $folder');
+  return match!.group(1)!.replaceAll(r"\'", "'").replaceAll(r'\"', '"');
 }
 
 Map<String, Object?> _manifestOf(String target) => _parsePlist(
@@ -281,19 +305,102 @@ void main() {
       }
     });
 
-    test('the required-reason scan finds the App Group defaults in both '
-        'targets\' Swift', () {
-      // A guard on the guard: the app writes the widget's payload into the
-      // shared suite and the widget reads it (WID-5), so the scan above has
-      // to find UserDefaults in each, or it is finding nothing at all.
-      for (final target in _folders.keys) {
+    test('the required-reason scan finds the App Group defaults in the '
+        'app\'s Swift, and none in the widget\'s', () {
+      // A guard on the guard: the app still clears the payload an older
+      // version left in the shared suite (BAK-8), so the scan above has to
+      // find UserDefaults there, or it is finding nothing at all. The widget
+      // reads the payload from a file now (WID-5), so it has none to declare.
+      final defaults =
+          _requiredReasonApis['NSPrivacyAccessedAPICategoryUserDefaults']!.uses;
+      expect(defaults.hasMatch(_swiftOf(_runner)), isTrue);
+      expect(defaults.hasMatch(_swiftOf(_widget)), isFalse);
+    });
+  });
+
+  group('the widget payload stays out of iCloud and computer backups '
+      '(BAK-8, WID-5)', () {
+    // The payload is this period's amounts. UserDefaults, even an App
+    // Group's, lives in a plist no app can exclude from backup, so the app
+    // writes it to a file in a folder it marks excluded instead.
+    final bridge = _swiftFile('Runner/HomeWidgetBridge.swift');
+    final widget = _swiftFile(
+      'MonthlyExpensesWidget/MonthlyExpensesWidget.swift',
+    );
+
+    test('the app and the widget agree on the file, in their shared App '
+        'Group container', () {
+      final container = RegExp(
+        r'containerURL\(\s*forSecurityApplicationGroupIdentifier:\s*'
+        r'(Self\.)?appGroupId\s*\)',
+      );
+      expect(bridge, contains(container));
+      expect(widget, contains(container));
+      for (final name in ['appGroupId', 'payloadFolder', 'payloadFile']) {
+        expect(_constant(bridge, name), _constant(widget, name), reason: name);
+      }
+      for (final path in [
+        'Runner/Runner.entitlements',
+        'MonthlyExpensesWidget/MonthlyExpensesWidget.entitlements',
+      ]) {
+        final entitlements = _parsePlist(
+          File('ios/$path').readAsStringSync(),
+        ) as Map<String, Object?>;
         expect(
-          _requiredReasonApis['NSPrivacyAccessedAPICategoryUserDefaults']!.uses
-              .hasMatch(_swiftOf(target)),
-          isTrue,
-          reason: target,
+          entitlements['com.apple.security.application-groups'],
+          contains(_constant(bridge, 'appGroupId')),
+          reason: path,
         );
       }
+    });
+
+    test('the app marks the folder excluded from backup before it writes the '
+        'file into it, atomically', () {
+      expect(bridge, contains(RegExp(r'\.isExcludedFromBackup\s*=\s*true')));
+      final exclude = bridge.indexOf('.setResourceValues(');
+      final write = bridge.indexOf(RegExp(r'\.write\(\s*to:'));
+      expect(exclude, isNot(-1));
+      expect(write, isNot(-1));
+      expect(
+        exclude,
+        lessThan(write),
+        reason: 'the file must never sit in a folder that is backed up',
+      );
+      expect(
+        bridge,
+        contains(RegExp(r'\.write\(\s*to:[^{}]*?options:\s*\[?\s*\.atomic')),
+        reason: 'the widget must never read half a payload',
+      );
+    });
+
+    test('the widget reads the file, and nothing from UserDefaults', () {
+      expect(widget, contains(RegExp(r'Data\(\s*contentsOf:')));
+      expect(widget, isNot(contains('UserDefaults')));
+    });
+
+    test('the app writes no figures into UserDefaults, and removes those an '
+        'older version left there once the file is written', () {
+      final compact = bridge.replaceAll(RegExp(r'\s'), '');
+      const removal =
+          'UserDefaults(suiteName:Self.appGroupId)?'
+          '.removeObject(forKey:Self.legacyPayloadKey)';
+      // 1.31.1 and earlier kept the payload under this key.
+      expect(_constant(bridge, 'legacyPayloadKey'), 'payload');
+      expect(compact, contains(removal));
+      expect(
+        'UserDefaults'.allMatches(compact).length,
+        removal.split('UserDefaults').length - 1,
+        reason: 'the only use of UserDefaults left is that removal',
+      );
+      // Only once the function that writes the file has returned without
+      // throwing: `try`, not `try?`, which would remove it after a failure.
+      final writer = RegExp(r'func(\w+)\(')
+          .allMatches(compact.substring(0, compact.indexOf('.write(to:')))
+          .last
+          .group(1)!;
+      final call = compact.indexOf('trySelf.$writer(');
+      expect(call, isNot(-1), reason: 'try Self.$writer(…)');
+      expect(compact.indexOf('.removeObject('), greaterThan(call));
     });
   });
 
@@ -420,19 +527,11 @@ void main() {
       final descriptions = _values(catalog, 'widget_description');
       final names = _values(catalog, 'widget_name');
       for (final code in appLanguages.keys) {
-        final folder = code == 'en'
-            ? 'values'
-            : 'values-${_androidQualifier[code] ?? code}';
-        final android =
-            RegExp(r'<string name="widget_medium_description">([^<]*)</string>')
-                .firstMatch(
-                  File('android/app/src/main/res/$folder/widget_strings.xml')
-                      .readAsStringSync(),
-                )!
-                .group(1)!
-                .replaceAll(r"\'", "'")
-                .replaceAll(r'\"', '"');
-        expect(descriptions[_ios(code)], android, reason: code);
+        expect(
+          descriptions[_ios(code)],
+          _androidWidgetString(code, 'widget_medium_description'),
+          reason: code,
+        );
 
         final appTitle = (jsonDecode(
           File('lib/l10n/app_$code.arb').readAsStringSync(),
@@ -459,6 +558,72 @@ void main() {
         expect(key, isNotNull, reason: '.$modifier(Text("key"))');
         expect(_entries(catalog), contains(key!.group(1)));
       }
+    });
+
+    test('before the app has ever run, the widget says what the Android '
+        'widget says, in every language', () {
+      // There is no payload yet, so none of the app's own words either: the
+      // line has to come from the extension's catalog (WID-6, LANG-6).
+      final lines = _values(
+        _catalog('ios/MonthlyExpensesWidget/Localizable.xcstrings'),
+        'widget_open_the_app',
+      );
+      expect(lines.keys, unorderedEquals(_iosLanguages));
+      for (final code in appLanguages.keys) {
+        expect(
+          lines[_ios(code)],
+          _androidWidgetString(code, 'widget_open_the_app'),
+          reason: code,
+        );
+      }
+    });
+
+    test('the widget shows that line when it has no payload, and the app\'s '
+        'own words while app lock hides the amounts (WID-4)', () {
+      final swift = _swiftOf(_widget);
+      // A string literal in Text(...) is a key looked up in the catalog; a
+      // String variable would be shown as it is.
+      expect(swift, contains(RegExp(r'Text\(\s*"widget_open_the_app"\s*\)')));
+      expect(swift, contains(RegExp(r'label\(\s*"hidden"\s*\)')));
+      expect(
+        swift,
+        isNot(contains(RegExp(r'label\(\s*"hidden"\s*\)\s*\?\?\s*""'))),
+        reason: 'an empty line where Android asks for the app to be opened',
+      );
+    });
+
+    test('with no payload the widget keeps the device\'s direction, which the '
+        'catalog\'s line is written in (WID-6, LANG-2)', () {
+      final swift = _swiftOf(_widget);
+      // Before the app has run, the only line is the catalog's, in the
+      // device's language; pinning it left to right would put an Arabic or
+      // Urdu line on the wrong edge. The app's own direction (rtl) applies
+      // only to the app's own words.
+      final system = RegExp(
+        r'@Environment\(\s*\\\.layoutDirection\s*\)\s*private\s+var\s+(\w+)',
+      ).firstMatch(swift);
+      expect(system, isNotNull, reason: 'the device\'s direction is read');
+      final name = system!.group(1)!;
+      expect(
+        swift,
+        contains(
+          RegExp(
+            r'guard\s+let\s+payload\s+else\s*\{\s*return\s+' +
+                name +
+                r'\s*\}' +
+                r'|\?\?\s*' +
+                name +
+                r'\b',
+          ),
+        ),
+        reason: 'no payload falls back to the device\'s direction',
+      );
+      expect(swift, contains(RegExp(r'\.environment\(\s*\\\.layoutDirection')));
+      expect(
+        swift,
+        isNot(contains(RegExp(r'rtl\s*==\s*true|\?\?\s*\.leftToRight'))),
+        reason: 'a missing payload must not read as left to right',
+      );
     });
   });
 }

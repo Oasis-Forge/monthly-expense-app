@@ -11,19 +11,10 @@
 	<array/>
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array/>
+	<!-- None: MonthlyExpensesWidget.swift reads the payload from a file the
+	     app writes into the App Group container (WID-5, BAK-8), which is no
+	     required-reason API, and it no longer touches UserDefaults. -->
 	<key>NSPrivacyAccessedAPITypes</key>
-	<array>
-		<!-- MonthlyExpensesWidget.swift reads the payload the app wrote into
-		     the App Group's UserDefaults suite, which only the app and this
-		     widget share (WID-5): 1C8F.1. -->
-		<dict>
-			<key>NSPrivacyAccessedAPIType</key>
-			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
-			<key>NSPrivacyAccessedAPITypeReasons</key>
-			<array>
-				<string>1C8F.1</string>
-			</array>
-		</dict>
-	</array>
+	<array/>
 </dict>
 </plist>
