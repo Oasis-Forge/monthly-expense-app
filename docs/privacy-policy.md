@@ -6,7 +6,7 @@ title: Privacy Policy – Monthly Expenses
 
 # Privacy Policy
 
-_Last updated: 25 September 2026_
+_Last updated: 26 September 2026_
 
 This policy explains how the **Monthly Expenses** app ("the app") handles your information. It covers the app on Android, iOS, macOS, Windows, and Linux.
 
@@ -14,7 +14,7 @@ This policy explains how the **Monthly Expenses** app ("the app") handles your i
 
 **Nothing you record leaves your device.** Your transactions, titles, notes, categories, accounts, budgets and attachments are stored only on your device, and only you can send them anywhere — by saving a backup or an export.
 
-Your phone's own automatic backup is **switched off for this app**, on every platform. On Android, this app never lets Google Drive back it up on its own. On iOS, it excludes its data from iCloud backup and from a computer backup taken over a cable. Reinstalling the app therefore starts you with nothing — the way to carry your data over is a backup you saved yourself. Moving to a new phone with Android's own transfer still brings it with you on Android 12 and later, because a device-to-device move is you taking your own data with you rather than a copy kept somewhere; on Android 11 and below, that transfer does not carry it either. On iOS, a device-to-device move (Quick Start) does not carry it on any version, so a backup you saved yourself is the only way to bring it to a new iPhone.
+Your records — your transactions, attachments, and the automatic backups the app keeps for undo — are kept out of your phone's own automatic backup. On Android, this app never lets Google Drive back any of the app's data up on its own, including your settings and the widget's numbers. On iOS, the app asks iOS to leave the folders holding your records out of an iCloud backup and a computer backup taken over a cable; your settings and the numbers shown on the home-screen widget are not covered by that request, so iOS can still carry them in a backup like it would for any other app — see **Home-screen widget** below. Reinstalling the app therefore starts you with nothing — the way to carry your data over is a backup you saved yourself. Moving to a new phone with Android's own transfer still brings it with you on Android 12 and later, because a device-to-device move is you taking your own data with you rather than a copy kept somewhere; on Android 11 and below, that transfer does not carry it either. On iOS, a device-to-device move (Quick Start) does not carry it on any version, so a backup you saved yourself is the only way to bring it to a new iPhone.
 
 The app shows **banner ads** on two of its screens, and a **full-screen ad** once you have done ten things in the app that day, shown when you finish something such as a PDF report or a CSV export — through Google AdMob. Ads are the only reason the app uses the internet at all. AdMob receives technical information about your device in order to choose and count an ad — never anything you have recorded. You can buy "Remove ads" once, and then the ad software is never started at all.
 
@@ -77,7 +77,8 @@ Google uses these to choose an ad, count and measure it, and detect fraud. Googl
 
 - The widget is optional; nothing changes unless you add one to your home screen.
 - The app gives it only the numbers it shows — this period's income, spending, balance, and what is left of an overall budget — already written out in your language and currency. It never gets your transactions, titles, notes, accounts, or the database itself.
-- Those numbers are kept in a private area shared by the app and the widget on your device (a private file on Android, an App Group on iOS), so the widget can still show them when the app isn't running. Nothing is sent anywhere, and the widget never uses the internet.
+- Those numbers are kept in a private area shared by the app and the widget on your device (a private file on Android, an App Group on iOS), so the widget can still show them when the app isn't running. The widget never uses the internet, so nothing about it goes over the network.
+- On Android, that private area is covered by the same backup refusal as everything else the app stores. On iOS it is not one of the folders excluded from backup (see **Summary** above), so if app lock is off and amounts are shown on the widget, those numbers can be carried along in an iCloud or computer backup of your phone the same way your settings are.
 - With app lock on, the amounts aren't given to the widget at all, so it shows only its buttons — unless you turn on "Show amounts on the widget" in Settings.
 - Removing the widget from your home screen leaves those numbers behind until the app next runs; uninstalling the app removes them.
 
