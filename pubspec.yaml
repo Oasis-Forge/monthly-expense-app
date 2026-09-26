@@ -59,6 +59,9 @@ dependencies:
   audioplayers: ^6.8.1
   archive: ^4.3.0
   google_mobile_ads: ^9.1.0
+  # iOS asks whether ads may use the advertising identifier, after the
+  # consent form (ADS-17). An iOS-only plugin: nothing on Android or desktop.
+  app_tracking_transparency: ^2.0.7
   in_app_purchase: ^3.3.0
   # purchase_service.dart has to read a Google Play purchase's own billing
   # state (GooglePlayPurchaseDetails, PurchaseStateWrapper), which

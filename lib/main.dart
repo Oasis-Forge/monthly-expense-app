@@ -142,7 +142,12 @@ class MonthlyExpenseApp extends StatelessWidget {
             settings,
             // Windows and Linux have neither SDK, and asking them for
             // anything would throw.
-            ads: ads ?? (AdsConfig.supportsAds ? DeviceAdService() : null),
+            // iOS's tracking prompt never goes over the lock (ADS-17).
+            ads:
+                ads ??
+                (AdsConfig.supportsAds
+                    ? DeviceAdService(locked: appIsLocked)
+                    : null),
             purchases:
                 purchases ??
                 (AdsConfig.supportsAds ? DevicePurchaseService() : null),

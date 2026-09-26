@@ -6,14 +6,20 @@
 // ignore_for_file: implementation_imports
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show AppLifecycleState;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:google_mobile_ads/src/ad_instance_manager.dart'
     show AdMessageCodec;
 import 'package:google_mobile_ads/src/ump/user_messaging_channel.dart';
 
+import 'package:monthly_expense_app/providers/ads_provider.dart';
 import 'package:monthly_expense_app/services/ad_service.dart';
 import 'package:monthly_expense_app/services/ads_config.dart';
+import 'package:monthly_expense_app/services/purchase_service.dart';
+import 'package:monthly_expense_app/services/tracking_prompt.dart';
+
+import 'helpers.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -204,7 +210,196 @@ void main() {
       expect(started, isFalse);
       expect(fake.order, isNot(contains('MobileAds#initialize')));
     });
+
+    group('then the tracking prompt, on iOS alone (ADS-17)', () {
+      setUp(() => debugDefaultTargetPlatformOverride = TargetPlatform.iOS);
+
+      test('comes after the consent flow and before the SDK starts', () async {
+        final fake = fakeConsent(canRequest: true);
+        fake.install();
+        final tracking = FakeTrackingPrompt(log: fake.order);
+
+        final started = await DeviceAdService(tracking: tracking).start();
+
+        expect(started, isTrue);
+        expect(tracking.asked, 1);
+        expect(fake.order, [
+          'requestConsentInfoUpdate',
+          'loadAndShowConsentFormIfRequired',
+          'tracking status',
+          'tracking prompt',
+          'MobileAds#initialize',
+        ]);
+      });
+
+      test('saying no still starts the SDK: ads, just not personalised '
+          '(ADS-5)', () async {
+        final fake = fakeConsent(canRequest: true);
+        fake.install();
+        final tracking = FakeTrackingPrompt(
+          answer: TrackingStatus.denied,
+          log: fake.order,
+        );
+
+        final started = await DeviceAdService(tracking: tracking).start();
+
+        expect(started, isTrue);
+        expect(tracking.asked, 1);
+        expect(fake.order.last, 'MobileAds#initialize');
+      });
+
+      test('is not asked when consent does not allow ads at all', () async {
+        final fake = fakeConsent(canRequest: false);
+        fake.install();
+        final tracking = FakeTrackingPrompt(log: fake.order);
+
+        final started = await DeviceAdService(tracking: tracking).start();
+
+        expect(started, isFalse);
+        expect(tracking.asked, 0);
+        expect(fake.order, isNot(contains('tracking status')));
+        expect(fake.order, isNot(contains('MobileAds#initialize')));
+      });
+
+      test('is not asked again once iOS has an answer', () async {
+        // An earlier launch answered it, the consent message asked it
+        // itself, or the device does not allow it to be asked at all.
+        for (final known in [
+          TrackingStatus.authorized,
+          TrackingStatus.denied,
+          TrackingStatus.restricted,
+        ]) {
+          final fake = fakeConsent(canRequest: true);
+          fake.install();
+          final tracking = FakeTrackingPrompt(current: known, log: fake.order);
+
+          expect(await DeviceAdService(tracking: tracking).start(), isTrue);
+
+          expect(tracking.asked, 0, reason: '$known');
+          expect(fake.order, contains('MobileAds#initialize'));
+        }
+      });
+
+      test('a prompt that fails still starts the SDK', () async {
+        final fake = fakeConsent(canRequest: true);
+        fake.install();
+
+        final started = await DeviceAdService(tracking: _BrokenTrackingPrompt())
+            .start();
+
+        expect(started, isTrue);
+        expect(fake.order.last, 'MobileAds#initialize');
+      });
+
+      test('waits for the app to be active, which iOS insists on', () async {
+        final binding = TestWidgetsFlutterBinding.instance;
+        addTearDown(
+          () =>
+              binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed),
+        );
+        binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+        final fake = fakeConsent(canRequest: true);
+        fake.install();
+        final tracking = FakeTrackingPrompt(log: fake.order);
+
+        final started = DeviceAdService(tracking: tracking).start();
+        await pumpEventQueue();
+
+        expect(tracking.asked, 0);
+        expect(fake.order, isNot(contains('MobileAds#initialize')));
+
+        binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+
+        expect(await started, isTrue);
+        expect(tracking.asked, 1);
+        expect(fake.order.last, 'MobileAds#initialize');
+      });
+
+      test('never goes over the lock screen (LOCK-2)', () async {
+        final locked = ValueNotifier(true);
+        final fake = fakeConsent(canRequest: true);
+        fake.install();
+        final tracking = FakeTrackingPrompt(log: fake.order);
+
+        final started = DeviceAdService(
+          tracking: tracking,
+          locked: locked,
+        ).start();
+        await pumpEventQueue();
+
+        expect(tracking.asked, 0);
+        expect(fake.order, isNot(contains('MobileAds#initialize')));
+
+        locked.value = false;
+
+        expect(await started, isTrue);
+        expect(tracking.asked, 1);
+        expect(fake.order.last, 'MobileAds#initialize');
+      });
+
+      test('is never asked on Android', () async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        final fake = fakeConsent(canRequest: true);
+        fake.install();
+        final tracking = FakeTrackingPrompt(log: fake.order);
+
+        expect(await DeviceAdService(tracking: tracking).start(), isTrue);
+
+        expect(tracking.asked, 0);
+        expect(fake.order, [
+          'requestConsentInfoUpdate',
+          'loadAndShowConsentFormIfRequired',
+          'MobileAds#initialize',
+        ]);
+      });
+
+      test(
+        'is never asked once "Remove ads" is bought (ADS-8, PAY-1)',
+        () async {
+          // The ad software is never started for someone who has paid, so
+          // neither the consent form nor this prompt ever reaches them.
+          Future<({List<String> order, FakeTrackingPrompt tracking})> launch({
+            required bool owned,
+          }) async {
+            final fake = fakeConsent(canRequest: true);
+            fake.install();
+            final tracking = FakeTrackingPrompt(log: fake.order);
+            final provider = AdsProvider(
+              await testSettings({
+                'setup_done': true,
+                'walkthrough_seen': true,
+              }),
+              ads: DeviceAdService(tracking: tracking),
+              purchases: FakePurchases(
+                stage: PurchaseStage.offered,
+                owns: owned,
+              ),
+            );
+            addTearDown(provider.dispose);
+            await provider.start();
+            return (order: fake.order, tracking: tracking);
+          }
+
+          final paid = await launch(owned: true);
+          expect(paid.tracking.asked, 0);
+          expect(paid.order, isEmpty);
+
+          // The same launch without the purchase does ask, so the one above is
+          // quiet because of it.
+          final free = await launch(owned: false);
+          expect(free.tracking.asked, 1);
+          expect(free.order.last, 'MobileAds#initialize');
+        },
+      );
+    });
   });
+}
+
+/// A tracking prompt whose plugin call fails.
+class _BrokenTrackingPrompt extends FakeTrackingPrompt {
+  @override
+  Future<TrackingStatus> request() async =>
+      throw PlatformException(code: 'unavailable');
 }
 
 class _FakeConsentInformation implements ConsentInformation {
