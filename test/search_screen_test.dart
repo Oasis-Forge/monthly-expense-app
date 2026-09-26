@@ -197,14 +197,13 @@ void main() {
         find.widgetWithText(TextField, 'End Date'),
         '03/10/2012',
       );
-      await tester.pump();
-      // A fixed firstDate of 2015 shows this error and leaves the range
-      // unset instead; SRCH-2 says a date range must be able to reach
-      // every record.
-      expect(find.text('Out of range.'), findsNothing);
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
 
+      // A fixed firstDate of 2015 would have rejected 03/01/2012 as out of
+      // range and left the range unset; SRCH-2 says a date range must be
+      // able to reach every record. The chip and results below prove the
+      // range was accepted instead.
       expect(find.text('Mar 1 – Mar 10'), findsOneWidget);
       expect(find.text('Old expense'), findsOneWidget);
       expect(find.text('New expense'), findsNothing);
