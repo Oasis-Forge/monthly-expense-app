@@ -4,6 +4,11 @@ Notable changes per release. Versions follow [Semantic Versioning](https://semve
 
 ## [Unreleased]
 
+## [1.31.1] - 2026-09-26
+
+### Fixed
+- Coming back to the app from Recents or its icon after Android had closed it in the background no longer reopens the form that a shortcut or a widget button first opened it with; it returns to Home (NAV-8, WID-3, pr57_9).
+
 ## [1.31.0] - 2026-09-26
 
 ### Fixed
