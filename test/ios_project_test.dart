@@ -281,14 +281,19 @@ void main() {
       }
     });
 
-    test('the app itself declares the App Group defaults it writes for the '
-        'widget', () {
-      // A guard on the guard: the scan above has to find something here.
-      expect(
-        _requiredReasonApis['NSPrivacyAccessedAPICategoryUserDefaults']!.uses
-            .hasMatch(_swiftOf(_runner)),
-        isTrue,
-      );
+    test('the required-reason scan finds the App Group defaults in both '
+        'targets\' Swift', () {
+      // A guard on the guard: the app writes the widget's payload into the
+      // shared suite and the widget reads it (WID-5), so the scan above has
+      // to find UserDefaults in each, or it is finding nothing at all.
+      for (final target in _folders.keys) {
+        expect(
+          _requiredReasonApis['NSPrivacyAccessedAPICategoryUserDefaults']!.uses
+              .hasMatch(_swiftOf(target)),
+          isTrue,
+          reason: target,
+        );
+      }
     });
   });
 
