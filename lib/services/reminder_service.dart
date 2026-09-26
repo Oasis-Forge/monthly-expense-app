@@ -1,6 +1,7 @@
 import 'dart:async' show unawaited;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show MethodChannel;
 import 'package:flutter/widgets.dart' show Locale;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -211,6 +212,12 @@ abstract class ReminderService {
     required Locale locale,
     required NumberFormat currency,
   });
+
+  /// When each empty-day nudge was due that the phone dropped at a restart
+  /// instead of showing it, late or in the quiet hours (NUDGE-9, NUDGE-6).
+  /// Nobody saw it, so nobody ignored it: those days are left out of the
+  /// count that stops the nudge (NUDGE-5). Empty where nothing is dropped.
+  Future<List<DateTime>> droppedEmptyDayNudges();
 }
 
 /// Does nothing. [TransactionProvider]'s default, so building one without
@@ -242,6 +249,9 @@ class NoopReminderService implements ReminderService {
     required Locale locale,
     required NumberFormat currency,
   }) async {}
+
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() async => const [];
 }
 
 /// Passes every call to [inner], and logs and swallows whatever it throws.
@@ -298,6 +308,10 @@ class SafeReminderService implements ReminderService {
     ),
     null,
   );
+
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() =>
+      _guard(inner.droppedEmptyDayNudges, const <DateTime>[]);
 }
 
 /// Schedules real device notifications through `flutter_local_notifications`.
@@ -597,6 +611,25 @@ class DeviceReminderService implements ReminderService {
         payload: nudgePayload(reminder.kind),
       );
     }
+  }
+
+  /// Where MainActivity hands over what ReminderBootReceiver.kt dropped.
+  static const bootChannel = MethodChannel(
+    'com.oasisforge.monthlyexpenses/reminders',
+  );
+
+  /// Only Android's boot receiver drops anything, and it records when each
+  /// empty-day nudge it dropped was due, in epoch milliseconds.
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+      return const [];
+    }
+    final dropped = await bootChannel.invokeListMethod<int>('droppedEmptyDays');
+    return [
+      for (final at in dropped ?? const <int>[])
+        DateTime.fromMillisecondsSinceEpoch(at),
+    ];
   }
 }
 

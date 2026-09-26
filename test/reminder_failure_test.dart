@@ -47,6 +47,9 @@ class _BrokenReminders implements ReminderService {
     required Locale locale,
     required NumberFormat currency,
   }) async => _fail();
+
+  @override
+  Future<List<DateTime>> droppedEmptyDayNudges() async => _fail();
 }
 
 void main() {
@@ -101,6 +104,13 @@ void main() {
 
     test('ask for permission as if it were refused', () async {
       expect(await SafeReminderService(reminders).requestPermission(), isFalse);
+    });
+
+    test('report no nudge dropped at a restart (NUDGE-5, NUDGE-9)', () async {
+      expect(
+        await SafeReminderService(reminders).droppedEmptyDayNudges(),
+        isEmpty,
+      );
     });
   });
 }

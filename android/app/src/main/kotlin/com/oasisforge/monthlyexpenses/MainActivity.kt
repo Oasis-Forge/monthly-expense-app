@@ -12,6 +12,7 @@ import io.flutter.plugin.common.MethodChannel
 class MainActivity : FlutterFragmentActivity() {
   private var channel: MethodChannel? = null
   private var securityChannel: MethodChannel? = null
+  private var remindersChannel: MethodChannel? = null
 
   /** The widget button that launched the app, until Dart asks for it. */
   private var pendingAction: String? = null
@@ -93,6 +94,19 @@ class MainActivity : FlutterFragmentActivity() {
           }
         }
       }
+    remindersChannel =
+      MethodChannel(flutterEngine.dartExecutor.binaryMessenger, REMINDERS_CHANNEL).apply {
+        setMethodCallHandler { call, result ->
+          when (call.method) {
+            // The empty-day nudges ReminderBootReceiver dropped at a
+            // restart rather than show: nobody saw them, so the app does
+            // not count them as ignored (NUDGE-5, NUDGE-9).
+            "droppedEmptyDays" ->
+              result.success(StaleReminders.droppedEmptyDays(applicationContext))
+            else -> result.notImplemented()
+          }
+        }
+      }
   }
 
   /** A widget tap while the app is already running (WID-3). */
@@ -108,5 +122,6 @@ class MainActivity : FlutterFragmentActivity() {
   private companion object {
     const val CHANNEL = "com.oasisforge.monthlyexpenses/home_widget"
     const val SECURITY_CHANNEL = "com.oasisforge.monthlyexpenses/security"
+    const val REMINDERS_CHANNEL = "com.oasisforge.monthlyexpenses/reminders"
   }
 }

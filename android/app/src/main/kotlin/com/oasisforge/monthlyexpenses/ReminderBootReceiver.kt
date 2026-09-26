@@ -91,6 +91,28 @@ object StaleReminders {
    */
   const val NUDGE_PAYLOAD_PREFIX = "nudge:"
 
+  /**
+   * An empty-day nudge's whole payload: `nudgePayload(ReminderKind.emptyDay)`
+   * in lib/services/reminder_service.dart, held equal by the test.
+   */
+  const val EMPTY_DAY_PAYLOAD = "nudge:emptyDay"
+
+  /**
+   * Where the times of the empty-day nudges dropped here are kept for the
+   * app ([droppedEmptyDays]), which leaves those days out of its count of
+   * ignored ones: the phone never showed them, so nobody ignored them
+   * (NUDGE-5).
+   */
+  const val DROPPED_PREFS = "reminder_boot"
+  const val DROPPED_KEY = "dropped_empty_days"
+
+  /**
+   * How many of those are kept, the newest. The app reads them without
+   * clearing them and looks only at the ones since it last counted, and a
+   * plan never holds more than eight nudges, so this is plenty.
+   */
+  private const val DROPPED_KEPT = 16
+
   /** The plugin's own boot receiver answers exactly these. */
   val BOOT_ACTIONS = setOf(
     Intent.ACTION_BOOT_COMPLETED,
@@ -114,7 +136,8 @@ object StaleReminders {
   /**
    * Rewrites the plugin's copy without the stale one-shots, before the
    * plugin reads it, and disarms whatever alarm is still waiting for them
-   * ([cancelAlarm]). Nothing is written when nothing is stale.
+   * ([cancelAlarm]), and notes the empty-day nudges among them for the app
+   * ([noteDroppedEmptyDays]). Nothing is written when nothing is stale.
    */
   fun drop(
     context: Context,
@@ -133,6 +156,7 @@ object StaleReminders {
       // Only once they are out of the copy: still in it, the plugin would
       // lay them again straight after, and disarming them would be undone.
       for (entry in pruned.dropped) idOf(entry)?.let { cancelAlarm(context, it) }
+      noteDroppedEmptyDays(context, pruned.dropped)
       Log.i(TAG, "Dropped the reminders too late to send, and the nudges due in the quiet hours")
     } catch (error: Exception) {
       Log.w(
@@ -184,6 +208,40 @@ object StaleReminders {
     (context.getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(pending)
     pending.cancel()
   }
+
+  /**
+   * Adds when each empty-day nudge in [dropped] was due to what
+   * [droppedEmptyDays] returns.
+   */
+  private fun noteDroppedEmptyDays(context: Context, dropped: List<JSONObject>) {
+    val times = dropped
+      .filter { it.optString("payload") == EMPTY_DAY_PAYLOAD }
+      .mapNotNull { dueMillis(it) }
+    if (times.isEmpty()) return
+    val all = (droppedEmptyDays(context) + times).distinct().sorted().takeLast(DROPPED_KEPT)
+    context.getSharedPreferences(DROPPED_PREFS, Context.MODE_PRIVATE)
+      .edit()
+      .putString(DROPPED_KEY, JSONArray(all).toString())
+      .commit()
+  }
+
+  /**
+   * When each empty-day nudge dropped here was due, in epoch milliseconds,
+   * oldest first; empty when none was or they cannot be read. MainActivity
+   * hands these to the app.
+   */
+  fun droppedEmptyDays(context: Context): List<Long> =
+    try {
+      val saved = context.getSharedPreferences(DROPPED_PREFS, Context.MODE_PRIVATE)
+        .getString(DROPPED_KEY, null)
+      if (saved == null) {
+        emptyList()
+      } else {
+        JSONArray(saved).let { array -> List(array.length()) { array.getLong(it) } }
+      }
+    } catch (error: Exception) {
+      emptyList()
+    }
 
   /** The notification id the plugin keeps [entry] under, if it reads as one. */
   private fun idOf(entry: JSONObject): Int? = (entry.opt("id") as? Number)?.toInt()

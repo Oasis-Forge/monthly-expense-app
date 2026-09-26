@@ -567,6 +567,69 @@ void main() {
       );
     });
 
+    // A nudge the phone dropped was never shown, so the app must not count
+    // it as ignored: the receiver notes when each empty-day one was due,
+    // and MainActivity hands that to Dart (countIgnoredNudges' dropped).
+    test('notes the empty-day nudges it drops, for the app not to count them '
+        'as ignored (NUDGE-5, NUDGE-9)', () {
+      expect(
+        kotlinConst('EMPTY_DAY_PAYLOAD'),
+        nudgePayload(ReminderKind.emptyDay),
+      );
+      final note = kotlinFun('noteDroppedEmptyDays');
+      for (final part in const [
+        '.filter { it.optString("payload") == EMPTY_DAY_PAYLOAD }',
+        '.mapNotNull { dueMillis(it) }',
+        'getSharedPreferences(DROPPED_PREFS, Context.MODE_PRIVATE)',
+        '.putString(DROPPED_KEY, JSONArray(all).toString())',
+      ]) {
+        expect(note, contains(part));
+      }
+      expect(
+        kotlinFun('droppedEmptyDays'),
+        allOf(
+          contains('getSharedPreferences(DROPPED_PREFS, Context.MODE_PRIVATE)'),
+          contains('.getString(DROPPED_KEY, null)'),
+          contains('array.getLong(it)'),
+        ),
+      );
+      // Once they are out of the plugin's copy, as the alarms are disarmed.
+      final drop = kotlinFun('drop');
+      expect(
+        drop.indexOf('noteDroppedEmptyDays(context, pruned.dropped)'),
+        greaterThan(drop.indexOf('.commit()')),
+      );
+
+      final activity = File(
+        'android/app/src/main/kotlin/com/oasisforge/monthlyexpenses/'
+        'MainActivity.kt',
+      ).readAsStringSync();
+      expect(
+        RegExp(r'const val REMINDERS_CHANNEL = "([^"]*)"')
+            .firstMatch(activity)
+            ?.group(1),
+        DeviceReminderService.bootChannel.name,
+      );
+      expect(
+        activity,
+        contains(
+          'MethodChannel(flutterEngine.dartExecutor.binaryMessenger, '
+          'REMINDERS_CHANNEL)',
+        ),
+      );
+      // The method name test/reminder_service_test.dart has Dart call.
+      expect(
+        activity,
+        contains(
+          RegExp(
+            r'"droppedEmptyDays" ->\s+'
+            r'result\.success\(StaleReminders\.droppedEmptyDays\('
+            r'applicationContext\)\)',
+          ),
+        ),
+      );
+    });
+
     // An app update keeps the alarms a restart clears, and a one-shot the
     // phone held back (Doze, a seldom-opened app's standby bucket) can still
     // be armed hours after its time. Out of the plugin's copy but still
