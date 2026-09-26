@@ -106,10 +106,10 @@ class AdsProvider extends ChangeNotifier {
     // will not see.
     if (_purchases.adsRemoved) return;
     // ADS-5, LOCK-2: the consent form (and, on iOS, the tracking prompt it
-    // leads to) must never appear over the lock screen. Waiting here, rather
-    // than only in `DeviceAdService`, keeps `_started` false while locked, so
-    // `_onLockChanged` can try again — and actually start things — the
-    // moment the app is unlocked.
+    // leads to) must not open over the lock screen when the app comes up
+    // locked. Waiting here, rather than only in `DeviceAdService`, keeps
+    // `_started` false while locked, so `_onLockChanged` can try again —
+    // and actually start things — the moment the app is unlocked.
     if (_locked.value) return;
     _started = true;
     _mayRequest = await _ads.start();
