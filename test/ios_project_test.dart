@@ -1,18 +1,33 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:monthly_expense_app/l10n/languages.dart';
+
 /// The iOS project is not Dart, nothing here can build it, and CI's unsigned
 /// iOS build only proves it compiles. What it cannot prove is what App Store
-/// Connect checks on upload: a privacy manifest that is missing or not
-/// copied into the bundle, or an ad network missing from SKAdNetworkItems.
-/// So this reads the files.
+/// Connect checks on upload and what a person sees on the phone: a privacy
+/// manifest that is missing or not copied into the bundle, an ad network
+/// missing from SKAdNetworkItems, or a system prompt left in English because
+/// its translation never made it into the target. So this reads the files.
 
 const _runner = 'Runner';
 const _widget = 'MonthlyExpensesWidgetExtension';
 
 /// Each target's folder under ios/, where its Swift and resources live.
 const _folders = {_runner: 'Runner', _widget: 'MonthlyExpensesWidget'};
+
+/// iOS names a localization by Apple's own ID, which for Simplified Chinese
+/// is zh-Hans; everything else matches the app's language codes.
+const _iosLocalization = {'zh': 'zh-Hans'};
+
+String _ios(String code) => _iosLocalization[code] ?? code;
+
+final _iosLanguages = [for (final code in appLanguages.keys) _ios(code)];
+
+/// Android reads Indonesian from values-in (see widget_strings_l10n_test).
+const _androidQualifier = {'id': 'in'};
 
 /// Apple's required-reason API categories, what in Swift falls under each,
 /// and the reasons Apple documents for them
@@ -71,6 +86,26 @@ String _swiftOf(String target) {
 Map<String, Object?> _manifestOf(String target) => _parsePlist(
   File('ios/${_folders[target]}/PrivacyInfo.xcprivacy').readAsStringSync(),
 ) as Map<String, Object?>;
+
+Map<String, Object?> _catalog(String path) =>
+    jsonDecode(File(path).readAsStringSync()) as Map<String, Object?>;
+
+Map<String, Object?> _entries(Map<String, Object?> catalog) =>
+    catalog['strings']! as Map<String, Object?>;
+
+/// Every language's value for [key] in [catalog].
+Map<String, String> _values(Map<String, Object?> catalog, String key) {
+  final localizations =
+      (_entries(catalog)[key]! as Map<String, Object?>)['localizations']!
+          as Map<String, Object?>;
+  return {
+    for (final MapEntry(key: language, value: unit) in localizations.entries)
+      language:
+          ((unit! as Map<String, Object?>)['stringUnit']!
+                  as Map<String, Object?>)['value']!
+              as String,
+  };
+}
 
 void main() {
   final project = _Project.read();
@@ -236,6 +271,136 @@ void main() {
       }
     });
   });
+
+  group('languages (LANG-1, LANG-2)', () {
+    test('Info.plist names every app language, and only those', () {
+      expect(
+        (infoPlist['CFBundleLocalizations']! as List).cast<String>(),
+        unorderedEquals(_iosLanguages),
+      );
+      expect(
+        infoPlist['CFBundleDevelopmentRegion'],
+        r'$(DEVELOPMENT_LANGUAGE)',
+      );
+    });
+
+    test('the project knows every app language as a region', () {
+      expect(project.knownRegions, containsAll(_iosLanguages));
+      expect(project.knownRegions, contains('Base'));
+    });
+  });
+
+  group('String Catalogs (LANG-2, LANG-6, WID-6)', () {
+    const catalogs = {
+      'Runner/InfoPlist.xcstrings': _runner,
+      'MonthlyExpensesWidget/Localizable.xcstrings': _widget,
+    };
+
+    for (final MapEntry(key: path, value: target) in catalogs.entries) {
+      test('$path is a String Catalog in English first', () {
+        final catalog = _catalog('ios/$path');
+        expect(catalog['sourceLanguage'], 'en');
+        expect(catalog['version'], isA<String>());
+        expect(_entries(catalog), isNotEmpty);
+      });
+
+      test('$path is in $target\'s resources, and only there', () {
+        expect(project.resources(target), contains(path));
+        expect(project.fileType(path), 'text.json.xcstrings');
+        for (final other in _folders.keys.where((t) => t != target)) {
+          expect(project.resources(other), isNot(contains(path)));
+        }
+      });
+
+      test('$path has every app language for every key', () {
+        final catalog = _catalog('ios/$path');
+        for (final key in _entries(catalog).keys) {
+          final values = _values(catalog, key);
+          expect(
+            values.keys,
+            unorderedEquals(_iosLanguages),
+            reason: '$key is missing languages or has extra ones',
+          );
+          for (final MapEntry(key: language, value: value) in values.entries) {
+            expect(value.trim(), isNotEmpty, reason: '$key in $language');
+          }
+        }
+      });
+    }
+
+    test('every system prompt in Info.plist is translated, from its own '
+        'English', () {
+      final catalog = _catalog('ios/Runner/InfoPlist.xcstrings');
+      final prompts = [
+        for (final key in infoPlist.keys)
+          if (key.startsWith('NS') && key.endsWith('UsageDescription')) key,
+      ];
+      expect(
+        prompts,
+        containsAll([
+          'NSFaceIDUsageDescription',
+          'NSUserTrackingUsageDescription',
+        ]),
+      );
+      for (final key in prompts) {
+        expect(_entries(catalog), contains(key));
+        // The catalog's English is what English devices read, so it must
+        // not drift from Info.plist's.
+        expect(_values(catalog, key)['en'], infoPlist[key], reason: key);
+      }
+      for (final key in _entries(catalog).keys) {
+        expect(infoPlist, contains(key), reason: 'not in Info.plist: $key');
+      }
+    });
+
+    test('the widget gallery says what the Android widget picker says', () {
+      final catalog = _catalog(
+        'ios/MonthlyExpensesWidget/Localizable.xcstrings',
+      );
+      final descriptions = _values(catalog, 'widget_description');
+      final names = _values(catalog, 'widget_name');
+      for (final code in appLanguages.keys) {
+        final folder = code == 'en'
+            ? 'values'
+            : 'values-${_androidQualifier[code] ?? code}';
+        final android =
+            RegExp(r'<string name="widget_medium_description">([^<]*)</string>')
+                .firstMatch(
+                  File('android/app/src/main/res/$folder/widget_strings.xml')
+                      .readAsStringSync(),
+                )!
+                .group(1)!
+                .replaceAll(r"\'", "'")
+                .replaceAll(r'\"', '"');
+        expect(descriptions[_ios(code)], android, reason: code);
+
+        final appTitle = (jsonDecode(
+          File('lib/l10n/app_$code.arb').readAsStringSync(),
+        ) as Map<String, Object?>)['appTitle'];
+        expect(names[_ios(code)], appTitle, reason: code);
+      }
+    });
+
+    test('the widget names itself from the catalog, not from English in the '
+        'Swift', () {
+      final swift = _swiftOf(_widget);
+      final catalog = _catalog(
+        'ios/MonthlyExpensesWidget/Localizable.xcstrings',
+      );
+      for (final modifier in ['configurationDisplayName', 'description']) {
+        expect(
+          swift,
+          isNot(contains(RegExp('\\.$modifier\\(\\s*"'))),
+          reason: '.$modifier("…") would be an English literal',
+        );
+        final key = RegExp(
+          '\\.$modifier\\(\\s*Text\\(\\s*"([^"]+)"\\s*\\)\\s*\\)',
+        ).firstMatch(swift);
+        expect(key, isNotNull, reason: '.$modifier(Text("key"))');
+        expect(_entries(catalog), contains(key!.group(1)));
+      }
+    });
+  });
 }
 
 /// The objects in ios/Runner.xcodeproj/project.pbxproj, read with a small
@@ -262,6 +427,13 @@ class _Project {
   Map<String, Object?> target(String name) => objects.values
       .cast<Map<String, Object?>>()
       .singleWhere((o) => o['isa'] == 'PBXNativeTarget' && o['name'] == name);
+
+  List<String> get knownRegions {
+    final project = objects.values.cast<Map<String, Object?>>().singleWhere(
+      (o) => o['isa'] == 'PBXProject',
+    );
+    return (project['knownRegions']! as List).cast<String>();
+  }
 
   /// The paths, under ios/, of what [targetName]'s Copy Bundle Resources
   /// phase copies.

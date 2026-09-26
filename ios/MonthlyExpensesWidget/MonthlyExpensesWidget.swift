@@ -246,8 +246,11 @@ struct MonthlyExpensesWidget: Widget {
       entry in
       MonthlyExpensesWidgetView(entry: entry)
     }
-    .configurationDisplayName("Monthly Expenses")
-    .description("This period's income, spending, and balance")
+    // What the widget gallery shows, looked up in this extension's
+    // Localizable.xcstrings in the device's language (LANG-2, WID-6): the
+    // same words as the Android widget picker.
+    .configurationDisplayName(Text("widget_name"))
+    .description(Text("widget_description"))
     .supportedFamilies([.systemSmall, .systemMedium])
   }
 }
