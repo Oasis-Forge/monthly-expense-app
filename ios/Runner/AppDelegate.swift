@@ -1,5 +1,6 @@
 import Flutter
 import UIKit
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -12,6 +13,9 @@ import UIKit
 
   func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
     GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    // Required by flutter_local_notifications so a tapped note reminder or
+    // nudge reaches the app (NOTE-6, NUDGE-1).
+    UNUserNotificationCenter.current().delegate = self as? UNUserNotificationCenterDelegate
     // The home-screen widget's channel (WID-3, WID-5).
     if let registrar = engineBridge.pluginRegistry.registrar(
       forPlugin: "HomeWidgetBridge"
