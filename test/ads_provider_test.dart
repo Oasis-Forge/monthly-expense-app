@@ -223,6 +223,7 @@ void main() {
       expect(ads.requested, isEmpty);
 
       locked.value = false;
+      await pumpEventQueue();
 
       expect(provider.showAds, isTrue);
       expect(await provider.loadBanner(AdPlacement.home, 360), isNotNull);
@@ -236,6 +237,7 @@ void main() {
         locked: locked,
       );
       await provider.start();
+      await pumpEventQueue();
       var notified = 0;
       provider.addListener(() => notified++);
 
@@ -245,6 +247,92 @@ void main() {
       expect(notified, 1);
     });
   });
+
+  group(
+    'the consent form and tracking prompt wait for unlock (ADS-5, LOCK-2)',
+    () {
+      test('a locked launch does not start ads', () async {
+        final locked = ValueNotifier(true);
+        final ads = FakeAdService(canStart: true);
+        final provider = build(await settled(), ads: ads, locked: locked);
+
+        await provider.start();
+
+        expect(
+          ads.started,
+          isFalse,
+          reason: 'the consent form must never appear over the lock screen',
+        );
+        expect(provider.showAds, isFalse);
+      });
+
+      test('unlocking starts them once', () async {
+        final locked = ValueNotifier(true);
+        final ads = FakeAdService(canStart: true);
+        final provider = build(await settled(), ads: ads, locked: locked);
+        await provider.start();
+        expect(ads.started, isFalse);
+
+        locked.value = false;
+        await pumpEventQueue();
+
+        expect(ads.startCalls, 1);
+        expect(provider.showAds, isTrue);
+      });
+
+      test('a launch without app lock is unchanged', () async {
+        // No `locked` passed at all — the ordinary case for someone who has
+        // never turned app lock on.
+        final ads = FakeAdService(canStart: true);
+        final provider = build(await settled(), ads: ads);
+
+        await provider.start();
+
+        expect(ads.startCalls, 1);
+        expect(provider.showAds, isTrue);
+      });
+
+      test(
+        'a lock that goes up and down again does not start them twice',
+        () async {
+          final locked = ValueNotifier(true);
+          final ads = FakeAdService(canStart: true);
+          final provider = build(await settled(), ads: ads, locked: locked);
+          await provider.start();
+
+          locked.value = false;
+          await pumpEventQueue();
+          expect(ads.startCalls, 1);
+
+          locked.value = true;
+          locked.value = false;
+          await pumpEventQueue();
+
+          expect(ads.startCalls, 1);
+        },
+      );
+
+      test('Remove ads owned still never starts them, locked or not', () async {
+        final locked = ValueNotifier(true);
+        final ads = FakeAdService(canStart: true);
+        final purchases = FakePurchases(stage: PurchaseStage.owned);
+        final provider = build(
+          await settled(),
+          ads: ads,
+          purchases: purchases,
+          locked: locked,
+        );
+
+        await provider.start();
+        locked.value = false;
+        await pumpEventQueue();
+
+        expect(ads.started, isFalse);
+        expect(provider.adsRemoved, isTrue);
+        expect(provider.showAds, isFalse);
+      });
+    },
+  );
 
   group('the slot height (ADS-2)', () {
     test('is looked up once and kept', () async {
