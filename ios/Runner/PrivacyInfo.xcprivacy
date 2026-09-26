@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- The app's own privacy manifest: what the Swift in ios/Runner does.
-     Flutter, every plugin and the Google Mobile Ads SDK ship their own, and
-     Xcode puts them all together in the app's privacy report. -->
+<!-- The app's privacy manifest: what the Swift in ios/Runner does, and what
+     any code bundled into the app without a manifest of its own does.
+     Flutter, most plugins and the Google Mobile Ads SDK ship their own, and
+     Xcode puts them all together in the app's privacy report. Some do not:
+     the audioplayers_darwin and printing plugins, the google_mobile_ads
+     plugin's own code (the SDK under it has one), and the libraries the
+     sqlite3 and objective_c build hooks bundle. Any required-reason API
+     those call has to be declared here, as SQLite's is below. -->
 <plist version="1.0">
 <dict>
 	<!-- The app's own code tracks no one. What the ad SDK does is in the
